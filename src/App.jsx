@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -23,6 +24,8 @@ import AdminUsers from '@/pages/admin/AdminUsers';
 import AdminBroadcasts from '@/pages/admin/AdminBroadcasts';
 import AdminNotifications from '@/pages/admin/AdminNotifications';
 import ThemePreview from '@/pages/ThemePreview';
+import SplashScreen from '@/components/SplashScreen';
+import { AnimatePresence } from 'framer-motion';
 
 import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 
@@ -97,10 +100,17 @@ const AuthenticatedApp = () => {
 };
 
 function App() {
+  const [splashComplete, setSplashComplete] = useState(false);
+
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
+          <AnimatePresence>
+            {!splashComplete && (
+              <SplashScreen onComplete={() => setSplashComplete(true)} />
+            )}
+          </AnimatePresence>
           <AuthenticatedApp />
         </Router>
         <Toaster />
