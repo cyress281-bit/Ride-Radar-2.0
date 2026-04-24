@@ -17,12 +17,22 @@ export default function Onboarding() {
   const qc = useQueryClient();
   const [form, setForm] = useState({
     displayName: user?.full_name || '',
-    bio: '',
+    avatar: '',
     location: '',
-    rideStyle: 'street',
     bike: '',
   });
   const [detectingLoc, setDetectingLoc] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handleAvatar = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setForm({ ...form, avatar: file_url });
+    } finally { setUploading(false); }
+  };
 
   const detectLocation = () => {
     setDetectingLoc(true);
@@ -98,7 +108,7 @@ export default function Onboarding() {
     },
   });
 
-  const canSubmit = form.displayName.trim().length >= 2;
+  const canSubmit = form.displayName.trim().length >= 2 && form.avatar && form.bike.trim().length > 0;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -123,7 +133,25 @@ export default function Onboarding() {
         <p className="text-muted-foreground mb-8 text-sm">Takes a minute. You can edit anything later.</p>
 
         <div className="space-y-5">
-          {/* Display name */}
+          {/* Avatar */}
+          <div>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">
+              Profile Picture *
+            </Label>
+            <div className="flex items-center gap-4">
+              {form.avatar ? (
+                <img src={form.avatar} className="w-16 h-16 rounded-2xl object-cover border border-border" alt="" />
+              ) : (
+                <div className="w-16 h-16 rounded-2xl bg-secondary/50 border border-dashed border-border flex items-center justify-center font-display font-bold text-xl text-muted-foreground">
+                  {form.displayName?.[0]?.toUpperCase() || '?'}
+                </div>
+              )}
+              <label className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer bg-primary/10 px-4 py-2 rounded-full">
+                <input type="file" accept="image/*" onChange={handleAvatar} className="hidden" />
+                {uploading ? 'Uploading...' : 'Upload picture'}
+              </label>
+            </div>
+          </div>
 
           {/* Display name */}
           <div>
@@ -163,41 +191,12 @@ export default function Onboarding() {
           {/* Bike */}
           <div>
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
-              Bike
+              Bike *
             </Label>
             <Input
               value={form.bike}
               onChange={(e) => setForm({ ...form, bike: e.target.value })}
               placeholder="2022 Triumph Speed Triple"
-            />
-          </div>
-
-          {/* Ride style */}
-          <div>
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
-              Ride style
-            </Label>
-            <Select value={form.rideStyle} onValueChange={(v) => setForm({ ...form, rideStyle: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {['street', 'sport', 'cruiser', 'adventure', 'touring', 'offroad', 'track', 'other'].map(s => (
-                  <SelectItem key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Bio */}
-          <div>
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
-              Bio
-            </Label>
-            <Textarea
-              value={form.bio}
-              onChange={(e) => setForm({ ...form, bio: e.target.value })}
-              placeholder="A little about your ride..."
-              maxLength={200}
-              rows={3}
             />
           </div>
 
