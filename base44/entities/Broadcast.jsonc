@@ -1,0 +1,73 @@
+{
+  "name": "Broadcast",
+  "type": "object",
+  "properties": {
+    "authorId": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "solo_ride",
+        "event",
+        "iso",
+        "alert"
+      ]
+    },
+    "isoSubtype": {
+      "type": "string",
+      "enum": [
+        "mechanic",
+        "bike_crew"
+      ],
+      "description": "Only for ISO broadcasts"
+    },
+    "title": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "frozenLat": {
+      "type": "number",
+      "description": "Fuzzed lat for Solo/ISO"
+    },
+    "frozenLng": {
+      "type": "number",
+      "description": "Fuzzed lng for Solo/ISO"
+    },
+    "exactLocationText": {
+      "type": "string",
+      "description": "Exact for Events; approximate area text for Alerts"
+    },
+    "eventDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "eventEndTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "eventImage": {
+      "type": "string",
+      "description": "Optional event image URL"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired"
+      ],
+      "default": "active"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "authorId",
+    "type",
+    "title"
+  ]
+}

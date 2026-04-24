@@ -1,0 +1,45 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "connection_request",
+        "connection_accepted",
+        "new_message",
+        "rsvp",
+        "event_reminder",
+        "broadcast_expired",
+        "thread_expired",
+        "friend_request",
+        "friend_accepted",
+        "alert"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "isRead": {
+      "type": "boolean",
+      "default": false
+    },
+    "relatedEntityId": {
+      "type": "string"
+    },
+    "relatedEntityType": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "userId",
+    "type",
+    "title"
+  ]
+}

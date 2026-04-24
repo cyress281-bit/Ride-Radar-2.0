@@ -1,0 +1,33 @@
+{
+  "name": "ConnectionRequest",
+  "type": "object",
+  "properties": {
+    "broadcastId": {
+      "type": "string"
+    },
+    "fromUserId": {
+      "type": "string"
+    },
+    "toUserId": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string",
+      "description": "Optional intro message"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "declined"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "broadcastId",
+    "fromUserId",
+    "toUserId"
+  ]
+}

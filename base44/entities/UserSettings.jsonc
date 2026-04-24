@@ -1,0 +1,27 @@
+{
+  "name": "UserSettings",
+  "type": "object",
+  "properties": {
+    "notifyOnConnection": {
+      "type": "boolean",
+      "default": true
+    },
+    "notifyOnMessage": {
+      "type": "boolean",
+      "default": true
+    },
+    "notifyOnRSVP": {
+      "type": "boolean",
+      "default": true
+    },
+    "notifyOnAlert": {
+      "type": "boolean",
+      "default": true
+    },
+    "showLocation": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": []
+}

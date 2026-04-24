@@ -1,0 +1,49 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "username": {
+      "type": "string",
+      "description": "Unique handle"
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "avatar": {
+      "type": "string",
+      "description": "Avatar image URL"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string",
+      "description": "City/region text"
+    },
+    "rideStyle": {
+      "type": "string",
+      "enum": [
+        "street",
+        "sport",
+        "cruiser",
+        "adventure",
+        "touring",
+        "offroad",
+        "track",
+        "other"
+      ]
+    },
+    "bike": {
+      "type": "string",
+      "description": "Free text bike description"
+    },
+    "isPublic": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "username",
+    "displayName"
+  ]
+}

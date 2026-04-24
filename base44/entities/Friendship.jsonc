@@ -1,0 +1,26 @@
+{
+  "name": "Friendship",
+  "type": "object",
+  "properties": {
+    "userAId": {
+      "type": "string",
+      "description": "Initiator"
+    },
+    "userBId": {
+      "type": "string",
+      "description": "Recipient"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "userAId",
+    "userBId"
+  ]
+}

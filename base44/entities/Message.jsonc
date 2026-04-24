@@ -1,0 +1,24 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "conversationId": {
+      "type": "string"
+    },
+    "fromUserId": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "isRead": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "conversationId",
+    "fromUserId",
+    "body"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "Conversation",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "connection",
+        "friendship"
+      ]
+    },
+    "connectionRequestId": {
+      "type": "string"
+    },
+    "friendshipId": {
+      "type": "string"
+    },
+    "participantIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "lastMessageAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "threadExpiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Rolling 72hr for connection type"
+    }
+  },
+  "required": [
+    "type",
+    "participantIds"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "EventRSVP",
+  "type": "object",
+  "properties": {
+    "broadcastId": {
+      "type": "string"
+    },
+    "userId": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "interested",
+        "going"
+      ]
+    }
+  },
+  "required": [
+    "broadcastId",
+    "userId",
+    "status"
+  ]
+}
