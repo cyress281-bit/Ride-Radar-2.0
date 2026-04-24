@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
-import { MapPin, Users, Radio, AlertTriangle, ArrowRight, Zap } from 'lucide-react';
+import { MapPin, Users, Radio, AlertTriangle, ArrowRight, Activity, Zap, Flame, ShieldAlert } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 
 export default function Landing() {
@@ -9,12 +9,10 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-hidden relative">
-      {/* Radar grid */}
-      <div className="absolute inset-0 radar-grid pointer-events-none" />
-
-      {/* Green radial ambient glow */}
-      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-primary/8 blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[10%] right-[-5%] w-[300px] h-[300px] rounded-full bg-primary/5 blur-[80px] pointer-events-none" />
+      {/* Live ambient background */}
+      <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-50" />
+      <div className="absolute top-[-10%] left-[10%] w-[600px] h-[600px] bg-primary/10 ambient-glow" style={{ animationDelay: '0s' }} />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/5 ambient-glow" style={{ animationDelay: '-4s' }} />
 
       {/* Header */}
       <header className="relative z-10 px-6 py-5 flex items-center justify-between max-w-5xl mx-auto w-full">
@@ -69,17 +67,18 @@ export default function Landing() {
         </div>
 
         {/* Feature grid */}
-        <div className="grid md:grid-cols-4 gap-3 mt-20">
+        <div className="grid md:grid-cols-4 gap-4 mt-20">
           {[
-            { icon: MapPin, label: 'Solo Ride', desc: 'Ping riders nearby', color: 'text-solo', border: 'border-solo/30', bg: 'bg-solo/8' },
-            { icon: Users, label: 'In Search Of', desc: 'Mechanic or crew', color: 'text-iso', border: 'border-iso/30', bg: 'bg-iso/8' },
-            { icon: Radio, label: 'Events', desc: 'Rally, meet, RSVP', color: 'text-event', border: 'border-event/30', bg: 'bg-event/8' },
-            { icon: AlertTriangle, label: 'Alerts', desc: 'Road hazards fast', color: 'text-alert', border: 'border-alert/30', bg: 'bg-alert/8' },
+            { icon: Activity, label: 'Solo Ride', desc: 'Live radar pulse', color: 'text-solo', border: 'border-solo/30', bg: 'bg-solo/5' },
+            { icon: Zap, label: 'In Search Of', desc: 'Mechanic or crew', color: 'text-iso', border: 'border-iso/30', bg: 'bg-iso/5' },
+            { icon: Flame, label: 'Events', desc: 'Rally, meet, RSVP', color: 'text-event', border: 'border-event/30', bg: 'bg-event/5' },
+            { icon: ShieldAlert, label: 'Alerts', desc: 'Road hazards fast', color: 'text-alert', border: 'border-alert/30', bg: 'bg-alert/5' },
           ].map((f) => (
-            <div key={f.label} className={`p-5 rounded-2xl border ${f.border} ${f.bg} transition-all`}>
-              <f.icon className={`w-5 h-5 ${f.color} mb-3`} />
-              <div className="font-semibold text-sm mb-1">{f.label}</div>
-              <div className="text-xs text-muted-foreground">{f.desc}</div>
+            <div key={f.label} className={`p-6 rounded-2xl border ${f.border} ${f.bg} transition-all duration-300 hover:scale-[1.02] shadow-lg backdrop-blur-sm relative overflow-hidden group`}>
+              <div className={`absolute top-0 right-0 w-32 h-32 bg-current opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-150 ${f.color}`} />
+              <f.icon className={`w-6 h-6 ${f.color} mb-4 relative z-10`} />
+              <div className="font-semibold text-[15px] mb-1.5 relative z-10">{f.label}</div>
+              <div className="text-sm text-muted-foreground relative z-10">{f.desc}</div>
             </div>
           ))}
         </div>

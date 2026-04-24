@@ -112,14 +112,13 @@ export default function Onboarding() {
   const canSubmit = form.avatar && form.bike.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Radar grid */}
-      <div className="absolute inset-0 radar-grid pointer-events-none" />
+    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center py-10">
+      {/* Live ambient background */}
+      <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-50" />
+      <div className="absolute top-[-10%] left-[20%] w-[500px] h-[500px] bg-primary/10 ambient-glow" style={{ animationDelay: '0s' }} />
+      <div className="absolute bottom-[0%] right-[-10%] w-[400px] h-[400px] bg-primary/5 ambient-glow" style={{ animationDelay: '-3s' }} />
 
-      {/* Ambient glow */}
-      <div className="absolute top-[-5%] left-1/2 -translate-x-1/2 w-[500px] h-[250px] rounded-full bg-primary/6 blur-[90px] pointer-events-none" />
-
-      <div className="relative z-10 max-w-md mx-auto px-5 py-10">
+      <div className="relative z-10 w-full max-w-md px-6 py-10 bg-card/60 backdrop-blur-2xl rounded-3xl border border-border/50 shadow-2xl">
         {/* Brand */}
         <div className="flex items-center gap-2.5 mb-10">
           <RRLogo size="md" />

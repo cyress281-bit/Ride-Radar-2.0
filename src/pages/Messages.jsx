@@ -42,15 +42,16 @@ export default function Messages() {
 
       {isLoading ? (
         <div className="space-y-4">
-          {[0, 1].map((i) => <div key={i} className="h-20 rounded-2xl bg-secondary/50 animate-pulse border border-border/50" />)}
+          {[0, 1].map((i) => <div key={i} className="h-20 rounded-2xl bg-secondary/30 backdrop-blur-md animate-pulse border border-border/50" />)}
         </div>
       ) : conversations.length === 0 ? (
-        <div className="text-center py-20 rounded-3xl border border-dashed border-border bg-secondary/20 mt-8">
-          <div className="w-16 h-16 rounded-full bg-secondary mx-auto flex items-center justify-center mb-5 border border-border/50">
+        <div className="text-center py-20 rounded-3xl border border-dashed border-border/60 bg-card/40 backdrop-blur-xl mt-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-foreground/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 w-16 h-16 rounded-full bg-secondary/50 mx-auto flex items-center justify-center mb-5 border border-border">
             <MessageCircle className="w-7 h-7 text-muted-foreground" />
           </div>
-          <h3 className="font-display font-bold text-xl mb-2">No conversations yet</h3>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto">Connect on a broadcast or add a friend to start chatting.</p>
+          <h3 className="font-display font-bold text-xl mb-2 relative z-10">No conversations yet</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto relative z-10 font-medium">Connect on a broadcast or add a friend to start chatting.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -78,8 +79,8 @@ function Section({ title, items, getOther, archived }) {
               key={c.id}
               to={`/messages/${c.id}`}
               className={cn(
-                'flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300',
-                archived ? 'bg-secondary/20 border-border/30 opacity-70 hover:opacity-100' : 'bg-card border-border/50 hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.1)]'
+                'flex items-center gap-4 p-4 rounded-3xl border transition-all duration-300',
+                archived ? 'bg-secondary/20 border-border/30 opacity-70 hover:opacity-100' : 'bg-card/60 backdrop-blur-xl border-border/50 hover:border-primary/40 hover:shadow-[0_8px_30px_-12px_hsl(var(--primary)/0.2)] hover:-translate-y-0.5'
               )}
             >
               {other?.avatar ? (

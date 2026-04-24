@@ -7,16 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Users, Calendar, AlertTriangle, ArrowLeft, Upload } from 'lucide-react';
+import { ShieldAlert, Activity, Zap, Flame, ArrowLeft, Upload, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { computeExpiresAt, fuzzLocation } from '@/lib/broadcastUtils';
 import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 
 const TYPES = [
-  { id: 'solo_ride', label: 'Solo Ride', desc: 'Ping nearby riders for a 90-min window', icon: MapPin, color: 'solo' },
-  { id: 'iso', label: 'In Search Of', desc: 'Find a mechanic or a bike crew', icon: Users, color: 'iso' },
-  { id: 'event', label: 'Event', desc: 'Rally, meet, ride together', icon: Calendar, color: 'event' },
-  { id: 'alert', label: 'Alert', desc: 'Road hazard, incident — one-way broadcast', icon: AlertTriangle, color: 'alert' },
+  { id: 'solo_ride', label: 'Solo Ride', desc: 'Live radar pulse', icon: Activity, color: 'solo' },
+  { id: 'iso', label: 'In Search Of', desc: 'Find a mechanic or crew', icon: Zap, color: 'iso' },
+  { id: 'event', label: 'Event', desc: 'Rally, meet, ride together', icon: Flame, color: 'event' },
+  { id: 'alert', label: 'Alert', desc: 'Road hazard, one-way broadcast', icon: ShieldAlert, color: 'alert' },
 ];
 
 export default function Broadcast() {
@@ -36,20 +36,21 @@ export default function Broadcast() {
                 key={t.id}
                 onClick={() => setType(t.id)}
                 className={cn(
-                  "w-full text-left p-5 rounded-2xl bg-card border transition-all duration-300 group flex flex-col gap-4 relative overflow-hidden",
-                  `hover:border-${t.color}/50 hover:shadow-[0_0_20px_hsl(var(--${t.color})/0.15)]`
+                  "w-full text-left p-5 rounded-3xl bg-card/60 backdrop-blur-xl border border-border/50 transition-all duration-300 group flex flex-col gap-4 relative overflow-hidden",
+                  `hover:border-${t.color}/60 hover:shadow-[0_12px_40px_-12px_hsl(var(--${t.color})/0.3)] hover:-translate-y-0.5`
                 )}
               >
-                <div className="flex items-start gap-4 z-10">
+                <div className={cn("absolute top-0 right-0 w-32 h-32 opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-150", `bg-${t.color}`)} />
+                <div className="flex items-center gap-5 z-10">
                   <div className={cn(
-                    'w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-current/20 transition-transform group-hover:scale-110',
+                    'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-current/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_currentColor]',
                     `bg-${t.color}/10 text-${t.color}`
                   )}>
-                    <Icon className="w-6 h-6" strokeWidth={2} />
+                    <Icon className="w-7 h-7" strokeWidth={2} />
                   </div>
-                  <div className="flex-1 pt-1">
-                    <div className="font-display font-bold text-lg mb-1 text-foreground transition-colors">{t.label}</div>
-                    <div className="text-sm text-muted-foreground">{t.desc}</div>
+                  <div className="flex-1">
+                    <div className="font-display font-bold text-xl mb-1 text-foreground">{t.label}</div>
+                    <div className="text-[13px] text-muted-foreground font-medium">{t.desc}</div>
                   </div>
                 </div>
               </button>
@@ -166,13 +167,14 @@ function BroadcastForm({ type, onBack, onPosted }) {
         <ArrowLeft className="w-4 h-4" /> All types
       </button>
 
-      <div className="flex items-center gap-4 mb-8 bg-card p-4 rounded-3xl border border-border/50 shadow-sm">
-        <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center border border-current/20', `bg-${typeMeta.color}/10 text-${typeMeta.color}`)}>
-          <Icon className="w-6 h-6" />
+      <div className="flex items-center gap-4 mb-8 bg-card/60 backdrop-blur-xl p-5 rounded-3xl border border-border/50 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden">
+        <div className={cn("absolute top-0 right-0 w-40 h-40 opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2", `bg-${typeMeta.color}`)} />
+        <div className={cn('w-14 h-14 rounded-2xl flex items-center justify-center border border-current/20 shadow-[0_0_15px_currentColor]', `bg-${typeMeta.color}/10 text-${typeMeta.color}`)}>
+          <Icon className="w-7 h-7" strokeWidth={2} />
         </div>
-        <div>
+        <div className="relative z-10">
           <h1 className="font-display text-2xl font-bold tracking-tight">{typeMeta.label}</h1>
-          <p className="text-xs text-muted-foreground">{typeMeta.desc}</p>
+          <p className="text-xs text-muted-foreground font-medium">{typeMeta.desc}</p>
         </div>
       </div>
 

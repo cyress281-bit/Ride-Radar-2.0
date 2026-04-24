@@ -85,6 +85,22 @@
     background-size: 40px 40px;
   }
 
+  .radar-grid-animated {
+    background-image:
+      linear-gradient(hsl(95 100% 50% / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(95 100% 50% / 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: ambient-pan 60s linear infinite;
+  }
+
+  .ambient-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    animation: ambient-pulse 8s ease-in-out infinite alternate;
+  }
+
   /* EKG pulse line */
   .border-glow {
     border-color: hsl(95 100% 50% / 0.35);
@@ -119,6 +135,15 @@
 @keyframes ekg {
   0%, 100% { opacity: 0.4; transform: scaleX(0.95); }
   50% { opacity: 1; transform: scaleX(1); }
+}
+@keyframes ambient-pan {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+@keyframes ambient-pulse {
+  0% { opacity: 0.4; transform: scale(0.95) translate(-5%, -5%); }
+  50% { opacity: 0.7; transform: scale(1.05) translate(5%, 5%); }
+  100% { opacity: 0.4; transform: scale(0.95) translate(-5%, -5%); }
 }
 
 @layer utilities {

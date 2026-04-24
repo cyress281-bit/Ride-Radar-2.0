@@ -17,12 +17,16 @@ export default function Layout() {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Subtle radar grid background */}
-      <div className="fixed inset-0 radar-grid pointer-events-none opacity-60" />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Subtle live background */}
+      <div className="fixed inset-0 radar-grid-animated pointer-events-none opacity-[0.35]" />
+      
+      {/* Ambient moving glows */}
+      <div className="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] max-w-[400px] max-h-[400px] bg-primary/10 ambient-glow" style={{ animationDelay: '0s' }} />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[500px] max-h-[500px] bg-primary/5 ambient-glow" style={{ animationDelay: '-4s' }} />
 
       {/* Top bar */}
-      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b border-border">
+      <header className="sticky top-0 z-40 bg-background/60 backdrop-blur-2xl border-b border-border/40 shadow-sm">
         <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <RRLogo size="sm" />
@@ -59,7 +63,7 @@ export default function Layout() {
       </main>
 
       {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-t border-border">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/70 backdrop-blur-2xl border-t border-border/40 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.3)]">
         <div className="max-w-2xl mx-auto grid grid-cols-4">
           {tabs.map((t) => {
             const active = pathname === t.to || (t.to !== '/home' && pathname.startsWith(t.to));

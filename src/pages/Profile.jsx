@@ -35,35 +35,39 @@ export default function Profile() {
         <ProfileEdit profile={profile} onDone={() => setEditing(false)} />
       ) : (
         <>
-          <div className="flex items-start gap-4 mb-6">
+          <div className="flex items-start gap-5 mb-8 bg-card/40 backdrop-blur-xl p-5 rounded-3xl border border-border/50 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-[-20%] right-[-10%] w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+            
             {profile.avatar ? (
-              <img src={profile.avatar} className="w-20 h-20 rounded-2xl object-cover" alt="" />
+              <img src={profile.avatar} className="w-20 h-20 rounded-2xl object-cover border border-border/50 shadow-[0_0_15px_rgba(0,0,0,0.5)] z-10" alt="" />
             ) : (
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground">
-                {profile.displayName?.[0] || '?'}
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] z-10 border border-primary/20">
+                {profile.displayName?.[0]?.toUpperCase() || '?'}
               </div>
             )}
-            <div className="flex-1 pt-1">
+            <div className="flex-1 pt-1 z-10">
               <div className="flex items-center gap-2">
                 <h1 className="font-display text-2xl font-bold tracking-tight">{profile.displayName}</h1>
                 {user?.role === 'admin' && (
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded">Admin</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded shadow-sm">Admin</span>
                 )}
               </div>
-              {profile.location && <div className="text-xs text-muted-foreground mt-1">{profile.location}</div>}
+              {profile.location && <div className="text-xs text-muted-foreground mt-1 font-medium">{profile.location}</div>}
             </div>
-            <button onClick={() => setEditing(true)} className="p-2 rounded-full hover:bg-secondary">
+            <button onClick={() => setEditing(true)} className="p-2.5 rounded-full bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all z-10 border border-border/50 shadow-sm">
               <Edit2 className="w-4 h-4" />
             </button>
           </div>
 
-          {profile.bio && <p className="text-[15px] mb-4 leading-relaxed">{profile.bio}</p>}
+          {profile.bio && <p className="text-[15px] mb-5 leading-relaxed text-foreground/90">{profile.bio}</p>}
 
           {profile.bike && (
-            <div className="flex items-center gap-2 mb-6 p-3 rounded-xl bg-secondary/50 text-sm">
-              <Bike className="w-4 h-4 text-muted-foreground" />
-              <span>{profile.bike}</span>
-              {profile.rideStyle && <span className="ml-auto text-xs text-muted-foreground capitalize">{profile.rideStyle}</span>}
+            <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 text-sm shadow-sm">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Bike className="w-4 h-4 text-primary" />
+              </div>
+              <span className="font-medium">{profile.bike}</span>
+              {profile.rideStyle && <span className="ml-auto text-[11px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary/80 px-2 py-1 rounded-md">{profile.rideStyle}</span>}
             </div>
           )}
 

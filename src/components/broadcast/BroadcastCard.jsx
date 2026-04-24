@@ -1,38 +1,38 @@
 import { Link } from 'react-router-dom';
-import { AlertTriangle, MapPin, Users, Calendar, Clock, Wrench } from 'lucide-react';
+import { ShieldAlert, Activity, Zap, Flame, Clock, Wrench, MapPin, Calendar } from 'lucide-react';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
 
 const iconMap = {
-  solo_ride: MapPin,
-  iso: Users,
-  event: Calendar,
-  alert: AlertTriangle,
+  solo_ride: Activity,
+  iso: Zap,
+  event: Flame,
+  alert: ShieldAlert,
 };
 
 const typeStyles = {
   alert: {
-    card: 'bg-card border-alert/40 hover:border-alert/70 hover:shadow-[0_0_20px_hsl(var(--alert)/0.15)]',
+    card: 'bg-card/80 backdrop-blur-xl border-alert/40 hover:border-alert/70 shadow-[0_4px_24px_-8px_hsl(var(--alert)/0.2)] hover:shadow-[0_8px_32px_-8px_hsl(var(--alert)/0.3)]',
     badge: 'bg-alert text-alert-foreground',
-    icon: 'bg-alert/10 text-alert',
+    icon: 'bg-alert/10 text-alert shadow-[0_0_15px_hsl(var(--alert)/0.3)]',
     labelColor: 'text-alert',
   },
   solo_ride: {
-    card: 'bg-card border-border hover:border-solo/50 hover:shadow-[0_0_20px_hsl(var(--solo)/0.15)]',
+    card: 'bg-card/80 backdrop-blur-xl border-border/50 hover:border-solo/50 shadow-lg hover:shadow-[0_8px_32px_-8px_hsl(var(--solo)/0.25)]',
     badge: 'bg-solo text-solo-foreground',
-    icon: 'bg-solo/10 text-solo',
+    icon: 'bg-solo/10 text-solo shadow-[0_0_15px_hsl(var(--solo)/0.3)]',
     labelColor: 'text-solo',
   },
   iso: {
-    card: 'bg-card border-border hover:border-iso/50 hover:shadow-[0_0_20px_hsl(var(--iso)/0.15)]',
+    card: 'bg-card/80 backdrop-blur-xl border-border/50 hover:border-iso/50 shadow-lg hover:shadow-[0_8px_32px_-8px_hsl(var(--iso)/0.25)]',
     badge: 'bg-iso text-iso-foreground',
-    icon: 'bg-iso/10 text-iso',
+    icon: 'bg-iso/10 text-iso shadow-[0_0_15px_hsl(var(--iso)/0.3)]',
     labelColor: 'text-iso',
   },
   event: {
-    card: 'bg-card border-border hover:border-event/50 hover:shadow-[0_0_20px_hsl(var(--event)/0.15)]',
+    card: 'bg-card/80 backdrop-blur-xl border-border/50 hover:border-event/50 shadow-lg hover:shadow-[0_8px_32px_-8px_hsl(var(--event)/0.25)]',
     badge: 'bg-event text-event-foreground',
-    icon: 'bg-event/10 text-event',
+    icon: 'bg-event/10 text-event shadow-[0_0_15px_hsl(var(--event)/0.3)]',
     labelColor: 'text-event',
   },
 };
