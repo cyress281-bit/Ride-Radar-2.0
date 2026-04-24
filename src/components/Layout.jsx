@@ -2,6 +2,7 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { Home, Radio, MessageCircle, User, Bell, Shield } from 'lucide-react';
 import { useCurrentUser, useMyProfile } from '@/lib/useCurrentUser';
 import { cn } from '@/lib/utils';
+import RRLogo from '@/components/RRLogo';
 
 const tabs = [
   { to: '/home', icon: Home, label: 'Home' },
@@ -16,23 +17,36 @@ export default function Layout() {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <div className="min-h-screen bg-background noise">
+    <div className="min-h-screen bg-background relative">
+      {/* Subtle radar grid background */}
+      <div className="fixed inset-0 radar-grid pointer-events-none opacity-60" />
+
       {/* Top bar */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/60">
+      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b border-border">
         <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-              <Radio className="w-4 h-4 text-primary-foreground" strokeWidth={2.5} />
-            </div>
-            <span className="font-display font-bold text-lg tracking-tight">Ride Radar</span>
+            <RRLogo size="sm" />
+            <span className="font-display font-bold text-lg tracking-tight">
+              Ride<span className="text-primary">Radar</span>
+            </span>
           </div>
           <div className="flex items-center gap-1">
             {isAdmin && (
-              <NavLink to="/admin" className={({ isActive }) => cn('p-2 rounded-full hover:bg-secondary transition', isActive && 'bg-secondary')}>
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  cn('p-2 rounded-full transition-colors', isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground')
+                }
+              >
                 <Shield className="w-5 h-5" />
               </NavLink>
             )}
-            <NavLink to="/notifications" className={({ isActive }) => cn('p-2 rounded-full hover:bg-secondary transition', isActive && 'bg-secondary')}>
+            <NavLink
+              to="/notifications"
+              className={({ isActive }) =>
+                cn('p-2 rounded-full transition-colors', isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground')
+              }
+            >
               <Bell className="w-5 h-5" />
             </NavLink>
           </div>
@@ -40,12 +54,12 @@ export default function Layout() {
       </header>
 
       {/* Page content */}
-      <main className="max-w-2xl mx-auto pb-24">
+      <main className="relative z-10 max-w-2xl mx-auto pb-24">
         <Outlet />
       </main>
 
-      {/* Bottom tabs */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-t border-border/60">
+      {/* Bottom tab bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-t border-border">
         <div className="max-w-2xl mx-auto grid grid-cols-4">
           {tabs.map((t) => {
             const active = pathname === t.to || (t.to !== '/home' && pathname.startsWith(t.to));
@@ -54,12 +68,24 @@ export default function Layout() {
               <NavLink
                 key={t.to}
                 to={t.to}
-                className="flex flex-col items-center gap-1 py-3 text-xs font-medium transition"
+                className="flex flex-col items-center gap-1 py-3 transition-colors"
               >
-                <div className={cn('p-1.5 rounded-lg transition', active ? 'text-primary' : 'text-muted-foreground')}>
-                  <Icon className="w-[22px] h-[22px]" strokeWidth={active ? 2.5 : 2} />
+                <div className={cn(
+                  'p-1.5 rounded-lg transition-all',
+                  active ? 'text-primary' : 'text-muted-foreground'
+                )}>
+                  <Icon
+                    className="w-[22px] h-[22px]"
+                    strokeWidth={active ? 2.5 : 2}
+                    style={active ? { filter: 'drop-shadow(0 0 5px hsl(142 100% 47% / 0.7))' } : {}}
+                  />
                 </div>
-                <span className={cn('text-[10px] tracking-wide', active ? 'text-primary font-semibold' : 'text-muted-foreground')}>{t.label}</span>
+                <span className={cn(
+                  'text-[10px] tracking-wide font-medium',
+                  active ? 'text-primary' : 'text-muted-foreground'
+                )}>
+                  {t.label}
+                </span>
               </NavLink>
             );
           })}

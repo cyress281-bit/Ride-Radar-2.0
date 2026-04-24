@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -9,57 +9,46 @@
     --font-sans: 'Inter', system-ui, sans-serif;
     --font-display: 'Space Grotesk', system-ui, sans-serif;
 
-    --background: 40 20% 97%;
-    --foreground: 20 14% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 20 14% 8%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 14% 8%;
-    --primary: 18 85% 52%;
-    --primary-foreground: 40 20% 97%;
-    --secondary: 40 15% 92%;
-    --secondary-foreground: 20 14% 8%;
-    --muted: 40 15% 94%;
-    --muted-foreground: 20 8% 42%;
-    --accent: 18 85% 96%;
-    --accent-foreground: 18 85% 32%;
-    --destructive: 0 75% 50%;
-    --destructive-foreground: 40 20% 97%;
-    --border: 30 10% 88%;
-    --input: 30 10% 88%;
-    --ring: 18 85% 52%;
+    /* === RIDE RADAR DARK THEME === */
+    --background: 0 0% 4%;
+    --foreground: 120 5% 96%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 120 5% 96%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 120 5% 96%;
+
+    /* Neon electric green */
+    --primary: 142 100% 47%;
+    --primary-foreground: 0 0% 4%;
+
+    --secondary: 0 0% 11%;
+    --secondary-foreground: 120 5% 85%;
+
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 50%;
+
+    --accent: 142 100% 47%;
+    --accent-foreground: 0 0% 4%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 14%;
+    --input: 0 0% 12%;
+    --ring: 142 100% 47%;
     --radius: 0.75rem;
 
-    --alert: 0 75% 50%;
-    --alert-foreground: 40 20% 97%;
-    --solo: 210 80% 48%;
-    --solo-foreground: 40 20% 97%;
-    --iso: 150 55% 38%;
-    --iso-foreground: 40 20% 97%;
-    --event: 280 55% 50%;
-    --event-foreground: 40 20% 97%;
-  }
-
-  .dark {
-    --background: 20 14% 5%;
-    --foreground: 40 20% 95%;
-    --card: 20 14% 8%;
-    --card-foreground: 40 20% 95%;
-    --popover: 20 14% 8%;
-    --popover-foreground: 40 20% 95%;
-    --primary: 18 85% 55%;
-    --primary-foreground: 20 14% 5%;
-    --secondary: 20 10% 14%;
-    --secondary-foreground: 40 20% 95%;
-    --muted: 20 10% 12%;
-    --muted-foreground: 20 8% 62%;
-    --accent: 18 50% 18%;
-    --accent-foreground: 18 85% 75%;
-    --destructive: 0 75% 55%;
-    --destructive-foreground: 40 20% 95%;
-    --border: 20 10% 18%;
-    --input: 20 10% 18%;
-    --ring: 18 85% 55%;
+    /* Broadcast type colors */
+    --alert: 0 90% 58%;
+    --alert-foreground: 0 0% 98%;
+    --solo: 210 90% 55%;
+    --solo-foreground: 0 0% 98%;
+    --iso: 142 100% 47%;
+    --iso-foreground: 0 0% 4%;
+    --event: 280 70% 60%;
+    --event-foreground: 0 0% 98%;
   }
 }
 
@@ -74,9 +63,67 @@
 }
 
 @layer utilities {
-  .noise {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  /* Neon glow utilities */
+  .glow-green {
+    box-shadow: 0 0 12px 0 hsl(142 100% 47% / 0.45), 0 0 28px 0 hsl(142 100% 47% / 0.18);
   }
+  .glow-green-sm {
+    box-shadow: 0 0 6px 0 hsl(142 100% 47% / 0.35);
+  }
+  .text-glow-green {
+    text-shadow: 0 0 12px hsl(142 100% 47% / 0.6);
+  }
+  .glow-red {
+    box-shadow: 0 0 12px 0 hsl(0 90% 58% / 0.45);
+  }
+
+  /* Radar grid background */
+  .radar-grid {
+    background-image:
+      linear-gradient(hsl(142 100% 47% / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(142 100% 47% / 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* EKG pulse line */
+  .border-glow {
+    border-color: hsl(142 100% 47% / 0.35);
+    box-shadow: 0 0 0 1px hsl(142 100% 47% / 0.12) inset;
+  }
+
   .scroll-hide::-webkit-scrollbar { display: none; }
   .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Green gradient text */
+  .text-gradient-green {
+    background: linear-gradient(135deg, hsl(142 100% 60%), hsl(142 100% 40%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* Keyframes */
+@keyframes pulse-alert {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 8px 0 hsl(142 100% 47% / 0.4); }
+  50% { box-shadow: 0 0 18px 4px hsl(142 100% 47% / 0.7); }
+}
+@keyframes radar-sweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes ekg {
+  0%, 100% { opacity: 0.4; transform: scaleX(0.95); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+@layer utilities {
+  .animate-pulse-alert { animation: pulse-alert 1.8s ease-in-out infinite; }
+  .animate-pulse-green { animation: pulse-green 2s ease-in-out infinite; }
+  .animate-radar { animation: radar-sweep 3s linear infinite; }
+  .animate-ekg { animation: ekg 2s ease-in-out infinite; }
 }
