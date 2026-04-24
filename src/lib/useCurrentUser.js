@@ -16,10 +16,16 @@ export function useCurrentUser() {
 export function useMyProfile() {
   const { data: user } = useCurrentUser();
   return useQuery({
-    queryKey: ['myProfile', user?.id],
+    queryKey: ['myProfile', user?.email],
     enabled: !!user,
     queryFn: async () => {
-      const profiles = await base44.entities.UserProfile.filter({ userId: user.id });
+      // Use email as the stable identity field across logins
+      let profiles = await base44.entities.UserProfile.filter({ email: user.email });
+      
+      // Fallback for older profiles that only had userId
+      if (!profiles || profiles.length === 0) {
+        profiles = await base44.entities.UserProfile.filter({ userId: user.id });
+      }
       return profiles?.[0] || null;
     },
   });

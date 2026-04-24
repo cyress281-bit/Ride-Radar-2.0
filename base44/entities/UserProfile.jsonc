@@ -5,6 +5,10 @@
     "userId": {
       "type": "string"
     },
+    "email": {
+      "type": "string",
+      "description": "Stable auth identity across logins"
+    },
     "username": {
       "type": "string",
       "description": "Unique handle"
@@ -46,7 +50,6 @@
     }
   },
   "required": [
-    "userId",
     "username",
     "displayName"
   ]

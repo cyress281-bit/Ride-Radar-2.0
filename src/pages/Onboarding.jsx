@@ -25,13 +25,39 @@ export default function Onboarding() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const existing = await base44.entities.UserProfile.filter({ username: form.username });
-      if (existing.length > 0) throw new Error('Username taken');
-      await base44.entities.UserProfile.create({ ...form, isPublic: true, userId: user.id });
+      // 1. Account-level profile uniqueness validation using stable identity field (email)
+      const existingAccountProfile = await base44.entities.UserProfile.filter({ email: user.email });
+      if (existingAccountProfile.length > 0) {
+        return { existing: true };
+      }
+
+      // Fallback check for older profiles that only had userId
+      const existingLegacyProfile = await base44.entities.UserProfile.filter({ userId: user.id });
+      if (existingLegacyProfile.length > 0) {
+        return { existing: true };
+      }
+
+      // 2. Username uniqueness validation
+      const existingUsername = await base44.entities.UserProfile.filter({ username: form.username });
+      if (existingUsername.length > 0) throw new Error('Username taken');
+      
+      // 3. Create profile
+      await base44.entities.UserProfile.create({ 
+        ...form, 
+        isPublic: true, 
+        userId: user.id,
+        email: user.email 
+      });
+      return { existing: false };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['myProfile'] });
-      navigate('/home');
+      if (data?.existing) {
+        // Redirect to home if they already have a profile instead of erroring
+        navigate('/home');
+      } else {
+        navigate('/home');
+      }
     },
   });
 
