@@ -139,12 +139,12 @@ export default function Notifications() {
       <p className="text-sm text-muted-foreground mb-6">Requests and updates</p>
 
       {!hasAnything && (
-        <div className="text-center py-16">
-          <div className="w-14 h-14 rounded-2xl bg-accent mx-auto flex items-center justify-center mb-4">
-            <Bell className="w-6 h-6 text-primary" />
+        <div className="text-center py-20 rounded-3xl border border-dashed border-border bg-secondary/20 mt-8">
+          <div className="w-16 h-16 rounded-full bg-secondary mx-auto flex items-center justify-center mb-5 border border-border/50">
+            <Bell className="w-7 h-7 text-muted-foreground" />
           </div>
-          <h3 className="font-semibold text-lg mb-1">All caught up</h3>
-          <p className="text-sm text-muted-foreground">You'll see requests and updates here.</p>
+          <h3 className="font-display font-bold text-xl mb-2">All caught up</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">You'll see requests and updates here.</p>
         </div>
       )}
 
@@ -153,7 +153,7 @@ export default function Notifications() {
           {pendingRequests.map((r) => {
             const from = getProfile(r.fromUserId);
             return (
-              <div key={r.id} className="p-4 rounded-2xl bg-card border border-border/60">
+              <div key={r.id} className="p-5 rounded-2xl bg-card border border-border/60 hover:border-primary/30 transition-colors shadow-sm">
                 <div className="flex items-center gap-3 mb-2">
                   {from?.avatar ? <img src={from.avatar} className="w-9 h-9 rounded-full object-cover" alt="" /> :
                     <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-semibold">{from?.displayName?.[0] || '?'}</div>}
@@ -182,7 +182,7 @@ export default function Notifications() {
           {pendingFriends.map((f) => {
             const from = getProfile(f.userAId);
             return (
-              <div key={f.id} className="p-4 rounded-2xl bg-card border border-border/60 flex items-center gap-3">
+              <div key={f.id} className="p-5 rounded-2xl bg-card border border-border/60 flex items-center gap-4 hover:border-primary/30 transition-colors shadow-sm">
                 {from?.avatar ? <img src={from.avatar} className="w-9 h-9 rounded-full object-cover" alt="" /> :
                   <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-semibold">{from?.displayName?.[0] || '?'}</div>}
                 <div className="flex-1 min-w-0">

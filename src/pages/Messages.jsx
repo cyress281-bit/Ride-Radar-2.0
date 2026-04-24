@@ -41,16 +41,16 @@ export default function Messages() {
       <p className="text-sm text-muted-foreground mb-6">Active threads and conversations</p>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {[0, 1].map((i) => <div key={i} className="h-16 rounded-2xl bg-secondary/50 animate-pulse" />)}
+        <div className="space-y-4">
+          {[0, 1].map((i) => <div key={i} className="h-20 rounded-2xl bg-secondary/50 animate-pulse border border-border/50" />)}
         </div>
       ) : conversations.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="w-14 h-14 rounded-2xl bg-accent mx-auto flex items-center justify-center mb-4">
-            <MessageCircle className="w-6 h-6 text-primary" />
+        <div className="text-center py-20 rounded-3xl border border-dashed border-border bg-secondary/20 mt-8">
+          <div className="w-16 h-16 rounded-full bg-secondary mx-auto flex items-center justify-center mb-5 border border-border/50">
+            <MessageCircle className="w-7 h-7 text-muted-foreground" />
           </div>
-          <h3 className="font-semibold text-lg mb-1">No conversations yet</h3>
-          <p className="text-sm text-muted-foreground">Connect on a broadcast or add a friend to start.</p>
+          <h3 className="font-display font-bold text-xl mb-2">No conversations yet</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">Connect on a broadcast or add a friend to start chatting.</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -78,14 +78,14 @@ function Section({ title, items, getOther, archived }) {
               key={c.id}
               to={`/messages/${c.id}`}
               className={cn(
-                'flex items-center gap-3 p-3 rounded-2xl border transition-all',
-                archived ? 'bg-secondary/30 border-border/40 opacity-70' : 'bg-card border-border/60 hover:border-border'
+                'flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300',
+                archived ? 'bg-secondary/20 border-border/30 opacity-70 hover:opacity-100' : 'bg-card border-border/50 hover:border-primary/50 hover:shadow-[0_0_15px_hsl(var(--primary)/0.1)]'
               )}
             >
               {other?.avatar ? (
-                <img src={other.avatar} className="w-11 h-11 rounded-full object-cover shrink-0" alt="" />
+                <img src={other.avatar} className="w-12 h-12 rounded-full object-cover shrink-0 border border-border/50" alt="" />
               ) : (
-                <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center font-semibold shrink-0">
+                <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center font-display font-bold text-lg text-foreground shrink-0 border border-border/50">
                   {other?.displayName?.[0] || '?'}
                 </div>
               )}

@@ -65,12 +65,15 @@ export default function BroadcastDetail() {
         <ArrowLeft className="w-4 h-4" /> Back
       </button>
 
-      <div className={cn('rounded-2xl border p-5', isAlert ? 'bg-alert/5 border-alert/40' : 'bg-card border-border/60')}>
-        <div className={cn('inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-3',
-          isAlert && 'bg-alert text-alert-foreground',
-          broadcast.type === 'solo_ride' && 'bg-solo text-solo-foreground',
-          broadcast.type === 'iso' && 'bg-iso text-iso-foreground',
-          broadcast.type === 'event' && 'bg-event text-event-foreground'
+      <div className={cn('rounded-3xl border p-6 relative overflow-hidden', isAlert ? 'bg-alert/5 border-alert/40 shadow-[0_0_30px_hsl(var(--alert)/0.1)]' : 'bg-card border-border/60 shadow-lg')}>
+        {isAlert && <div className="absolute top-0 left-0 right-0 h-1 bg-alert animate-pulse-alert" />}
+        {broadcast.type === 'iso' && <div className="absolute top-0 left-0 right-0 h-1 bg-primary" />}
+        
+        <div className={cn('inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-5 border border-current/20',
+          isAlert && 'bg-alert/10 text-alert',
+          broadcast.type === 'solo_ride' && 'bg-solo/10 text-solo',
+          broadcast.type === 'iso' && 'bg-iso/10 text-iso',
+          broadcast.type === 'event' && 'bg-event/10 text-event'
         )}>
           {meta.label}
           {broadcast.isoSubtype && ` · ${broadcast.isoSubtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}`}

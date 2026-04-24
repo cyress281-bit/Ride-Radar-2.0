@@ -12,32 +12,28 @@ const iconMap = {
 
 const typeStyles = {
   alert: {
-    card: 'bg-alert/5 border-alert/30 hover:border-alert/60',
+    card: 'bg-card border-alert/40 hover:border-alert/70 hover:shadow-[0_0_20px_hsl(var(--alert)/0.15)]',
     badge: 'bg-alert text-alert-foreground',
-    icon: 'bg-alert text-alert-foreground',
+    icon: 'bg-alert/10 text-alert',
     labelColor: 'text-alert',
-    glow: '',
   },
   solo_ride: {
-    card: 'bg-card border-border hover:border-solo/50',
+    card: 'bg-card border-border hover:border-solo/50 hover:shadow-[0_0_20px_hsl(var(--solo)/0.15)]',
     badge: 'bg-solo text-solo-foreground',
-    icon: 'bg-solo text-solo-foreground',
+    icon: 'bg-solo/10 text-solo',
     labelColor: 'text-solo',
-    glow: '',
   },
   iso: {
-    card: 'bg-card border-border hover:border-primary/50',
+    card: 'bg-card border-border hover:border-iso/50 hover:shadow-[0_0_20px_hsl(var(--iso)/0.15)]',
     badge: 'bg-iso text-iso-foreground',
-    icon: 'bg-iso text-iso-foreground',
-    labelColor: 'text-primary',
-    glow: '',
+    icon: 'bg-iso/10 text-iso',
+    labelColor: 'text-iso',
   },
   event: {
-    card: 'bg-card border-border hover:border-event/50',
+    card: 'bg-card border-border hover:border-event/50 hover:shadow-[0_0_20px_hsl(var(--event)/0.15)]',
     badge: 'bg-event text-event-foreground',
-    icon: 'bg-event text-event-foreground',
+    icon: 'bg-event/10 text-event',
     labelColor: 'text-event',
-    glow: '',
   },
 };
 
@@ -66,8 +62,8 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng }) {
       <div className="p-4 md:p-5">
         <div className="flex items-start gap-3">
           {/* Type icon */}
-          <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', styles.icon)}>
-            <Icon className="w-5 h-5" strokeWidth={2.2} />
+          <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-current/20', styles.icon)}>
+            <Icon className="w-6 h-6" strokeWidth={2} />
           </div>
 
           <div className="flex-1 min-w-0">

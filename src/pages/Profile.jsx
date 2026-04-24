@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Settings, LogOut, Edit2, Check, X, Bike } from 'lucide-react';
+import { Settings, LogOut, Edit2, Check, X, Bike, MapPin, Loader2 } from 'lucide-react';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import { isExpired } from '@/lib/broadcastUtils';
 import { Link } from 'react-router-dom';
@@ -99,6 +99,35 @@ function ProfileEdit({ profile, onDone }) {
   const qc = useQueryClient();
   const [form, setForm] = useState({ ...profile });
   const [uploading, setUploading] = useState(false);
+  const [detectingLoc, setDetectingLoc] = useState(false);
+
+  const detectLocation = () => {
+    setDetectingLoc(true);
+    if (!navigator.geolocation) {
+      setForm(f => ({ ...f, location: 'Location unavailable' }));
+      setDetectingLoc(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`);
+          const data = await res.json();
+          const area = data.city || data.locality || 'Unknown area';
+          const state = data.principalSubdivision || '';
+          setForm(f => ({ ...f, location: `${area} area` + (state ? `, ${state}` : '') }));
+        } catch (e) {
+          setForm(f => ({ ...f, location: 'Location unavailable' }));
+        }
+        setDetectingLoc(false);
+      },
+      () => {
+        setForm(f => ({ ...f, location: 'Location unavailable' }));
+        setDetectingLoc(false);
+      },
+      { timeout: 10000 }
+    );
+  };
 
   const save = useMutation({
     mutationFn: async () => {
@@ -154,8 +183,16 @@ function ProfileEdit({ profile, onDone }) {
           <Input value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} className="mt-1.5" />
         </div>
         <div>
-          <Label>Location</Label>
-          <Input value={form.location || ''} onChange={(e) => setForm({ ...form, location: e.target.value })} className="mt-1.5" />
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5">Approximate Area</Label>
+          <div className="flex items-center gap-3">
+            <div className="flex-1 px-3 py-2 rounded-lg border border-input bg-secondary/30 text-sm flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              {detectingLoc ? 'Locating...' : (form.location || 'Location unavailable')}
+            </div>
+            <Button type="button" variant="outline" onClick={detectLocation} disabled={detectingLoc} className="rounded-lg">
+              {detectingLoc ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Detect'}
+            </Button>
+          </div>
         </div>
         <div>
           <Label>Bike</Label>

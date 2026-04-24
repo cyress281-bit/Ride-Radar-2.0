@@ -4,8 +4,9 @@ import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
+import { cn } from '@/lib/utils';
 
 export default function Settings() {
   const { data: profile } = useMyProfile();
@@ -52,21 +53,21 @@ export default function Settings() {
       </Link>
       <h1 className="font-display text-2xl font-bold tracking-tight mb-6">Settings</h1>
 
-      <div className="space-y-1 bg-card border border-border/60 rounded-2xl p-2 mb-5">
-        {rows.map((r) => (
-          <div key={r.key} className="flex items-center justify-between px-3 py-3">
-            <span className="text-sm">{r.label}</span>
+      <div className="space-y-1 bg-card border border-border/50 rounded-3xl p-3 mb-6 shadow-sm overflow-hidden">
+        {rows.map((r, i) => (
+          <div key={r.key} className={cn("flex items-center justify-between px-4 py-4", i !== rows.length - 1 && "border-b border-border/40")}>
+            <span className="text-sm font-medium">{r.label}</span>
             <Switch checked={!!settings[r.key]} onCheckedChange={(v) => save.mutate({ [r.key]: v })} />
           </div>
         ))}
-        <div className="flex items-center justify-between px-3 py-3">
-          <span className="text-sm">Public profile preview</span>
+        <div className="flex items-center justify-between px-4 py-4 border-t border-border/40 bg-primary/5 -mx-3 -mb-3 rounded-b-2xl mt-2">
+          <span className="text-sm font-medium text-primary">Public profile preview</span>
           <Switch checked={profile.isPublic !== false} onCheckedChange={(v) => togglePublic.mutate(v)} />
         </div>
       </div>
 
-      <Button variant="outline" onClick={() => logout(true)} className="w-full rounded-full">
-        Log out
+      <Button variant="outline" onClick={() => logout(true)} className="w-full rounded-2xl h-12 text-destructive border-destructive/30 hover:bg-destructive hover:text-destructive-foreground transition-colors">
+        <LogOut className="w-4 h-4 mr-2" /> Log out securely
       </Button>
     </div>
   );

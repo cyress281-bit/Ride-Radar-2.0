@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import RRLogo from '@/components/RRLogo';
+import { MapPin, Loader2 } from 'lucide-react';
 
 export default function Onboarding() {
   const { data: user } = useCurrentUser();
@@ -22,6 +23,39 @@ export default function Onboarding() {
     rideStyle: 'street',
     bike: '',
   });
+  const [detectingLoc, setDetectingLoc] = useState(false);
+
+  const detectLocation = () => {
+    setDetectingLoc(true);
+    if (!navigator.geolocation) {
+      setForm(f => ({ ...f, location: 'Location unavailable' }));
+      setDetectingLoc(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`);
+          const data = await res.json();
+          const area = data.city || data.locality || 'Unknown area';
+          const state = data.principalSubdivision || '';
+          setForm(f => ({ ...f, location: `${area} area` + (state ? `, ${state}` : '') }));
+        } catch (e) {
+          setForm(f => ({ ...f, location: 'Location unavailable' }));
+        }
+        setDetectingLoc(false);
+      },
+      () => {
+        setForm(f => ({ ...f, location: 'Location unavailable' }));
+        setDetectingLoc(false);
+      },
+      { timeout: 10000 }
+    );
+  };
+
+  useEffect(() => {
+    detectLocation();
+  }, []);
 
   const create = useMutation({
     mutationFn: async () => {
@@ -120,13 +154,24 @@ export default function Onboarding() {
           {/* Location */}
           <div>
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
-              Location
+              Approximate Area
             </Label>
-            <Input
-              value={form.location}
-              onChange={(e) => setForm({ ...form, location: e.target.value })}
-              placeholder="Denver, CO"
-            />
+            <div className="flex items-center gap-3">
+              <div className="flex-1 px-4 py-2.5 rounded-lg border border-input bg-secondary/30 text-sm text-foreground flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" />
+                {detectingLoc ? 'Locating...' : (form.location || 'Location unavailable')}
+              </div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={detectLocation} 
+                disabled={detectingLoc}
+                className="shrink-0 rounded-lg hover:border-primary hover:text-primary transition-colors"
+              >
+                {detectingLoc ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Detect'}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">Privacy-safe: We only save a broad area (e.g. "Dallas area").</p>
           </div>
 
           {/* Bike */}

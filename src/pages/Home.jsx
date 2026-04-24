@@ -58,16 +58,16 @@ export default function Home() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
-          {[0, 1, 2].map((i) => <div key={i} className="h-28 rounded-2xl bg-secondary/50 animate-pulse" />)}
+        <div className="space-y-4">
+          {[0, 1, 2].map((i) => <div key={i} className="h-32 rounded-2xl bg-secondary/50 animate-pulse border border-border/50" />)}
         </div>
       ) : ranked.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="w-14 h-14 rounded-2xl bg-accent mx-auto flex items-center justify-center mb-4">
-            <Radio className="w-6 h-6 text-primary" />
+        <div className="text-center py-24 rounded-3xl border border-dashed border-primary/30 bg-primary/5 mt-8">
+          <div className="w-16 h-16 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-5 border border-primary/20 glow-green-sm">
+            <Radio className="w-7 h-7 text-primary animate-pulse" />
           </div>
-          <h3 className="font-semibold text-lg mb-1">Radar is quiet</h3>
-          <p className="text-sm text-muted-foreground">No active broadcasts nearby. Be the first to signal.</p>
+          <h3 className="font-display font-bold text-xl mb-2 text-foreground">Radar is quiet</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">No active broadcasts nearby. Be the first to signal your presence on the network.</p>
         </div>
       ) : (
         <div className="space-y-3">

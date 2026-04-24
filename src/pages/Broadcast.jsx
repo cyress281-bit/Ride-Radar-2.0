@@ -35,17 +35,20 @@ export default function Broadcast() {
               <button
                 key={t.id}
                 onClick={() => setType(t.id)}
-                className="w-full text-left p-5 rounded-2xl bg-card border border-border/60 hover:border-primary/40 transition-all group"
+                className={cn(
+                  "w-full text-left p-5 rounded-2xl bg-card border transition-all duration-300 group flex flex-col gap-4 relative overflow-hidden",
+                  `hover:border-${t.color}/50 hover:shadow-[0_0_20px_hsl(var(--${t.color})/0.15)]`
+                )}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-4 z-10">
                   <div className={cn(
-                    'w-11 h-11 rounded-xl flex items-center justify-center shrink-0',
-                    `bg-${t.color} text-${t.color}-foreground`
+                    'w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-current/20 transition-transform group-hover:scale-110',
+                    `bg-${t.color}/10 text-${t.color}`
                   )}>
-                    <Icon className="w-5 h-5" strokeWidth={2.2} />
+                    <Icon className="w-6 h-6" strokeWidth={2} />
                   </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-base mb-0.5 group-hover:text-primary transition">{t.label}</div>
+                  <div className="flex-1 pt-1">
+                    <div className="font-display font-bold text-lg mb-1 text-foreground transition-colors">{t.label}</div>
                     <div className="text-sm text-muted-foreground">{t.desc}</div>
                   </div>
                 </div>
@@ -163,9 +166,9 @@ function BroadcastForm({ type, onBack, onPosted }) {
         <ArrowLeft className="w-4 h-4" /> All types
       </button>
 
-      <div className="flex items-center gap-3 mb-6">
-        <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', `bg-${typeMeta.color} text-${typeMeta.color}-foreground`)}>
-          <Icon className="w-5 h-5" />
+      <div className="flex items-center gap-4 mb-8 bg-card p-4 rounded-3xl border border-border/50 shadow-sm">
+        <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center border border-current/20', `bg-${typeMeta.color}/10 text-${typeMeta.color}`)}>
+          <Icon className="w-6 h-6" />
         </div>
         <div>
           <h1 className="font-display text-2xl font-bold tracking-tight">{typeMeta.label}</h1>
