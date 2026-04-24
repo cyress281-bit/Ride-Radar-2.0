@@ -60,9 +60,11 @@ export default function Onboarding() {
   const create = useMutation({
     mutationFn: async () => {
       // 1. Account-level profile uniqueness validation using stable identity field (email)
-      const existingAccountProfile = await base44.entities.UserProfile.filter({ email: user.email });
-      if (existingAccountProfile.length > 0) {
-        return { existing: true };
+      if (user.email) {
+        const existingAccountProfile = await base44.entities.UserProfile.filter({ email: user.email });
+        if (existingAccountProfile.length > 0) {
+          return { existing: true };
+        }
       }
 
       // Fallback check for older profiles that only had userId

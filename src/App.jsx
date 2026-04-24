@@ -34,14 +34,16 @@ const AdminGate = ({ children }) => {
 };
 
 const ProfileGate = ({ children }) => {
-  const { data: profile, isLoading } = useMyProfile();
-  if (isLoading) {
+  const { data: profile, isLoading, isPending, isFetching } = useMyProfile();
+  
+  if (isLoading || isPending || isFetching) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-secondary border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
+  
   if (!profile) return <Navigate to="/onboarding" replace />;
   return children;
 };
