@@ -54,6 +54,7 @@
     }
   },
   "required": [
-    "displayName"
+    "avatar",
+    "bike"
   ]
 }

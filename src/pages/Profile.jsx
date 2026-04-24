@@ -131,7 +131,7 @@ function ProfileEdit({ profile, onDone }) {
   const save = useMutation({
     mutationFn: async () => {
       await base44.entities.UserProfile.update(profile.id, {
-        displayName: form.displayName,
+        displayName: form.displayName || profile.fullName || profile.username,
         bio: form.bio,
         location: form.location,
         rideStyle: form.rideStyle,

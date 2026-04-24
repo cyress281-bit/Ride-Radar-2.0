@@ -89,6 +89,7 @@ export default function Onboarding() {
       // 3. Create profile with private full name and auto username
       await base44.entities.UserProfile.create({ 
         ...form, 
+        displayName: form.displayName.trim() || user?.full_name || autoUsername,
         isPublic: true, 
         userId: user.id,
         email: user.email,
@@ -108,7 +109,7 @@ export default function Onboarding() {
     },
   });
 
-  const canSubmit = form.displayName.trim().length >= 2 && form.avatar && form.bike.trim().length > 0;
+  const canSubmit = form.avatar && form.bike.trim().length > 0;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -156,7 +157,7 @@ export default function Onboarding() {
           {/* Display name */}
           <div>
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
-              Display name *
+              Display name
             </Label>
             <Input
               value={form.displayName}
