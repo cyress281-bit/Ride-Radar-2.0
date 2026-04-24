@@ -32,7 +32,10 @@ export default function Home() {
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles-for-feed', authorIds],
     enabled: authorIds.length > 0,
-    queryFn: async () => await Promise.all(authorIds.map(id => base44.entities.UserProfile.get(id))),
+    queryFn: async () => {
+      const res = await Promise.allSettled(authorIds.map(id => base44.entities.UserProfile.get(id)));
+      return res.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
+    },
   });
 
   const ranked = rankBroadcasts(broadcasts, userLoc.lat, userLoc.lng);

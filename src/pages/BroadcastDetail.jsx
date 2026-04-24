@@ -116,7 +116,7 @@ export default function BroadcastDetail() {
       {!isAuthor && !isAlert && profile && (
         <div className="mt-5">
           {broadcast.type === 'event' ? (
-            <EventRSVP broadcastId={id} profileId={profile.id} myRSVP={myRSVP} counts={rsvpCounts} onChange={() => {
+            <EventRSVP broadcast={broadcast} profile={profile} myRSVP={myRSVP} counts={rsvpCounts} onChange={() => {
               qc.invalidateQueries({ queryKey: ['myRSVP', id] });
               qc.invalidateQueries({ queryKey: ['rsvpCounts', id] });
             }} />
@@ -136,17 +136,35 @@ export default function BroadcastDetail() {
   );
 }
 
-function EventRSVP({ broadcastId, profileId, myRSVP, counts, onChange }) {
+function EventRSVP({ broadcast, profile, myRSVP, counts, onChange }) {
   const set = useMutation({
     mutationFn: async (status) => {
+      const broadcastId = broadcast.id;
+      const profileId = profile.id;
       if (myRSVP) {
         if (myRSVP.status === status) {
           await base44.entities.EventRSVP.delete(myRSVP.id);
         } else {
           await base44.entities.EventRSVP.update(myRSVP.id, { status });
+          await base44.functions.invoke('sendNotification', {
+            targetProfileId: broadcast.authorId,
+            type: 'rsvp',
+            title: 'RSVP Updated',
+            body: `@${profile.username} is now ${status === 'going' ? 'going to' : 'interested in'} your event.`,
+            relatedEntityId: broadcastId,
+            relatedEntityType: 'Broadcast'
+          });
         }
       } else {
         await base44.entities.EventRSVP.create({ broadcastId, userId: profileId, status });
+        await base44.functions.invoke('sendNotification', {
+          targetProfileId: broadcast.authorId,
+          type: 'rsvp',
+          title: 'New RSVP',
+          body: `@${profile.username} is ${status === 'going' ? 'going to' : 'interested in'} your event.`,
+          relatedEntityId: broadcastId,
+          relatedEntityType: 'Broadcast'
+        });
       }
     },
     onSuccess: onChange,
@@ -184,6 +202,8 @@ function ConnectionAction({ broadcast, profile, existing, onChange }) {
 
   const send = useMutation({
     mutationFn: async () => {
+      const existing = await base44.entities.ConnectionRequest.filter({ broadcastId: broadcast.id, fromUserId: profile.id });
+      if (existing.length > 0) return;
       await base44.entities.ConnectionRequest.create({
         broadcastId: broadcast.id,
         fromUserId: profile.id,
@@ -191,8 +211,8 @@ function ConnectionAction({ broadcast, profile, existing, onChange }) {
         message: msg,
         status: 'pending',
       });
-      await base44.entities.Notification.create({
-        userId: broadcast.authorId,
+      await base44.functions.invoke('sendNotification', {
+        targetProfileId: broadcast.authorId,
         type: 'connection_request',
         title: 'New connection request',
         body: `@${profile.username} wants to connect on your ${BROADCAST_META[broadcast.type].label.toLowerCase()}`,

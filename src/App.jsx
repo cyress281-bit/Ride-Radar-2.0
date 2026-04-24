@@ -24,7 +24,14 @@ import AdminBroadcasts from '@/pages/admin/AdminBroadcasts';
 import AdminNotifications from '@/pages/admin/AdminNotifications';
 import ThemePreview from '@/pages/ThemePreview';
 
-import { useMyProfile } from '@/lib/useCurrentUser';
+import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
+
+const AdminGate = ({ children }) => {
+  const { data: user, isLoading } = useCurrentUser();
+  if (isLoading) return <div className="fixed inset-0 flex items-center justify-center"><div className="w-8 h-8 border-4 border-secondary border-t-primary rounded-full animate-spin" /></div>;
+  if (user?.role !== 'admin') return <Navigate to="/home" replace />;
+  return children;
+};
 
 const ProfileGate = ({ children }) => {
   const { data: profile, isLoading } = useMyProfile();
@@ -56,6 +63,7 @@ const AuthenticatedApp = () => {
     return (
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/preview" element={<ThemePreview />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -76,10 +84,10 @@ const AuthenticatedApp = () => {
         <Route path="/profile/:userId" element={<RiderProfile />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<AdminUsers />} />
-        <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
-        <Route path="/admin/notifications" element={<AdminNotifications />} />
+        <Route path="/admin" element={<AdminGate><AdminDashboard /></AdminGate>} />
+        <Route path="/admin/users" element={<AdminGate><AdminUsers /></AdminGate>} />
+        <Route path="/admin/broadcasts" element={<AdminGate><AdminBroadcasts /></AdminGate>} />
+        <Route path="/admin/notifications" element={<AdminGate><AdminNotifications /></AdminGate>} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

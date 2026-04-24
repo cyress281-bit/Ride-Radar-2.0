@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MapPin, Users, Calendar, AlertTriangle, ArrowLeft, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { computeExpiresAt, fuzzLocation } from '@/lib/broadcastUtils';
-import { useMyProfile } from '@/lib/useCurrentUser';
+import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 
 const TYPES = [
   { id: 'solo_ride', label: 'Solo Ride', desc: 'Ping nearby riders for a 90-min window', icon: MapPin, color: 'solo' },
@@ -62,13 +62,14 @@ export default function Broadcast() {
 
 function BroadcastForm({ type, onBack, onPosted }) {
   const { data: profile } = useMyProfile();
+  const { data: user } = useCurrentUser();
   const qc = useQueryClient();
 
   const { data: settings } = useQuery({
-    queryKey: ['settings', profile?.id],
-    enabled: !!profile,
+    queryKey: ['settings', user?.id],
+    enabled: !!user,
     queryFn: async () => {
-      const list = await base44.entities.UserSettings.filter({ userId: profile.id });
+      const list = await base44.entities.UserSettings.filter({ userId: user.id });
       return list[0];
     }
   });
@@ -118,8 +119,8 @@ function BroadcastForm({ type, onBack, onPosted }) {
       if (type === 'iso') payload.isoSubtype = form.isoSubtype;
       if (type === 'event') {
         payload.exactLocationText = form.exactLocationText;
-        payload.eventDate = form.eventDate || undefined;
-        payload.eventEndTime = form.eventEndTime || undefined;
+        payload.eventDate = form.eventDate ? new Date(form.eventDate).toISOString() : undefined;
+        payload.eventEndTime = form.eventEndTime ? new Date(form.eventEndTime).toISOString() : undefined;
         if (form.eventImage) payload.eventImage = form.eventImage;
       }
       if (type === 'alert') {
@@ -147,9 +148,13 @@ function BroadcastForm({ type, onBack, onPosted }) {
     }
   };
 
+  const isValidEventTime = type !== 'event' || (
+    form.eventDate && form.eventEndTime && new Date(form.eventEndTime) > new Date(form.eventDate)
+  );
+
   const canPost =
     form.title.trim().length >= 3 &&
-    (type !== 'event' || (form.exactLocationText && form.eventDate && form.eventEndTime)) &&
+    (type !== 'event' || (form.exactLocationText && isValidEventTime)) &&
     (type !== 'alert' || form.exactLocationText.trim().length > 0);
 
   return (

@@ -52,22 +52,29 @@ export default function Notifications() {
   const { data: allProfiles = [] } = useQuery({
     queryKey: ['all-profiles-notif', userIds],
     enabled: userIds.length > 0,
-    queryFn: async () => await Promise.all(userIds.map(id => base44.entities.UserProfile.get(id))),
+    queryFn: async () => {
+      const res = await Promise.allSettled(userIds.map(id => base44.entities.UserProfile.get(id)));
+      return res.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
+    },
   });
 
   const acceptConn = useMutation({
     mutationFn: async (req) => {
       await base44.entities.ConnectionRequest.update(req.id, { status: 'accepted' });
-      const convo = await base44.entities.Conversation.create({
-        type: 'connection',
-        connectionRequestId: req.id,
-        participantIds: [req.fromUserId, req.toUserId],
-        status: 'active',
-        lastMessageAt: new Date().toISOString(),
-        threadExpiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
-      });
-      await base44.entities.Notification.create({
-        userId: req.fromUserId,
+      let convos = await base44.entities.Conversation.filter({ connectionRequestId: req.id });
+      let convo = convos[0];
+      if (!convo) {
+        convo = await base44.entities.Conversation.create({
+          type: 'connection',
+          connectionRequestId: req.id,
+          participantIds: [req.fromUserId, req.toUserId],
+          status: 'active',
+          lastMessageAt: new Date().toISOString(),
+          threadExpiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
+        });
+      }
+      await base44.functions.invoke('sendNotification', {
+        targetProfileId: req.fromUserId,
         type: 'connection_accepted',
         title: 'Connection accepted',
         body: `@${profile.username} accepted your request. Thread active 72h.`,
@@ -91,15 +98,18 @@ export default function Notifications() {
   const acceptFriend = useMutation({
     mutationFn: async (f) => {
       await base44.entities.Friendship.update(f.id, { status: 'active' });
-      await base44.entities.Conversation.create({
-        type: 'friendship',
-        friendshipId: f.id,
-        participantIds: [f.userAId, f.userBId],
-        status: 'active',
-        lastMessageAt: new Date().toISOString(),
-      });
-      await base44.entities.Notification.create({
-        userId: f.userAId,
+      let convos = await base44.entities.Conversation.filter({ friendshipId: f.id });
+      if (!convos[0]) {
+        await base44.entities.Conversation.create({
+          type: 'friendship',
+          friendshipId: f.id,
+          participantIds: [f.userAId, f.userBId],
+          status: 'active',
+          lastMessageAt: new Date().toISOString(),
+        });
+      }
+      await base44.functions.invoke('sendNotification', {
+        targetProfileId: f.userAId,
         type: 'friend_accepted',
         title: 'Friend request accepted',
         body: `@${profile.username} accepted your friend request`,
@@ -195,7 +205,10 @@ export default function Notifications() {
               n.relatedEntityType === 'Broadcast' ? `/broadcast/${n.relatedEntityId}` :
               n.relatedEntityType === 'UserProfile' ? `/profile/${n.relatedEntityId}` : null;
             const content = (
-              <div className={cn('p-3 rounded-xl flex items-start gap-3 transition', n.isRead ? 'bg-card/50' : 'bg-card border border-border/60')}>
+              <div 
+                className={cn('p-3 rounded-xl flex items-start gap-3 transition', n.isRead ? 'bg-card/50' : 'bg-card border border-border/60 cursor-pointer')}
+                onClick={() => { if (!n.isRead) base44.entities.Notification.update(n.id, { isRead: true }) }}
+              >
                 <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
                   <Icon className="w-4 h-4 text-primary" />
                 </div>

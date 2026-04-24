@@ -31,9 +31,15 @@ export default function RiderProfile() {
 
   const sendFriendReq = useMutation({
     mutationFn: async () => {
+      const [list1, list2] = await Promise.all([
+        base44.entities.Friendship.filter({ userAId: me.id, userBId: userId }),
+        base44.entities.Friendship.filter({ userAId: userId, userBId: me.id })
+      ]);
+      if (list1.length > 0 || list2.length > 0) return;
+
       await base44.entities.Friendship.create({ userAId: me.id, userBId: userId, status: 'pending' });
-      await base44.entities.Notification.create({
-        userId,
+      await base44.functions.invoke('sendNotification', {
+        targetProfileId: userId,
         type: 'friend_request',
         title: 'New friend request',
         body: `@${me.username} wants to connect`,
@@ -66,6 +72,7 @@ export default function RiderProfile() {
   const isMe = me?.id === profile.id;
   const isFriend = friendship?.status === 'active';
   const isPending = friendship?.status === 'pending';
+  const canSeeDetails = isMe || isFriend || profile.isPublic !== false;
 
   return (
     <div className="px-5 pt-5">
@@ -74,27 +81,35 @@ export default function RiderProfile() {
       </button>
 
       <div className="flex items-center gap-4 mb-5">
-        {profile.avatar ? (
+        {canSeeDetails && profile.avatar ? (
           <img src={profile.avatar} className="w-20 h-20 rounded-2xl object-cover" alt="" />
         ) : (
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground">
-            {profile.displayName?.[0] || '?'}
+            {canSeeDetails ? (profile.displayName?.[0] || '?') : '?'}
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h1 className="font-display text-2xl font-bold tracking-tight truncate">{profile.displayName}</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight truncate">{canSeeDetails ? profile.displayName : 'Private Rider'}</h1>
           <div className="text-sm text-muted-foreground">@{profile.username}</div>
-          {profile.location && <div className="text-xs text-muted-foreground mt-1">{profile.location}</div>}
+          {canSeeDetails && profile.location && <div className="text-xs text-muted-foreground mt-1">{profile.location}</div>}
         </div>
       </div>
 
-      {profile.bio && <p className="text-[15px] mb-4 leading-relaxed">{profile.bio}</p>}
+      {canSeeDetails ? (
+        <>
+          {profile.bio && <p className="text-[15px] mb-4 leading-relaxed">{profile.bio}</p>}
 
-      {profile.bike && (
-        <div className="flex items-center gap-2 mb-5 p-3 rounded-xl bg-secondary/50 text-sm">
-          <Bike className="w-4 h-4 text-muted-foreground" />
-          <span>{profile.bike}</span>
-          {profile.rideStyle && <span className="ml-auto text-xs text-muted-foreground capitalize">{profile.rideStyle}</span>}
+          {profile.bike && (
+            <div className="flex items-center gap-2 mb-5 p-3 rounded-xl bg-secondary/50 text-sm">
+              <Bike className="w-4 h-4 text-muted-foreground" />
+              <span>{profile.bike}</span>
+              {profile.rideStyle && <span className="ml-auto text-xs text-muted-foreground capitalize">{profile.rideStyle}</span>}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="p-4 bg-secondary/30 rounded-xl text-center text-sm text-muted-foreground my-6">
+          This profile is private. Add them as a friend to see more details.
         </div>
       )}
 

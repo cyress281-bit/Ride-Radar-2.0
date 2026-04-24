@@ -21,7 +21,10 @@ export default function Messages() {
   const { data: profiles = [] } = useQuery({
     queryKey: ['all-profiles', otherIds],
     enabled: otherIds.length > 0,
-    queryFn: async () => await Promise.all(otherIds.map(id => base44.entities.UserProfile.get(id))),
+    queryFn: async () => {
+      const res = await Promise.allSettled(otherIds.map(id => base44.entities.UserProfile.get(id)));
+      return res.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
+    },
   });
 
   const getOther = (c) => {

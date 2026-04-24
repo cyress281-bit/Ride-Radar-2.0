@@ -1,23 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { useMyProfile } from '@/lib/useCurrentUser';
+import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Settings() {
   const { data: profile } = useMyProfile();
+  const { data: user } = useCurrentUser();
+  const { logout } = useAuth();
   const qc = useQueryClient();
 
   const { data: settings } = useQuery({
-    queryKey: ['settings', profile?.id],
-    enabled: !!profile,
+    queryKey: ['settings', user?.id],
+    enabled: !!user,
     queryFn: async () => {
-      const list = await base44.entities.UserSettings.filter({ userId: profile.id });
+      const list = await base44.entities.UserSettings.filter({ userId: user.id });
       if (list[0]) return list[0];
       return await base44.entities.UserSettings.create({
-        userId: profile.id, notifyOnConnection: true, notifyOnMessage: true, notifyOnRSVP: true, notifyOnAlert: true, showLocation: true,
+        userId: user.id, notifyOnConnection: true, notifyOnMessage: true, notifyOnRSVP: true, notifyOnAlert: true, showLocation: true,
       });
     },
   });
@@ -62,7 +65,7 @@ export default function Settings() {
         </div>
       </div>
 
-      <Button variant="outline" onClick={() => base44.auth.logout('/')} className="w-full rounded-full">
+      <Button variant="outline" onClick={() => logout(true)} className="w-full rounded-full">
         Log out
       </Button>
     </div>

@@ -48,8 +48,8 @@ export default function ConversationView() {
         update.threadExpiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
       }
       await base44.entities.Conversation.update(id, update);
-      await base44.entities.Notification.create({
-        userId: otherId,
+      await base44.functions.invoke('sendNotification', {
+        targetProfileId: otherId,
         type: 'new_message',
         title: `New message from @${profile.username}`,
         body: body.slice(0, 100),
