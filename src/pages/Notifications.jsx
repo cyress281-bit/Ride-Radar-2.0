@@ -159,7 +159,7 @@ export default function Notifications() {
                     <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-semibold">{from?.displayName?.[0] || '?'}</div>}
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm">{from?.displayName}</div>
-                    <div className="text-xs text-muted-foreground">@{from?.username} · {timeAgo(r.created_date)}</div>
+                    <div className="text-xs text-muted-foreground">{timeAgo(r.created_date)}</div>
                   </div>
                 </div>
                 {r.message && <p className="text-sm text-muted-foreground mb-3 pl-12">"{r.message}"</p>}
@@ -187,7 +187,6 @@ export default function Notifications() {
                   <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-semibold">{from?.displayName?.[0] || '?'}</div>}
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-sm">{from?.displayName}</div>
-                  <div className="text-xs text-muted-foreground">@{from?.username}</div>
                 </div>
                 <Button size="sm" onClick={() => acceptFriend.mutate(f)} className="rounded-full">Accept</Button>
                 <Button size="sm" variant="ghost" onClick={() => declineFriend.mutate(f)} className="rounded-full">Decline</Button>

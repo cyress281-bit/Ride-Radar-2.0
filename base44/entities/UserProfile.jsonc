@@ -9,9 +9,13 @@
       "type": "string",
       "description": "Stable auth identity across logins"
     },
+    "fullName": {
+      "type": "string",
+      "description": "Private legal/real name from authenticator"
+    },
     "username": {
       "type": "string",
-      "description": "Unique handle"
+      "description": "Unique handle (auto-generated, optional)"
     },
     "displayName": {
       "type": "string"
@@ -50,7 +54,6 @@
     }
   },
   "required": [
-    "username",
     "displayName"
   ]
 }

@@ -16,7 +16,6 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [form, setForm] = useState({
-    username: '',
     displayName: user?.full_name || '',
     bio: '',
     location: '',
@@ -73,16 +72,18 @@ export default function Onboarding() {
         return { existing: true };
       }
 
-      // 2. Username uniqueness validation
-      const existingUsername = await base44.entities.UserProfile.filter({ username: form.username });
-      if (existingUsername.length > 0) throw new Error('Username taken');
+      // 2. Auto-generate internal username
+      const baseName = user?.full_name ? user.full_name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() : 'rider';
+      const autoUsername = `${baseName}${Math.floor(Math.random() * 10000)}`;
       
-      // 3. Create profile
+      // 3. Create profile with private full name and auto username
       await base44.entities.UserProfile.create({ 
         ...form, 
         isPublic: true, 
         userId: user.id,
-        email: user.email 
+        email: user.email,
+        fullName: user?.full_name || '',
+        username: autoUsername
       });
       return { existing: false };
     },
@@ -97,7 +98,7 @@ export default function Onboarding() {
     },
   });
 
-  const canSubmit = form.username.trim().length >= 3 && form.displayName.trim().length >= 2;
+  const canSubmit = form.displayName.trim().length >= 2;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -122,24 +123,7 @@ export default function Onboarding() {
         <p className="text-muted-foreground mb-8 text-sm">Takes a minute. You can edit anything later.</p>
 
         <div className="space-y-5">
-          {/* Username */}
-          <div>
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
-              Username *
-            </Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-semibold text-sm">@</span>
-              <Input
-                id="username"
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
-                placeholder="rider_handle"
-                className="pl-8"
-                maxLength={24}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1.5">Lowercase, letters/numbers/underscore. Min 3.</p>
-          </div>
+          {/* Display name */}
 
           {/* Display name */}
           <div>

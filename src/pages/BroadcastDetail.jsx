@@ -109,7 +109,7 @@ export default function BroadcastDetail() {
             )}
             <div>
               <div className="font-semibold text-sm">{author.displayName}</div>
-              <div className="text-xs text-muted-foreground">@{author.username} · {timeAgo(broadcast.created_date)}</div>
+              <div className="text-xs text-muted-foreground">{timeAgo(broadcast.created_date)}</div>
             </div>
           </Link>
         )}

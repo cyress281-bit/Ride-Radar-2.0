@@ -90,7 +90,6 @@ export default function RiderProfile() {
         )}
         <div className="flex-1 min-w-0">
           <h1 className="font-display text-2xl font-bold tracking-tight truncate">{canSeeDetails ? profile.displayName : 'Private Rider'}</h1>
-          <div className="text-sm text-muted-foreground">@{profile.username}</div>
           {canSeeDetails && profile.location && <div className="text-xs text-muted-foreground mt-1">{profile.location}</div>}
         </div>
       </div>

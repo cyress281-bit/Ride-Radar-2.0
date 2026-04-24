@@ -50,7 +50,6 @@ export default function Profile() {
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded">Admin</span>
                 )}
               </div>
-              <div className="text-sm text-muted-foreground">@{profile.username}</div>
               {profile.location && <div className="text-xs text-muted-foreground mt-1">{profile.location}</div>}
             </div>
             <button onClick={() => setEditing(true)} className="p-2 rounded-full hover:bg-secondary">

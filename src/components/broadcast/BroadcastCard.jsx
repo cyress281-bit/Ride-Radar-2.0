@@ -96,7 +96,7 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng }) {
                   ) : (
                     <div className="w-4 h-4 rounded-full bg-secondary border border-border" />
                   )}
-                  @{author.username}
+                  {author.displayName}
                 </span>
               )}
               {distance && (
