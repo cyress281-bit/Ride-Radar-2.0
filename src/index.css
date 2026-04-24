@@ -40,14 +40,14 @@
     --ring: 142 100% 47%;
     --radius: 0.75rem;
 
-    /* Broadcast type colors */
-    --alert: 0 90% 58%;
+    /* Broadcast type colors — locked spec */
+    --alert: 0 85% 55%;
     --alert-foreground: 0 0% 98%;
-    --solo: 210 90% 55%;
-    --solo-foreground: 0 0% 98%;
-    --iso: 142 100% 47%;
+    --solo: 142 100% 47%;
+    --solo-foreground: 0 0% 4%;
+    --iso: 43 96% 52%;
     --iso-foreground: 0 0% 4%;
-    --event: 280 70% 60%;
+    --event: 210 90% 55%;
     --event-foreground: 0 0% 98%;
   }
 }
