@@ -22,6 +22,7 @@ import AdminDashboard from '@/pages/admin/AdminDashboard';
 import AdminUsers from '@/pages/admin/AdminUsers';
 import AdminBroadcasts from '@/pages/admin/AdminBroadcasts';
 import AdminNotifications from '@/pages/admin/AdminNotifications';
+import ThemePreview from '@/pages/ThemePreview';
 
 import { useMyProfile } from '@/lib/useCurrentUser';
 
@@ -64,6 +65,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/" element={<Navigate to="/home" replace />} />
       <Route path="/onboarding" element={<Onboarding />} />
+      <Route path="/preview" element={<ThemePreview />} />
       <Route element={<ProfileGate><Layout /></ProfileGate>}>
         <Route path="/home" element={<Home />} />
         <Route path="/broadcast" element={<Broadcast />} />
