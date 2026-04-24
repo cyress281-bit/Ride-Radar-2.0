@@ -69,7 +69,14 @@ export function timeAgo(iso) {
 export function timeUntilExpiry(iso) {
   const diff = (new Date(iso).getTime() - Date.now()) / 1000;
   if (diff <= 0) return 'expired';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m left`;
+  if (diff < 60) return `<1m left`;
+  if (diff < 7200) {
+    // Under 2 hours: show hours + minutes
+    const h = Math.floor(diff / 3600);
+    const m = Math.floor((diff % 3600) / 60);
+    if (h === 0) return `${m}m left`;
+    return `${h}h ${m}m left`;
+  }
   if (diff < 86400) return `${Math.floor(diff / 3600)}h left`;
   return `${Math.floor(diff / 86400)}d left`;
 }
