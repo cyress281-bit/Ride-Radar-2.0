@@ -39,7 +39,7 @@ export default function Landing() {
             Live rider broadcast network
           </div>
 
-          <img src="https://media.base44.com/images/public/69eaf617762119e163948021/91e2e364b_Neonheartbeatmotorcyclelogo.png" alt="Hero Logo" className="w-full max-w-[320px] mb-6 drop-shadow-[0_0_20px_hsl(var(--primary)/0.6)]" />
+          <img src="https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png" alt="Hero Logo" className="w-full max-w-[320px] mb-6 drop-shadow-[0_0_20px_hsl(var(--primary)/0.6)]" />
 
           <h1 className="font-display text-5xl md:text-7xl font-extrabold tracking-tight leading-[0.98] mb-6">
             <span className="text-foreground">Signal out.</span>

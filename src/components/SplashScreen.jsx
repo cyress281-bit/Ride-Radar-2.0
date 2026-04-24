@@ -40,7 +40,7 @@ export default function SplashScreen({ onComplete }) {
       <div className="relative w-[90vw] max-w-[500px]">
         {/* Invisible reference image to lock the exact aspect ratio perfectly */}
         <img 
-          src="https://media.base44.com/images/public/69eaf617762119e163948021/2baf8801d_Neonheartbeatmotorcyclelogo1.png" 
+          src="https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png" 
           className="w-full h-auto opacity-0 pointer-events-none"
           alt=""
         />
@@ -54,7 +54,7 @@ export default function SplashScreen({ onComplete }) {
           transition={{ duration: 1.5, ease: "easeInOut" }}
         >
           <img 
-            src="https://media.base44.com/images/public/69eaf617762119e163948021/2baf8801d_Neonheartbeatmotorcyclelogo1.png" 
+            src="https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png" 
             alt=""
             className="w-full h-full object-contain"
           />
@@ -70,7 +70,7 @@ export default function SplashScreen({ onComplete }) {
           style={{ clipPath: `inset(0 0 0 ${splitPercent}%)` }}
         >
           <img 
-            src="https://media.base44.com/images/public/69eaf617762119e163948021/2baf8801d_Neonheartbeatmotorcyclelogo1.png" 
+            src="https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png" 
             alt=""
             className="w-full h-full object-contain"
           />
@@ -91,7 +91,7 @@ export default function SplashScreen({ onComplete }) {
           transition={{ duration: 1.0, ease: "easeInOut" }}
         >
           <img 
-            src="https://media.base44.com/images/public/69eaf617762119e163948021/2baf8801d_Neonheartbeatmotorcyclelogo1.png" 
+            src="https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png" 
             alt="Ride Radar"
             className="w-full h-full object-contain"
           />

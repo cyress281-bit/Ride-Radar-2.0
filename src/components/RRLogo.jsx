@@ -7,7 +7,7 @@ export default function RRLogo({ size = 'md', glow = true, className }) {
   const h = dims[size] || dims.md;
   return (
     <img
-      src="https://media.base44.com/images/public/69eaf617762119e163948021/91e2e364b_Neonheartbeatmotorcyclelogo.png"
+      src="https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png"
       alt="Ride Radar Logo"
       style={{ height: h, width: 'auto' }}
       className={cn(
