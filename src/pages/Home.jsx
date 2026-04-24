@@ -27,10 +27,12 @@ export default function Home() {
     refetchInterval: 30000,
   });
 
+  const authorIds = Array.from(new Set(broadcasts.map(b => b.authorId)));
+
   const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles-for-feed', broadcasts.map((b) => b.authorId).join(',')],
-    enabled: broadcasts.length > 0,
-    queryFn: async () => await base44.entities.UserProfile.list('-created_date', 500),
+    queryKey: ['profiles-for-feed', authorIds],
+    enabled: authorIds.length > 0,
+    queryFn: async () => await Promise.all(authorIds.map(id => base44.entities.UserProfile.get(id))),
   });
 
   const ranked = rankBroadcasts(broadcasts, userLoc.lat, userLoc.lng);

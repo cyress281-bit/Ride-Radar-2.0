@@ -2,6 +2,9 @@
   "name": "UserSettings",
   "type": "object",
   "properties": {
+    "userId": {
+      "type": "string"
+    },
     "notifyOnConnection": {
       "type": "boolean",
       "default": true
@@ -23,5 +26,7 @@
       "default": true
     }
   },
-  "required": []
+  "required": [
+    "userId"
+  ]
 }

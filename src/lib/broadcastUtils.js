@@ -86,6 +86,14 @@ export function rankBroadcasts(broadcasts, userLat, userLng) {
     const rankA = BROADCAST_META[a.type]?.rank ?? 99;
     const rankB = BROADCAST_META[b.type]?.rank ?? 99;
     if (rankA !== rankB) return rankA - rankB;
+
+    // Events rank by upcoming eventDate
+    if (a.type === 'event' && b.type === 'event') {
+      const eA = new Date(a.eventDate || Number.MAX_SAFE_INTEGER).getTime();
+      const eB = new Date(b.eventDate || Number.MAX_SAFE_INTEGER).getTime();
+      if (eA !== eB) return eA - eB;
+    }
+
     // Within type: recency first
     const tA = new Date(a.created_date || 0).getTime();
     const tB = new Date(b.created_date || 0).getTime();

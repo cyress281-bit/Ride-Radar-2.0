@@ -27,7 +27,7 @@ export default function Onboarding() {
     mutationFn: async () => {
       const existing = await base44.entities.UserProfile.filter({ username: form.username });
       if (existing.length > 0) throw new Error('Username taken');
-      await base44.entities.UserProfile.create({ ...form, isPublic: true });
+      await base44.entities.UserProfile.create({ ...form, isPublic: true, userId: user.id });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['myProfile'] });

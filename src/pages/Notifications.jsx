@@ -44,9 +44,15 @@ export default function Notifications() {
     queryFn: async () => await base44.entities.Friendship.filter({ userBId: profile.id, status: 'pending' }),
   });
 
+  const userIds = Array.from(new Set([
+    ...pendingRequests.map(r => r.fromUserId),
+    ...pendingFriends.map(f => f.userAId)
+  ]));
+
   const { data: allProfiles = [] } = useQuery({
-    queryKey: ['all-profiles-notif'],
-    queryFn: async () => await base44.entities.UserProfile.list('-created_date', 500),
+    queryKey: ['all-profiles-notif', userIds],
+    enabled: userIds.length > 0,
+    queryFn: async () => await Promise.all(userIds.map(id => base44.entities.UserProfile.get(id))),
   });
 
   const acceptConn = useMutation({
@@ -85,6 +91,13 @@ export default function Notifications() {
   const acceptFriend = useMutation({
     mutationFn: async (f) => {
       await base44.entities.Friendship.update(f.id, { status: 'active' });
+      await base44.entities.Conversation.create({
+        type: 'friendship',
+        friendshipId: f.id,
+        participantIds: [f.userAId, f.userBId],
+        status: 'active',
+        lastMessageAt: new Date().toISOString(),
+      });
       await base44.entities.Notification.create({
         userId: f.userAId,
         type: 'friend_accepted',
@@ -94,7 +107,10 @@ export default function Notifications() {
         relatedEntityType: 'UserProfile',
       });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['pendingFriends'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['pendingFriends'] });
+      qc.invalidateQueries({ queryKey: ['conversations'] });
+    },
   });
 
   const declineFriend = useMutation({

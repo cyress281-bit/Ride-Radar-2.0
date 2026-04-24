@@ -12,17 +12,16 @@ export default function Messages() {
   const { data: conversations = [], isLoading } = useQuery({
     queryKey: ['conversations', profile?.id],
     enabled: !!profile,
-    queryFn: async () => {
-      const list = await base44.entities.Conversation.list('-lastMessageAt', 100);
-      return list.filter((c) => c.participantIds?.includes(profile.id));
-    },
+    queryFn: async () => await base44.entities.Conversation.filter({ participantIds: profile.id }, '-lastMessageAt', 100),
     refetchInterval: 20000,
   });
 
+  const otherIds = Array.from(new Set(conversations.flatMap(c => c.participantIds).filter(id => id !== profile?.id)));
+
   const { data: profiles = [] } = useQuery({
-    queryKey: ['all-profiles'],
-    enabled: conversations.length > 0,
-    queryFn: async () => await base44.entities.UserProfile.list('-created_date', 500),
+    queryKey: ['all-profiles', otherIds],
+    enabled: otherIds.length > 0,
+    queryFn: async () => await Promise.all(otherIds.map(id => base44.entities.UserProfile.get(id))),
   });
 
   const getOther = (c) => {

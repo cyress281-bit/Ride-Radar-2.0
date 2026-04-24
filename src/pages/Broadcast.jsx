@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,6 +63,16 @@ export default function Broadcast() {
 function BroadcastForm({ type, onBack, onPosted }) {
   const { data: profile } = useMyProfile();
   const qc = useQueryClient();
+
+  const { data: settings } = useQuery({
+    queryKey: ['settings', profile?.id],
+    enabled: !!profile,
+    queryFn: async () => {
+      const list = await base44.entities.UserSettings.filter({ userId: profile.id });
+      return list[0];
+    }
+  });
+
   const typeMeta = TYPES.find((t) => t.id === type);
   const Icon = typeMeta.icon;
 
@@ -99,7 +109,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
       };
 
       if (type === 'solo_ride' || type === 'iso') {
-        if (coords.lat != null) {
+        if (settings?.showLocation !== false && coords.lat != null) {
           const fuzzed = fuzzLocation(coords.lat, coords.lng);
           payload.frozenLat = fuzzed.lat;
           payload.frozenLng = fuzzed.lng;

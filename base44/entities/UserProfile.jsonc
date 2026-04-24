@@ -2,6 +2,9 @@
   "name": "UserProfile",
   "type": "object",
   "properties": {
+    "userId": {
+      "type": "string"
+    },
     "username": {
       "type": "string",
       "description": "Unique handle"
@@ -43,6 +46,7 @@
     }
   },
   "required": [
+    "userId",
     "username",
     "displayName"
   ]

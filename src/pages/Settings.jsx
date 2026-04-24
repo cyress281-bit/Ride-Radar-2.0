@@ -14,10 +14,10 @@ export default function Settings() {
     queryKey: ['settings', profile?.id],
     enabled: !!profile,
     queryFn: async () => {
-      const list = await base44.entities.UserSettings.filter({ created_by: profile.created_by || '' });
+      const list = await base44.entities.UserSettings.filter({ userId: profile.id });
       if (list[0]) return list[0];
       return await base44.entities.UserSettings.create({
-        notifyOnConnection: true, notifyOnMessage: true, notifyOnRSVP: true, notifyOnAlert: true, showLocation: true,
+        userId: profile.id, notifyOnConnection: true, notifyOnMessage: true, notifyOnRSVP: true, notifyOnAlert: true, showLocation: true,
       });
     },
   });

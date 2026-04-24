@@ -19,7 +19,7 @@ export function useMyProfile() {
     queryKey: ['myProfile', user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const profiles = await base44.entities.UserProfile.filter({ created_by: user.email });
+      const profiles = await base44.entities.UserProfile.filter({ userId: user.id });
       return profiles?.[0] || null;
     },
   });

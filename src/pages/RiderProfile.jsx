@@ -21,12 +21,11 @@ export default function RiderProfile() {
     queryKey: ['friendship', me?.id, userId],
     enabled: !!me && !!profile,
     queryFn: async () => {
-      const list = await base44.entities.Friendship.list('-created_date', 500);
-      return list.find(
-        (f) =>
-          (f.userAId === me.id && f.userBId === userId) ||
-          (f.userAId === userId && f.userBId === me.id)
-      );
+      const [list1, list2] = await Promise.all([
+        base44.entities.Friendship.filter({ userAId: me.id, userBId: userId }),
+        base44.entities.Friendship.filter({ userAId: userId, userBId: me.id })
+      ]);
+      return list1[0] || list2[0] || null;
     },
   });
 
