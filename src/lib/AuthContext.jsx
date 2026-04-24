@@ -39,7 +39,8 @@ export const AuthProvider = ({ children }) => {
         setAppPublicSettings(publicSettings);
         
         // If we got the app public settings successfully, check if user is authenticated
-        if (appParams.token) {
+        const hasSession = await base44.auth.isAuthenticated();
+        if (hasSession || appParams.token) {
           await checkUserAuth();
         } else {
           setIsLoadingAuth(false);
@@ -120,16 +121,19 @@ export const AuthProvider = ({ children }) => {
     
     if (shouldRedirect) {
       // Use the SDK's logout method which handles token cleanup and redirect
-      base44.auth.logout(window.location.href);
+      base44.auth.logout(window.location.origin + '/');
     } else {
       // Just remove the token without redirect
       base44.auth.logout();
     }
   };
 
-  const navigateToLogin = () => {
-    // Use the SDK's redirectToLogin method
-    base44.auth.redirectToLogin(window.location.href);
+  const navigateToLogin = (redirectUrl = '/home') => {
+    // Ensure absolute URL for redirect
+    const nextUrl = redirectUrl.startsWith('http') 
+      ? redirectUrl 
+      : `${window.location.origin}${redirectUrl.startsWith('/') ? '' : '/'}${redirectUrl}`;
+    base44.auth.redirectToLogin(nextUrl);
   };
 
   return (

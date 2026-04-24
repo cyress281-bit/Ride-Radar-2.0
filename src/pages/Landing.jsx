@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { MapPin, Users, Radio, AlertTriangle, ArrowRight, Zap } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 
 export default function Landing() {
-  const login = () => base44.auth.redirectToLogin('/home');
+  const { navigateToLogin } = useAuth();
+  const login = () => navigateToLogin('/home');
 
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-hidden relative">

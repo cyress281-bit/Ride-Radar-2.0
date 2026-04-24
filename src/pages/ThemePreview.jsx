@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import RRLogo from '@/components/RRLogo';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/AuthContext';
 
 const MOCK_BROADCASTS = [
   {
@@ -127,6 +128,8 @@ function Section({ title, children }) {
 }
 
 export default function ThemePreview() {
+  const { navigateToLogin } = useAuth();
+  
   return (
     <div className="bg-background min-h-screen pb-20 relative">
       <div className="fixed inset-0 radar-grid pointer-events-none opacity-50" />
@@ -152,7 +155,7 @@ export default function ThemePreview() {
                 <div className="flex items-center gap-2.5 mb-8">
                   <RRLogo size="md" />
                   <span className="font-display font-bold text-xl">Ride<span className="text-primary text-glow-green">Radar</span></span>
-                  <button className="ml-auto text-sm text-muted-foreground">Sign in</button>
+                  <button onClick={() => navigateToLogin('/home')} className="ml-auto text-sm text-muted-foreground hover:text-foreground transition-colors">Sign in</button>
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/8 text-primary text-xs font-semibold mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Live rider broadcast network
