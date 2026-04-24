@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +16,7 @@ import { Link } from 'react-router-dom';
 export default function Profile() {
   const { data: profile } = useMyProfile();
   const { data: user } = useCurrentUser();
+  const { logout } = useAuth();
   const [editing, setEditing] = useState(false);
 
   const { data: myBroadcasts = [] } = useQuery({
@@ -70,7 +72,7 @@ export default function Profile() {
             <Link to="/settings" className="flex-1">
               <Button variant="outline" className="w-full rounded-full"><Settings className="w-4 h-4 mr-1.5" />Settings</Button>
             </Link>
-            <Button variant="outline" className="rounded-full" onClick={() => base44.auth.logout('/')}>
+            <Button variant="outline" className="rounded-full" onClick={() => logout(true)}>
               <LogOut className="w-4 h-4" />
             </Button>
           </div>

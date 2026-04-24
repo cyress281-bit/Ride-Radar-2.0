@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useMyProfile } from '@/lib/useCurrentUser';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, Users, MessageCircle, Calendar, AlertTriangle, Check, X, Radio } from 'lucide-react';
+import { Bell, Users, MessageCircle, Calendar, AlertTriangle, Check, X, Radio, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,7 @@ const iconByType = {
   friend_request: Users,
   friend_accepted: Check,
   alert: AlertTriangle,
+  announcement: Megaphone,
 };
 
 export default function Notifications() {

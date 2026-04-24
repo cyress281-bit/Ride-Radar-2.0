@@ -59,6 +59,13 @@ Deno.serve(async (req) => {
     for (const e of upcomingEvents) {
       const rsvps = await base44.asServiceRole.entities.EventRSVP.filter({ broadcastId: e.id, status: 'going' });
       for (const rsvp of rsvps) {
+        const existing = await base44.asServiceRole.entities.Notification.filter({
+          userId: rsvp.userId,
+          type: 'event_reminder',
+          relatedEntityId: e.id
+        });
+        if (existing.length > 0) continue;
+
         await base44.asServiceRole.functions.invoke('sendNotification', {
           targetProfileId: rsvp.userId,
           type: 'event_reminder',

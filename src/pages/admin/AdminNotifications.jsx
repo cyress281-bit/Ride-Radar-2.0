@@ -15,15 +15,12 @@ export default function AdminNotifications() {
 
   const broadcast = useMutation({
     mutationFn: async () => {
-      const users = await base44.entities.User.list('-created_date', 2000);
-      const profiles = await base44.entities.UserProfile.list('-created_date', 2000);
-      const payload = profiles.map((p) => ({
-        userId: p.id,
-        type: 'alert',
+      await base44.functions.invoke('sendNotification', {
+        sendToAll: true,
+        type: 'announcement',
         title,
         body,
-      }));
-      if (payload.length) await base44.entities.Notification.bulkCreate(payload);
+      });
     },
     onSuccess: () => { setSent(true); setTitle(''); setBody(''); },
   });

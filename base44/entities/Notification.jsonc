@@ -17,7 +17,8 @@
         "thread_expired",
         "friend_request",
         "friend_accepted",
-        "alert"
+        "alert",
+        "announcement"
       ]
     },
     "title": {
