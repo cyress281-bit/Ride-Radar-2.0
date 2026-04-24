@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import MotorcycleLayer from '@/components/splash/MotorcycleLayer';
 import EkgLayer from '@/components/splash/EkgLayer';
 import FinalLogoResolve from '@/components/splash/FinalLogoResolve';
 
@@ -36,7 +35,6 @@ export default function SplashScreen({ onComplete }) {
           </defs>
 
           <EkgLayer />
-          <MotorcycleLayer />
         </svg>
 
         <FinalLogoResolve />
