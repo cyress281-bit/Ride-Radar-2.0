@@ -19,8 +19,8 @@
     --popover: 0 0% 8%;
     --popover-foreground: 120 5% 96%;
 
-    /* Neon electric green */
-    --primary: 142 100% 47%;
+    /* Neon electric lime green from logo */
+    --primary: 95 100% 50%;
     --primary-foreground: 0 0% 4%;
 
     --secondary: 0 0% 11%;
@@ -29,7 +29,7 @@
     --muted: 0 0% 10%;
     --muted-foreground: 0 0% 50%;
 
-    --accent: 142 100% 47%;
+    --accent: 95 100% 50%;
     --accent-foreground: 0 0% 4%;
 
     --destructive: 0 75% 55%;
@@ -37,13 +37,13 @@
 
     --border: 0 0% 14%;
     --input: 0 0% 12%;
-    --ring: 142 100% 47%;
+    --ring: 95 100% 50%;
     --radius: 0.75rem;
 
     /* Broadcast type colors — locked spec */
     --alert: 0 85% 55%;
     --alert-foreground: 0 0% 98%;
-    --solo: 142 100% 47%;
+    --solo: 95 100% 50%;
     --solo-foreground: 0 0% 4%;
     --iso: 43 96% 52%;
     --iso-foreground: 0 0% 4%;
@@ -65,13 +65,13 @@
 @layer utilities {
   /* Neon glow utilities */
   .glow-green {
-    box-shadow: 0 0 12px 0 hsl(142 100% 47% / 0.45), 0 0 28px 0 hsl(142 100% 47% / 0.18);
+    box-shadow: 0 0 12px 0 hsl(95 100% 50% / 0.45), 0 0 28px 0 hsl(95 100% 50% / 0.18);
   }
   .glow-green-sm {
-    box-shadow: 0 0 6px 0 hsl(142 100% 47% / 0.35);
+    box-shadow: 0 0 6px 0 hsl(95 100% 50% / 0.35);
   }
   .text-glow-green {
-    text-shadow: 0 0 12px hsl(142 100% 47% / 0.6);
+    text-shadow: 0 0 12px hsl(95 100% 50% / 0.6);
   }
   .glow-red {
     box-shadow: 0 0 12px 0 hsl(0 90% 58% / 0.45);
@@ -80,15 +80,15 @@
   /* Radar grid background */
   .radar-grid {
     background-image:
-      linear-gradient(hsl(142 100% 47% / 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(142 100% 47% / 0.03) 1px, transparent 1px);
+      linear-gradient(hsl(95 100% 50% / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(95 100% 50% / 0.03) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
   /* EKG pulse line */
   .border-glow {
-    border-color: hsl(142 100% 47% / 0.35);
-    box-shadow: 0 0 0 1px hsl(142 100% 47% / 0.12) inset;
+    border-color: hsl(95 100% 50% / 0.35);
+    box-shadow: 0 0 0 1px hsl(95 100% 50% / 0.12) inset;
   }
 
   .scroll-hide::-webkit-scrollbar { display: none; }
@@ -96,7 +96,7 @@
 
   /* Green gradient text */
   .text-gradient-green {
-    background: linear-gradient(135deg, hsl(142 100% 60%), hsl(142 100% 40%));
+    background: linear-gradient(135deg, hsl(95 100% 60%), hsl(95 100% 40%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -109,8 +109,8 @@
   50% { opacity: 0.5; }
 }
 @keyframes pulse-green {
-  0%, 100% { box-shadow: 0 0 8px 0 hsl(142 100% 47% / 0.4); }
-  50% { box-shadow: 0 0 18px 4px hsl(142 100% 47% / 0.7); }
+  0%, 100% { box-shadow: 0 0 8px 0 hsl(95 100% 50% / 0.4); }
+  50% { box-shadow: 0 0 18px 4px hsl(95 100% 50% / 0.7); }
 }
 @keyframes radar-sweep {
   0% { transform: rotate(0deg); }
