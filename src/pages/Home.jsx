@@ -100,15 +100,17 @@ export default function Home() {
             </svg>
           </div>
         </div>
-        <UserLiveStatus broadcast={myLiveBroadcast} />
-        <div className="relative z-10 mt-4 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center rounded-full border border-border/35 bg-black/15 px-3 py-1.5 text-[10px] font-semibold text-muted-foreground shadow-[inset_0_1px_0_hsl(0_0%_100%/0.03)]">
+        <div className="relative z-10 mt-4 grid grid-cols-2 gap-2">
+          <UserLiveStatus broadcast={myLiveBroadcast} />
+          <AlertPriorityStatus count={alertCount} />
+        </div>
+        <div className="relative z-10 mt-3 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center rounded-full border border-border/35 bg-black/15 px-3 py-1.5 text-[10px] font-semibold text-muted-foreground shadow-[inset_0_1px_0_hsl(0_0%_100%/0.03)]">
           <SignalStat icon={CalendarClock} label="Events" value={eventCount} />
           <span className="mx-1 h-3 w-px bg-border/50" />
           <SignalStat icon={Users} label="Nearby Riders" value={nearbyRiderCount} />
           <span className="mx-1 h-3 w-px bg-border/50" />
           <SignalStat icon={Search} label="In Search Of" value={isoCount} />
         </div>
-        <AlertPriorityStatus count={alertCount} />
       </div>
 
       <div className="flex items-center justify-between mb-2 px-1">
