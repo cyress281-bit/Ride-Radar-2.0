@@ -23,19 +23,19 @@ const TYPES = [
 
 const TYPE_STYLE_MAP = {
   solo: {
-    hover: 'hover:border-solo/60 hover:shadow-[0_12px_40px_-12px_hsl(var(--solo)/0.3)]',
+    hover: 'hover:border-solo/35 hover:bg-solo/5',
     glow: 'bg-solo',
   },
   iso: {
-    hover: 'hover:border-iso/60 hover:shadow-[0_12px_40px_-12px_hsl(var(--iso)/0.3)]',
+    hover: 'hover:border-iso/35 hover:bg-iso/5',
     glow: 'bg-iso',
   },
   event: {
-    hover: 'hover:border-event/60 hover:shadow-[0_12px_40px_-12px_hsl(var(--event)/0.3)]',
+    hover: 'hover:border-event/35 hover:bg-event/5',
     glow: 'bg-event',
   },
   alert: {
-    hover: 'hover:border-alert/60 hover:shadow-[0_12px_40px_-12px_hsl(var(--alert)/0.3)]',
+    hover: 'hover:border-alert/35 hover:bg-alert/5',
     glow: 'bg-alert',
   },
 };
@@ -58,7 +58,7 @@ export default function Broadcast() {
             Broadcast types
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-2.5 relative before:absolute before:left-7 before:top-5 before:bottom-5 before:w-px before:bg-gradient-to-b before:from-primary/35 before:via-border/70 before:to-transparent before:pointer-events-none">
+        <div className="grid grid-cols-1 gap-2.5">
           {TYPES.map((t) => {
             const styles = TYPE_STYLE_MAP[t.color];
             return (
@@ -66,13 +66,12 @@ export default function Broadcast() {
                 key={t.id}
                 onClick={() => setType(t.id)}
                 className={cn(
-                  "w-full text-left p-4 pl-6 rounded-[1.35rem] rr-surface transition-all duration-300 group flex flex-col gap-4 relative overflow-hidden hover:-translate-y-0.5",
+                  "w-full text-left p-4 rounded-[1.35rem] rr-surface transition-all duration-300 group relative overflow-hidden hover:-translate-y-0.5",
                   styles.hover
                 )}
               >
-                <div className={cn("absolute top-0 right-0 w-32 h-32 opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-150", styles.glow)} />
-                <span className="absolute left-[23px] top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-background border border-current/50 shadow-[0_0_14px_currentColor] z-20" />
-                <div className="flex items-center gap-5 z-10 ml-5">
+                <div className={cn("absolute top-0 right-0 w-28 h-28 opacity-[0.055] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-125", styles.glow)} />
+                <div className="relative z-10 flex items-center gap-4">
                   <SignalIcon type={t.id} size="lg" className="transition-transform duration-300 group-hover:scale-105" />
                   <div className="flex-1">
                     <div className="font-display font-extrabold tracking-[-0.03em] text-xl mb-1 text-foreground">{t.label}</div>
@@ -174,7 +173,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
       </button>
 
       <div className="flex items-center gap-4 mb-5 rr-surface-strong p-5 rounded-[1.45rem] relative overflow-hidden">
-        <div className={cn("absolute top-0 right-0 w-40 h-40 opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2", typeStyles.glow)} />
+        <div className={cn("absolute top-0 right-0 w-40 h-40 opacity-[0.06] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2", typeStyles.glow)} />
         <SignalIcon type={type} size="lg" />
         <div className="relative z-10">
           <h1 className="font-display text-2xl font-extrabold tracking-[-0.04em]">{typeMeta.label}</h1>
