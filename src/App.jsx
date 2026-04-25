@@ -19,6 +19,10 @@ import Profile from '@/pages/Profile';
 import RiderProfile from '@/pages/RiderProfile';
 import Notifications from '@/pages/Notifications';
 import Settings from '@/pages/Settings';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import Support from '@/pages/Support';
+import AccountDeletion from '@/pages/AccountDeletion';
+import ReviewReadiness from '@/pages/ReviewReadiness';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import AdminUsers from '@/pages/admin/AdminUsers';
 import AdminBroadcasts from '@/pages/admin/AdminBroadcasts';
@@ -86,6 +90,9 @@ const AuthenticatedApp = () => {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/preview" element={<ThemePreview />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/support" element={<Support />} />
+        <Route path="/account-deletion" element={<AccountDeletion />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -96,6 +103,10 @@ const AuthenticatedApp = () => {
       <Route path="/" element={<Navigate to="/home" replace />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/preview" element={<ThemePreview />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/support" element={<Support />} />
+      <Route path="/account-deletion" element={<AccountDeletion />} />
+      <Route path="/review-readiness" element={<ReviewReadiness />} />
       <Route element={<ProfileGate><Layout /></ProfileGate>}>
         <Route path="/home" element={<Home />} />
         <Route path="/broadcast" element={<Broadcast />} />
