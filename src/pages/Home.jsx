@@ -16,6 +16,12 @@ export default function Home() {
   const [feedSort, setFeedSort] = useState('priority');
   const { data: profile } = useMyProfile();
 
+  const { data: blocks = [] } = useQuery({
+    queryKey: ['blocks', profile?.id],
+    enabled: !!profile,
+    queryFn: async () => await base44.entities.UserBlock.filter({ blockerProfileId: profile.id }),
+  });
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -43,13 +49,15 @@ export default function Home() {
     queryFn: async () => await listProfilesByIds(authorIds),
   });
 
-  const ranked = rankBroadcasts(broadcasts, userLoc.lat, userLoc.lng);
+  const blockedIds = new Set(blocks.map((block) => block.blockedProfileId));
+  const visibleBroadcastsBase = broadcasts.filter((broadcast) => !blockedIds.has(broadcast.authorId));
+  const ranked = rankBroadcasts(visibleBroadcastsBase, userLoc.lat, userLoc.lng);
   const alertCount = ranked.filter((b) => b.type === 'alert').length;
   const eventCount = ranked.filter((b) => b.type === 'event').length;
   const nearbyRiderCount = ranked.filter((b) => b.type === 'solo_ride').length;
   const isoCount = ranked.filter((b) => b.type === 'iso').length;
 
-  const filteredBroadcasts = broadcasts.filter((broadcast) => feedFilter === 'all' || broadcast.type === feedFilter);
+  const filteredBroadcasts = visibleBroadcastsBase.filter((broadcast) => feedFilter === 'all' || broadcast.type === feedFilter);
   const priorityFeed = rankBroadcasts(filteredBroadcasts, userLoc.lat, userLoc.lng);
   const visibleFeed = [...priorityFeed].sort((a, b) => {
     if (feedSort === 'newest') return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();

@@ -7,6 +7,7 @@ export default function ReviewReadiness() {
     ['Public data', 'Display name, avatar, public profile fields, bike details if public, active broadcasts, event details, alert area/photos.'],
     ['Private data', 'Email, full name, settings, block list, reports, private messages, account deletion requests, notification preferences.'],
     ['Review-sensitive features', 'User-generated content, messaging, location, image uploads, reporting/blocking, authentication, notifications.'],
+    ['Auth review note', 'Base44 handles login and callbacks. If third-party/social login is enabled for iOS, Sign in with Apple must remain enabled in the auth/provider configuration before App Store submission.'],
     ['Policy disclosures', 'Approximate location, media uploads, public profile visibility, messaging, moderation, deletion, support contact.'],
   ];
 

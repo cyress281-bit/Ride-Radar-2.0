@@ -10,6 +10,7 @@ import { BROADCAST_META, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 import { cn } from '@/lib/utils';
 import { getProfileByIdSafe } from '@/lib/profileLookup';
+import SafetyActions from '@/components/safety/SafetyActions';
 
 export default function BroadcastDetail() {
   const { id } = useParams();
@@ -119,6 +120,12 @@ export default function BroadcastDetail() {
           </Link>
         )}
       </div>
+
+      {!isAuthor && profile && (
+        <div className="mt-4">
+          <SafetyActions targetType="broadcast" targetId={broadcast.id} targetProfileId={broadcast.authorId} />
+        </div>
+      )}
 
       {/* Actions */}
       {!isAuthor && !isAlert && profile && (

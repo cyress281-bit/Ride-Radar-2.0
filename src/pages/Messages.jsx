@@ -17,7 +17,15 @@ export default function Messages() {
     refetchInterval: 20000,
   });
 
-  const otherIds = Array.from(new Set(conversations.flatMap(c => c.participantIds).filter(id => id !== profile?.id)));
+  const { data: blocks = [] } = useQuery({
+    queryKey: ['blocks', profile?.id],
+    enabled: !!profile,
+    queryFn: async () => await base44.entities.UserBlock.filter({ blockerProfileId: profile.id }),
+  });
+
+  const blockedIds = new Set(blocks.map((block) => block.blockedProfileId));
+  const visibleConversations = conversations.filter((c) => !c.participantIds?.some((id) => id !== profile?.id && blockedIds.has(id)));
+  const otherIds = Array.from(new Set(visibleConversations.flatMap(c => c.participantIds).filter(id => id !== profile?.id)));
 
   const { data: profiles = [] } = useQuery({
     queryKey: ['all-profiles', otherIds],
@@ -30,8 +38,8 @@ export default function Messages() {
     return profiles.find((p) => p.id === otherId);
   };
 
-  const active = conversations.filter((c) => c.status === 'active');
-  const archived = conversations.filter((c) => c.status === 'archived');
+  const active = visibleConversations.filter((c) => c.status === 'active');
+  const archived = visibleConversations.filter((c) => c.status === 'archived');
 
   const loadError = profileError ? profileLoadError : isError ? error : null;
 
@@ -56,7 +64,7 @@ export default function Messages() {
         <div className="space-y-4">
           {[0, 1].map((i) => <div key={i} className="h-20 rounded-2xl bg-secondary/30 backdrop-blur-md animate-pulse border border-border/50" />)}
         </div>
-      ) : conversations.length === 0 ? (
+      ) : visibleConversations.length === 0 ? (
         <div className="text-center py-20 rounded-3xl border border-dashed border-primary/25 bg-card/40 backdrop-blur-xl mt-4 shadow-2xl relative overflow-hidden rr-scanline">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 bg-primary/8 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute left-10 right-10 top-16 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />

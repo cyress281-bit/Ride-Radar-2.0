@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Send, Clock } from 'lucide-react';
+import SafetyActions from '@/components/safety/SafetyActions';
 import { useMyProfile } from '@/lib/useCurrentUser';
 import { cn } from '@/lib/utils';
 import { getProfileByIdSafe } from '@/lib/profileLookup';
@@ -34,6 +35,14 @@ export default function ConversationView() {
     enabled: !!otherId,
     queryFn: async () => await getProfileByIdSafe(otherId),
   });
+
+  const { data: blocks = [] } = useQuery({
+    queryKey: ['blocks', profile?.id, otherId],
+    enabled: !!profile?.id && !!otherId,
+    queryFn: async () => await base44.entities.UserBlock.filter({ blockerProfileId: profile.id, blockedProfileId: otherId }),
+  });
+
+  const isBlocked = blocks.length > 0;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -90,6 +99,9 @@ export default function ConversationView() {
             </div>
           </Link>
         )}
+        {other && (
+          <SafetyActions targetType="conversation" targetId={id} targetProfileId={other.id} compact />
+        )}
         {conversation?.type === 'connection' && !isArchived && hoursLeft !== null && (
           <div className="flex items-center gap-1 text-[11px] text-muted-foreground shrink-0">
             <Clock className="w-3 h-3" /> {hoursLeft}h
@@ -122,6 +134,8 @@ export default function ConversationView() {
       <div className="p-3 border-t border-border/60 bg-background/90 backdrop-blur">
         {isArchived ? (
           <div className="text-center text-sm text-muted-foreground py-2">This conversation is archived.</div>
+        ) : isBlocked ? (
+          <div className="text-center text-sm text-muted-foreground py-2">You blocked this rider. Messaging is disabled.</div>
         ) : (
           <div className="flex gap-2">
             <Input

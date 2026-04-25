@@ -51,13 +51,11 @@
     "reason"
   ],
   "rls": {
-    "create": {
-      "data.reporterProfileId": "{{user.id}}"
-    },
+    "create": true,
     "read": {
       "$or": [
         {
-          "data.reporterProfileId": "{{user.id}}"
+          "created_by": "{{user.email}}"
         },
         {
           "user_condition": {

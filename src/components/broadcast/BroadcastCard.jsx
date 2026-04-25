@@ -4,6 +4,7 @@ import SignalIcon from '@/components/brand/SignalIcon';
 import AlertPhotoGrid from '@/components/broadcast/AlertPhotoGrid';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
+import SafetyActions from '@/components/safety/SafetyActions';
 
 const typeStyles = {
   alert: {
@@ -101,6 +102,10 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng, pro
                 <img src={author.bikePhoto} className="h-24 w-full object-cover" alt="Rider bike" />
               </div>
             )}
+
+            <div className="mt-3" onClick={(e) => e.preventDefault()}>
+              <SafetyActions targetType="broadcast" targetId={broadcast.id} targetProfileId={broadcast.authorId} compact />
+            </div>
 
             {/* Footer meta */}
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap mt-2">

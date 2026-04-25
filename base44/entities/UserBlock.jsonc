@@ -17,16 +17,11 @@
     "blockedProfileId"
   ],
   "rls": {
-    "create": {
-      "data.blockerProfileId": "{{user.id}}"
-    },
+    "create": true,
     "read": {
       "$or": [
         {
-          "data.blockerProfileId": "{{user.id}}"
-        },
-        {
-          "data.blockedProfileId": "{{user.id}}"
+          "created_by": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -36,12 +31,12 @@
       ]
     },
     "update": {
-      "data.blockerProfileId": "{{user.id}}"
+      "created_by": "{{user.email}}"
     },
     "delete": {
       "$or": [
         {
-          "data.blockerProfileId": "{{user.id}}"
+          "created_by": "{{user.email}}"
         },
         {
           "user_condition": {

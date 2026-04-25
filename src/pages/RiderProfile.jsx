@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useMyProfile } from '@/lib/useCurrentUser';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Bike, UserPlus, MessageCircle, Check, Clock } from 'lucide-react';
+import { ArrowLeft, Bike, UserPlus, MessageCircle, Clock } from 'lucide-react';
+import SafetyActions from '@/components/safety/SafetyActions';
 
 // Limited rider profile preview
 export default function RiderProfile() {
@@ -15,6 +16,12 @@ export default function RiderProfile() {
   const { data: profile } = useQuery({
     queryKey: ['profile', userId],
     queryFn: async () => await base44.entities.UserProfile.get(userId),
+  });
+
+  const { data: blocks = [] } = useQuery({
+    queryKey: ['blocks', me?.id, userId],
+    enabled: !!me && !!userId,
+    queryFn: async () => await base44.entities.UserBlock.filter({ blockerProfileId: me.id, blockedProfileId: userId }),
   });
 
   const { data: friendship } = useQuery({
@@ -72,7 +79,8 @@ export default function RiderProfile() {
   const isMe = me?.id === profile.id;
   const isFriend = friendship?.status === 'active';
   const isPending = friendship?.status === 'pending';
-  const canSeeDetails = isMe || isFriend || profile.isPublic !== false;
+  const isBlocked = blocks.length > 0;
+  const canSeeDetails = !isBlocked && (isMe || isFriend || profile.isPublic !== false);
 
   return (
     <div className="px-5 pt-5">
@@ -116,6 +124,12 @@ export default function RiderProfile() {
       )}
 
       {!isMe && (
+        <div className="mb-4">
+          <SafetyActions targetType="user" targetId={profile.id} targetProfileId={profile.id} />
+        </div>
+      )}
+
+      {!isMe && !isBlocked && (
         <div className="mb-6">
           {isFriend ? (
             <Button onClick={() => openFriendChat.mutate()} className="w-full h-11 rounded-full" disabled={openFriendChat.isPending}>
@@ -134,7 +148,7 @@ export default function RiderProfile() {
       )}
 
       <div className="text-xs text-muted-foreground text-center py-4 border-t border-border/60">
-        Limited rider preview. More details visible after connecting.
+        {isBlocked ? 'You have blocked this rider.' : 'Limited rider preview. More details visible after connecting.'}
       </div>
     </div>
   );
