@@ -84,7 +84,9 @@ export default function BroadcastDetail() {
         {broadcast.body && <p className="text-[15px] text-foreground/80 leading-relaxed mb-4 whitespace-pre-wrap">{broadcast.body}</p>}
 
         {broadcast.type === 'event' && broadcast.eventImage && (
-          <img src={broadcast.eventImage} className="w-full h-56 object-cover rounded-xl my-3" alt="" />
+          <div className="my-5 flex max-h-[70vh] items-center justify-center overflow-hidden rounded-2xl border border-event/25 bg-black/45 p-2 shadow-[0_18px_55px_rgba(0,0,0,0.35),inset_0_1px_0_hsl(0_0%_100%/0.05)]">
+            <img src={broadcast.eventImage} className="max-h-[68vh] w-full object-contain" alt="Event poster" />
+          </div>
         )}
 
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground mt-3">

@@ -53,6 +53,11 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng }) {
       {broadcast.type === 'iso' && <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary/70" />}
 
       <div className="p-4 md:p-5">
+        {broadcast.type === 'event' && broadcast.eventImage && (
+          <div className="mb-4 flex max-h-80 items-center justify-center overflow-hidden rounded-2xl border border-event/25 bg-black/45 p-2 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.05)]">
+            <img src={broadcast.eventImage} className="max-h-72 w-full object-contain" alt="Event poster" />
+          </div>
+        )}
         <div className="flex items-start gap-3">
           {/* Type icon */}
           <SignalIcon type={broadcast.type} size="md" />
@@ -72,10 +77,6 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng }) {
 
             {broadcast.body && (
               <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{broadcast.body}</p>
-            )}
-
-            {broadcast.type === 'event' && broadcast.eventImage && (
-              <img src={broadcast.eventImage} className="w-full h-36 object-cover rounded-lg mt-2 mb-2" alt="" />
             )}
 
             {/* Footer meta */}

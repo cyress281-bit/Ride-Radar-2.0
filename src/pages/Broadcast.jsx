@@ -150,6 +150,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setForm({ ...form, eventImage: file_url });
+      e.target.value = '';
     } finally {
       setUploading(false);
     }
@@ -238,19 +239,27 @@ function BroadcastForm({ type, onBack, onPosted }) {
               </div>
             </div>
             <div>
-              <Label>Photo (optional)</Label>
-              <div className="mt-1.5">
+              <Label>Event poster (optional)</Label>
+              <div className="mt-1.5 rounded-2xl border border-border/70 bg-black/30 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
                 {form.eventImage ? (
-                  <div className="relative">
-                    <img src={form.eventImage} className="w-full h-40 object-cover rounded-lg" alt="" />
-                    <button onClick={() => setForm({ ...form, eventImage: '' })} className="absolute top-2 right-2 px-2 py-1 bg-background/90 rounded text-xs">Remove</button>
+                  <div className="space-y-3">
+                    <div className="flex max-h-72 items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-black/45 p-2">
+                      <img src={form.eventImage} className="max-h-64 w-full object-contain" alt="Event poster preview" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="flex h-10 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-primary/50 hover:text-primary">
+                        <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                        {uploading ? 'Uploading...' : 'Replace'}
+                      </label>
+                      <button type="button" onClick={() => setForm({ ...form, eventImage: '' })} className="h-10 rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive">Remove</button>
+                    </div>
                   </div>
                 ) : (
-                  <label className="flex items-center justify-center h-24 border border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary/50 transition">
+                  <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-6 text-center transition hover:border-primary/50 hover:bg-primary/10">
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Upload className="w-4 h-4" /> {uploading ? 'Uploading...' : 'Upload photo'}
-                    </div>
+                    <Upload className="mb-2 h-5 w-5 text-primary" />
+                    <div className="text-sm font-bold text-foreground">{uploading ? 'Uploading poster...' : 'Upload one event poster'}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">Vertical, square, or horizontal images are preserved.</div>
                   </label>
                 )}
               </div>
