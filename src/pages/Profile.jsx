@@ -48,6 +48,8 @@ export default function Profile() {
         <>
           <div className="mb-4 rr-surface-strong p-5 rounded-[1.45rem] relative overflow-hidden">
             <div className="absolute top-[-20%] right-[-10%] w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-primary/15" />
+            <div className="absolute left-5 right-5 bottom-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
             
             <div className="relative z-10 flex items-start gap-4">
               {profile.avatar ? (
@@ -59,13 +61,13 @@ export default function Profile() {
               )}
               <div className="flex-1 pt-1 min-w-0">
                 <div className="rr-kicker mb-1">Rider ID</div>
-                <div className="flex items-center gap-2">
-                  <h1 className="font-display text-2xl font-extrabold tracking-[-0.04em] truncate">{profile.displayName}</h1>
+                <div className="flex items-start gap-2 min-w-0">
+                  <h1 className="font-display text-[clamp(1.45rem,6vw,1.9rem)] leading-[0.95] font-extrabold tracking-[-0.05em] break-words min-w-0">{profile.displayName}</h1>
                   {user?.role === 'admin' && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded shadow-sm">Admin</span>
+                    <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded shadow-sm">Admin</span>
                   )}
                 </div>
-                {profile.location && <div className="text-xs text-muted-foreground mt-1 font-medium flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-primary" />{profile.location}</div>}
+                {profile.location && <div className="text-xs text-muted-foreground mt-2 font-medium flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-primary" />{profile.location}</div>}
               </div>
               <button onClick={() => setEditing(true)} className="p-2.5 rounded-full bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all border border-border/50 shadow-sm">
                 <Edit2 className="w-4 h-4" />
@@ -125,9 +127,12 @@ export default function Profile() {
 
 function RiderMetric({ icon: Icon, label, value, compact }) {
   return (
-    <div className={compact ? 'rounded-2xl border border-border/70 bg-black/30 p-2.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0' : 'rounded-2xl border border-border/70 bg-black/25 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0'}>
+    <div className={compact ? 'rounded-2xl border border-border/70 bg-black/30 p-2.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0 relative overflow-hidden' : 'rounded-2xl border border-border/70 bg-black/25 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0 relative overflow-hidden'}>
+      <span className="absolute right-2 top-2 h-1 w-1 rounded-full bg-primary/65" />
       <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-1.5">
-        <Icon className="w-3.5 h-3.5 text-primary" />
+        <span className="h-5 w-5 rounded-lg border border-primary/25 bg-primary/10 flex items-center justify-center text-primary">
+          <Icon className="w-3.5 h-3.5 drop-shadow-[0_0_4px_currentColor]" />
+        </span>
         {label}
       </div>
       <div className="font-display text-sm font-extrabold tracking-[-0.03em] truncate capitalize">{value}</div>

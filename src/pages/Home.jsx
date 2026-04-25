@@ -48,6 +48,11 @@ export default function Home() {
         <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full border border-primary/15" />
         <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full border border-primary/20" />
         <div className="absolute right-8 top-8 h-2 w-2 rounded-full bg-primary glow-green-sm" />
+        <div className="absolute left-5 right-5 bottom-4 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
+        <div className="absolute left-8 bottom-7 h-[18px] w-28 opacity-45">
+          <div className="h-px w-full bg-primary/35" />
+          <div className="ml-6 -mt-[1px] h-3 w-5 border-l border-t border-primary/45 skew-x-[-25deg]" />
+        </div>
         <div className="relative z-10 flex items-start justify-between gap-4">
           <div>
             <div className="rr-chip mb-3"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Live network</div>
@@ -56,8 +61,10 @@ export default function Home() {
               {userLoc.lat ? 'Live signals in your area' : 'Live signals'}
             </p>
           </div>
-          <div className="h-14 w-14 rounded-2xl border border-primary/25 bg-primary/10 flex items-center justify-center text-primary shadow-[0_0_28px_hsl(var(--primary)/0.14)]">
-            <Satellite className="w-6 h-6" strokeWidth={2.25} />
+          <div className="relative h-14 w-14 rounded-2xl border border-primary/30 bg-primary/10 flex items-center justify-center text-primary shadow-[0_0_30px_hsl(var(--primary)/0.18)] overflow-hidden">
+            <span className="absolute inset-2 rounded-full border border-primary/15 animate-pulse" />
+            <span className="absolute -left-4 top-7 h-px w-16 -rotate-45 bg-primary/30" />
+            <Satellite className="relative z-10 w-6 h-6 drop-shadow-[0_0_6px_currentColor]" strokeWidth={2.35} />
           </div>
         </div>
         <div className="relative z-10 grid grid-cols-3 gap-2 mt-4">
@@ -104,9 +111,12 @@ export default function Home() {
 
 function SignalStat({ icon: Icon, label, value, alert }) {
   return (
-    <div className="rounded-2xl border border-border/70 bg-black/30 px-3 py-2.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
+    <div className="rounded-2xl border border-border/70 bg-black/30 px-3 py-2.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] relative overflow-hidden">
+      <span className={alert ? 'absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-alert animate-pulse' : 'absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary/70'} />
       <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1.5">
-        <Icon className={alert ? 'w-3.5 h-3.5 text-alert' : 'w-3.5 h-3.5 text-primary'} />
+        <span className={alert ? 'h-5 w-5 rounded-lg border border-alert/30 bg-alert/10 flex items-center justify-center text-alert' : 'h-5 w-5 rounded-lg border border-primary/25 bg-primary/10 flex items-center justify-center text-primary'}>
+          <Icon className="w-3.5 h-3.5 drop-shadow-[0_0_4px_currentColor]" />
+        </span>
         {label}
       </div>
       <div className={alert ? 'font-display text-2xl font-extrabold text-alert' : 'font-display text-2xl font-extrabold text-foreground'}>{value}</div>
