@@ -10,8 +10,8 @@ export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-background px-5 py-6 text-foreground">
       <div className="mx-auto max-w-2xl">
-        <Link to="/settings" className="mb-5 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" /> Back
+        <Link to="/" className="mb-5 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" /> Home
         </Link>
         <div className="rr-surface-strong rounded-2xl p-5">
           <div className="rr-kicker mb-2">Ride Radar Privacy Policy</div>
