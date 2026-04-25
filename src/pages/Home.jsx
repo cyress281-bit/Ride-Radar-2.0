@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
-import { rankBroadcasts, isExpired } from '@/lib/broadcastUtils';
+import { rankBroadcasts, isExpired, haversineMiles } from '@/lib/broadcastUtils';
 import { Radio, Activity, Gauge, Satellite, Zap } from 'lucide-react';
 import { listProfilesByIds } from '@/lib/profileLookup';
+import FeedControls from '@/components/home/FeedControls';
 
 export default function Home() {
   const [userLoc, setUserLoc] = useState({ lat: null, lng: null });
+  const [feedFilter, setFeedFilter] = useState('all');
+  const [feedSort, setFeedSort] = useState('priority');
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -39,6 +42,18 @@ export default function Home() {
   const ranked = rankBroadcasts(broadcasts, userLoc.lat, userLoc.lng);
   const alertCount = ranked.filter((b) => b.type === 'alert').length;
   const rideCount = ranked.filter((b) => b.type === 'solo_ride' || b.type === 'iso').length;
+
+  const filteredBroadcasts = broadcasts.filter((broadcast) => feedFilter === 'all' || broadcast.type === feedFilter);
+  const priorityFeed = rankBroadcasts(filteredBroadcasts, userLoc.lat, userLoc.lng);
+  const visibleFeed = [...priorityFeed].sort((a, b) => {
+    if (feedSort === 'newest') return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
+    if (feedSort === 'nearest' && userLoc.lat != null) {
+      const distanceA = (a.type === 'solo_ride' || a.type === 'iso') && a.frozenLat != null ? haversineMiles(userLoc.lat, userLoc.lng, a.frozenLat, a.frozenLng) : Number.POSITIVE_INFINITY;
+      const distanceB = (b.type === 'solo_ride' || b.type === 'iso') && b.frozenLat != null ? haversineMiles(userLoc.lat, userLoc.lng, b.frozenLat, b.frozenLng) : Number.POSITIVE_INFINITY;
+      return distanceA - distanceB || new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
+    }
+    return 0;
+  });
 
   const getAuthor = (id) => profiles.find((p) => p.id === id);
 
@@ -82,11 +97,13 @@ export default function Home() {
         </div>
       </div>
 
+      <FeedControls activeFilter={feedFilter} onFilterChange={setFeedFilter} sort={feedSort} onSortChange={setFeedSort} />
+
       {isLoading ? (
         <div className="space-y-4">
           {[0, 1, 2].map((i) => <div key={i} className="h-32 rounded-2xl bg-secondary/30 backdrop-blur-md animate-pulse border border-border/50" />)}
         </div>
-      ) : ranked.length === 0 ? (
+      ) : visibleFeed.length === 0 ? (
         <div className="text-center py-24 rounded-3xl border border-dashed border-primary/30 bg-card/40 backdrop-blur-xl mt-8 relative overflow-hidden shadow-2xl">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-primary/10 rounded-full blur-3xl animate-pulse-green pointer-events-none" />
           <div className="relative z-10 w-16 h-16 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-5 border border-primary/30 shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
@@ -97,7 +114,7 @@ export default function Home() {
         </div>
       ) : (
         <div className="space-y-2.5 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-primary/45 before:via-border before:to-transparent before:pointer-events-none">
-          {ranked.map((b) => (
+          {visibleFeed.map((b) => (
             <div key={b.id} className="relative pl-4">
               <span className="absolute left-[21px] top-6 z-10 h-2.5 w-2.5 rounded-full bg-background border border-primary/60 shadow-[0_0_14px_hsl(var(--primary)/0.45)]" />
               <BroadcastCard broadcast={b} author={getAuthor(b.authorId)} userLat={userLoc.lat} userLng={userLoc.lng} prominentSoloAvatar />
