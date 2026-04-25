@@ -1,14 +1,8 @@
 import { Link } from 'react-router-dom';
-import { ShieldAlert, Route, Search, CalendarClock, Clock, Wrench, MapPin, Calendar } from 'lucide-react';
+import { Clock, Wrench, MapPin, Calendar } from 'lucide-react';
+import SignalIcon from '@/components/brand/SignalIcon';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
-
-const iconMap = {
-  solo_ride: Route,
-  iso: Search,
-  event: CalendarClock,
-  alert: ShieldAlert,
-};
 
 const typeStyles = {
   alert: {
@@ -39,7 +33,6 @@ const typeStyles = {
 
 export default function BroadcastCard({ broadcast, author, userLat, userLng }) {
   const meta = BROADCAST_META[broadcast.type];
-  const Icon = iconMap[broadcast.type];
   const isAlert = broadcast.type === 'alert';
   const styles = typeStyles[broadcast.type] || typeStyles.solo_ride;
 
@@ -62,9 +55,7 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng }) {
       <div className="p-4 md:p-5">
         <div className="flex items-start gap-3">
           {/* Type icon */}
-          <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-current/20', styles.icon)}>
-            <Icon className="w-6 h-6" strokeWidth={2} />
-          </div>
+          <SignalIcon type={broadcast.type} size="md" />
 
           <div className="flex-1 min-w-0">
             {/* Meta row */}

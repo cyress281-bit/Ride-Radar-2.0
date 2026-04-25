@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin } from 'lucide-react';
+import SignalIcon from '@/components/brand/SignalIcon';
 import { cn } from '@/lib/utils';
 import { computeExpiresAt, fuzzLocation } from '@/lib/broadcastUtils';
 import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
@@ -31,7 +32,7 @@ export default function Broadcast() {
           <h1 className="rr-heading text-4xl mb-1">Broadcast</h1>
           <p className="text-sm text-muted-foreground">Choose the kind of signal you want to send.</p>
         </div>
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-3 relative before:absolute before:left-7 before:top-5 before:bottom-5 before:w-px before:bg-gradient-to-b before:from-primary/35 before:via-border/70 before:to-transparent before:pointer-events-none">
           {TYPES.map((t) => {
             const Icon = t.icon;
             return (
@@ -39,18 +40,14 @@ export default function Broadcast() {
                 key={t.id}
                 onClick={() => setType(t.id)}
                 className={cn(
-                  "w-full text-left p-5 rounded-[1.35rem] rr-surface transition-all duration-300 group flex flex-col gap-4 relative overflow-hidden",
+                  "w-full text-left p-5 pl-6 rounded-[1.35rem] rr-surface transition-all duration-300 group flex flex-col gap-4 relative overflow-hidden",
                   `hover:border-${t.color}/60 hover:shadow-[0_12px_40px_-12px_hsl(var(--${t.color})/0.3)] hover:-translate-y-0.5`
                 )}
               >
                 <div className={cn("absolute top-0 right-0 w-32 h-32 opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-150", `bg-${t.color}`)} />
-                <div className="flex items-center gap-5 z-10">
-                  <div className={cn(
-                    'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-current/20 transition-all duration-300 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.08)] group-hover:scale-105 group-hover:shadow-[0_0_22px_currentColor]',
-                    `bg-${t.color}/10 text-${t.color}`
-                  )}>
-                    <Icon className="w-7 h-7" strokeWidth={2} />
-                  </div>
+                <span className="absolute left-[23px] top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-background border border-current/50 shadow-[0_0_14px_currentColor] z-20" />
+                <div className="flex items-center gap-5 z-10 ml-5">
+                  <SignalIcon type={t.id} size="lg" className="transition-transform duration-300 group-hover:scale-105" />
                   <div className="flex-1">
                     <div className="font-display font-extrabold tracking-[-0.03em] text-xl mb-1 text-foreground">{t.label}</div>
                     <div className="text-[13px] text-muted-foreground font-medium">{t.desc}</div>
@@ -172,9 +169,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
 
       <div className="flex items-center gap-4 mb-8 bg-card/60 backdrop-blur-xl p-5 rounded-3xl border border-border/50 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden">
         <div className={cn("absolute top-0 right-0 w-40 h-40 opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2", `bg-${typeMeta.color}`)} />
-        <div className={cn('w-14 h-14 rounded-2xl flex items-center justify-center border border-current/20 shadow-[0_0_15px_currentColor]', `bg-${typeMeta.color}/10 text-${typeMeta.color}`)}>
-          <Icon className="w-7 h-7" strokeWidth={2} />
-        </div>
+        <SignalIcon type={type} size="lg" />
         <div className="relative z-10">
           <h1 className="font-display text-2xl font-bold tracking-tight">{typeMeta.label}</h1>
           <p className="text-xs text-muted-foreground font-medium">{typeMeta.desc}</p>

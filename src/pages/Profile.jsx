@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Settings, LogOut, Edit2, Check, X, Bike, MapPin, Loader2 } from 'lucide-react';
+import { Settings, LogOut, Edit2, Check, X, Bike, MapPin, Loader2, Gauge, Radio, ShieldCheck } from 'lucide-react';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import { isExpired } from '@/lib/broadcastUtils';
 import { Link } from 'react-router-dom';
@@ -70,7 +70,18 @@ export default function Profile() {
             </button>
           </div>
 
-          {profile.bio && <p className="text-[15px] mb-5 leading-relaxed text-foreground/90">{profile.bio}</p>}
+          {profile.bio && (
+            <div className="mb-5 rounded-2xl rr-surface p-4">
+              <div className="rr-kicker text-muted-foreground mb-2">Rider note</div>
+              <p className="text-[15px] leading-relaxed text-foreground/90">{profile.bio}</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-3 gap-2 mb-5">
+            <RiderMetric icon={Radio} label="Signals" value={active.length} />
+            <RiderMetric icon={Gauge} label="Style" value={profile.rideStyle || 'street'} />
+            <RiderMetric icon={ShieldCheck} label="Status" value={profile.isPublic === false ? 'private' : 'public'} />
+          </div>
 
           {profile.bike && (
             <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl rr-surface text-sm">
@@ -91,8 +102,9 @@ export default function Profile() {
             </Button>
           </div>
 
-          <div className="mb-3">
+          <div className="mb-3 flex items-center justify-between px-1">
             <h2 className="rr-kicker text-muted-foreground">Active broadcasts</h2>
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Rider signal</span>
           </div>
           {active.length === 0 ? (
             <div className="text-sm text-muted-foreground py-6 text-center border border-dashed border-border/60 rounded-xl">
@@ -105,6 +117,18 @@ export default function Profile() {
           )}
         </>
       )}
+    </div>
+  );
+}
+
+function RiderMetric({ icon: Icon, label, value }) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-black/25 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0">
+      <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-1.5">
+        <Icon className="w-3.5 h-3.5 text-primary" />
+        {label}
+      </div>
+      <div className="font-display text-sm font-extrabold tracking-[-0.03em] truncate capitalize">{value}</div>
     </div>
   );
 }
