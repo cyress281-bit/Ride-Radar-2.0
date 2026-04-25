@@ -5,11 +5,12 @@ export default function RRLogo({ size = 'md', glow = true, className }) {
   // Adjusted sizes for the wide image
   const dims = { sm: 20, md: 28, lg: 40, xl: 60 };
   const h = dims[size] || dims.md;
+  const isFill = size === 'fill';
   return (
     <img
       src="https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png"
       alt="Ride Radar Logo"
-      style={{ height: h, width: 'auto' }}
+      style={{ height: isFill ? '100%' : h, width: isFill ? '100%' : 'auto' }}
       className={cn(
         'object-contain',
         glow && 'drop-shadow-[0_0_8px_hsl(var(--primary)/0.7)]',

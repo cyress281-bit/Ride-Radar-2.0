@@ -88,7 +88,7 @@ export default function Home() {
             </p>
           </div>
           <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-primary/25 bg-black/25 shadow-[0_0_30px_hsl(var(--primary)/0.16)]">
-            <RRLogo size="xl" glow className="h-full w-full object-cover" />
+            <RRLogo size="fill" glow className="scale-125 object-cover" />
           </div>
         </div>
         <div className="relative z-10 mt-4 grid grid-cols-2 gap-2">
