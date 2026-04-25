@@ -154,6 +154,7 @@ function ProfileEdit({ profile, onDone }) {
   const qc = useQueryClient();
   const [form, setForm] = useState({ ...profile });
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const [detectingLoc, setDetectingLoc] = useState(false);
 
   const detectLocation = () => {
@@ -204,10 +205,13 @@ function ProfileEdit({ profile, onDone }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setUploadError('');
     try {
       await validateImageUpload(file, 'avatar');
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setForm({ ...form, avatar: file_url });
+    } catch (error) {
+      setUploadError(error?.response?.data?.error || error.message || 'Image upload failed. Please try another image.');
     } finally { setUploading(false); }
   };
 
@@ -235,6 +239,7 @@ function ProfileEdit({ profile, onDone }) {
             {uploading ? 'Uploading...' : 'Change avatar'}
           </label>
         </div>
+        {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
 
         <div>
           <Label>Display name</Label>

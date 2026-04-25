@@ -53,16 +53,19 @@ Deno.serve(async (req) => {
     if (rsvp) {
       const author = await base44.asServiceRole.entities.UserProfile.get(broadcast.authorId);
       if (author?.userId) {
-        await base44.asServiceRole.entities.Notification.create({
-          userId: author.id,
-          userAuthId: author.userId,
-          type: 'rsvp',
-          title: current ? 'RSVP Updated' : 'New RSVP',
-          body: `@${me.username} is ${status === 'going' ? 'going to' : 'interested in'} your event.`,
-          relatedEntityId: broadcast.id,
-          relatedEntityType: 'Broadcast',
-          isRead: false
-        });
+        const settings = await base44.asServiceRole.entities.UserSettings.filter({ userId: author.userId }).then((list) => list[0]);
+        if (settings?.notifyOnRSVP !== false) {
+          await base44.asServiceRole.entities.Notification.create({
+            userId: author.id,
+            userAuthId: author.userId,
+            type: 'rsvp',
+            title: current ? 'RSVP Updated' : 'New RSVP',
+            body: `@${me.username} is ${status === 'going' ? 'going to' : 'interested in'} your event.`,
+            relatedEntityId: broadcast.id,
+            relatedEntityType: 'Broadcast',
+            isRead: false
+          });
+        }
       }
     }
 

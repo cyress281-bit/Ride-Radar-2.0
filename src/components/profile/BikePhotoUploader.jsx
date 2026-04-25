@@ -6,15 +6,19 @@ import { Bike, ImagePlus, X } from 'lucide-react';
 
 export default function BikePhotoUploader({ image, onChange }) {
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setUploadError('');
     try {
       await validateImageUpload(file, 'bike');
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       onChange(file_url);
+    } catch (error) {
+      setUploadError(error?.response?.data?.error || error.message || 'Image upload failed. Please try another image.');
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -51,6 +55,7 @@ export default function BikePhotoUploader({ image, onChange }) {
           <div className="mt-1 text-xs text-muted-foreground">Optional for V1. One clean bike image only.</div>
         </label>
       )}
+      {uploadError && <p className="mt-2 text-sm text-destructive">{uploadError}</p>}
     </div>
   );
 }

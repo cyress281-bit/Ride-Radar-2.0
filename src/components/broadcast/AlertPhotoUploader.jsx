@@ -5,18 +5,22 @@ import { validateImageUpload } from '@/lib/uploadValidation';
 
 export default function AlertPhotoUploader({ images = [], onChange }) {
   const [uploadingIndex, setUploadingIndex] = useState(null);
+  const [uploadError, setUploadError] = useState('');
   const photos = images.filter(Boolean).slice(0, 2);
   const slots = photos.length < 2 ? [...photos, null] : photos;
 
   const uploadAt = async (file, index) => {
     if (!file) return;
     setUploadingIndex(index);
+    setUploadError('');
     try {
       await validateImageUpload(file, 'alert');
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       const next = [...photos];
       next[index] = file_url;
       onChange(next.filter(Boolean).slice(0, 2));
+    } catch (error) {
+      setUploadError(error?.response?.data?.error || error.message || 'Image upload failed. Please try another image.');
     } finally {
       setUploadingIndex(null);
     }
@@ -63,6 +67,7 @@ export default function AlertPhotoUploader({ images = [], onChange }) {
           </div>
         ))}
       </div>
+      {uploadError && <p className="mt-2 text-sm text-destructive">{uploadError}</p>}
       <p className="mt-2 text-xs text-muted-foreground">Attach up to 2 safety photos. Photos are optional.</p>
     </div>
   );

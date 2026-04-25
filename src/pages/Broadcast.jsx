@@ -90,6 +90,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
   });
   const [coords, setCoords] = useState({ lat: null, lng: null });
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   useEffect(() => {
     if (navigator.geolocation && (type === 'solo_ride' || type === 'iso')) {
@@ -119,11 +120,14 @@ function BroadcastForm({ type, onBack, onPosted }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setUploadError('');
     try {
       await validateImageUpload(file, 'event');
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setForm({ ...form, eventImage: file_url });
       e.target.value = '';
+    } catch (error) {
+      setUploadError(error?.response?.data?.error || error.message || 'Image upload failed. Please try another image.');
     } finally {
       setUploading(false);
     }
@@ -253,6 +257,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
                   </label>
                 )}
               </div>
+              {uploadError && <p className="mt-2 text-sm text-destructive">{uploadError}</p>}
             </div>
           </>
         )}

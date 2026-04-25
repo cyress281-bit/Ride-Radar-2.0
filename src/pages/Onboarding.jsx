@@ -26,15 +26,19 @@ export default function Onboarding() {
   });
   const [detectingLoc, setDetectingLoc] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   const handleAvatar = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setUploadError('');
     try {
       await validateImageUpload(file, 'avatar');
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setForm({ ...form, avatar: file_url });
+    } catch (error) {
+      setUploadError(error?.response?.data?.error || error.message || 'Image upload failed. Please try another image.');
     } finally { setUploading(false); }
   };
 
@@ -130,6 +134,7 @@ export default function Onboarding() {
                 {uploading ? 'Uploading...' : 'Upload picture'}
               </label>
             </div>
+            {uploadError && <p className="mt-2 text-sm text-destructive">{uploadError}</p>}
           </div>
 
           {/* Display name */}
