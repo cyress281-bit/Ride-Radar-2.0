@@ -131,7 +131,7 @@ export default function Home() {
       {viewMode === 'feed' && <FeedControls activeFilter={feedFilter} onFilterChange={setFeedFilter} sort={feedSort} onSortChange={setFeedSort} />}
 
       {viewMode === 'map' ? (
-        <RadarMapView broadcasts={ranked} />
+        <RadarMapView broadcasts={ranked} userLat={userLoc.lat} userLng={userLoc.lng} />
       ) : isLoading ? (
         <div className="space-y-4">
           {[0, 1, 2].map((i) => <div key={i} className="h-32 rounded-2xl bg-secondary/30 backdrop-blur-md animate-pulse border border-border/50" />)}
