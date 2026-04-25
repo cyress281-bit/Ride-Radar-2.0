@@ -8,6 +8,7 @@ import { ArrowLeft, MapPin, Calendar, Clock, Wrench, Users, Heart, Check } from 
 import { BROADCAST_META, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 import { cn } from '@/lib/utils';
+import { getProfileByIdSafe } from '@/lib/profileLookup';
 
 export default function BroadcastDetail() {
   const { id } = useParams();
@@ -23,7 +24,7 @@ export default function BroadcastDetail() {
   const { data: author } = useQuery({
     queryKey: ['profile', broadcast?.authorId],
     enabled: !!broadcast?.authorId,
-    queryFn: async () => await base44.entities.UserProfile.get(broadcast.authorId),
+    queryFn: async () => await getProfileByIdSafe(broadcast.authorId),
   });
 
   const { data: myRequests = [] } = useQuery({

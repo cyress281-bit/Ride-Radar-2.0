@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import { rankBroadcasts, isExpired } from '@/lib/broadcastUtils';
 import { Radio } from 'lucide-react';
+import { listProfilesByIds } from '@/lib/profileLookup';
 
 export default function Home() {
   const [userLoc, setUserLoc] = useState({ lat: null, lng: null });
@@ -32,10 +33,7 @@ export default function Home() {
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles-for-feed', authorIds],
     enabled: authorIds.length > 0,
-    queryFn: async () => {
-      const allProfiles = await base44.entities.UserProfile.list('-updated_date', 200);
-      return allProfiles.filter((profile) => authorIds.includes(profile.id));
-    },
+    queryFn: async () => await listProfilesByIds(authorIds),
   });
 
   const ranked = rankBroadcasts(broadcasts, userLoc.lat, userLoc.lng);

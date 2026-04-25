@@ -6,6 +6,7 @@ import { Bell, Users, MessageCircle, Calendar, AlertTriangle, Check, X, Radio, M
 import { Button } from '@/components/ui/button';
 import { timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
+import { listProfilesByIds } from '@/lib/profileLookup';
 
 const iconByType = {
   connection_request: Users,
@@ -53,10 +54,7 @@ export default function Notifications() {
   const { data: allProfiles = [] } = useQuery({
     queryKey: ['all-profiles-notif', userIds],
     enabled: userIds.length > 0,
-    queryFn: async () => {
-      const res = await Promise.allSettled(userIds.map(id => base44.entities.UserProfile.get(id)));
-      return res.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
-    },
+    queryFn: async () => await listProfilesByIds(userIds),
   });
 
   const acceptConn = useMutation({

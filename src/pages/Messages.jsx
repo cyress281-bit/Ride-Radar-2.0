@@ -5,6 +5,7 @@ import { useMyProfile } from '@/lib/useCurrentUser';
 import { MessageCircle, Clock } from 'lucide-react';
 import { timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
+import { listProfilesByIds } from '@/lib/profileLookup';
 
 export default function Messages() {
   const { data: profile, isError: profileError, error: profileLoadError } = useMyProfile();
@@ -21,10 +22,7 @@ export default function Messages() {
   const { data: profiles = [] } = useQuery({
     queryKey: ['all-profiles', otherIds],
     enabled: otherIds.length > 0,
-    queryFn: async () => {
-      const allProfiles = await base44.entities.UserProfile.list('-updated_date', 200);
-      return allProfiles.filter((profile) => otherIds.includes(profile.id));
-    },
+    queryFn: async () => await listProfilesByIds(otherIds),
   });
 
   const getOther = (c) => {

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Send, Clock } from 'lucide-react';
 import { useMyProfile } from '@/lib/useCurrentUser';
 import { cn } from '@/lib/utils';
+import { getProfileByIdSafe } from '@/lib/profileLookup';
 
 export default function ConversationView() {
   const { id } = useParams();
@@ -31,7 +32,7 @@ export default function ConversationView() {
   const { data: other } = useQuery({
     queryKey: ['profile', otherId],
     enabled: !!otherId,
-    queryFn: async () => await base44.entities.UserProfile.get(otherId),
+    queryFn: async () => await getProfileByIdSafe(otherId),
   });
 
   useEffect(() => {
