@@ -11,7 +11,7 @@ import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin } 
 import AlertPhotoUploader from '@/components/broadcast/AlertPhotoUploader';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { cn } from '@/lib/utils';
-import { validateImageUpload } from '@/lib/uploadValidation';
+import { prepareLocalImage, getImagePreview, uploadImageIfNeeded, uploadImagesIfNeeded } from '@/lib/localImageUpload';
 import { useMyProfile } from '@/lib/useCurrentUser';
 
 const TYPES = [
@@ -123,8 +123,14 @@ function BroadcastForm({ type, onBack, onPosted }) {
 
   const post = useMutation({
     mutationFn: async () => {
+      const [eventImage, alertImages] = await Promise.all([
+        uploadImageIfNeeded(form.eventImage),
+        uploadImagesIfNeeded(form.alertImages),
+      ]);
       await base44.functions.invoke('createBroadcast', {
         ...form,
+        eventImage,
+        alertImages,
         type,
         lat: coords.lat,
         lng: coords.lng
@@ -142,12 +148,11 @@ function BroadcastForm({ type, onBack, onPosted }) {
     setUploading(true);
     setUploadError('');
     try {
-      await validateImageUpload(file, 'event');
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setForm({ ...form, eventImage: file_url });
+      const localImage = await prepareLocalImage(file, 'event');
+      setForm({ ...form, eventImage: localImage });
       e.target.value = '';
     } catch (error) {
-      setUploadError(error?.response?.data?.error || error.message || 'Image upload failed. Please try another image.');
+      setUploadError(error?.response?.data?.error || error.message || 'Image validation failed. Please try another image.');
     } finally {
       setUploading(false);
     }
@@ -258,12 +263,12 @@ function BroadcastForm({ type, onBack, onPosted }) {
                 {form.eventImage ? (
                   <div className="space-y-3">
                     <div className="flex max-h-72 items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-black/45 p-2">
-                      <img src={form.eventImage} className="max-h-64 w-full object-contain" alt="Event poster preview" />
+                      <img src={getImagePreview(form.eventImage)} className="max-h-64 w-full object-contain" alt="Event poster preview" />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <label className="flex h-10 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-primary/50 hover:text-primary">
                         <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                        {uploading ? 'Uploading...' : 'Replace'}
+                        {uploading ? 'Preparing...' : 'Replace'}
                       </label>
                       <button type="button" onClick={() => setForm({ ...form, eventImage: '' })} className="h-10 rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive">Remove</button>
                     </div>
@@ -272,7 +277,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
                   <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-6 text-center transition hover:border-primary/50 hover:bg-primary/10">
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                     <Upload className="mb-2 h-5 w-5 text-primary" />
-                    <div className="text-sm font-bold text-foreground">{uploading ? 'Uploading poster...' : 'Upload one event poster'}</div>
+                    <div className="text-sm font-bold text-foreground">{uploading ? 'Preparing preview...' : 'Upload one event poster'}</div>
                     <div className="mt-1 text-xs text-muted-foreground">Vertical, square, or horizontal images are preserved.</div>
                   </label>
                 )}

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Image, Upload, X } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
-import { validateImageUpload } from '@/lib/uploadValidation';
+import { prepareLocalImage, getImagePreview } from '@/lib/localImageUpload';
 
 export default function AlertPhotoUploader({ images = [], onChange }) {
   const [uploadingIndex, setUploadingIndex] = useState(null);
@@ -14,13 +13,12 @@ export default function AlertPhotoUploader({ images = [], onChange }) {
     setUploadingIndex(index);
     setUploadError('');
     try {
-      await validateImageUpload(file, 'alert');
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const localImage = await prepareLocalImage(file, 'alert');
       const next = [...photos];
-      next[index] = file_url;
+      next[index] = localImage;
       onChange(next.filter(Boolean).slice(0, 2));
     } catch (error) {
-      setUploadError(error?.response?.data?.error || error.message || 'Image upload failed. Please try another image.');
+      setUploadError(error?.response?.data?.error || error.message || 'Image validation failed. Please try another image.');
     } finally {
       setUploadingIndex(null);
     }
@@ -44,7 +42,7 @@ export default function AlertPhotoUploader({ images = [], onChange }) {
             {url ? (
               <div className="space-y-2">
                 <div className="flex h-32 items-center justify-center overflow-hidden rounded-xl border border-alert/20 bg-black/45 p-1.5">
-                  <img src={url} className="max-h-28 w-full object-contain" alt={`Alert preview ${index + 1}`} />
+                  <img src={getImagePreview(url)} className="max-h-28 w-full object-contain" alt={`Alert preview ${index + 1}`} />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <label className="flex h-9 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-alert/50 hover:text-alert">
@@ -60,7 +58,7 @@ export default function AlertPhotoUploader({ images = [], onChange }) {
               <label className="flex h-[180px] cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-alert/30 bg-alert/5 px-3 text-center transition hover:border-alert/60 hover:bg-alert/10">
                 <input type="file" accept="image/*" onChange={(e) => uploadAt(e.target.files?.[0], index)} className="hidden" disabled={photos.length >= 2} />
                 {uploadingIndex === index ? <Upload className="mb-2 h-5 w-5 animate-pulse text-alert" /> : <Image className="mb-2 h-5 w-5 text-alert" />}
-                <div className="text-sm font-bold text-foreground">{uploadingIndex === index ? 'Uploading...' : 'Add photo'}</div>
+                <div className="text-sm font-bold text-foreground">{uploadingIndex === index ? 'Preparing...' : 'Add photo'}</div>
                 <div className="mt-1 text-xs text-muted-foreground">Hazard, road, or scene context</div>
               </label>
             )}

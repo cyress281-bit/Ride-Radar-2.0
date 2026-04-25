@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { validateImageUpload } from '@/lib/uploadValidation';
+import { prepareLocalImage, getImagePreview, uploadImageIfNeeded } from '@/lib/localImageUpload';
 import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -187,14 +187,18 @@ function ProfileEdit({ profile, onDone }) {
 
   const save = useMutation({
     mutationFn: async () => {
+      const [avatar, bikePhoto] = await Promise.all([
+        uploadImageIfNeeded(form.avatar),
+        uploadImageIfNeeded(form.bikePhoto),
+      ]);
       await base44.entities.UserProfile.update(profile.id, {
         displayName: form.displayName || profile.fullName || profile.username,
         bio: form.bio,
         location: form.location,
         rideStyle: form.rideStyle,
         bike: form.bike,
-        bikePhoto: form.bikePhoto,
-        avatar: form.avatar,
+        bikePhoto,
+        avatar,
         userId: profile.userId,
       });
     },
@@ -207,11 +211,10 @@ function ProfileEdit({ profile, onDone }) {
     setUploading(true);
     setUploadError('');
     try {
-      await validateImageUpload(file, 'avatar');
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setForm({ ...form, avatar: file_url });
+      const localImage = await prepareLocalImage(file, 'avatar');
+      setForm({ ...form, avatar: localImage });
     } catch (error) {
-      setUploadError(error?.response?.data?.error || error.message || 'Image upload failed. Please try another image.');
+      setUploadError(error?.response?.data?.error || error.message || 'Image validation failed. Please try another image.');
     } finally { setUploading(false); }
   };
 
@@ -227,8 +230,8 @@ function ProfileEdit({ profile, onDone }) {
 
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          {form.avatar ? (
-            <img src={form.avatar} className="w-16 h-16 rounded-2xl object-cover" alt="" />
+          {getImagePreview(form.avatar) ? (
+            <img src={getImagePreview(form.avatar)} className="w-16 h-16 rounded-2xl object-cover" alt="" />
           ) : (
             <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center font-bold text-xl">
               {form.displayName?.[0] || '?'}
@@ -236,7 +239,7 @@ function ProfileEdit({ profile, onDone }) {
           )}
           <label className="text-sm text-primary hover:underline cursor-pointer">
             <input type="file" accept="image/*" onChange={handleAvatar} className="hidden" />
-            {uploading ? 'Uploading...' : 'Change avatar'}
+            {uploading ? 'Preparing...' : 'Change avatar'}
           </label>
         </div>
         {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}

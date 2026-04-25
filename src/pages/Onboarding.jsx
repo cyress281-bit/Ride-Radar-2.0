@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { validateImageUpload } from '@/lib/uploadValidation';
+import { prepareLocalImage, getImagePreview, uploadImageIfNeeded } from '@/lib/localImageUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,11 +34,10 @@ export default function Onboarding() {
     setUploading(true);
     setUploadError('');
     try {
-      await validateImageUpload(file, 'avatar');
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setForm({ ...form, avatar: file_url });
+      const localImage = await prepareLocalImage(file, 'avatar');
+      setForm({ ...form, avatar: localImage });
     } catch (error) {
-      setUploadError(error?.response?.data?.error || error.message || 'Image upload failed. Please try another image.');
+      setUploadError(error?.response?.data?.error || error.message || 'Image validation failed. Please try another image.');
     } finally { setUploading(false); }
   };
 
@@ -76,7 +75,11 @@ export default function Onboarding() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const res = await base44.functions.invoke('createRiderProfile', form);
+      const [avatar, bikePhoto] = await Promise.all([
+        uploadImageIfNeeded(form.avatar),
+        uploadImageIfNeeded(form.bikePhoto),
+      ]);
+      const res = await base44.functions.invoke('createRiderProfile', { ...form, avatar, bikePhoto });
       return { existing: res.data?.existing };
     },
     onSuccess: (data) => {
@@ -121,8 +124,8 @@ export default function Onboarding() {
               Profile Picture *
             </Label>
             <div className="flex items-center gap-4">
-              {form.avatar ? (
-                <img src={form.avatar} className="w-16 h-16 rounded-2xl object-cover border border-border" alt="" />
+              {getImagePreview(form.avatar) ? (
+                <img src={getImagePreview(form.avatar)} className="w-16 h-16 rounded-2xl object-cover border border-border" alt="" />
               ) : (
                 <div className="w-16 h-16 rounded-2xl bg-secondary/50 border border-dashed border-border flex items-center justify-center font-display font-bold text-xl text-muted-foreground">
                   {form.displayName?.[0]?.toUpperCase() || '?'}
@@ -130,7 +133,7 @@ export default function Onboarding() {
               )}
               <label className="text-sm font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer bg-primary/10 border border-primary/20 px-4 py-2 rounded-full">
                 <input type="file" accept="image/*" onChange={handleAvatar} className="hidden" />
-                {uploading ? 'Uploading...' : 'Upload picture'}
+                {uploading ? 'Preparing...' : 'Upload picture'}
               </label>
             </div>
             {uploadError && <p className="mt-2 text-sm text-destructive">{uploadError}</p>}
