@@ -6,10 +6,10 @@ export default function AlertPriorityStatus({ count }) {
 
   return (
     <div className={cn(
-      'mt-2.5 flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.045)]',
+      'mt-2.5 flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]',
       hasAlerts
-        ? 'border-alert/35 bg-black/40 text-alert'
-        : 'border-border/70 bg-black/25 text-muted-foreground'
+        ? 'border-alert/28 bg-alert/5 text-alert'
+        : 'border-border/60 bg-black/22 text-muted-foreground'
     )}>
       <div className="flex items-center gap-2.5">
         <span className={cn(
@@ -25,7 +25,6 @@ export default function AlertPriorityStatus({ count }) {
           </div>
         </div>
       </div>
-      {hasAlerts && <span className="h-px w-8 bg-alert/60" />}
     </div>
   );
 }
