@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { ArrowLeft, MapPin, Calendar, Clock, Wrench, Users, Heart, Check } from 'lucide-react';
+import AlertPhotoGrid from '@/components/broadcast/AlertPhotoGrid';
 import { BROADCAST_META, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 import { cn } from '@/lib/utils';
@@ -88,6 +89,7 @@ export default function BroadcastDetail() {
             <img src={broadcast.eventImage} className="max-h-[68vh] w-full object-contain" alt="Event poster" />
           </div>
         )}
+        {isAlert && <AlertPhotoGrid images={broadcast.alertImages} variant="detail" />}
 
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground mt-3">
           {(broadcast.type === 'event' || isAlert) && broadcast.exactLocationText && (

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Clock, Wrench, MapPin, Calendar, Bike } from 'lucide-react';
 import SignalIcon from '@/components/brand/SignalIcon';
+import AlertPhotoGrid from '@/components/broadcast/AlertPhotoGrid';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
 
@@ -59,6 +60,7 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng, pro
             <img src={broadcast.eventImage} className="max-h-72 w-full object-contain" alt="Event poster" />
           </div>
         )}
+        {broadcast.type === 'alert' && <AlertPhotoGrid images={broadcast.alertImages} />}
         <div className={cn('flex items-start', isProminentSolo ? 'gap-4' : 'gap-3')}>
           {isProminentSolo ? (
             <div className="relative shrink-0">

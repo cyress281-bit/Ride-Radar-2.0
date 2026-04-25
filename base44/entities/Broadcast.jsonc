@@ -52,6 +52,13 @@
       "type": "string",
       "description": "Optional event image URL"
     },
+    "alertImages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional alert photo URLs, maximum 2"
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -69,5 +76,47 @@
     "authorId",
     "type",
     "title"
-  ]
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "data.status": "active"
+        },
+        {
+          "data.authorId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.authorId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.authorId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }

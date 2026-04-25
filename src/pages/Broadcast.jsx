@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin } from 'lucide-react';
+import AlertPhotoUploader from '@/components/broadcast/AlertPhotoUploader';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { cn } from '@/lib/utils';
 import { computeExpiresAt, fuzzLocation } from '@/lib/broadcastUtils';
@@ -21,7 +22,8 @@ const TYPES = [
 ];
 
 export default function Broadcast() {
-  const [type, setType] = useState(null);
+  const urlType = new URLSearchParams(window.location.search).get('type');
+  const [type, setType] = useState(TYPES.some((t) => t.id === urlType) ? urlType : null);
   const navigate = useNavigate();
 
   if (!type) {
@@ -93,6 +95,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
     eventDate: '',
     eventEndTime: '',
     eventImage: '',
+    alertImages: [],
   });
   const [coords, setCoords] = useState({ lat: null, lng: null });
   const [uploading, setUploading] = useState(false);
@@ -132,6 +135,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
       }
       if (type === 'alert') {
         payload.exactLocationText = form.exactLocationText;
+        if (form.alertImages?.length) payload.alertImages = form.alertImages.slice(0, 2);
       }
 
       payload.expiresAt = computeExpiresAt(payload);
@@ -268,16 +272,19 @@ function BroadcastForm({ type, onBack, onPosted }) {
         )}
 
         {type === 'alert' && (
-          <div>
-            <Label>Approximate area *</Label>
-            <Input
-              value={form.exactLocationText}
-              onChange={(e) => setForm({ ...form, exactLocationText: e.target.value })}
-              placeholder="I-70 westbound near Idaho Springs"
-              className="mt-1.5"
-            />
-            <p className="text-xs text-muted-foreground mt-1.5">Describe the area. No exact pin is shared.</p>
-          </div>
+          <>
+            <div>
+              <Label>Approximate area *</Label>
+              <Input
+                value={form.exactLocationText}
+                onChange={(e) => setForm({ ...form, exactLocationText: e.target.value })}
+                placeholder="I-70 westbound near Idaho Springs"
+                className="mt-1.5"
+              />
+              <p className="text-xs text-muted-foreground mt-1.5">Describe the area. No exact pin is shared.</p>
+            </div>
+            <AlertPhotoUploader images={form.alertImages} onChange={(alertImages) => setForm({ ...form, alertImages })} />
+          </>
         )}
 
         {(type === 'solo_ride' || type === 'iso') && (
