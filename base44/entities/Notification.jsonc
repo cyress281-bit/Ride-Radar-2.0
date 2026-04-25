@@ -3,7 +3,12 @@
   "type": "object",
   "properties": {
     "userId": {
-      "type": "string"
+      "type": "string",
+      "description": "Recipient profile id"
+    },
+    "userAuthId": {
+      "type": "string",
+      "description": "Recipient auth user id"
     },
     "type": {
       "type": "string",
@@ -40,7 +45,51 @@
   },
   "required": [
     "userId",
+    "userAuthId",
     "type",
     "title"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.userAuthId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.userAuthId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.userAuthId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }

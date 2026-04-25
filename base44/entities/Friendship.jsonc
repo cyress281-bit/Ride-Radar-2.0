@@ -4,11 +4,17 @@
   "properties": {
     "userAId": {
       "type": "string",
-      "description": "Initiator"
+      "description": "Initiator profile id"
+    },
+    "userAAuthId": {
+      "type": "string"
     },
     "userBId": {
       "type": "string",
-      "description": "Recipient"
+      "description": "Recipient profile id"
+    },
+    "userBAuthId": {
+      "type": "string"
     },
     "status": {
       "type": "string",
@@ -21,6 +27,58 @@
   },
   "required": [
     "userAId",
-    "userBId"
-  ]
+    "userAAuthId",
+    "userBId",
+    "userBAuthId"
+  ],
+  "rls": {
+    "create": {
+      "data.userAAuthId": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.userAAuthId": "{{user.id}}"
+        },
+        {
+          "data.userBAuthId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.userAAuthId": "{{user.id}}"
+        },
+        {
+          "data.userBAuthId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.userAAuthId": "{{user.id}}"
+        },
+        {
+          "data.userBAuthId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }

@@ -6,6 +6,10 @@
       "type": "string"
     },
     "userId": {
+      "type": "string",
+      "description": "RSVP profile id"
+    },
+    "userAuthId": {
       "type": "string"
     },
     "status": {
@@ -19,6 +23,37 @@
   "required": [
     "broadcastId",
     "userId",
+    "userAuthId",
     "status"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "data.userAuthId": "{{user.id}}"
+    },
+    "read": true,
+    "update": {
+      "$or": [
+        {
+          "data.userAuthId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.userAuthId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }
