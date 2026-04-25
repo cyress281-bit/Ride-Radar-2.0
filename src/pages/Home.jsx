@@ -87,8 +87,8 @@ export default function Home() {
               {userLoc.lat ? 'Live signals in your area' : 'Live signals'}
             </p>
           </div>
-          <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-primary/25 bg-black/25 shadow-[0_0_30px_hsl(var(--primary)/0.16)]">
-            <RRLogo size="fill" glow className="scale-125 object-cover" />
+          <div className="relative flex h-24 w-24 items-center justify-center overflow-visible">
+            <RRLogo size="fill" glow className="scale-150 object-contain" />
           </div>
         </div>
         <div className="relative z-10 mt-4 grid grid-cols-2 gap-2">
