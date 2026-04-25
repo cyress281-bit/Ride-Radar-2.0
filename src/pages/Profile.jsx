@@ -41,50 +41,52 @@ export default function Profile() {
   const active = myBroadcasts.filter((b) => b.status === 'active' && !isExpired(b));
 
   return (
-    <div className="px-5 pt-6">
+    <div className="px-5 pt-5">
       {editing ? (
         <ProfileEdit profile={profile} onDone={() => setEditing(false)} />
       ) : (
         <>
-          <div className="flex items-start gap-5 mb-8 rr-surface-strong p-5 rounded-[1.45rem] relative overflow-hidden">
+          <div className="mb-4 rr-surface-strong p-5 rounded-[1.45rem] relative overflow-hidden">
             <div className="absolute top-[-20%] right-[-10%] w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
             
-            {profile.avatar ? (
-              <img src={profile.avatar} className="w-20 h-20 rounded-2xl object-cover border border-border/50 shadow-[0_0_15px_rgba(0,0,0,0.5)] z-10" alt="" />
-            ) : (
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] z-10 border border-primary/20">
-                {profile.displayName?.[0]?.toUpperCase() || '?'}
+            <div className="relative z-10 flex items-start gap-4">
+              {profile.avatar ? (
+                <img src={profile.avatar} className="w-20 h-20 rounded-2xl object-cover border border-border/50 shadow-[0_0_15px_rgba(0,0,0,0.5)]" alt="" />
+              ) : (
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] border border-primary/20">
+                  {profile.displayName?.[0]?.toUpperCase() || '?'}
+                </div>
+              )}
+              <div className="flex-1 pt-1 min-w-0">
+                <div className="rr-kicker mb-1">Rider ID</div>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-display text-2xl font-extrabold tracking-[-0.04em] truncate">{profile.displayName}</h1>
+                  {user?.role === 'admin' && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded shadow-sm">Admin</span>
+                  )}
+                </div>
+                {profile.location && <div className="text-xs text-muted-foreground mt-1 font-medium flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-primary" />{profile.location}</div>}
               </div>
-            )}
-            <div className="flex-1 pt-1 z-10">
-              <div className="flex items-center gap-2">
-                <h1 className="font-display text-2xl font-extrabold tracking-[-0.04em]">{profile.displayName}</h1>
-                {user?.role === 'admin' && (
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded shadow-sm">Admin</span>
-                )}
-              </div>
-              {profile.location && <div className="text-xs text-muted-foreground mt-1 font-medium">{profile.location}</div>}
+              <button onClick={() => setEditing(true)} className="p-2.5 rounded-full bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all border border-border/50 shadow-sm">
+                <Edit2 className="w-4 h-4" />
+              </button>
             </div>
-            <button onClick={() => setEditing(true)} className="p-2.5 rounded-full bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all z-10 border border-border/50 shadow-sm">
-              <Edit2 className="w-4 h-4" />
-            </button>
+            <div className="relative z-10 mt-4 grid grid-cols-3 gap-2">
+              <RiderMetric icon={Radio} label="Signals" value={active.length} compact />
+              <RiderMetric icon={Gauge} label="Style" value={profile.rideStyle || 'street'} compact />
+              <RiderMetric icon={ShieldCheck} label="Status" value={profile.isPublic === false ? 'private' : 'public'} compact />
+            </div>
           </div>
 
           {profile.bio && (
-            <div className="mb-5 rounded-2xl rr-surface p-4">
+            <div className="mb-3 rounded-2xl rr-surface p-4">
               <div className="rr-kicker text-muted-foreground mb-2">Rider note</div>
               <p className="text-[15px] leading-relaxed text-foreground/90">{profile.bio}</p>
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-2 mb-5">
-            <RiderMetric icon={Radio} label="Signals" value={active.length} />
-            <RiderMetric icon={Gauge} label="Style" value={profile.rideStyle || 'street'} />
-            <RiderMetric icon={ShieldCheck} label="Status" value={profile.isPublic === false ? 'private' : 'public'} />
-          </div>
-
           {profile.bike && (
-            <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl rr-surface text-sm">
+            <div className="flex items-center gap-3 mb-4 p-4 rounded-2xl rr-surface text-sm">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <Bike className="w-4 h-4 text-primary" />
               </div>
@@ -93,7 +95,7 @@ export default function Profile() {
             </div>
           )}
 
-          <div className="flex gap-2 mb-8">
+          <div className="flex gap-2 mb-5">
             <Link to="/settings" className="flex-1">
               <Button variant="outline" className="w-full rounded-full"><Settings className="w-4 h-4 mr-1.5" />Settings</Button>
             </Link>
@@ -121,9 +123,9 @@ export default function Profile() {
   );
 }
 
-function RiderMetric({ icon: Icon, label, value }) {
+function RiderMetric({ icon: Icon, label, value, compact }) {
   return (
-    <div className="rounded-2xl border border-border/70 bg-black/25 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0">
+    <div className={compact ? 'rounded-2xl border border-border/70 bg-black/30 p-2.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0' : 'rounded-2xl border border-border/70 bg-black/25 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0'}>
       <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-1.5">
         <Icon className="w-3.5 h-3.5 text-primary" />
         {label}

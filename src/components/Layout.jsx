@@ -3,6 +3,7 @@ import { Gauge, Radar, MessagesSquare, UserRound, Bell, Shield } from 'lucide-re
 import { useCurrentUser, useMyProfile } from '@/lib/useCurrentUser';
 import { cn } from '@/lib/utils';
 import RRLogo from '@/components/RRLogo';
+import NavGlyph from '@/components/brand/NavGlyph';
 
 const tabs = [
   { to: '/home', icon: Gauge, label: 'Radar' },
@@ -75,16 +76,7 @@ export default function Layout() {
                 to={t.to}
                 className="flex flex-col items-center gap-1 py-3 transition-colors group"
               >
-                <div className={cn(
-                  'p-1.5 rounded-xl transition-all',
-                  active ? 'text-primary bg-primary/10 shadow-[0_0_18px_hsl(var(--primary)/0.12)]' : 'text-muted-foreground group-hover:text-foreground'
-                )}>
-                  <Icon
-                    className="w-[22px] h-[22px]"
-                    strokeWidth={active ? 2.5 : 2}
-                    style={active ? { filter: 'drop-shadow(0 0 5px hsl(142 100% 47% / 0.7))' } : {}}
-                  />
-                </div>
+                <NavGlyph icon={Icon} active={active} />
                 <span className={cn(
                   'text-[10px] tracking-[0.08em] font-bold uppercase',
                   active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'

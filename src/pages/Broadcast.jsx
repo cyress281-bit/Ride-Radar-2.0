@@ -26,21 +26,25 @@ export default function Broadcast() {
 
   if (!type) {
     return (
-      <div className="px-5 pt-6">
-        <div className="mb-7">
+      <div className="px-5 pt-5">
+        <div className="mb-4 rr-surface-strong rounded-[1.45rem] p-5 relative overflow-hidden">
+          <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full border border-primary/15" />
           <div className="rr-chip mb-3"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Signal console</div>
           <h1 className="rr-heading text-4xl mb-1">Broadcast</h1>
           <p className="text-sm text-muted-foreground">Choose the kind of signal you want to send.</p>
+          <div className="mt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            <span className="h-px flex-1 bg-gradient-to-r from-primary/50 to-border/40" />
+            Broadcast types
+          </div>
         </div>
-        <div className="grid grid-cols-1 gap-3 relative before:absolute before:left-7 before:top-5 before:bottom-5 before:w-px before:bg-gradient-to-b before:from-primary/35 before:via-border/70 before:to-transparent before:pointer-events-none">
+        <div className="grid grid-cols-1 gap-2.5 relative before:absolute before:left-7 before:top-5 before:bottom-5 before:w-px before:bg-gradient-to-b before:from-primary/35 before:via-border/70 before:to-transparent before:pointer-events-none">
           {TYPES.map((t) => {
-            const Icon = t.icon;
             return (
               <button
                 key={t.id}
                 onClick={() => setType(t.id)}
                 className={cn(
-                  "w-full text-left p-5 pl-6 rounded-[1.35rem] rr-surface transition-all duration-300 group flex flex-col gap-4 relative overflow-hidden",
+                  "w-full text-left p-4 pl-6 rounded-[1.35rem] rr-surface transition-all duration-300 group flex flex-col gap-4 relative overflow-hidden",
                   `hover:border-${t.color}/60 hover:shadow-[0_12px_40px_-12px_hsl(var(--${t.color})/0.3)] hover:-translate-y-0.5`
                 )}
               >
@@ -79,7 +83,6 @@ function BroadcastForm({ type, onBack, onPosted }) {
   });
 
   const typeMeta = TYPES.find((t) => t.id === type);
-  const Icon = typeMeta.icon;
 
   const [form, setForm] = useState({
     type,

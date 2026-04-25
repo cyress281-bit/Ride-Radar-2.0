@@ -43,8 +43,8 @@ export default function Home() {
   const getAuthor = (id) => profiles.find((p) => p.id === id);
 
   return (
-    <div className="px-5 pt-6">
-      <div className="mb-5 rr-surface-strong rounded-[1.55rem] p-5 relative overflow-hidden">
+    <div className="px-5 pt-5">
+      <div className="mb-4 rr-surface-strong rounded-[1.55rem] p-5 relative overflow-hidden">
         <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full border border-primary/15" />
         <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full border border-primary/20" />
         <div className="absolute right-8 top-8 h-2 w-2 rounded-full bg-primary glow-green-sm" />
@@ -60,14 +60,14 @@ export default function Home() {
             <Satellite className="w-6 h-6" strokeWidth={2.25} />
           </div>
         </div>
-        <div className="relative z-10 grid grid-cols-3 gap-2 mt-5">
+        <div className="relative z-10 grid grid-cols-3 gap-2 mt-4">
           <SignalStat icon={Activity} label="Signals" value={ranked.length} />
           <SignalStat icon={Gauge} label="Riders" value={rideCount} />
           <SignalStat icon={Zap} label="Alerts" value={alertCount} alert={alertCount > 0} />
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-3 px-1">
+      <div className="flex items-center justify-between mb-2 px-1">
         <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Signal feed</div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -89,7 +89,7 @@ export default function Home() {
           <p className="text-sm text-muted-foreground max-w-xs mx-auto relative z-10 font-medium">No active broadcasts nearby. Be the first to signal your presence on the network.</p>
         </div>
       ) : (
-        <div className="space-y-3 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-primary/45 before:via-border before:to-transparent before:pointer-events-none">
+        <div className="space-y-2.5 relative before:absolute before:left-6 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-primary/45 before:via-border before:to-transparent before:pointer-events-none">
           {ranked.map((b) => (
             <div key={b.id} className="relative pl-4">
               <span className="absolute left-[21px] top-6 z-10 h-2.5 w-2.5 rounded-full bg-background border border-primary/60 shadow-[0_0_14px_hsl(var(--primary)/0.45)]" />
@@ -104,7 +104,7 @@ export default function Home() {
 
 function SignalStat({ icon: Icon, label, value, alert }) {
   return (
-    <div className="rounded-2xl border border-border/70 bg-black/25 px-3 py-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
+    <div className="rounded-2xl border border-border/70 bg-black/30 px-3 py-2.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
       <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground mb-1.5">
         <Icon className={alert ? 'w-3.5 h-3.5 text-alert' : 'w-3.5 h-3.5 text-primary'} />
         {label}
