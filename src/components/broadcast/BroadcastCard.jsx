@@ -96,6 +96,12 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng, pro
               <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{broadcast.body}</p>
             )}
 
+            {isProminentSolo && author?.bikePhoto && (
+              <div className="mb-3 overflow-hidden rounded-2xl border border-solo/20 bg-black/35 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
+                <img src={author.bikePhoto} className="h-24 w-full object-cover" alt="Rider bike" />
+              </div>
+            )}
+
             {/* Footer meta */}
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap mt-2">
               {author && !isProminentSolo && (

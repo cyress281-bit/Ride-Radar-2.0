@@ -99,10 +99,13 @@ export default function RiderProfile() {
           {profile.bio && <p className="text-[15px] mb-4 leading-relaxed">{profile.bio}</p>}
 
           {profile.bike && (
-            <div className="flex items-center gap-2 mb-5 p-3 rounded-xl bg-secondary/50 text-sm">
-              <Bike className="w-4 h-4 text-muted-foreground" />
-              <span>{profile.bike}</span>
-              {profile.rideStyle && <span className="ml-auto text-xs text-muted-foreground capitalize">{profile.rideStyle}</span>}
+            <div className="mb-5 overflow-hidden rounded-2xl border border-border/70 bg-secondary/30 text-sm">
+              {profile.bikePhoto && <img src={profile.bikePhoto} className="h-32 w-full object-cover" alt="Bike" />}
+              <div className="flex items-center gap-2 p-3">
+                <Bike className="w-4 h-4 text-primary" />
+                <span>{profile.bike}</span>
+                {profile.rideStyle && <span className="ml-auto text-xs text-muted-foreground capitalize">{profile.rideStyle}</span>}
+              </div>
             </div>
           )}
         </>

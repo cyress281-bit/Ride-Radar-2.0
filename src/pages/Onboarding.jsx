@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import RRLogo from '@/components/RRLogo';
 import { MapPin, Loader2 } from 'lucide-react';
+import BikePhotoUploader from '@/components/profile/BikePhotoUploader';
 
 export default function Onboarding() {
   const { data: user } = useCurrentUser();
@@ -20,6 +21,7 @@ export default function Onboarding() {
     avatar: '',
     location: '',
     bike: '',
+    bikePhoto: '',
   });
   const [detectingLoc, setDetectingLoc] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -200,6 +202,13 @@ export default function Onboarding() {
               onChange={(e) => setForm({ ...form, bike: e.target.value })}
               placeholder="2022 Triumph Speed Triple"
             />
+          </div>
+
+          <div>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
+              Bike photo
+            </Label>
+            <BikePhotoUploader image={form.bikePhoto} onChange={(bikePhoto) => setForm({ ...form, bikePhoto })} />
           </div>
 
           {create.isError && (

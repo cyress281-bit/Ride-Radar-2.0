@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Settings, LogOut, Edit2, Check, X, Bike, MapPin, Loader2, Gauge, Radio, ShieldCheck } from 'lucide-react';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
+import BikePhotoUploader from '@/components/profile/BikePhotoUploader';
 import { isExpired } from '@/lib/broadcastUtils';
 import { Link } from 'react-router-dom';
 
@@ -88,12 +89,20 @@ export default function Profile() {
           )}
 
           {profile.bike && (
-            <div className="flex items-center gap-3 mb-4 p-4 rounded-2xl rr-surface text-sm">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Bike className="w-4 h-4 text-primary" />
+            <div className="mb-4 rounded-2xl rr-surface overflow-hidden">
+              {profile.bikePhoto && (
+                <div className="relative h-36 border-b border-border/60 bg-black/40">
+                  <img src={profile.bikePhoto} className="h-full w-full object-cover" alt="Bike" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                </div>
+              )}
+              <div className="flex items-center gap-3 p-4 text-sm">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Bike className="w-4 h-4 text-primary" />
+                </div>
+                <span className="font-medium">{profile.bike}</span>
+                {profile.rideStyle && <span className="ml-auto text-[11px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary/80 px-2 py-1 rounded-md">{profile.rideStyle}</span>}
               </div>
-              <span className="font-medium">{profile.bike}</span>
-              {profile.rideStyle && <span className="ml-auto text-[11px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary/80 px-2 py-1 rounded-md">{profile.rideStyle}</span>}
             </div>
           )}
 
@@ -182,6 +191,7 @@ function ProfileEdit({ profile, onDone }) {
         location: form.location,
         rideStyle: form.rideStyle,
         bike: form.bike,
+        bikePhoto: form.bikePhoto,
         avatar: form.avatar,
       });
     },
@@ -242,6 +252,12 @@ function ProfileEdit({ profile, onDone }) {
         <div>
           <Label>Bike</Label>
           <Input value={form.bike || ''} onChange={(e) => setForm({ ...form, bike: e.target.value })} className="mt-1.5" />
+        </div>
+        <div>
+          <Label>Bike photo</Label>
+          <div className="mt-1.5">
+            <BikePhotoUploader image={form.bikePhoto} onChange={(bikePhoto) => setForm({ ...form, bikePhoto })} />
+          </div>
         </div>
         <div>
           <Label>Ride style</Label>

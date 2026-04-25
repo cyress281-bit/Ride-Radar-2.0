@@ -48,6 +48,10 @@
       "type": "string",
       "description": "Free text bike description"
     },
+    "bikePhoto": {
+      "type": "string",
+      "description": "Optional single bike photo URL"
+    },
     "isPublic": {
       "type": "boolean",
       "default": true
