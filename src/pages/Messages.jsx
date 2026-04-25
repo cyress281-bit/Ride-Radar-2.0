@@ -95,7 +95,7 @@ function Section({ title, items, getOther, archived }) {
               key={c.id}
               to={`/messages/${c.id}`}
               className={cn(
-                'flex items-center gap-4 p-4 rounded-3xl border transition-all duration-300',
+                'flex items-center gap-4 p-4 rounded-[1.35rem] border transition-all duration-300',
                 archived ? 'bg-secondary/15 border-border/30 opacity-70 hover:opacity-100' : 'rr-surface hover:border-primary/35 hover:shadow-[0_18px_55px_-22px_hsl(var(--primary)/0.35)] hover:-translate-y-0.5'
               )}
             >

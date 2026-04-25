@@ -53,9 +53,9 @@ export default function Profile() {
             
             <div className="relative z-10 flex items-start gap-4">
               {profile.avatar ? (
-                <img src={profile.avatar} className="w-20 h-20 rounded-2xl object-cover border border-border/50 shadow-[0_0_15px_rgba(0,0,0,0.5)]" alt="" />
+                <img src={profile.avatar} className="w-20 h-20 rounded-2xl object-cover border border-border/50 shadow-[0_0_18px_rgba(0,0,0,0.48)] shrink-0" alt="" />
               ) : (
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)] border border-primary/20">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.26)] border border-primary/20 shrink-0">
                   {profile.displayName?.[0]?.toUpperCase() || '?'}
                 </div>
               )}

@@ -112,16 +112,16 @@ export default function Onboarding() {
   const canSubmit = form.avatar && form.bike.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center py-10">
+    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center px-5 py-8">
       {/* Live ambient background */}
       <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-30" />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.12),transparent_30%),linear-gradient(180deg,transparent,rgba(0,0,0,0.5))]" />
       <div className="absolute top-[-10%] left-[20%] w-[500px] h-[500px] bg-primary/10 ambient-glow" style={{ animationDelay: '0s' }} />
       <div className="absolute bottom-[0%] right-[-10%] w-[400px] h-[400px] bg-primary/5 ambient-glow" style={{ animationDelay: '-3s' }} />
 
-      <div className="relative z-10 w-full max-w-md px-6 py-10 rr-surface-strong rounded-[1.7rem] overflow-hidden">
+      <div className="relative z-10 w-full max-w-md px-6 py-8 rr-surface-strong rounded-[1.7rem] overflow-hidden">
         {/* Brand */}
-        <div className="flex items-center gap-2.5 mb-10">
+        <div className="flex items-center gap-2.5 mb-8">
           <RRLogo size="md" />
           <span className="font-display font-bold text-xl tracking-tight">
             Ride<span className="text-primary text-glow-green">Radar</span>
@@ -132,9 +132,9 @@ export default function Onboarding() {
         <h1 className="rr-heading text-4xl mb-1 text-foreground">
           Set up your profile
         </h1>
-        <p className="text-muted-foreground mb-8 text-sm">Takes a minute. You can edit anything later.</p>
+        <p className="text-muted-foreground mb-6 text-sm">Takes a minute. You can edit anything later.</p>
 
-        <div className="space-y-5">
+        <div className="space-y-4">
           {/* Avatar */}
           <div>
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">
@@ -148,7 +148,7 @@ export default function Onboarding() {
                   {form.displayName?.[0]?.toUpperCase() || '?'}
                 </div>
               )}
-              <label className="text-sm font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer bg-primary/10 px-4 py-2 rounded-full">
+              <label className="text-sm font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer bg-primary/10 border border-primary/20 px-4 py-2 rounded-full">
                 <input type="file" accept="image/*" onChange={handleAvatar} className="hidden" />
                 {uploading ? 'Uploading...' : 'Upload picture'}
               </label>

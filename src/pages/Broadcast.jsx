@@ -165,21 +165,21 @@ function BroadcastForm({ type, onBack, onPosted }) {
     (type !== 'alert' || form.exactLocationText.trim().length > 0);
 
   return (
-    <div className="px-5 pt-6">
+    <div className="px-5 pt-5">
       <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="w-4 h-4" /> All types
       </button>
 
-      <div className="flex items-center gap-4 mb-8 bg-card/60 backdrop-blur-xl p-5 rounded-3xl border border-border/50 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden">
+      <div className="flex items-center gap-4 mb-5 rr-surface-strong p-5 rounded-[1.45rem] relative overflow-hidden">
         <div className={cn("absolute top-0 right-0 w-40 h-40 opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2", `bg-${typeMeta.color}`)} />
         <SignalIcon type={type} size="lg" />
         <div className="relative z-10">
-          <h1 className="font-display text-2xl font-bold tracking-tight">{typeMeta.label}</h1>
-          <p className="text-xs text-muted-foreground font-medium">{typeMeta.desc}</p>
+          <h1 className="font-display text-2xl font-extrabold tracking-[-0.04em]">{typeMeta.label}</h1>
+          <p className="text-xs text-muted-foreground font-medium mt-0.5">{typeMeta.desc}</p>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 rr-surface rounded-[1.45rem] p-4">
         {type === 'iso' && (
           <div>
             <Label>Looking for</Label>
@@ -281,7 +281,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
         <Button
           onClick={() => post.mutate()}
           disabled={!canPost || post.isPending || !profile}
-          className={cn('w-full h-12 rounded-full mt-4', type === 'alert' && 'bg-alert hover:bg-alert/90 text-alert-foreground')}
+          className={cn('w-full h-12 rounded-full mt-2', type === 'alert' && 'bg-alert hover:bg-alert/90 text-alert-foreground')}
         >
           {post.isPending ? 'Broadcasting...' : `Broadcast ${typeMeta.label}`}
         </Button>

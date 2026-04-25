@@ -51,17 +51,23 @@ export default function Settings() {
       <Link to="/profile" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="w-4 h-4" /> Profile
       </Link>
-      <div className="rr-chip mb-3"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Control panel</div>
-      <h1 className="rr-heading text-4xl mb-6">Settings</h1>
+      <div className="mb-4 rr-surface-strong rounded-[1.45rem] p-5 relative overflow-hidden">
+        <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full border border-primary/15" />
+        <div className="absolute left-5 right-5 bottom-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+        <div className="relative z-10">
+          <div className="rr-chip mb-3"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Control panel</div>
+          <h1 className="rr-heading text-4xl">Settings</h1>
+        </div>
+      </div>
 
-      <div className="space-y-1 rr-surface rounded-[1.45rem] p-3 mb-6 overflow-hidden">
+      <div className="space-y-1 rr-surface rounded-[1.45rem] p-3 mb-5 overflow-hidden">
         {rows.map((r, i) => (
-          <div key={r.key} className={cn("flex items-center justify-between px-4 py-4", i !== rows.length - 1 && "border-b border-border/40")}>
-            <span className="text-sm font-medium">{r.label}</span>
+          <div key={r.key} className={cn("flex items-center justify-between gap-4 px-4 py-4", i !== rows.length - 1 && "border-b border-border/40")}>
+            <span className="text-sm font-medium leading-snug">{r.label}</span>
             <Switch checked={!!settings[r.key]} onCheckedChange={(v) => save.mutate({ [r.key]: v })} />
           </div>
         ))}
-        <div className="flex items-center justify-between px-4 py-4 border-t border-border/40 bg-primary/5 -mx-3 -mb-3 rounded-b-2xl mt-2">
+        <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-border/40 bg-primary/5 -mx-3 -mb-3 rounded-b-2xl mt-2">
           <span className="text-sm font-medium text-primary">Public profile preview</span>
           <Switch checked={profile.isPublic !== false} onCheckedChange={(v) => togglePublic.mutate(v)} />
         </div>

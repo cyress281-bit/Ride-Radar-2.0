@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/AuthContext';
 import { ArrowRight, Route, Search, CalendarClock, ShieldAlert } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
+import SignalIcon from '@/components/brand/SignalIcon';
 
 export default function Landing() {
   const { navigateToLogin } = useAuth();
@@ -70,14 +71,14 @@ export default function Landing() {
         {/* Feature grid */}
         <div className="grid md:grid-cols-4 gap-4 mt-20">
           {[
-            { icon: Route, label: 'Solo Ride', desc: 'Open ride signal', color: 'text-solo', border: 'border-solo/30', bg: 'bg-solo/5' },
-            { icon: Search, label: 'In Search Of', desc: 'Wrench or crew', color: 'text-iso', border: 'border-iso/30', bg: 'bg-iso/5' },
-            { icon: CalendarClock, label: 'Events', desc: 'Stage a meetup', color: 'text-event', border: 'border-event/30', bg: 'bg-event/5' },
-            { icon: ShieldAlert, label: 'Alerts', desc: 'Road hazards fast', color: 'text-alert', border: 'border-alert/30', bg: 'bg-alert/5' },
+            { type: 'solo_ride', label: 'Solo Ride', desc: 'Open ride signal', color: 'text-solo', border: 'border-solo/30', bg: 'bg-solo/5' },
+            { type: 'iso', label: 'In Search Of', desc: 'Wrench or crew', color: 'text-iso', border: 'border-iso/30', bg: 'bg-iso/5' },
+            { type: 'event', label: 'Events', desc: 'Stage a meetup', color: 'text-event', border: 'border-event/30', bg: 'bg-event/5' },
+            { type: 'alert', label: 'Alerts', desc: 'Road hazards fast', color: 'text-alert', border: 'border-alert/30', bg: 'bg-alert/5' },
           ].map((f) => (
             <div key={f.label} className={`p-6 rounded-[1.15rem] border ${f.border} ${f.bg} transition-all duration-300 hover:scale-[1.02] rr-surface relative overflow-hidden group`}>
               <div className={`absolute top-0 right-0 w-32 h-32 bg-current opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-150 ${f.color}`} />
-              <f.icon className={`w-6 h-6 ${f.color} mb-4 relative z-10`} />
+              <SignalIcon type={f.type} size="sm" className="mb-4 relative z-10" />
               <div className="font-semibold text-[15px] mb-1.5 relative z-10">{f.label}</div>
               <div className="text-sm text-muted-foreground relative z-10">{f.desc}</div>
             </div>
