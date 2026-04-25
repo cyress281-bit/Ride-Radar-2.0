@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Clock, Wrench, MapPin, Calendar, Bike } from 'lucide-react';
+import { Clock, Wrench, MapPin, Calendar } from 'lucide-react';
 import SignalIcon from '@/components/brand/SignalIcon';
+import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import AlertPhotoGrid from '@/components/broadcast/AlertPhotoGrid';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
@@ -68,13 +69,9 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng, pro
               {author?.avatar ? (
                 <img src={author.avatar} className="h-16 w-16 rounded-2xl border border-solo/45 object-cover shadow-[0_0_26px_hsl(var(--solo)/0.18),0_12px_30px_rgba(0,0,0,0.45)]" alt={author.displayName || 'Rider'} />
               ) : (
-                <div className="h-16 w-16 rounded-2xl border border-solo/35 bg-solo/10 flex items-center justify-center text-solo shadow-[0_0_24px_hsl(var(--solo)/0.14)]">
-                  <Bike className="h-7 w-7 drop-shadow-[0_0_6px_currentColor]" />
-                </div>
+                <OfficialMotorcycleIcon frame className="h-16 w-16 rounded-2xl p-1.5" />
               )}
-              <div className="absolute -bottom-1.5 -right-1.5 h-7 w-7 rounded-xl border border-solo/45 bg-black/90 flex items-center justify-center text-solo shadow-[0_0_14px_hsl(var(--solo)/0.22)]">
-                <Bike className="h-3.5 w-3.5" strokeWidth={2.5} />
-              </div>
+              <OfficialMotorcycleIcon frame className="absolute -bottom-1.5 -right-1.5 h-7 w-7 rounded-xl p-0.5" />
             </div>
           ) : (
             <SignalIcon type={broadcast.type} size="md" />

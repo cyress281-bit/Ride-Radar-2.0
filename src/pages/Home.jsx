@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import { rankBroadcasts, isExpired, haversineMiles } from '@/lib/broadcastUtils';
-import { Radio, CalendarClock, Users, Search } from 'lucide-react';
+import { Radio, CalendarClock, Search } from 'lucide-react';
+import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { listProfilesByIds } from '@/lib/profileLookup';
 import FeedControls from '@/components/home/FeedControls';
 import UserLiveStatus from '@/components/home/UserLiveStatus';
@@ -98,7 +99,7 @@ export default function Home() {
         <div className="relative z-10 mt-3 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center rounded-full border border-border/35 bg-black/15 px-3 py-1.5 text-[10px] font-semibold text-muted-foreground shadow-[inset_0_1px_0_hsl(0_0%_100%/0.03)]">
           <SignalStat icon={CalendarClock} label="Events" value={eventCount} />
           <span className="mx-1 h-3 w-px bg-border/50" />
-          <SignalStat icon={Users} label="Nearby Riders" value={nearbyRiderCount} />
+          <SignalStat icon={OfficialMotorcycleIcon} label="Nearby Riders" value={nearbyRiderCount} />
           <span className="mx-1 h-3 w-px bg-border/50" />
           <SignalStat icon={Search} label="In Search Of" value={isoCount} />
         </div>
@@ -144,7 +145,7 @@ export default function Home() {
 function SignalStat({ icon: Icon, label, value }) {
   return (
     <div className="flex min-w-0 items-center justify-center gap-1.5 whitespace-nowrap">
-      <Icon className="h-3 w-3 shrink-0 text-primary/50" />
+      <Icon className="h-3 w-3 shrink-0 rounded-sm text-primary/50" />
       <span className="truncate uppercase tracking-[0.1em] text-muted-foreground/75">{label}</span>
       <span className="font-display text-sm font-extrabold tracking-[-0.03em] text-foreground/85">{value}</span>
     </div>

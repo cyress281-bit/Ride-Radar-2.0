@@ -11,6 +11,7 @@ import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 import { cn } from '@/lib/utils';
 import { getProfileByIdSafe } from '@/lib/profileLookup';
 import SafetyActions from '@/components/safety/SafetyActions';
+import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 
 export default function BroadcastDetail() {
   const { id } = useParams();
@@ -78,6 +79,7 @@ export default function BroadcastDetail() {
           broadcast.type === 'iso' && 'bg-iso/10 text-iso',
           broadcast.type === 'event' && 'bg-event/10 text-event'
         )}>
+          {broadcast.type === 'solo_ride' && <OfficialMotorcycleIcon className="h-5 w-6 rounded-md" />}
           {meta.label}
           {broadcast.isoSubtype && ` · ${broadcast.isoSubtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}`}
         </div>

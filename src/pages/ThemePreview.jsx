@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import RRLogo from '@/components/RRLogo';
+import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -35,7 +36,7 @@ const typeStyles = {
   iso: { card: 'bg-card border-border', badge: 'bg-iso text-iso-foreground', icon: 'bg-iso text-iso-foreground', label: 'text-primary', topBar: 'bg-primary/70' },
   event: { card: 'bg-card border-border', badge: 'bg-event text-event-foreground', icon: 'bg-event text-event-foreground', label: 'text-event', topBar: '' },
 };
-const iconMap = { solo_ride: Route, iso: Search, event: CalendarClock, alert: AlertTriangle };
+const iconMap = { solo_ride: OfficialMotorcycleIcon, iso: Search, event: CalendarClock, alert: AlertTriangle };
 const labelMap = { solo_ride: 'Solo Ride', iso: 'In Search Of', event: 'Event', alert: 'Alert' };
 
 function timeAgo(iso) {
@@ -62,7 +63,11 @@ function MockCard({ b }) {
       <div className="p-4">
         <div className="flex items-start gap-3">
           <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', s.icon)}>
-            <Icon className="w-5 h-5" strokeWidth={2.2} />
+            {b.type === 'solo_ride' ? (
+              <Icon className="h-7 w-8 rounded-lg" />
+            ) : (
+              <Icon className="w-5 h-5" strokeWidth={2.2} />
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
@@ -101,7 +106,7 @@ const MOCK_CONVOS = [
 ];
 
 const BROADCAST_TYPES = [
-  { id: 'solo_ride', label: 'Solo Ride', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
+  { id: 'solo_ride', label: 'Solo Ride', desc: 'Open a live riding signal', icon: OfficialMotorcycleIcon, color: 'solo' },
   { id: 'iso', label: 'In Search Of', desc: 'Find wrench help or a bike crew', icon: Search, color: 'iso' },
   { id: 'event', label: 'Event', desc: 'Stage a meetup or group ride', icon: CalendarClock, color: 'event' },
   { id: 'alert', label: 'Alert', desc: 'Road hazard, incident — one-way broadcast', icon: AlertTriangle, color: 'alert' },
@@ -168,13 +173,13 @@ export default function ThemePreview() {
                 <Button onClick={() => navigateToLogin('/home')} className="rounded-full glow-green h-11 px-6">Get started <ArrowRight className="w-4 h-4" /></Button>
                 <div className="grid grid-cols-4 gap-2 mt-8">
                   {[
-                    { icon: Route, label: 'Solo Ride', c: 'text-solo', b: 'border-solo/30', bg: 'bg-solo/8' },
+                    { icon: OfficialMotorcycleIcon, label: 'Solo Ride', c: 'text-solo', b: 'border-solo/30', bg: 'bg-solo/8', solo: true },
                     { icon: Search, label: 'ISO', c: 'text-iso', b: 'border-iso/30', bg: 'bg-iso/8' },
                     { icon: CalendarClock, label: 'Events', c: 'text-event', b: 'border-event/30', bg: 'bg-event/8' },
                     { icon: AlertTriangle, label: 'Alerts', c: 'text-alert', b: 'border-alert/30', bg: 'bg-alert/8' },
                   ].map((f) => (
                     <div key={f.label} className={cn('p-3 rounded-xl border', f.b, f.bg)}>
-                      <f.icon className={cn('w-4 h-4 mb-1.5', f.c)} />
+                      {f.solo ? <f.icon className="mb-1.5 h-4 w-5 rounded-sm" /> : <f.icon className={cn('w-4 h-4 mb-1.5', f.c)} />}
                       <div className="text-xs font-semibold">{f.label}</div>
                     </div>
                   ))}
@@ -228,7 +233,11 @@ export default function ThemePreview() {
                   <div key={t.id} className="w-full text-left p-4 rounded-[1.15rem] rr-surface hover:border-primary/40 transition-all group">
                     <div className="flex items-start gap-4">
                       <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center shrink-0', colorStyles[t.color])}>
-                        <Icon className="w-5 h-5" strokeWidth={2.2} />
+                        {t.id === 'solo_ride' ? (
+                          <Icon className="h-7 w-8 rounded-lg" />
+                        ) : (
+                          <Icon className="w-5 h-5" strokeWidth={2.2} />
+                        )}
                       </div>
                       <div>
                         <div className="font-semibold text-base mb-0.5">{t.label}</div>

@@ -1,10 +1,11 @@
-import { ShieldAlert, Bike, Search, CalendarClock, Wrench } from 'lucide-react';
+import { ShieldAlert, Search, CalendarClock, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 
 const styles = {
   solo_ride: {
-    Icon: Bike,
-    shell: 'border-solo/45 bg-solo/10 text-solo shadow-[0_0_30px_hsl(var(--solo)/0.24)]',
+    Icon: OfficialMotorcycleIcon,
+    shell: 'border-solo/45 bg-black/80 text-solo shadow-[0_0_30px_hsl(var(--solo)/0.24)]',
     beam: 'bg-solo/45',
     dot: 'bg-solo',
   },
@@ -48,7 +49,11 @@ export default function SignalIcon({ type = 'solo_ride', size = 'md', className 
       <div className={cn('absolute -right-6 top-3 h-px w-16 rotate-12 opacity-40', config.beam)} />
       <div className={cn('absolute left-2 bottom-2 h-px w-6 opacity-45', config.beam)} />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_25%,hsl(0_0%_100%/0.18),transparent_34%)]" />
-      <Icon className={cn('relative z-10 drop-shadow-[0_0_6px_currentColor]', iconSizes[size])} strokeWidth={2.45} />
+      {type === 'solo_ride' ? (
+        <Icon className={cn('relative z-10 rounded-lg', size === 'sm' ? 'h-7 w-8' : size === 'lg' ? 'h-10 w-11' : 'h-8 w-9')} />
+      ) : (
+        <Icon className={cn('relative z-10 drop-shadow-[0_0_6px_currentColor]', iconSizes[size])} strokeWidth={2.45} />
+      )}
       {Accent && <Accent className="absolute right-1.5 top-1.5 h-3.5 w-3.5 rounded-full bg-black/60 p-0.5 text-current" strokeWidth={2.5} />}
       <span className={cn('absolute right-2 bottom-2 h-1.5 w-1.5 rounded-full animate-pulse', config.dot)} />
     </div>
