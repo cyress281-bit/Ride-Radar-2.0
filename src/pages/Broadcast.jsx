@@ -96,6 +96,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
     eventEndTime: '',
     eventImage: '',
     alertImages: [],
+    lookingTo: 'join_crew',
   });
   const [coords, setCoords] = useState({ lat: null, lng: null });
   const [uploading, setUploading] = useState(false);
@@ -114,7 +115,9 @@ function BroadcastForm({ type, onBack, onPosted }) {
       const payload = {
         authorId: profile.id,
         type,
-        title: form.title,
+        title: type === 'iso' && form.isoSubtype === 'bike_crew'
+          ? (form.lookingTo === 'start_crew' ? 'Start a bike crew' : 'Join a bike crew')
+          : form.title,
         body: form.body,
         status: 'active',
       };
@@ -164,8 +167,12 @@ function BroadcastForm({ type, onBack, onPosted }) {
     form.eventDate && form.eventEndTime && new Date(form.eventEndTime) > new Date(form.eventDate)
   );
 
+  const hasRequiredTitle = type === 'iso' && form.isoSubtype === 'bike_crew'
+    ? !!form.lookingTo
+    : form.title.trim().length >= 3;
+
   const canPost =
-    form.title.trim().length >= 3 &&
+    hasRequiredTitle &&
     (type !== 'event' || (form.exactLocationText && isValidEventTime)) &&
     (type !== 'alert' || form.exactLocationText.trim().length > 0);
 
@@ -198,23 +205,36 @@ function BroadcastForm({ type, onBack, onPosted }) {
           </div>
         )}
 
-        <div>
-          <Label>Title *</Label>
-          <Input
-            value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
-            placeholder={type === 'alert' ? 'Deer on I-70 near exit 252' : type === 'event' ? 'Sunday canyon run' : 'Who\'s rolling tonight?'}
-            className="mt-1.5"
-            maxLength={120}
-          />
-        </div>
+        {type === 'iso' && form.isoSubtype === 'bike_crew' ? (
+          <div>
+            <Label>Looking to</Label>
+            <Select value={form.lookingTo} onValueChange={(v) => setForm({ ...form, lookingTo: v })}>
+              <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="join_crew">Join a crew</SelectItem>
+                <SelectItem value="start_crew">Start a crew</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        ) : (
+          <div>
+            <Label>Title *</Label>
+            <Input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder={type === 'alert' ? 'Deer on I-70 near exit 252' : type === 'event' ? 'Sunday canyon run' : type === 'iso' ? 'Need a mechanic tonight' : 'Who\'s rolling tonight?'}
+              className="mt-1.5"
+              maxLength={120}
+            />
+          </div>
+        )}
 
         <div>
           <Label>Details</Label>
           <Textarea
             value={form.body}
             onChange={(e) => setForm({ ...form, body: e.target.value })}
-            placeholder="Add context..."
+            placeholder={type === 'iso' && form.isoSubtype === 'mechanic' ? 'Describe what is happening with your bike...' : type === 'iso' && form.isoSubtype === 'bike_crew' ? 'Add your area, riding style, pace, or timing...' : 'Add context...'}
             className="mt-1.5"
             rows={4}
             maxLength={500}
