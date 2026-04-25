@@ -15,18 +15,33 @@ export default function PrivacyPolicy() {
         </Link>
         <div className="rr-surface-strong rounded-2xl p-5">
           <div className="rr-kicker mb-2">Ride Radar Privacy Policy</div>
-          <h1 className="rr-heading mb-3 text-3xl">Privacy & Data Use</h1>
-          <p className="text-sm text-muted-foreground">Effective April 25, 2026. This public policy page is suitable for in-app review access and store metadata links.</p>
+          <h1 className="rr-heading mb-3 text-3xl">Ride Radar Privacy Policy</h1>
+          <p className="text-sm text-muted-foreground">Ride Radar collects and stores account, profile, content, and app usage information needed to operate the app.</p>
         </div>
 
         <div className="mt-4 space-y-4 rounded-2xl border border-border/70 bg-black/30 p-5 text-sm leading-relaxed text-muted-foreground">
-          <section><h2 className="mb-1 font-display text-lg font-bold text-foreground">Data we collect</h2><p>Ride Radar stores account identity from the login provider, rider profile details you enter, approximate area/location when you choose location-based broadcasts, uploaded profile/bike/event/alert photos, broadcasts, RSVPs, connection requests, friendships, messages, notifications, reports, blocks, and app settings.</p></section>
-          <section><h2 className="mb-1 font-display text-lg font-bold text-foreground">Public vs private data</h2><p>Display name, avatar, bike details, public profile fields, and active broadcasts may be visible to other users. Full legal name, email, notification settings, block lists, reports, private messages, and account deletion requests are treated as private app data.</p></section>
-          <section><h2 className="mb-1 font-display text-lg font-bold text-foreground">Location</h2><p>Solo Ride and ISO broadcasts use approximate, fuzzed, frozen location only when enabled. Ride Radar does not provide live turn-by-turn tracking and does not continuously track riders in the background.</p></section>
-          <section><h2 className="mb-1 font-display text-lg font-bold text-foreground">Media uploads</h2><p>Photos you upload are stored to display your profile, bike, event poster, or safety alert. Do not upload images containing private documents, plates, addresses, or bystanders without permission.</p></section>
-          <section><h2 className="mb-1 font-display text-lg font-bold text-foreground">Safety and moderation</h2><p>Users can report content, report users, and block users in context. Reports are reviewed for safety, harassment, spam, illegal activity, and privacy concerns.</p></section>
-          <section><h2 className="mb-1 font-display text-lg font-bold text-foreground">Account deletion</h2><p>You can request deletion from Settings or the public account deletion page. App data tied to your rider profile is removed where technically possible. Limited records may be retained if legally required, for security, fraud prevention, or unresolved safety investigations.</p></section>
-          <section><h2 className="mb-1 font-display text-lg font-bold text-foreground">Contact</h2><p>For privacy, moderation, or account requests, contact <a className="text-primary underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.</p></section>
+          <section>
+            <h2 className="mb-1 font-display text-lg font-bold text-foreground">Information we may collect</h2>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>account information such as email and name from login providers</li>
+              <li>profile information such as display name, avatar, bike details, and approximate area</li>
+              <li>user-generated content such as broadcasts, event posters, alert photos, bike photos, reports, and messages</li>
+              <li>approximate location information when needed for core app features</li>
+              <li>moderation and safety-related information such as reports, blocks, and deletion requests</li>
+            </ul>
+          </section>
+          <section>
+            <h2 className="mb-1 font-display text-lg font-bold text-foreground">How we use information</h2>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>to provide account access and profile features</li>
+              <li>to power broadcasts, events, alerts, messaging, and rider discovery</li>
+              <li>to improve safety, moderation, and support</li>
+              <li>to respond to account, privacy, and deletion requests</li>
+            </ul>
+          </section>
+          <section><h2 className="mb-1 font-display text-lg font-bold text-foreground">Public vs private information</h2><ul className="list-disc space-y-1 pl-5"><li>display name, avatar, bike details, and certain broadcast content may be visible to other users</li><li>email and private account identity information are not public</li></ul></section>
+          <section><h2 className="mb-1 font-display text-lg font-bold text-foreground">Account deletion</h2><p>Users can request deletion from inside the app or through the public account deletion page.</p></section>
+          <section><h2 className="mb-1 font-display text-lg font-bold text-foreground">Support</h2><p>For privacy or support questions, contact:<br /><a className="text-primary underline" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a></p></section>
         </div>
       </div>
     </div>
