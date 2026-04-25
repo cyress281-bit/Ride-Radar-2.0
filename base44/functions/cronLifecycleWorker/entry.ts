@@ -10,8 +10,15 @@ function deriveExpiresAt(broadcast) {
 }
 
 async function notify(base44, profileId, type, title, body, relatedEntityId, relatedEntityType) {
-  const profile = await base44.asServiceRole.entities.UserProfile.get(profileId);
+  let profile = null;
+  try {
+    profile = await base44.asServiceRole.entities.UserProfile.get(profileId);
+  } catch (_error) {
+    return false;
+  }
   if (!profile?.userId || profile.isDeleted === true) return false;
+  const settings = await base44.asServiceRole.entities.UserSettings.filter({ userId: profile.userId }).then((list) => list[0]);
+  if (type === 'event_reminder' && settings?.notifyOnRSVP === false) return false;
   await base44.asServiceRole.entities.Notification.create({
     userId: profile.id,
     userAuthId: profile.userId,

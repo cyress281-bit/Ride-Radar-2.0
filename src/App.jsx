@@ -33,7 +33,6 @@ import AdminBlocks from '@/pages/admin/AdminBlocks';
 import AdminDeletionRequests from '@/pages/admin/AdminDeletionRequests';
 import AdminAnalyticsAudit from '@/pages/admin/AdminAnalyticsAudit';
 import AdminCompliance from '@/pages/admin/AdminCompliance';
-import ThemePreview from '@/pages/ThemePreview';
 import SplashScreen from '@/components/SplashScreen';
 import { AnimatePresence } from 'framer-motion';
 
@@ -96,7 +95,6 @@ const AuthenticatedApp = () => {
     return (
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/preview" element={<ThemePreview />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/support" element={<Support />} />
         <Route path="/account-deletion" element={<AccountDeletion />} />
@@ -110,7 +108,6 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/" element={<Navigate to="/home" replace />} />
       <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/preview" element={<ThemePreview />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/support" element={<Support />} />
       <Route path="/account-deletion" element={<AccountDeletion />} />

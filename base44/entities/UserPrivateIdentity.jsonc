@@ -1,52 +1,22 @@
 {
-  "name": "UserProfile",
+  "name": "UserPrivateIdentity",
   "type": "object",
   "properties": {
     "userId": {
-      "type": "string"
-    },
-    "username": {
       "type": "string",
-      "description": "Unique handle (auto-generated, optional)"
+      "description": "Auth user id"
     },
-    "displayName": {
-      "type": "string"
-    },
-    "avatar": {
+    "profileId": {
       "type": "string",
-      "description": "Avatar image URL"
+      "description": "Linked public rider profile id"
     },
-    "bio": {
-      "type": "string"
-    },
-    "location": {
+    "email": {
       "type": "string",
-      "description": "City/region text"
+      "description": "Private normalized auth email"
     },
-    "rideStyle": {
+    "fullName": {
       "type": "string",
-      "enum": [
-        "street",
-        "sport",
-        "cruiser",
-        "adventure",
-        "touring",
-        "offroad",
-        "track",
-        "other"
-      ]
-    },
-    "bike": {
-      "type": "string",
-      "description": "Free text bike description"
-    },
-    "bikePhoto": {
-      "type": "string",
-      "description": "Optional single bike photo URL"
-    },
-    "isPublic": {
-      "type": "boolean",
-      "default": true
+      "description": "Private full name from auth provider"
     },
     "isDeleted": {
       "type": "boolean",
@@ -58,8 +28,8 @@
     }
   },
   "required": [
-    "avatar",
-    "bike"
+    "userId",
+    "profileId"
   ],
   "rls": {
     "create": {
@@ -67,9 +37,6 @@
     },
     "read": {
       "$or": [
-        {
-          "data.isPublic": true
-        },
         {
           "data.userId": "{{user.id}}"
         },

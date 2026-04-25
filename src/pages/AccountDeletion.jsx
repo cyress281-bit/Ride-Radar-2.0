@@ -9,12 +9,12 @@ import { SUPPORT_EMAIL } from '@/pages/PrivacyPolicy';
 export default function AccountDeletion() {
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
-  const { logout } = useAuth();
+  const { logout, navigateToLogin } = useAuth();
 
   const startDeletion = async () => {
     const authed = await base44.auth.isAuthenticated();
     if (!authed) {
-      await base44.auth.redirectToLogin('/account-deletion');
+      navigateToLogin('/account-deletion');
       return;
     }
     setStatus('working');

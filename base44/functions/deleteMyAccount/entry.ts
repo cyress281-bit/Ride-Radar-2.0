@@ -4,26 +4,45 @@ async function deleteRows(rows, entityClient) {
   for (const row of rows) await entityClient.delete(row.id);
 }
 
+async function profilesForUser(base44, user) {
+  const email = String(user.email || '').trim().toLowerCase();
+  const identitiesByUser = await base44.asServiceRole.entities.UserPrivateIdentity.filter({ userId: user.id });
+  const identitiesByEmail = email ? await base44.asServiceRole.entities.UserPrivateIdentity.filter({ email }) : [];
+  const profileIds = [...identitiesByUser, ...identitiesByEmail]
+    .filter((identity, index, list) => identity?.id && list.findIndex((item) => item.id === identity.id) === index)
+    .map((identity) => identity.profileId)
+    .filter(Boolean);
+
+  const legacyProfiles = await base44.asServiceRole.entities.UserProfile.filter({ userId: user.id });
+  const profiles = [];
+  for (const profileId of profileIds) {
+    try {
+      profiles.push(await base44.asServiceRole.entities.UserProfile.get(profileId));
+    } catch (_error) {}
+  }
+  return [...profiles, ...legacyProfiles].filter((profile, index, list) => profile?.id && list.findIndex((item) => item.id === profile.id) === index);
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const existingCompleted = await base44.asServiceRole.entities.AccountDeletionRequest.filter({ userId: user.id, status: 'completed' });
-    if (existingCompleted.length > 0) {
-      return Response.json({ message: 'Your Ride Radar app data was already deleted. Please log out.' });
+    const email = String(user.email || '').trim().toLowerCase();
+    const existingByUser = await base44.asServiceRole.entities.AccountDeletionRequest.filter({ userId: user.id, status: 'completed' });
+    const existingByEmail = email ? await base44.asServiceRole.entities.AccountDeletionRequest.filter({ email, status: 'completed' }) : [];
+    if (existingByUser.length > 0 || existingByEmail.length > 0) {
+      return Response.json({ message: 'Your Ride Radar app data was already deleted. Please log out.', shouldLogout: true });
     }
 
-    const profilesByEmail = user.email ? await base44.asServiceRole.entities.UserProfile.filter({ email: user.email }) : [];
-    const profilesByUser = await base44.asServiceRole.entities.UserProfile.filter({ userId: user.id });
-    const profiles = [...profilesByEmail, ...profilesByUser].filter((profile, index, list) => profile?.id && list.findIndex((item) => item.id === profile.id) === index);
+    const profiles = await profilesForUser(base44, user);
     const profileIds = profiles.map((profile) => profile.id);
 
     const request = await base44.asServiceRole.entities.AccountDeletionRequest.create({
       userId: user.id,
       profileId: profileIds[0] || '',
-      email: user.email || '',
+      email,
       status: 'requested',
       note: 'User initiated in-app account deletion.'
     });
@@ -90,12 +109,17 @@ Deno.serve(async (req) => {
         location: '',
         bike: 'Deleted account',
         bikePhoto: '',
+        rideStyle: '',
         isPublic: false,
         isDeleted: true,
-        deletedAt: new Date().toISOString(),
-        email: '',
-        fullName: ''
+        deletedAt: new Date().toISOString()
       });
+    }
+
+    const identitiesByUser = await base44.asServiceRole.entities.UserPrivateIdentity.filter({ userId: user.id });
+    const identitiesByEmail = email ? await base44.asServiceRole.entities.UserPrivateIdentity.filter({ email }) : [];
+    for (const identity of [...identitiesByUser, ...identitiesByEmail].filter((item, index, list) => item?.id && list.findIndex((entry) => entry.id === item.id) === index)) {
+      await base44.asServiceRole.entities.UserPrivateIdentity.update(identity.id, { isDeleted: true, deletedAt: new Date().toISOString() });
     }
 
     await base44.asServiceRole.entities.AccountDeletionRequest.update(request.id, {

@@ -77,7 +77,7 @@ export default function Profile() {
             </div>
             <div className="relative z-10 mt-4 grid grid-cols-3 gap-2">
               <RiderMetric icon={Radio} label="Signals" value={active.length} compact />
-              <RiderMetric icon={Gauge} label="Style" value={profile.rideStyle || 'street'} compact />
+              <RiderMetric icon={Gauge} label="Style" value={profile.rideStyle || 'Not set'} compact />
               <RiderMetric icon={ShieldCheck} label="Status" value={profile.isPublic === false ? 'private' : 'public'} compact />
             </div>
           </div>
@@ -192,7 +192,7 @@ function ProfileEdit({ profile, onDone }) {
         uploadImageIfNeeded(form.bikePhoto),
       ]);
       await base44.entities.UserProfile.update(profile.id, {
-        displayName: form.displayName || profile.fullName || profile.username,
+        displayName: form.displayName || profile.username,
         bio: form.bio,
         location: form.location,
         rideStyle: form.rideStyle,
@@ -272,9 +272,10 @@ function ProfileEdit({ profile, onDone }) {
         </div>
         <div>
           <Label>Ride style</Label>
-          <Select value={form.rideStyle || 'street'} onValueChange={(v) => setForm({ ...form, rideStyle: v })}>
+          <Select value={form.rideStyle || 'not_selected'} onValueChange={(v) => setForm({ ...form, rideStyle: v === 'not_selected' ? '' : v })}>
             <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
             <SelectContent>
+              <SelectItem value="not_selected">Not selected</SelectItem>
               {['street', 'sport', 'cruiser', 'adventure', 'touring', 'offroad', 'track', 'other'].map(s => (
                 <SelectItem key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</SelectItem>
               ))}

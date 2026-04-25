@@ -33,15 +33,30 @@ Deno.serve(async (req) => {
       notifications: 0,
       eventRsvps: 0,
       reports: 0,
-      blocks: 0
+      blocks: 0,
+      privateIdentities: 0
     };
+
+    for (const profile of profiles) {
+      if (!profile.userId) continue;
+      const existingIdentity = await base44.asServiceRole.entities.UserPrivateIdentity.filter({ userId: profile.userId });
+      if (!existingIdentity.length) {
+        await base44.asServiceRole.entities.UserPrivateIdentity.create({
+          userId: profile.userId,
+          profileId: profile.id,
+          email: String(profile.email || '').trim().toLowerCase(),
+          fullName: String(profile.fullName || '').trim(),
+          isDeleted: profile.isDeleted === true
+        });
+        stats.privateIdentities += 1;
+      }
+    }
 
     const broadcasts = await base44.asServiceRole.entities.Broadcast.list('-created_date', 5000);
     for (const broadcast of broadcasts) {
       const author = profilesById.get(broadcast.authorId);
       stats.broadcasts += await updateIfChanged(base44.asServiceRole.entities.Broadcast, broadcast, {
         authorUserId: broadcast.authorUserId || author?.userId || '',
-        authorEmail: broadcast.authorEmail || author?.email || '',
         mediaUrls: broadcast.mediaUrls || [broadcast.eventImage, ...(broadcast.alertImages || [])].filter(Boolean)
       });
     }

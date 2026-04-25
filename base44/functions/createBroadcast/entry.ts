@@ -18,9 +18,20 @@ function fuzzLocation(lat, lng) {
 }
 
 async function getMyProfile(base44, user) {
-  const profiles = user.email ? await base44.asServiceRole.entities.UserProfile.filter({ email: user.email }) : [];
+  const email = String(user.email || '').trim().toLowerCase();
+  const identitiesByUser = await base44.asServiceRole.entities.UserPrivateIdentity.filter({ userId: user.id });
+  const identitiesByEmail = email ? await base44.asServiceRole.entities.UserPrivateIdentity.filter({ email }) : [];
+  const identities = [...identitiesByUser, ...identitiesByEmail].filter((identity, index, list) => identity?.id && list.findIndex((item) => item.id === identity.id) === index && identity.isDeleted !== true);
+
+  for (const identity of identities) {
+    try {
+      const profile = await base44.asServiceRole.entities.UserProfile.get(identity.profileId);
+      if (profile && profile.isDeleted !== true) return profile;
+    } catch (_error) {}
+  }
+
   const legacy = await base44.asServiceRole.entities.UserProfile.filter({ userId: user.id });
-  return [...profiles, ...legacy].find((profile, index, list) => profile?.id && list.findIndex((item) => item.id === profile.id) === index && profile.isDeleted !== true) || null;
+  return legacy.find((profile) => profile.isDeleted !== true) || null;
 }
 
 function validateMediaUrl(url) {
@@ -50,7 +61,6 @@ Deno.serve(async (req) => {
     const broadcast = {
       authorId: profile.id,
       authorUserId: user.id,
-      authorEmail: user.email || '',
       type,
       title,
       body: String(payload.body || '').slice(0, 500),

@@ -5,6 +5,7 @@ import { useMyProfile } from '@/lib/useCurrentUser';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bike, UserPlus, MessageCircle, Clock } from 'lucide-react';
 import SafetyActions from '@/components/safety/SafetyActions';
+import { getProfileByIdSafe } from '@/lib/profileLookup';
 
 // Limited rider profile preview
 export default function RiderProfile() {
@@ -15,7 +16,7 @@ export default function RiderProfile() {
 
   const { data: profile } = useQuery({
     queryKey: ['profile', userId],
-    queryFn: async () => await base44.entities.UserProfile.get(userId),
+    queryFn: async () => await getProfileByIdSafe(userId),
   });
 
   const { data: blocks = [] } = useQuery({

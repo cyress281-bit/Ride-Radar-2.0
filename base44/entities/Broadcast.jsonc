@@ -9,9 +9,6 @@
       "type": "string",
       "description": "Auth user id of the broadcast author"
     },
-    "authorEmail": {
-      "type": "string"
-    },
     "type": {
       "type": "string",
       "enum": [
