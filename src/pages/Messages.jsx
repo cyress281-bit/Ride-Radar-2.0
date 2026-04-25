@@ -22,8 +22,8 @@ export default function Messages() {
     queryKey: ['all-profiles', otherIds],
     enabled: otherIds.length > 0,
     queryFn: async () => {
-      const res = await Promise.allSettled(otherIds.map(id => base44.entities.UserProfile.get(id)));
-      return res.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
+      const allProfiles = await base44.entities.UserProfile.list('-updated_date', 200);
+      return allProfiles.filter((profile) => otherIds.includes(profile.id));
     },
   });
 

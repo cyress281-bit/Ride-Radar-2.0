@@ -33,8 +33,8 @@ export default function Home() {
     queryKey: ['profiles-for-feed', authorIds],
     enabled: authorIds.length > 0,
     queryFn: async () => {
-      const res = await Promise.allSettled(authorIds.map(id => base44.entities.UserProfile.get(id)));
-      return res.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
+      const allProfiles = await base44.entities.UserProfile.list('-updated_date', 200);
+      return allProfiles.filter((profile) => authorIds.includes(profile.id));
     },
   });
 
