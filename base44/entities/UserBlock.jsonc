@@ -5,7 +5,13 @@
     "blockerProfileId": {
       "type": "string"
     },
+    "blockerAuthUserId": {
+      "type": "string"
+    },
     "blockedProfileId": {
+      "type": "string"
+    },
+    "blockedAuthUserId": {
       "type": "string"
     },
     "reason": {
@@ -14,14 +20,20 @@
   },
   "required": [
     "blockerProfileId",
+    "blockerAuthUserId",
     "blockedProfileId"
   ],
   "rls": {
-    "create": true,
+    "create": {
+      "data.blockerAuthUserId": "{{user.id}}"
+    },
     "read": {
       "$or": [
         {
-          "created_by": "{{user.email}}"
+          "data.blockerAuthUserId": "{{user.id}}"
+        },
+        {
+          "data.blockedAuthUserId": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -31,12 +43,12 @@
       ]
     },
     "update": {
-      "created_by": "{{user.email}}"
+      "data.blockerAuthUserId": "{{user.id}}"
     },
     "delete": {
       "$or": [
         {
-          "created_by": "{{user.email}}"
+          "data.blockerAuthUserId": "{{user.id}}"
         },
         {
           "user_condition": {

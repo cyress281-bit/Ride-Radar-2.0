@@ -5,6 +5,13 @@
     "authorId": {
       "type": "string"
     },
+    "authorUserId": {
+      "type": "string",
+      "description": "Auth user id of the broadcast author"
+    },
+    "authorEmail": {
+      "type": "string"
+    },
     "type": {
       "type": "string",
       "enum": [
@@ -59,11 +66,19 @@
       },
       "description": "Optional alert photo URLs, maximum 2"
     },
+    "mediaUrls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tracked uploaded media URLs referenced by this broadcast"
+    },
     "status": {
       "type": "string",
       "enum": [
         "active",
-        "expired"
+        "expired",
+        "removed"
       ],
       "default": "active"
     },
@@ -74,18 +89,21 @@
   },
   "required": [
     "authorId",
+    "authorUserId",
     "type",
     "title"
   ],
   "rls": {
-    "create": true,
+    "create": {
+      "data.authorUserId": "{{user.id}}"
+    },
     "read": {
       "$or": [
         {
           "data.status": "active"
         },
         {
-          "data.authorId": "{{user.id}}"
+          "data.authorUserId": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -97,7 +115,7 @@
     "update": {
       "$or": [
         {
-          "data.authorId": "{{user.id}}"
+          "data.authorUserId": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -107,16 +125,9 @@
       ]
     },
     "delete": {
-      "$or": [
-        {
-          "data.authorId": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }

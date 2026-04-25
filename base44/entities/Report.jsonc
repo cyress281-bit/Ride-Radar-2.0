@@ -5,6 +5,9 @@
     "reporterProfileId": {
       "type": "string"
     },
+    "reporterAuthUserId": {
+      "type": "string"
+    },
     "targetType": {
       "type": "string",
       "enum": [
@@ -46,16 +49,19 @@
   },
   "required": [
     "reporterProfileId",
+    "reporterAuthUserId",
     "targetType",
     "targetId",
     "reason"
   ],
   "rls": {
-    "create": true,
+    "create": {
+      "data.reporterAuthUserId": "{{user.id}}"
+    },
     "read": {
       "$or": [
         {
-          "created_by": "{{user.email}}"
+          "data.reporterAuthUserId": "{{user.id}}"
         },
         {
           "user_condition": {
