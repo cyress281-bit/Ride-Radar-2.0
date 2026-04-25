@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import { rankBroadcasts, isExpired, haversineMiles } from '@/lib/broadcastUtils';
-import { Radio, CalendarClock, Users, Satellite, Search } from 'lucide-react';
+import { Radio, CalendarClock, Users, Search } from 'lucide-react';
 import { listProfilesByIds } from '@/lib/profileLookup';
 import FeedControls from '@/components/home/FeedControls';
 import UserLiveStatus from '@/components/home/UserLiveStatus';
@@ -81,7 +81,15 @@ export default function Home() {
           <div className="relative h-14 w-14 rounded-2xl border border-primary/30 bg-primary/10 flex items-center justify-center text-primary shadow-[0_0_30px_hsl(var(--primary)/0.18)] overflow-hidden">
             <span className="absolute inset-2 rounded-full border border-primary/15 animate-pulse" />
             <span className="absolute -left-4 top-7 h-px w-16 -rotate-45 bg-primary/30" />
-            <Satellite className="relative z-10 w-6 h-6 drop-shadow-[0_0_6px_currentColor]" strokeWidth={2.35} />
+            <svg className="relative z-10 h-7 w-7 text-primary" viewBox="0 0 32 20" fill="none" aria-hidden="true">
+              <path
+                d="M2 10H7L9.5 5L13 17L17 2L20.5 10H30"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
         </div>
         <UserLiveStatus broadcast={myLiveBroadcast} />
