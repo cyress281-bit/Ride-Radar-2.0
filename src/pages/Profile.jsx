@@ -62,7 +62,7 @@ export default function Profile() {
               <div className="flex-1 pt-1 min-w-0">
                 <div className="rr-kicker mb-1">Rider ID</div>
                 <div className="flex items-start gap-2 min-w-0">
-                  <h1 className="font-display text-[clamp(1.45rem,6vw,1.9rem)] leading-[0.95] font-extrabold tracking-[-0.05em] break-words min-w-0">{profile.displayName}</h1>
+                  <h1 className="font-display text-[clamp(1.15rem,5vw,1.65rem)] leading-tight font-extrabold tracking-[-0.04em] break-words [overflow-wrap:anywhere] min-w-0">{profile.displayName}</h1>
                   {user?.role === 'admin' && (
                     <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded shadow-sm">Admin</span>
                   )}
