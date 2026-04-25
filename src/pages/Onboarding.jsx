@@ -81,13 +81,12 @@ export default function Onboarding() {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['myProfile'] });
-      if (data?.existing) {
-        // Redirect to home if they already have a profile instead of erroring
-        navigate('/home');
-      } else {
-        navigate('/home');
-      }
+      navigate('/home');
     },
+    onError: (error) => {
+      const message = error?.response?.data?.error || error.message || '';
+      if (message.toLowerCase().includes('deleted')) navigate('/deleted-account', { replace: true });
+    }
   });
 
   const canSubmit = form.avatar && form.bike.trim().length > 0;

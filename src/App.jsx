@@ -22,6 +22,7 @@ import Settings from '@/pages/Settings';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import Support from '@/pages/Support';
 import AccountDeletion from '@/pages/AccountDeletion';
+import DeletedAccount from '@/pages/DeletedAccount';
 import ReviewReadiness from '@/pages/ReviewReadiness';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import AdminUsers from '@/pages/admin/AdminUsers';
@@ -99,6 +100,7 @@ const AuthenticatedApp = () => {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/support" element={<Support />} />
         <Route path="/account-deletion" element={<AccountDeletion />} />
+        <Route path="/deleted-account" element={<DeletedAccount />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -112,6 +114,7 @@ const AuthenticatedApp = () => {
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/support" element={<Support />} />
       <Route path="/account-deletion" element={<AccountDeletion />} />
+      <Route path="/deleted-account" element={<DeletedAccount />} />
       <Route path="/review-readiness" element={<ReviewReadiness />} />
       <Route element={<ProfileGate><Layout /></ProfileGate>}>
         <Route path="/home" element={<Home />} />
