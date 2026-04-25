@@ -42,9 +42,10 @@ export default function Home() {
 
   return (
     <div className="px-5 pt-6">
-      <div className="flex items-end justify-between mb-5">
+      <div className="flex items-end justify-between mb-6">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Radar</h1>
+          <div className="rr-chip mb-3"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Live network</div>
+          <h1 className="rr-heading text-4xl">Radar</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {userLoc.lat ? 'Live signals in your area' : 'Live signals'}
           </p>

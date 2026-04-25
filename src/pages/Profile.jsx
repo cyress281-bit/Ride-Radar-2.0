@@ -46,7 +46,7 @@ export default function Profile() {
         <ProfileEdit profile={profile} onDone={() => setEditing(false)} />
       ) : (
         <>
-          <div className="flex items-start gap-5 mb-8 bg-card/40 backdrop-blur-xl p-5 rounded-3xl border border-border/50 shadow-2xl relative overflow-hidden">
+          <div className="flex items-start gap-5 mb-8 rr-surface-strong p-5 rounded-[1.45rem] relative overflow-hidden">
             <div className="absolute top-[-20%] right-[-10%] w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
             
             {profile.avatar ? (
@@ -58,7 +58,7 @@ export default function Profile() {
             )}
             <div className="flex-1 pt-1 z-10">
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-2xl font-bold tracking-tight">{profile.displayName}</h1>
+                <h1 className="font-display text-2xl font-extrabold tracking-[-0.04em]">{profile.displayName}</h1>
                 {user?.role === 'admin' && (
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded shadow-sm">Admin</span>
                 )}
@@ -73,7 +73,7 @@ export default function Profile() {
           {profile.bio && <p className="text-[15px] mb-5 leading-relaxed text-foreground/90">{profile.bio}</p>}
 
           {profile.bike && (
-            <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl bg-card/60 backdrop-blur-md border border-border/50 text-sm shadow-sm">
+            <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl rr-surface text-sm">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <Bike className="w-4 h-4 text-primary" />
               </div>
@@ -92,7 +92,7 @@ export default function Profile() {
           </div>
 
           <div className="mb-3">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Active broadcasts</h2>
+            <h2 className="rr-kicker text-muted-foreground">Active broadcasts</h2>
           </div>
           {active.length === 0 ? (
             <div className="text-sm text-muted-foreground py-6 text-center border border-dashed border-border/60 rounded-xl">

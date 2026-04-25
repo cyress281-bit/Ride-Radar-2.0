@@ -1,36 +1,36 @@
 import { Link } from 'react-router-dom';
-import { ShieldAlert, Activity, Zap, Flame, Clock, Wrench, MapPin, Calendar } from 'lucide-react';
+import { ShieldAlert, Route, Search, CalendarClock, Clock, Wrench, MapPin, Calendar } from 'lucide-react';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
 
 const iconMap = {
-  solo_ride: Activity,
-  iso: Zap,
-  event: Flame,
+  solo_ride: Route,
+  iso: Search,
+  event: CalendarClock,
   alert: ShieldAlert,
 };
 
 const typeStyles = {
   alert: {
-    card: 'bg-card/80 backdrop-blur-xl border-alert/40 hover:border-alert/70 shadow-[0_4px_24px_-8px_hsl(var(--alert)/0.2)] hover:shadow-[0_8px_32px_-8px_hsl(var(--alert)/0.3)]',
+    card: 'rr-surface border-alert/40 hover:border-alert/70 shadow-[0_16px_55px_-20px_hsl(var(--alert)/0.5)] hover:shadow-[0_22px_70px_-22px_hsl(var(--alert)/0.5)]',
     badge: 'bg-alert text-alert-foreground',
     icon: 'bg-alert/10 text-alert shadow-[0_0_15px_hsl(var(--alert)/0.3)]',
     labelColor: 'text-alert',
   },
   solo_ride: {
-    card: 'bg-card/80 backdrop-blur-xl border-border/50 hover:border-solo/50 shadow-lg hover:shadow-[0_8px_32px_-8px_hsl(var(--solo)/0.25)]',
+    card: 'rr-surface hover:border-solo/50 hover:shadow-[0_22px_70px_-24px_hsl(var(--solo)/0.35)]',
     badge: 'bg-solo text-solo-foreground',
     icon: 'bg-solo/10 text-solo shadow-[0_0_15px_hsl(var(--solo)/0.3)]',
     labelColor: 'text-solo',
   },
   iso: {
-    card: 'bg-card/80 backdrop-blur-xl border-border/50 hover:border-iso/50 shadow-lg hover:shadow-[0_8px_32px_-8px_hsl(var(--iso)/0.25)]',
+    card: 'rr-surface hover:border-iso/50 hover:shadow-[0_22px_70px_-24px_hsl(var(--iso)/0.32)]',
     badge: 'bg-iso text-iso-foreground',
     icon: 'bg-iso/10 text-iso shadow-[0_0_15px_hsl(var(--iso)/0.3)]',
     labelColor: 'text-iso',
   },
   event: {
-    card: 'bg-card/80 backdrop-blur-xl border-border/50 hover:border-event/50 shadow-lg hover:shadow-[0_8px_32px_-8px_hsl(var(--event)/0.25)]',
+    card: 'rr-surface hover:border-event/50 hover:shadow-[0_22px_70px_-24px_hsl(var(--event)/0.32)]',
     badge: 'bg-event text-event-foreground',
     icon: 'bg-event/10 text-event shadow-[0_0_15px_hsl(var(--event)/0.3)]',
     labelColor: 'text-event',
@@ -52,7 +52,7 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng }) {
     broadcast.isoSubtype === 'mechanic' ? 'Mechanic' : broadcast.isoSubtype === 'bike_crew' ? 'Bike Crew' : null;
 
   const content = (
-    <div className={cn('relative rounded-2xl border overflow-hidden transition-all duration-200', styles.card)}>
+    <div className={cn('relative rounded-[1.15rem] overflow-hidden transition-all duration-300 rr-scanline', styles.card)}>
       {/* Alert top bar */}
       {isAlert && <div className="absolute top-0 left-0 right-0 h-[2px] bg-alert animate-pulse-alert" />}
 

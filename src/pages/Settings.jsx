@@ -51,9 +51,10 @@ export default function Settings() {
       <Link to="/profile" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="w-4 h-4" /> Profile
       </Link>
-      <h1 className="font-display text-2xl font-bold tracking-tight mb-6">Settings</h1>
+      <div className="rr-chip mb-3"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Control panel</div>
+      <h1 className="rr-heading text-4xl mb-6">Settings</h1>
 
-      <div className="space-y-1 bg-card border border-border/50 rounded-3xl p-3 mb-6 shadow-sm overflow-hidden">
+      <div className="space-y-1 rr-surface rounded-[1.45rem] p-3 mb-6 overflow-hidden">
         {rows.map((r, i) => (
           <div key={r.key} className={cn("flex items-center justify-between px-4 py-4", i !== rows.length - 1 && "border-b border-border/40")}>
             <span className="text-sm font-medium">{r.label}</span>

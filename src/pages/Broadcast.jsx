@@ -7,15 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShieldAlert, Activity, Zap, Flame, ArrowLeft, Upload, MapPin } from 'lucide-react';
+import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { computeExpiresAt, fuzzLocation } from '@/lib/broadcastUtils';
 import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 
 const TYPES = [
-  { id: 'solo_ride', label: 'Solo Ride', desc: 'Live radar pulse', icon: Activity, color: 'solo' },
-  { id: 'iso', label: 'In Search Of', desc: 'Find a mechanic or crew', icon: Zap, color: 'iso' },
-  { id: 'event', label: 'Event', desc: 'Rally, meet, ride together', icon: Flame, color: 'event' },
+  { id: 'solo_ride', label: 'Solo Ride', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
+  { id: 'iso', label: 'In Search Of', desc: 'Find wrench help or a bike crew', icon: Search, color: 'iso' },
+  { id: 'event', label: 'Event', desc: 'Stage a meetup or group ride', icon: CalendarClock, color: 'event' },
   { id: 'alert', label: 'Alert', desc: 'Road hazard, one-way broadcast', icon: ShieldAlert, color: 'alert' },
 ];
 
@@ -26,8 +26,11 @@ export default function Broadcast() {
   if (!type) {
     return (
       <div className="px-5 pt-6">
-        <h1 className="font-display text-3xl font-bold tracking-tight mb-1">Broadcast</h1>
-        <p className="text-sm text-muted-foreground mb-6">Signal out to the network</p>
+        <div className="mb-7">
+          <div className="rr-chip mb-3"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Signal console</div>
+          <h1 className="rr-heading text-4xl mb-1">Broadcast</h1>
+          <p className="text-sm text-muted-foreground">Choose the kind of signal you want to send.</p>
+        </div>
         <div className="space-y-3">
           {TYPES.map((t) => {
             const Icon = t.icon;
@@ -36,20 +39,20 @@ export default function Broadcast() {
                 key={t.id}
                 onClick={() => setType(t.id)}
                 className={cn(
-                  "w-full text-left p-5 rounded-3xl bg-card/60 backdrop-blur-xl border border-border/50 transition-all duration-300 group flex flex-col gap-4 relative overflow-hidden",
+                  "w-full text-left p-5 rounded-[1.35rem] rr-surface transition-all duration-300 group flex flex-col gap-4 relative overflow-hidden",
                   `hover:border-${t.color}/60 hover:shadow-[0_12px_40px_-12px_hsl(var(--${t.color})/0.3)] hover:-translate-y-0.5`
                 )}
               >
                 <div className={cn("absolute top-0 right-0 w-32 h-32 opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-150", `bg-${t.color}`)} />
                 <div className="flex items-center gap-5 z-10">
                   <div className={cn(
-                    'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-current/20 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_currentColor]',
+                    'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-current/20 transition-all duration-300 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.08)] group-hover:scale-105 group-hover:shadow-[0_0_22px_currentColor]',
                     `bg-${t.color}/10 text-${t.color}`
                   )}>
                     <Icon className="w-7 h-7" strokeWidth={2} />
                   </div>
                   <div className="flex-1">
-                    <div className="font-display font-bold text-xl mb-1 text-foreground">{t.label}</div>
+                    <div className="font-display font-extrabold tracking-[-0.03em] text-xl mb-1 text-foreground">{t.label}</div>
                     <div className="text-[13px] text-muted-foreground font-medium">{t.desc}</div>
                   </div>
                 </div>

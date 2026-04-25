@@ -114,11 +114,12 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center py-10">
       {/* Live ambient background */}
-      <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-50" />
+      <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-30" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.12),transparent_30%),linear-gradient(180deg,transparent,rgba(0,0,0,0.5))]" />
       <div className="absolute top-[-10%] left-[20%] w-[500px] h-[500px] bg-primary/10 ambient-glow" style={{ animationDelay: '0s' }} />
       <div className="absolute bottom-[0%] right-[-10%] w-[400px] h-[400px] bg-primary/5 ambient-glow" style={{ animationDelay: '-3s' }} />
 
-      <div className="relative z-10 w-full max-w-md px-6 py-10 bg-card/60 backdrop-blur-2xl rounded-3xl border border-border/50 shadow-2xl">
+      <div className="relative z-10 w-full max-w-md px-6 py-10 rr-surface-strong rounded-[1.7rem] overflow-hidden">
         {/* Brand */}
         <div className="flex items-center gap-2.5 mb-10">
           <RRLogo size="md" />
@@ -127,7 +128,8 @@ export default function Onboarding() {
           </span>
         </div>
 
-        <h1 className="font-display text-3xl font-extrabold tracking-tight mb-1 text-foreground">
+        <div className="rr-chip mb-4"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Rider profile</div>
+        <h1 className="rr-heading text-4xl mb-1 text-foreground">
           Set up your profile
         </h1>
         <p className="text-muted-foreground mb-8 text-sm">Takes a minute. You can edit anything later.</p>

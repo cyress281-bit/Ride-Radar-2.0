@@ -2,7 +2,7 @@
  * THEME PREVIEW PAGE — for visual QA only, no auth required
  * Route: /preview
  */
-import { MapPin, Users, Calendar, AlertTriangle, Radio, MessageCircle, User, Home, Bell, ArrowRight, Zap, Bike, Clock, Check, Heart, Wrench } from 'lucide-react';
+import { MapPin, Calendar, AlertTriangle, Radio, Bell, ArrowRight, Bike, Clock, Check, Heart, Wrench, Route, Search, CalendarClock, Gauge, Radar, MessagesSquare, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,7 +35,7 @@ const typeStyles = {
   iso: { card: 'bg-card border-border', badge: 'bg-iso text-iso-foreground', icon: 'bg-iso text-iso-foreground', label: 'text-primary', topBar: 'bg-primary/70' },
   event: { card: 'bg-card border-border', badge: 'bg-event text-event-foreground', icon: 'bg-event text-event-foreground', label: 'text-event', topBar: '' },
 };
-const iconMap = { solo_ride: MapPin, iso: Users, event: Calendar, alert: AlertTriangle };
+const iconMap = { solo_ride: Route, iso: Search, event: CalendarClock, alert: AlertTriangle };
 const labelMap = { solo_ride: 'Solo Ride', iso: 'In Search Of', event: 'Event', alert: 'Alert' };
 
 function timeAgo(iso) {
@@ -56,7 +56,7 @@ function MockCard({ b }) {
   const Icon = iconMap[b.type];
   const subLabel = b.isoSubtype === 'mechanic' ? 'Mechanic' : b.isoSubtype === 'bike_crew' ? 'Bike Crew' : null;
   return (
-    <div className={cn('relative rounded-2xl border overflow-hidden', s.card)}>
+    <div className={cn('relative rounded-[1.15rem] overflow-hidden rr-scanline', s.card, 'rr-surface')}>
       {b.type === 'alert' && <div className="absolute top-0 left-0 right-0 h-[2px] bg-alert animate-pulse-alert" />}
       {b.type === 'iso' && <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary/70" />}
       <div className="p-4">
@@ -101,17 +101,17 @@ const MOCK_CONVOS = [
 ];
 
 const BROADCAST_TYPES = [
-  { id: 'solo_ride', label: 'Solo Ride', desc: 'Ping nearby riders for a 90-min window', icon: MapPin, color: 'solo' },
-  { id: 'iso', label: 'In Search Of', desc: 'Find a mechanic or a bike crew', icon: Users, color: 'iso' },
-  { id: 'event', label: 'Event', desc: 'Rally, meet, ride together', icon: Calendar, color: 'event' },
+  { id: 'solo_ride', label: 'Solo Ride', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
+  { id: 'iso', label: 'In Search Of', desc: 'Find wrench help or a bike crew', icon: Search, color: 'iso' },
+  { id: 'event', label: 'Event', desc: 'Stage a meetup or group ride', icon: CalendarClock, color: 'event' },
   { id: 'alert', label: 'Alert', desc: 'Road hazard, incident — one-way broadcast', icon: AlertTriangle, color: 'alert' },
 ];
 
 const TABS = [
-  { icon: Home, label: 'Home' },
-  { icon: Radio, label: 'Broadcast', active: false },
-  { icon: MessageCircle, label: 'Messages' },
-  { icon: User, label: 'Profile' },
+  { icon: Gauge, label: 'Radar' },
+  { icon: Radar, label: 'Signal', active: false },
+  { icon: MessagesSquare, label: 'Comms' },
+  { icon: UserRound, label: 'Rider' },
 ];
 
 function Section({ title, children }) {
@@ -132,7 +132,8 @@ export default function ThemePreview() {
   
   return (
     <div className="bg-background min-h-screen pb-20 relative">
-      <div className="fixed inset-0 radar-grid pointer-events-none opacity-50" />
+      <div className="fixed inset-0 radar-grid-animated pointer-events-none opacity-30" />
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.12),transparent_34%),linear-gradient(180deg,transparent,rgba(0,0,0,0.4))]" />
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[250px] rounded-full bg-primary/5 blur-[100px] pointer-events-none" />
 
       <div className="relative z-10 max-w-2xl mx-auto px-5 py-10">
@@ -144,11 +145,11 @@ export default function ThemePreview() {
             Ride<span className="text-primary text-glow-green">Radar</span>
           </span>
         </div>
-        <p className="text-muted-foreground text-sm mb-12">Theme Preview — All screens, dark neon-green identity</p>
+        <p className="text-muted-foreground text-sm mb-12 font-medium">Theme Preview — premium dark rider-performance system</p>
 
         {/* ── LANDING ── */}
         <Section title="Landing Page">
-          <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          <div className="rounded-[1.35rem] rr-surface-strong overflow-hidden">
             <div className="relative p-8 bg-background radar-grid">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[150px] rounded-full bg-primary/8 blur-[60px]" />
               <div className="relative z-10">
@@ -157,19 +158,19 @@ export default function ThemePreview() {
                   <span className="font-display font-bold text-xl">Ride<span className="text-primary text-glow-green">Radar</span></span>
                   <button onClick={() => navigateToLogin('/home')} className="ml-auto text-sm text-muted-foreground hover:text-foreground transition-colors">Sign in</button>
                 </div>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/30 bg-primary/8 text-primary text-xs font-semibold mb-6">
+                <div className="rr-chip mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Live rider broadcast network
                 </div>
-                <h1 className="font-display text-4xl font-extrabold tracking-tight leading-[1] mb-4">
+                <h1 className="rr-heading text-4xl leading-[0.96] mb-4">
                   Signal out.<br /><span className="text-primary text-glow-green">Find your ride.</span>
                 </h1>
                 <p className="text-muted-foreground text-sm mb-6 max-w-sm">A real-time radar for motorcyclists. Post a solo ride, find a mechanic, rally a crew, or drop an alert.</p>
                 <Button onClick={() => navigateToLogin('/home')} className="rounded-full glow-green h-11 px-6">Get started <ArrowRight className="w-4 h-4" /></Button>
                 <div className="grid grid-cols-4 gap-2 mt-8">
                   {[
-                    { icon: MapPin, label: 'Solo Ride', c: 'text-solo', b: 'border-solo/30', bg: 'bg-solo/8' },
-                    { icon: Users, label: 'ISO', c: 'text-iso', b: 'border-iso/30', bg: 'bg-iso/8' },
-                    { icon: Radio, label: 'Events', c: 'text-event', b: 'border-event/30', bg: 'bg-event/8' },
+                    { icon: Route, label: 'Solo Ride', c: 'text-solo', b: 'border-solo/30', bg: 'bg-solo/8' },
+                    { icon: Search, label: 'ISO', c: 'text-iso', b: 'border-iso/30', bg: 'bg-iso/8' },
+                    { icon: CalendarClock, label: 'Events', c: 'text-event', b: 'border-event/30', bg: 'bg-event/8' },
                     { icon: AlertTriangle, label: 'Alerts', c: 'text-alert', b: 'border-alert/30', bg: 'bg-alert/8' },
                   ].map((f) => (
                     <div key={f.label} className={cn('p-3 rounded-xl border', f.b, f.bg)}>
@@ -195,10 +196,10 @@ export default function ThemePreview() {
               <div className="p-2 rounded-full text-muted-foreground"><Bell className="w-5 h-5" /></div>
             </div>
           </div>
-          <div className="border border-t-0 border-border bg-background rounded-b-2xl p-5 space-y-3">
+          <div className="border border-t-0 border-border/70 bg-background rounded-b-2xl p-5 space-y-3">
             <div className="flex items-end justify-between mb-3">
               <div>
-                <h1 className="font-display text-2xl font-bold tracking-tight">Radar</h1>
+                <h1 className="rr-heading text-3xl">Radar</h1>
                 <p className="text-xs text-muted-foreground">Live signals in your area</p>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -211,7 +212,7 @@ export default function ThemePreview() {
 
         {/* ── BROADCAST CREATION ── */}
         <Section title="Broadcast Creation">
-          <div className="rounded-2xl border border-border bg-background p-5">
+          <div className="rounded-[1.35rem] rr-surface-strong p-5">
             <h1 className="font-display text-2xl font-bold tracking-tight mb-1">Broadcast</h1>
             <p className="text-sm text-muted-foreground mb-5">Signal out to the network</p>
             <div className="space-y-3">
@@ -224,7 +225,7 @@ export default function ThemePreview() {
                   alert: 'bg-alert text-alert-foreground',
                 };
                 return (
-                  <div key={t.id} className="w-full text-left p-4 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all group">
+                  <div key={t.id} className="w-full text-left p-4 rounded-[1.15rem] rr-surface hover:border-primary/40 transition-all group">
                     <div className="flex items-start gap-4">
                       <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center shrink-0', colorStyles[t.color])}>
                         <Icon className="w-5 h-5" strokeWidth={2.2} />
@@ -243,13 +244,13 @@ export default function ThemePreview() {
 
         {/* ── MESSAGES ── */}
         <Section title="Messages">
-          <div className="rounded-2xl border border-border bg-background p-5">
+          <div className="rounded-[1.35rem] rr-surface-strong p-5">
             <h1 className="font-display text-2xl font-bold tracking-tight mb-1">Messages</h1>
             <p className="text-sm text-muted-foreground mb-5">Active threads and conversations</p>
             <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 px-1">Active</div>
             <div className="space-y-2">
               {MOCK_CONVOS.map((c) => (
-                <div key={c.id} className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border">
+                <div key={c.id} className="flex items-center gap-3 p-3 rounded-2xl rr-surface">
                   <div className={cn('w-11 h-11 rounded-full bg-secondary border border-border flex items-center justify-center font-semibold shrink-0', c.unread && 'border-primary/50')}>
                     {c.displayName[0]}
                   </div>
@@ -271,7 +272,7 @@ export default function ThemePreview() {
 
         {/* ── PROFILE ── */}
         <Section title="Profile">
-          <div className="rounded-2xl border border-border bg-background p-5">
+          <div className="rounded-[1.35rem] rr-surface-strong p-5">
             <div className="flex items-start gap-4 mb-5">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground glow-green-sm">
                 J
@@ -291,7 +292,7 @@ export default function ThemePreview() {
             <div className="flex gap-2 mb-6">
               <Button variant="outline" className="flex-1 rounded-full">Settings</Button>
               <Button variant="outline" className="rounded-full px-3">
-                <User className="w-4 h-4" />
+                <UserRound className="w-4 h-4" />
               </Button>
             </div>
             <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Active broadcasts</div>

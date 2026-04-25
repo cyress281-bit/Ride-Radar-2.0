@@ -37,8 +37,9 @@ export default function Messages() {
 
   return (
     <div className="px-5 pt-6">
-      <h1 className="font-display text-3xl font-bold tracking-tight mb-1">Messages</h1>
-      <p className="text-sm text-muted-foreground mb-6">Active threads and conversations</p>
+      <div className="rr-chip mb-3"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Rider comms</div>
+      <h1 className="rr-heading text-4xl mb-1">Messages</h1>
+      <p className="text-sm text-muted-foreground mb-6">Active rider threads and 72-hour signals</p>
 
       {loadError ? (
         <div className="text-center py-16 rounded-3xl border border-destructive/30 bg-card/40 backdrop-blur-xl mt-8">
@@ -85,7 +86,7 @@ function Section({ title, items, getOther, archived }) {
               to={`/messages/${c.id}`}
               className={cn(
                 'flex items-center gap-4 p-4 rounded-3xl border transition-all duration-300',
-                archived ? 'bg-secondary/20 border-border/30 opacity-70 hover:opacity-100' : 'bg-card/60 backdrop-blur-xl border-border/50 hover:border-primary/40 hover:shadow-[0_8px_30px_-12px_hsl(var(--primary)/0.2)] hover:-translate-y-0.5'
+                archived ? 'bg-secondary/15 border-border/30 opacity-70 hover:opacity-100' : 'rr-surface hover:border-primary/35 hover:shadow-[0_18px_55px_-22px_hsl(var(--primary)/0.35)] hover:-translate-y-0.5'
               )}
             >
               {other?.avatar ? (
