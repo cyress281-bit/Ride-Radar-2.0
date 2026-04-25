@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Search } from 'lucide-react';
 import { useState } from 'react';
+import { USER_ROLES } from '@/lib/roles';
 
 export default function AdminUsers() {
   const qc = useQueryClient();
@@ -46,14 +47,20 @@ export default function AdminUsers() {
               <div className="font-semibold text-sm truncate">{u.full_name || 'Unnamed'}</div>
               <div className="text-xs text-muted-foreground truncate">{u.email}</div>
             </div>
-            <Button
-              variant={u.role === 'admin' ? 'default' : 'outline'}
-              size="sm"
-              className="rounded-full"
-              onClick={() => setRole.mutate({ id: u.id, role: u.role === 'admin' ? 'user' : 'admin' })}
-            >
-              {u.role === 'admin' ? 'Admin' : 'User'}
-            </Button>
+            <div className="flex gap-1 rounded-full border border-border/60 bg-black/25 p-1">
+              {USER_ROLES.map((role) => (
+                <Button
+                  key={role}
+                  variant={u.role === role ? 'default' : 'ghost'}
+                  size="sm"
+                  className="h-7 rounded-full px-3 capitalize"
+                  onClick={() => setRole.mutate({ id: u.id, role })}
+                  disabled={setRole.isPending}
+                >
+                  {role}
+                </Button>
+              ))}
+            </div>
           </div>
         ))}
       </div>

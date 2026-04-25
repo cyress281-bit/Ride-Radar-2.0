@@ -27,16 +27,22 @@ import AdminDashboard from '@/pages/admin/AdminDashboard';
 import AdminUsers from '@/pages/admin/AdminUsers';
 import AdminBroadcasts from '@/pages/admin/AdminBroadcasts';
 import AdminNotifications from '@/pages/admin/AdminNotifications';
+import AdminReports from '@/pages/admin/AdminReports';
+import AdminBlocks from '@/pages/admin/AdminBlocks';
+import AdminDeletionRequests from '@/pages/admin/AdminDeletionRequests';
+import AdminAnalyticsAudit from '@/pages/admin/AdminAnalyticsAudit';
+import AdminCompliance from '@/pages/admin/AdminCompliance';
 import ThemePreview from '@/pages/ThemePreview';
 import SplashScreen from '@/components/SplashScreen';
 import { AnimatePresence } from 'framer-motion';
 
 import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
+import { canAccessAdmin } from '@/lib/roles';
 
 const AdminGate = ({ children }) => {
   const { data: user, isLoading } = useCurrentUser();
   if (isLoading) return <div className="fixed inset-0 flex items-center justify-center"><div className="w-8 h-8 border-4 border-secondary border-t-primary rounded-full animate-spin" /></div>;
-  if (user?.role !== 'admin') return <Navigate to="/home" replace />;
+  if (!canAccessAdmin(user)) return <Navigate to="/home" replace />;
   return children;
 };
 
@@ -121,6 +127,11 @@ const AuthenticatedApp = () => {
         <Route path="/admin/users" element={<AdminGate><AdminUsers /></AdminGate>} />
         <Route path="/admin/broadcasts" element={<AdminGate><AdminBroadcasts /></AdminGate>} />
         <Route path="/admin/notifications" element={<AdminGate><AdminNotifications /></AdminGate>} />
+        <Route path="/admin/reports" element={<AdminGate><AdminReports /></AdminGate>} />
+        <Route path="/admin/blocks" element={<AdminGate><AdminBlocks /></AdminGate>} />
+        <Route path="/admin/deletions" element={<AdminGate><AdminDeletionRequests /></AdminGate>} />
+        <Route path="/admin/analytics" element={<AdminGate><AdminAnalyticsAudit /></AdminGate>} />
+        <Route path="/admin/compliance" element={<AdminGate><AdminCompliance /></AdminGate>} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
