@@ -5,14 +5,14 @@ const MOTORCYCLE_ICON_URL = 'https://media.base44.com/images/public/69eaf6177621
 export default function OfficialMotorcycleIcon({ className, frame = false }) {
   return (
     <span className={cn(
-      'relative inline-flex shrink-0 items-center justify-center overflow-hidden bg-black text-solo',
-      frame && 'rounded-xl border border-solo/20 shadow-[0_0_10px_hsl(var(--solo)/0.1)]',
+      'relative inline-flex shrink-0 items-center justify-center overflow-hidden bg-transparent text-solo',
+      frame && 'rounded-xl border border-solo/18 bg-solo/5 shadow-[0_8px_22px_rgba(0,0,0,0.28)]',
       className
     )}>
       <img
         src={MOTORCYCLE_ICON_URL}
         alt="Ride Radar motorcycle silhouette"
-        className="h-full w-full object-contain drop-shadow-[0_0_3px_hsl(var(--solo)/0.42)]"
+        className="h-full w-full object-contain mix-blend-screen brightness-125 contrast-125 saturate-150 drop-shadow-[0_0_2px_hsl(var(--solo)/0.3)]"
       />
     </span>
   );
