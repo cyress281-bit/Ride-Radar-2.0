@@ -17,6 +17,23 @@ function fuzzLocation(lat, lng) {
   };
 }
 
+async function geocodeLocation(text) {
+  const query = String(text || '').trim();
+  if (!query) return null;
+
+  const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`, {
+    headers: { 'User-Agent': 'RideRadar/1.0' }
+  });
+  const results = await response.json();
+  const match = Array.isArray(results) ? results[0] : null;
+  if (!match) return null;
+
+  const lat = Number(match.lat);
+  const lng = Number(match.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng };
+}
+
 async function getMyProfile(base44, user) {
   const email = String(user.email || '').trim().toLowerCase();
   const identitiesByUser = await base44.asServiceRole.entities.UserPrivateIdentity.filter({ userId: user.id });
@@ -89,6 +106,11 @@ Deno.serve(async (req) => {
       const eventEndTime = new Date(payload.eventEndTime);
       if (!(eventEndTime > eventDate)) throw new Error('Event end must be after start');
       broadcast.exactLocationText = String(payload.exactLocationText).slice(0, 200);
+      const point = await geocodeLocation(broadcast.exactLocationText);
+      if (point) {
+        broadcast.frozenLat = point.lat;
+        broadcast.frozenLng = point.lng;
+      }
       broadcast.eventDate = eventDate.toISOString();
       broadcast.eventEndTime = eventEndTime.toISOString();
       if (validateMediaUrl(payload.eventImage)) {
@@ -100,6 +122,12 @@ Deno.serve(async (req) => {
     if (type === 'alert') {
       if (!payload.exactLocationText) throw new Error('Approximate alert area is required');
       broadcast.exactLocationText = String(payload.exactLocationText).slice(0, 200);
+      const point = await geocodeLocation(broadcast.exactLocationText);
+      if (point) {
+        const fuzzed = fuzzLocation(point.lat, point.lng);
+        broadcast.frozenLat = fuzzed.lat;
+        broadcast.frozenLng = fuzzed.lng;
+      }
       const images = Array.isArray(payload.alertImages) ? payload.alertImages.filter(validateMediaUrl).slice(0, 2) : [];
       if (images.length) {
         broadcast.alertImages = images;
