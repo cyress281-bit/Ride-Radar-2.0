@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { validateImageUpload } from '@/lib/uploadValidation';
 import { Button } from '@/components/ui/button';
 import { Bike, ImagePlus, X } from 'lucide-react';
 
@@ -11,6 +12,7 @@ export default function BikePhotoUploader({ image, onChange }) {
     if (!file) return;
     setUploading(true);
     try {
+      await validateImageUpload(file, 'bike');
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       onChange(file_url);
     } finally {

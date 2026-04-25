@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Image, Upload, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { validateImageUpload } from '@/lib/uploadValidation';
 
 export default function AlertPhotoUploader({ images = [], onChange }) {
   const [uploadingIndex, setUploadingIndex] = useState(null);
@@ -11,6 +12,7 @@ export default function AlertPhotoUploader({ images = [], onChange }) {
     if (!file) return;
     setUploadingIndex(index);
     try {
+      await validateImageUpload(file, 'alert');
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       const next = [...photos];
       next[index] = file_url;

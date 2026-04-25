@@ -22,15 +22,17 @@ export function useMyProfile() {
       // 1. Primary lookup by stable identity (email)
       if (user.email) {
         const profiles = await base44.entities.UserProfile.filter({ email: user.email });
-        if (profiles && profiles.length > 0) {
-          return profiles[0]; // Return correct profile
+        const activeProfile = profiles.find((profile) => profile.isDeleted !== true);
+        if (activeProfile) {
+          return activeProfile;
         }
       }
       
       // 2. Fallback check for older profiles by legacy userId
       const legacyProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
       if (legacyProfiles && legacyProfiles.length > 0) {
-        const profile = legacyProfiles[0];
+        const profile = legacyProfiles.find((item) => item.isDeleted !== true);
+        if (!profile) return null;
         
         // SELF-HEALING: Backfill email if missing for future stable lookups
         if (user.email && !profile.email) {

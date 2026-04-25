@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Trash2 } from 'lucide-react';
@@ -8,6 +9,7 @@ import { SUPPORT_EMAIL } from '@/pages/PrivacyPolicy';
 export default function AccountDeletion() {
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
+  const { logout } = useAuth();
 
   const startDeletion = async () => {
     const authed = await base44.auth.isAuthenticated();
@@ -19,6 +21,9 @@ export default function AccountDeletion() {
     const res = await base44.functions.invoke('deleteMyAccount', {});
     setMessage(res.data?.message || 'Your deletion request was completed.');
     setStatus('done');
+    if (res.data?.shouldLogout) {
+      setTimeout(() => logout(true), 1500);
+    }
   };
 
   return (

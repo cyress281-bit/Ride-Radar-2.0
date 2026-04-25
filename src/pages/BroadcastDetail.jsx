@@ -156,33 +156,10 @@ export default function BroadcastDetail() {
 function EventRSVP({ broadcast, profile, myRSVP, counts, onChange }) {
   const set = useMutation({
     mutationFn: async (status) => {
-      const broadcastId = broadcast.id;
-      const profileId = profile.id;
-      if (myRSVP) {
-        if (myRSVP.status === status) {
-          await base44.entities.EventRSVP.delete(myRSVP.id);
-        } else {
-          await base44.entities.EventRSVP.update(myRSVP.id, { status });
-          await base44.functions.invoke('sendNotification', {
-            targetProfileId: broadcast.authorId,
-            type: 'rsvp',
-            title: 'RSVP Updated',
-            body: `@${profile.username} is now ${status === 'going' ? 'going to' : 'interested in'} your event.`,
-            relatedEntityId: broadcastId,
-            relatedEntityType: 'Broadcast'
-          });
-        }
-      } else {
-        await base44.entities.EventRSVP.create({ broadcastId, userId: profileId, status });
-        await base44.functions.invoke('sendNotification', {
-          targetProfileId: broadcast.authorId,
-          type: 'rsvp',
-          title: 'New RSVP',
-          body: `@${profile.username} is ${status === 'going' ? 'going to' : 'interested in'} your event.`,
-          relatedEntityId: broadcastId,
-          relatedEntityType: 'Broadcast'
-        });
-      }
+      await base44.functions.invoke('rsvpAction', {
+        broadcastId: broadcast.id,
+        status
+      });
     },
     onSuccess: onChange,
   });
@@ -219,22 +196,10 @@ function ConnectionAction({ broadcast, profile, existing, onChange }) {
 
   const send = useMutation({
     mutationFn: async () => {
-      const existing = await base44.entities.ConnectionRequest.filter({ broadcastId: broadcast.id, fromUserId: profile.id });
-      if (existing.length > 0) return;
-      await base44.entities.ConnectionRequest.create({
+      await base44.functions.invoke('socialAction', {
+        action: 'sendConnectionRequest',
         broadcastId: broadcast.id,
-        fromUserId: profile.id,
-        toUserId: broadcast.authorId,
-        message: msg,
-        status: 'pending',
-      });
-      await base44.functions.invoke('sendNotification', {
-        targetProfileId: broadcast.authorId,
-        type: 'connection_request',
-        title: 'New connection request',
-        body: `@${profile.username} wants to connect on your ${BROADCAST_META[broadcast.type].label.toLowerCase()}`,
-        relatedEntityId: broadcast.id,
-        relatedEntityType: 'Broadcast',
+        message: msg
       });
     },
     onSuccess: () => { setOpen(false); onChange(); },
@@ -258,6 +223,7 @@ function ConnectionAction({ broadcast, profile, existing, onChange }) {
       ) : (
         <div className="p-4 rounded-xl bg-card border border-border space-y-3">
           <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Add a quick note (optional)..." rows={3} maxLength={200} />
+          {send.isError && <p className="text-xs text-destructive">{send.error?.response?.data?.error || send.error.message}</p>}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setOpen(false)} className="flex-1">Cancel</Button>
             <Button onClick={() => send.mutate()} disabled={send.isPending} className="flex-1">

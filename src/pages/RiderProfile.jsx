@@ -44,14 +44,9 @@ export default function RiderProfile() {
       ]);
       if (list1.length > 0 || list2.length > 0) return;
 
-      await base44.entities.Friendship.create({ userAId: me.id, userBId: userId, status: 'pending' });
-      await base44.functions.invoke('sendNotification', {
-        targetProfileId: userId,
-        type: 'friend_request',
-        title: 'New friend request',
-        body: `@${me.username} wants to connect`,
-        relatedEntityId: me.id,
-        relatedEntityType: 'UserProfile',
+      await base44.functions.invoke('socialAction', {
+        action: 'sendFriendRequest',
+        targetProfileId: userId
       });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['friendship'] }),
@@ -59,18 +54,11 @@ export default function RiderProfile() {
 
   const openFriendChat = useMutation({
     mutationFn: async () => {
-      const convos = await base44.entities.Conversation.filter({ type: 'friendship', friendshipId: friendship.id });
-      let c = convos[0];
-      if (!c) {
-        c = await base44.entities.Conversation.create({
-          type: 'friendship',
-          friendshipId: friendship.id,
-          participantIds: [me.id, userId],
-          status: 'active',
-          lastMessageAt: new Date().toISOString(),
-        });
-      }
-      navigate(`/messages/${c.id}`);
+      const res = await base44.functions.invoke('socialAction', {
+        action: 'openFriendChat',
+        targetProfileId: userId
+      });
+      navigate(`/messages/${res.data?.conversationId}`);
     },
   });
 

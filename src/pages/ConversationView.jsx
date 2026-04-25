@@ -52,19 +52,10 @@ export default function ConversationView() {
     mutationFn: async () => {
       const body = text.trim();
       if (!body) return;
-      await base44.entities.Message.create({ conversationId: id, fromUserId: profile.id, body });
-      const update = { lastMessageAt: new Date().toISOString() };
-      if (conversation.type === 'connection') {
-        update.threadExpiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
-      }
-      await base44.entities.Conversation.update(id, update);
-      await base44.functions.invoke('sendNotification', {
-        targetProfileId: otherId,
-        type: 'new_message',
-        title: `New message from @${profile.username}`,
-        body: body.slice(0, 100),
-        relatedEntityId: id,
-        relatedEntityType: 'Conversation',
+      await base44.functions.invoke('socialAction', {
+        action: 'sendMessage',
+        conversationId: id,
+        body
       });
     },
     onSuccess: () => {
@@ -136,6 +127,8 @@ export default function ConversationView() {
           <div className="text-center text-sm text-muted-foreground py-2">This conversation is archived.</div>
         ) : isBlocked ? (
           <div className="text-center text-sm text-muted-foreground py-2">You blocked this rider. Messaging is disabled.</div>
+        ) : send.isError ? (
+          <div className="text-center text-sm text-destructive py-2">{send.error?.response?.data?.error || send.error.message}</div>
         ) : (
           <div className="flex gap-2">
             <Input

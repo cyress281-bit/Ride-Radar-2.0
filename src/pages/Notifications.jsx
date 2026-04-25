@@ -59,61 +59,35 @@ export default function Notifications() {
 
   const acceptConn = useMutation({
     mutationFn: async (req) => {
-      await base44.entities.ConnectionRequest.update(req.id, { status: 'accepted' });
-      let convos = await base44.entities.Conversation.filter({ connectionRequestId: req.id });
-      let convo = convos[0];
-      if (!convo) {
-        convo = await base44.entities.Conversation.create({
-          type: 'connection',
-          connectionRequestId: req.id,
-          participantIds: [req.fromUserId, req.toUserId],
-          status: 'active',
-          lastMessageAt: new Date().toISOString(),
-          threadExpiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
-        });
-      }
-      await base44.functions.invoke('sendNotification', {
-        targetProfileId: req.fromUserId,
-        type: 'connection_accepted',
-        title: 'Connection accepted',
-        body: `@${profile.username} accepted your request. Thread active 72h.`,
-        relatedEntityId: convo.id,
-        relatedEntityType: 'Conversation',
+      const res = await base44.functions.invoke('socialAction', {
+        action: 'respondConnectionRequest',
+        requestId: req.id,
+        status: 'accepted'
       });
-      return convo.id;
+      return res.data?.conversationId;
     },
     onSuccess: (convoId) => {
       qc.invalidateQueries({ queryKey: ['pendingRequests'] });
       qc.invalidateQueries({ queryKey: ['conversations'] });
-      navigate(`/messages/${convoId}`);
+      if (convoId) navigate(`/messages/${convoId}`);
     },
   });
 
   const declineConn = useMutation({
-    mutationFn: async (req) => await base44.entities.ConnectionRequest.update(req.id, { status: 'declined' }),
+    mutationFn: async (req) => await base44.functions.invoke('socialAction', {
+      action: 'respondConnectionRequest',
+      requestId: req.id,
+      status: 'declined'
+    }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['pendingRequests'] }),
   });
 
   const acceptFriend = useMutation({
     mutationFn: async (f) => {
-      await base44.entities.Friendship.update(f.id, { status: 'active' });
-      let convos = await base44.entities.Conversation.filter({ friendshipId: f.id });
-      if (!convos[0]) {
-        await base44.entities.Conversation.create({
-          type: 'friendship',
-          friendshipId: f.id,
-          participantIds: [f.userAId, f.userBId],
-          status: 'active',
-          lastMessageAt: new Date().toISOString(),
-        });
-      }
-      await base44.functions.invoke('sendNotification', {
-        targetProfileId: f.userAId,
-        type: 'friend_accepted',
-        title: 'Friend request accepted',
-        body: `@${profile.username} accepted your friend request`,
-        relatedEntityId: profile.id,
-        relatedEntityType: 'UserProfile',
+      await base44.functions.invoke('socialAction', {
+        action: 'respondFriendRequest',
+        friendshipId: f.id,
+        status: 'active'
       });
     },
     onSuccess: () => {
@@ -123,7 +97,11 @@ export default function Notifications() {
   });
 
   const declineFriend = useMutation({
-    mutationFn: async (f) => await base44.entities.Friendship.delete(f.id),
+    mutationFn: async (f) => await base44.functions.invoke('socialAction', {
+      action: 'respondFriendRequest',
+      friendshipId: f.id,
+      status: 'declined'
+    }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['pendingFriends'] }),
   });
 

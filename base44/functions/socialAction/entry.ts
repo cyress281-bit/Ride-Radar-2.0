@@ -23,6 +23,9 @@ async function profileById(base44, id) {
 
 async function createNotification(base44, profile, type, title, body, relatedEntityId, relatedEntityType) {
   if (!profile?.id || !profile?.userId) return;
+  const settings = await base44.asServiceRole.entities.UserSettings.filter({ userId: profile.userId }).then((list) => list[0]);
+  if ((type.includes('connection') || type.includes('friend')) && settings?.notifyOnConnection === false) return;
+  if (type === 'new_message' && settings?.notifyOnMessage === false) return;
   await base44.asServiceRole.entities.Notification.create({
     userId: profile.id,
     userAuthId: profile.userId,
@@ -157,6 +160,20 @@ Deno.serve(async (req) => {
       const existing = await base44.asServiceRole.entities.Conversation.filter({ type: 'friendship', friendshipId: friendship.id });
       const conversation = existing[0] || await createConversation(base44, 'friendship', requester, me, { friendshipId: friendship.id });
       await createNotification(base44, requester, 'friend_accepted', 'Friend request accepted', `@${me.username} accepted your friend request`, me.id, 'UserProfile');
+      return Response.json({ conversationId: conversation.id });
+    }
+
+    if (action === 'openFriendChat') {
+      const target = await profileById(base44, payload.targetProfileId);
+      if (await hasBlockBetween(base44, me.id, target.id)) throw new Error('Interaction unavailable');
+      const [friendshipA, friendshipB] = await Promise.all([
+        base44.asServiceRole.entities.Friendship.filter({ userAId: me.id, userBId: target.id, status: 'active' }),
+        base44.asServiceRole.entities.Friendship.filter({ userAId: target.id, userBId: me.id, status: 'active' })
+      ]);
+      const friendship = friendshipA[0] || friendshipB[0];
+      if (!friendship) throw new Error('Active friendship required');
+      const existing = await base44.asServiceRole.entities.Conversation.filter({ type: 'friendship', friendshipId: friendship.id });
+      const conversation = existing[0] || await createConversation(base44, 'friendship', me, target, { friendshipId: friendship.id });
       return Response.json({ conversationId: conversation.id });
     }
 

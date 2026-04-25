@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { validateImageUpload } from '@/lib/uploadValidation';
 import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -193,6 +194,7 @@ function ProfileEdit({ profile, onDone }) {
         bike: form.bike,
         bikePhoto: form.bikePhoto,
         avatar: form.avatar,
+        userId: profile.userId,
       });
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['myProfile'] }); onDone(); },
@@ -203,6 +205,7 @@ function ProfileEdit({ profile, onDone }) {
     if (!file) return;
     setUploading(true);
     try {
+      await validateImageUpload(file, 'avatar');
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setForm({ ...form, avatar: file_url });
     } finally { setUploading(false); }

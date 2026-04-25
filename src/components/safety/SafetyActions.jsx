@@ -35,14 +35,13 @@ export default function SafetyActions({ targetType, targetId, targetProfileId, c
   const isBlocked = existingBlocks.length > 0;
 
   const report = useMutation({
-    mutationFn: async () => await base44.entities.Report.create({
-      reporterProfileId: profile.id,
+    mutationFn: async () => await base44.functions.invoke('safetyAction', {
+      action: 'report',
       targetType,
       targetId,
       targetProfileId,
       reason,
       details,
-      status: 'open',
     }),
     onSuccess: () => {
       setMode('reported');
@@ -53,7 +52,11 @@ export default function SafetyActions({ targetType, targetId, targetProfileId, c
   const block = useMutation({
     mutationFn: async () => {
       if (isBlocked) return;
-      await base44.entities.UserBlock.create({ blockerProfileId: profile.id, blockedProfileId: targetProfileId, reason: details });
+      await base44.functions.invoke('safetyAction', {
+        action: 'block',
+        blockedProfileId: targetProfileId,
+        reason: details
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['block-status'] });

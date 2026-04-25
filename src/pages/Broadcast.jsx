@@ -11,8 +11,8 @@ import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin } 
 import AlertPhotoUploader from '@/components/broadcast/AlertPhotoUploader';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { cn } from '@/lib/utils';
-import { computeExpiresAt, fuzzLocation } from '@/lib/broadcastUtils';
-import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
+import { validateImageUpload } from '@/lib/uploadValidation';
+import { useMyProfile } from '@/lib/useCurrentUser';
 
 const TYPES = [
   { id: 'solo_ride', label: 'Solo Ride', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
@@ -72,17 +72,7 @@ export default function Broadcast() {
 
 function BroadcastForm({ type, onBack, onPosted }) {
   const { data: profile } = useMyProfile();
-  const { data: user } = useCurrentUser();
   const qc = useQueryClient();
-
-  const { data: settings } = useQuery({
-    queryKey: ['settings', user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const list = await base44.entities.UserSettings.filter({ userId: user.id });
-      return list[0];
-    }
-  });
 
   const typeMeta = TYPES.find((t) => t.id === type);
 
@@ -112,37 +102,12 @@ function BroadcastForm({ type, onBack, onPosted }) {
 
   const post = useMutation({
     mutationFn: async () => {
-      const payload = {
-        authorId: profile.id,
+      await base44.functions.invoke('createBroadcast', {
+        ...form,
         type,
-        title: type === 'iso' && form.isoSubtype === 'bike_crew'
-          ? (form.lookingTo === 'start_crew' ? 'Start a bike crew' : 'Join a bike crew')
-          : form.title,
-        body: form.body,
-        status: 'active',
-      };
-
-      if (type === 'solo_ride' || type === 'iso') {
-        if (settings?.showLocation !== false && coords.lat != null) {
-          const fuzzed = fuzzLocation(coords.lat, coords.lng);
-          payload.frozenLat = fuzzed.lat;
-          payload.frozenLng = fuzzed.lng;
-        }
-      }
-      if (type === 'iso') payload.isoSubtype = form.isoSubtype;
-      if (type === 'event') {
-        payload.exactLocationText = form.exactLocationText;
-        payload.eventDate = form.eventDate ? new Date(form.eventDate).toISOString() : undefined;
-        payload.eventEndTime = form.eventEndTime ? new Date(form.eventEndTime).toISOString() : undefined;
-        if (form.eventImage) payload.eventImage = form.eventImage;
-      }
-      if (type === 'alert') {
-        payload.exactLocationText = form.exactLocationText;
-        if (form.alertImages?.length) payload.alertImages = form.alertImages.slice(0, 2);
-      }
-
-      payload.expiresAt = computeExpiresAt(payload);
-      await base44.entities.Broadcast.create(payload);
+        lat: coords.lat,
+        lng: coords.lng
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['broadcasts'] });
@@ -155,6 +120,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
     if (!file) return;
     setUploading(true);
     try {
+      await validateImageUpload(file, 'event');
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setForm({ ...form, eventImage: file_url });
       e.target.value = '';
@@ -314,6 +280,7 @@ function BroadcastForm({ type, onBack, onPosted }) {
           </div>
         )}
 
+        {post.isError && <p className="text-sm text-destructive">{post.error?.response?.data?.error || post.error.message}</p>}
         <Button
           onClick={() => post.mutate()}
           disabled={!canPost || post.isPending || !profile}

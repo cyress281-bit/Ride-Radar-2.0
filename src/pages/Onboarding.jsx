@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { validateImageUpload } from '@/lib/uploadValidation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,6 +32,7 @@ export default function Onboarding() {
     if (!file) return;
     setUploading(true);
     try {
+      await validateImageUpload(file, 'avatar');
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setForm({ ...form, avatar: file_url });
     } finally { setUploading(false); }
@@ -70,35 +72,8 @@ export default function Onboarding() {
 
   const create = useMutation({
     mutationFn: async () => {
-      // 1. Account-level profile uniqueness validation using stable identity field (email)
-      if (user.email) {
-        const existingAccountProfile = await base44.entities.UserProfile.filter({ email: user.email });
-        if (existingAccountProfile.length > 0) {
-          return { existing: true };
-        }
-      }
-
-      // Fallback check for older profiles that only had userId
-      const existingLegacyProfile = await base44.entities.UserProfile.filter({ userId: user.id });
-      if (existingLegacyProfile.length > 0) {
-        return { existing: true };
-      }
-
-      // 2. Auto-generate internal username
-      const baseName = user?.full_name ? user.full_name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() : 'rider';
-      const autoUsername = `${baseName}${Math.floor(Math.random() * 10000)}`;
-      
-      // 3. Create profile with private full name and auto username
-      await base44.entities.UserProfile.create({ 
-        ...form, 
-        displayName: form.displayName.trim() || user?.full_name || autoUsername,
-        isPublic: true, 
-        userId: user.id,
-        email: user.email,
-        fullName: user?.full_name || '',
-        username: autoUsername
-      });
-      return { existing: false };
+      const res = await base44.functions.invoke('createRiderProfile', form);
+      return { existing: res.data?.existing };
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['myProfile'] });
@@ -212,7 +187,7 @@ export default function Onboarding() {
           </div>
 
           {create.isError && (
-            <p className="text-sm text-destructive">{create.error.message}</p>
+            <p className="text-sm text-destructive">{create.error?.response?.data?.error || create.error.message}</p>
           )}
 
           <Button
