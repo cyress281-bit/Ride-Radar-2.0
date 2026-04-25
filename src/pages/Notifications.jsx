@@ -105,6 +105,25 @@ export default function Notifications() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['pendingFriends'] }),
   });
 
+  const markRead = useMutation({
+    mutationFn: async (notification) => await base44.entities.Notification.update(notification.id, { isRead: true }),
+    onMutate: async (notification) => {
+      const queryKey = ['notifications', profile?.id];
+      await qc.cancelQueries({ queryKey });
+      const previous = qc.getQueryData(queryKey);
+      qc.setQueryData(queryKey, (current = []) =>
+        current.map((item) => item.id === notification.id ? { ...item, isRead: true } : item)
+      );
+      return { previous, queryKey };
+    },
+    onError: (_error, _notification, context) => {
+      if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
+    },
+    onSettled: (_data, _error, _notification, context) => {
+      qc.invalidateQueries({ queryKey: context?.queryKey || ['notifications', profile?.id] });
+    },
+  });
+
   const getProfile = (id) => allProfiles.find((p) => p.id === id);
 
   const hasAnything = pendingRequests.length + pendingFriends.length + notifications.length > 0;
@@ -183,7 +202,7 @@ export default function Notifications() {
             const content = (
               <div 
                 className={cn('p-3 rounded-xl flex items-start gap-3 transition', n.isRead ? 'bg-card/50' : 'bg-card border border-border/60 cursor-pointer')}
-                onClick={() => { if (!n.isRead) base44.entities.Notification.update(n.id, { isRead: true }) }}
+                onClick={() => { if (!n.isRead) markRead.mutate(n); }}
               >
                 <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
                   <Icon className="w-4 h-4 text-primary" />
