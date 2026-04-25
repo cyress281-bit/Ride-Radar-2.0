@@ -41,6 +41,14 @@ export default function SignalIcon({ type = 'solo_ride', size = 'md', className 
   };
   const iconSizes = { sm: 'w-5 h-5', md: 'w-6 h-6', lg: 'w-7 h-7' };
 
+  if (type === 'solo_ride') {
+    return (
+      <div className={cn('relative shrink-0 overflow-hidden flex items-center justify-center border border-solo/18 bg-black/80 shadow-[0_8px_24px_rgba(0,0,0,0.35)]', sizes[size], className)}>
+        <Icon className={cn('relative z-10', size === 'sm' ? 'h-7 w-8' : size === 'lg' ? 'h-10 w-11' : 'h-8 w-9')} />
+      </div>
+    );
+  }
+
   return (
     <div className={cn('relative shrink-0 border overflow-hidden flex items-center justify-center', sizes[size], config.shell, className)}>
       <div className="absolute inset-1 rounded-[inherit] border border-current/10" />

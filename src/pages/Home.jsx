@@ -7,15 +7,18 @@ import { Radio, CalendarClock, Search } from 'lucide-react';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { listProfilesByIds } from '@/lib/profileLookup';
 import FeedControls from '@/components/home/FeedControls';
+import RadarMapView from '@/components/home/RadarMapView';
 import UserLiveStatus from '@/components/home/UserLiveStatus';
 import AlertPriorityStatus from '@/components/home/AlertPriorityStatus';
 import RRLogo from '@/components/RRLogo';
 import { useMyProfile } from '@/lib/useCurrentUser';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
   const [userLoc, setUserLoc] = useState({ lat: null, lng: null });
   const [feedFilter, setFeedFilter] = useState('all');
   const [feedSort, setFeedSort] = useState('priority');
+  const [viewMode, setViewMode] = useState('feed');
   const { data: profile } = useMyProfile();
 
   const { data: blocks = [] } = useQuery({
@@ -107,15 +110,29 @@ export default function Home() {
 
       <div className="flex items-center justify-between mb-2 px-1">
         <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Signal feed</div>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          Live
+        <div className="flex items-center gap-1 rounded-full border border-border/50 bg-black/25 p-1">
+          <button
+            type="button"
+            onClick={() => setViewMode('feed')}
+            className={cn('rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] transition-colors', viewMode === 'feed' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
+          >
+            Feed
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('map')}
+            className={cn('rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] transition-colors', viewMode === 'map' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')}
+          >
+            Map
+          </button>
         </div>
       </div>
 
-      <FeedControls activeFilter={feedFilter} onFilterChange={setFeedFilter} sort={feedSort} onSortChange={setFeedSort} />
+      {viewMode === 'feed' && <FeedControls activeFilter={feedFilter} onFilterChange={setFeedFilter} sort={feedSort} onSortChange={setFeedSort} />}
 
-      {isLoading ? (
+      {viewMode === 'map' ? (
+        <RadarMapView broadcasts={ranked} />
+      ) : isLoading ? (
         <div className="space-y-4">
           {[0, 1, 2].map((i) => <div key={i} className="h-32 rounded-2xl bg-secondary/30 backdrop-blur-md animate-pulse border border-border/50" />)}
         </div>
