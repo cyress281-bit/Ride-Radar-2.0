@@ -3,14 +3,18 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import { rankBroadcasts, isExpired, haversineMiles } from '@/lib/broadcastUtils';
-import { Radio, Activity, Gauge, Satellite, Zap } from 'lucide-react';
+import { Radio, CalendarClock, Users, Satellite, Search } from 'lucide-react';
 import { listProfilesByIds } from '@/lib/profileLookup';
 import FeedControls from '@/components/home/FeedControls';
+import UserLiveStatus from '@/components/home/UserLiveStatus';
+import AlertPriorityStatus from '@/components/home/AlertPriorityStatus';
+import { useMyProfile } from '@/lib/useCurrentUser';
 
 export default function Home() {
   const [userLoc, setUserLoc] = useState({ lat: null, lng: null });
   const [feedFilter, setFeedFilter] = useState('all');
   const [feedSort, setFeedSort] = useState('priority');
+  const { data: profile } = useMyProfile();
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -41,7 +45,9 @@ export default function Home() {
 
   const ranked = rankBroadcasts(broadcasts, userLoc.lat, userLoc.lng);
   const alertCount = ranked.filter((b) => b.type === 'alert').length;
-  const rideCount = ranked.filter((b) => b.type === 'solo_ride' || b.type === 'iso').length;
+  const eventCount = ranked.filter((b) => b.type === 'event').length;
+  const nearbyRiderCount = ranked.filter((b) => b.type === 'solo_ride').length;
+  const isoCount = ranked.filter((b) => b.type === 'iso').length;
 
   const filteredBroadcasts = broadcasts.filter((broadcast) => feedFilter === 'all' || broadcast.type === feedFilter);
   const priorityFeed = rankBroadcasts(filteredBroadcasts, userLoc.lat, userLoc.lng);
@@ -54,6 +60,8 @@ export default function Home() {
     }
     return 0;
   });
+
+  const myLiveBroadcast = ranked.find((b) => b.type === 'solo_ride' && b.authorId === profile?.id);
 
   const getAuthor = (id) => profiles.find((p) => p.id === id);
 
@@ -82,11 +90,13 @@ export default function Home() {
             <Satellite className="relative z-10 w-6 h-6 drop-shadow-[0_0_6px_currentColor]" strokeWidth={2.35} />
           </div>
         </div>
+        <UserLiveStatus broadcast={myLiveBroadcast} />
         <div className="relative z-10 grid grid-cols-3 gap-2 mt-4">
-          <SignalStat icon={Activity} label="Signals" value={ranked.length} />
-          <SignalStat icon={Gauge} label="Riders" value={rideCount} />
-          <SignalStat icon={Zap} label="Alerts" value={alertCount} alert={alertCount > 0} />
+          <SignalStat icon={CalendarClock} label="Events" value={eventCount} />
+          <SignalStat icon={Users} label="Nearby Riders" value={nearbyRiderCount} />
+          <SignalStat icon={Search} label="In Search Of" value={isoCount} />
         </div>
+        <AlertPriorityStatus count={alertCount} />
       </div>
 
       <div className="flex items-center justify-between mb-2 px-1">
