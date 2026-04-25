@@ -148,12 +148,12 @@ export default function Home() {
 
 function SignalStat({ icon: Icon, label, value }) {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-border/70 bg-black/30 px-3 py-2.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
-      <div className="mb-2 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-        <Icon className="h-3.5 w-3.5 text-primary/80" />
+    <div className="relative overflow-hidden rounded-lg border border-border/50 bg-black/20 px-2.5 py-2 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.035)]">
+      <div className="mb-1 flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-[0.13em] text-muted-foreground/85">
+        <Icon className="h-3 w-3 text-primary/65" />
         <span className="truncate">{label}</span>
       </div>
-      <div className="font-display text-2xl font-extrabold tracking-[-0.04em] text-foreground">{value}</div>
+      <div className="font-display text-xl font-extrabold tracking-[-0.04em] text-foreground/90">{value}</div>
     </div>
   );
 }
