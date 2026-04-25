@@ -28,13 +28,19 @@ async function ensurePrivateIdentity(base44, user, profile) {
     fullName: String(user.full_name || '').trim(),
     isDeleted: false
   };
-  const existingForUser = await base44.asServiceRole.entities.UserPrivateIdentity.filter({ userId: user.id });
-  const current = existingForUser.find((identity) => identity.isDeleted !== true);
-  if (current) {
-    await base44.asServiceRole.entities.UserPrivateIdentity.update(current.id, payload);
-  } else {
-    await base44.asServiceRole.entities.UserPrivateIdentity.create(payload);
+
+  try {
+    const existingForUser = await base44.asServiceRole.entities.UserPrivateIdentity.filter({ userId: user.id });
+    const current = existingForUser.find((identity) => identity.isDeleted !== true);
+    if (current) {
+      await base44.asServiceRole.entities.UserPrivateIdentity.update(current.id, payload);
+    } else {
+      await base44.asServiceRole.entities.UserPrivateIdentity.create(payload);
+    }
+  } catch (error) {
+    console.warn('Private identity sync skipped:', error.message);
   }
+
   if (profile.userId !== user.id) {
     await base44.asServiceRole.entities.UserProfile.update(profile.id, { userId: user.id });
     profile.userId = user.id;
@@ -103,7 +109,7 @@ Deno.serve(async (req) => {
     };
     if (rideStyle) profilePayload.rideStyle = rideStyle;
 
-    const profile = await base44.asServiceRole.entities.UserProfile.create(profilePayload);
+    const profile = await base44.entities.UserProfile.create(profilePayload);
     await ensurePrivateIdentity(base44, user, profile);
 
     return Response.json({ profile, existing: false });
