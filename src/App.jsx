@@ -36,15 +36,28 @@ const AdminGate = ({ children }) => {
   return children;
 };
 
+const RouteErrorState = ({ title = 'Unable to load', message = 'Please refresh and try again.' }) => (
+  <div className="fixed inset-0 flex items-center justify-center bg-background px-6">
+    <div className="max-w-sm rounded-2xl border border-border bg-card p-6 text-center shadow-2xl">
+      <h1 className="font-display text-xl font-bold mb-2">{title}</h1>
+      <p className="text-sm text-muted-foreground">{message}</p>
+    </div>
+  </div>
+);
+
 const ProfileGate = ({ children }) => {
-  const { data: profile, isLoading, isPending, isFetching } = useMyProfile();
+  const { data: profile, isLoading, isPending, isError, error } = useMyProfile();
   
-  if (isLoading || isPending || isFetching) {
+  if (isLoading || isPending) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-secondary border-t-primary rounded-full animate-spin" />
       </div>
     );
+  }
+
+  if (isError) {
+    return <RouteErrorState title="Profile failed to load" message={error?.message || 'Your rider profile could not be loaded.'} />;
   }
   
   if (!profile) return <Navigate to="/onboarding" replace />;
@@ -63,6 +76,10 @@ const AuthenticatedApp = () => {
   }
 
   if (authError?.type === 'user_not_registered') return <UserNotRegisteredError />;
+
+  if (authError && authError.type !== 'auth_required') {
+    return <RouteErrorState title="App failed to start" message={authError.message || 'Configuration or authentication setup failed.'} />;
+  }
 
   if (!isAuthenticated) {
     return (

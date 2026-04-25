@@ -14,7 +14,7 @@ import { isExpired } from '@/lib/broadcastUtils';
 import { Link } from 'react-router-dom';
 
 export default function Profile() {
-  const { data: profile } = useMyProfile();
+  const { data: profile, isError, error } = useMyProfile();
   const { data: user } = useCurrentUser();
   const { logout } = useAuth();
   const [editing, setEditing] = useState(false);
@@ -24,6 +24,17 @@ export default function Profile() {
     enabled: !!profile,
     queryFn: async () => await base44.entities.Broadcast.filter({ authorId: profile.id }, '-created_date', 50),
   });
+
+  if (isError) {
+    return (
+      <div className="px-5 pt-6">
+        <div className="text-center py-16 rounded-3xl border border-destructive/30 bg-card/40 backdrop-blur-xl mt-8">
+          <h3 className="font-display font-bold text-xl mb-2">Profile failed to load</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">{error?.message || 'Please refresh and try again.'}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!profile) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
 

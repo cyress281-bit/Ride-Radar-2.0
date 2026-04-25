@@ -7,9 +7,9 @@ import { timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
 
 export default function Messages() {
-  const { data: profile } = useMyProfile();
+  const { data: profile, isError: profileError, error: profileLoadError } = useMyProfile();
 
-  const { data: conversations = [], isLoading } = useQuery({
+  const { data: conversations = [], isLoading, isError, error } = useQuery({
     queryKey: ['conversations', profile?.id],
     enabled: !!profile,
     queryFn: async () => await base44.entities.Conversation.filter({ participantIds: profile.id }, '-lastMessageAt', 100),
@@ -35,12 +35,19 @@ export default function Messages() {
   const active = conversations.filter((c) => c.status === 'active');
   const archived = conversations.filter((c) => c.status === 'archived');
 
+  const loadError = profileError ? profileLoadError : isError ? error : null;
+
   return (
     <div className="px-5 pt-6">
       <h1 className="font-display text-3xl font-bold tracking-tight mb-1">Messages</h1>
       <p className="text-sm text-muted-foreground mb-6">Active threads and conversations</p>
 
-      {isLoading ? (
+      {loadError ? (
+        <div className="text-center py-16 rounded-3xl border border-destructive/30 bg-card/40 backdrop-blur-xl mt-8">
+          <h3 className="font-display font-bold text-xl mb-2">Messages failed to load</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto">{loadError.message || 'Please refresh and try again.'}</p>
+        </div>
+      ) : isLoading ? (
         <div className="space-y-4">
           {[0, 1].map((i) => <div key={i} className="h-20 rounded-2xl bg-secondary/30 backdrop-blur-md animate-pulse border border-border/50" />)}
         </div>

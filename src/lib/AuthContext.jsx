@@ -115,27 +115,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getBrowserCallbackUrl = (path = '/') => {
+    const origin = window.location.origin;
+    if (path.startsWith('http')) return path;
+    return `${origin}${path.startsWith('/') ? '' : '/'}${path}`;
+  };
+
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
     
     if (shouldRedirect) {
-      // Use the SDK's logout method which handles token cleanup and redirect
-      const baseUrl = appParams.appBaseUrl || window.location.origin;
-      base44.auth.logout(baseUrl + '/');
+      base44.auth.logout(getBrowserCallbackUrl('/'));
     } else {
-      // Just remove the token without redirect
       base44.auth.logout();
     }
   };
 
   const navigateToLogin = (redirectUrl = '/home') => {
-    // Ensure absolute URL for redirect
-    const baseUrl = appParams.appBaseUrl || window.location.origin;
-    const nextUrl = redirectUrl.startsWith('http') 
-      ? redirectUrl 
-      : `${baseUrl}${redirectUrl.startsWith('/') ? '' : '/'}${redirectUrl}`;
-    base44.auth.redirectToLogin(nextUrl);
+    base44.auth.redirectToLogin(getBrowserCallbackUrl(redirectUrl));
   };
 
   return (

@@ -164,7 +164,7 @@ export default function ThemePreview() {
                   Signal out.<br /><span className="text-primary text-glow-green">Find your ride.</span>
                 </h1>
                 <p className="text-muted-foreground text-sm mb-6 max-w-sm">A real-time radar for motorcyclists. Post a solo ride, find a mechanic, rally a crew, or drop an alert.</p>
-                <Button className="rounded-full glow-green h-11 px-6">Get started <ArrowRight className="w-4 h-4" /></Button>
+                <Button onClick={() => navigateToLogin('/home')} className="rounded-full glow-green h-11 px-6">Get started <ArrowRight className="w-4 h-4" /></Button>
                 <div className="grid grid-cols-4 gap-2 mt-8">
                   {[
                     { icon: MapPin, label: 'Solo Ride', c: 'text-solo', b: 'border-solo/30', bg: 'bg-solo/8' },
