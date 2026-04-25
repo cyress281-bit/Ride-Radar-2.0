@@ -58,7 +58,11 @@ export default function Settings() {
       <div className="mb-5 rounded-[1.45rem] border border-border/70 bg-black/30 p-4"><div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Privacy disclosure</div><p className="text-sm text-muted-foreground">Location posts use approximate, fuzzed, frozen location when enabled. Uploaded images are used for your profile, bike, events, and alerts. Public profile visibility controls what other riders can see.</p></div>
 
       <div className="space-y-2 rr-surface rounded-[1.45rem] p-3 mb-5">
-        {links.map((item) => <Link key={item.label} to={item.to} className="flex items-center gap-3 rounded-xl border border-border/50 bg-black/25 p-3 hover:border-primary/35"><item.icon className={cn('h-5 w-5', item.danger ? 'text-destructive' : 'text-primary')} /><div className="flex-1"><div className={cn('text-sm font-bold', item.danger && 'text-destructive')}>{item.label}</div><div className="text-xs text-muted-foreground">{item.desc}</div></div><ExternalLink className="h-4 w-4 text-muted-foreground" /></Link>)}
+        {links.map((item) => item.to.startsWith('http') ? (
+          <a key={item.label} href={item.to} className="flex items-center gap-3 rounded-xl border border-border/50 bg-black/25 p-3 hover:border-primary/35"><item.icon className={cn('h-5 w-5', item.danger ? 'text-destructive' : 'text-primary')} /><div className="flex-1"><div className={cn('text-sm font-bold', item.danger && 'text-destructive')}>{item.label}</div><div className="text-xs text-muted-foreground">{item.desc}</div></div><ExternalLink className="h-4 w-4 text-muted-foreground" /></a>
+        ) : (
+          <Link key={item.label} to={item.to} className="flex items-center gap-3 rounded-xl border border-border/50 bg-black/25 p-3 hover:border-primary/35"><item.icon className={cn('h-5 w-5', item.danger ? 'text-destructive' : 'text-primary')} /><div className="flex-1"><div className={cn('text-sm font-bold', item.danger && 'text-destructive')}>{item.label}</div><div className="text-xs text-muted-foreground">{item.desc}</div></div><ExternalLink className="h-4 w-4 text-muted-foreground" /></Link>
+        ))}
       </div>
 
       <Button variant="outline" onClick={() => logout(true)} className="w-full rounded-2xl h-12 text-destructive border-destructive/30 hover:bg-destructive hover:text-destructive-foreground transition-colors"><LogOut className="w-4 h-4 mr-2" /> Log out securely</Button>

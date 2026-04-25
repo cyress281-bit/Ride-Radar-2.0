@@ -17,7 +17,13 @@ export default function AdminCompliance() {
       <h1 className="mb-1 font-display text-2xl font-bold tracking-tight">Compliance</h1>
       <p className="mb-5 text-sm text-muted-foreground">Quick access to review-readiness and store policy resources.</p>
       <div className="space-y-2">
-        {links.map((item) => (
+        {links.map((item) => item.to.startsWith('http') ? (
+          <a key={item.to} href={item.to} className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-4 hover:border-primary/40">
+            <item.icon className="h-5 w-5 text-primary" />
+            <span className="flex-1 font-semibold text-sm">{item.label}</span>
+            <ExternalLink className="h-4 w-4 text-muted-foreground" />
+          </a>
+        ) : (
           <Link key={item.to} to={item.to} className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-4 hover:border-primary/40">
             <item.icon className="h-5 w-5 text-primary" />
             <span className="flex-1 font-semibold text-sm">{item.label}</span>

@@ -38,7 +38,7 @@ export default function AccountDeletion() {
         <div className="mt-4 space-y-3 rounded-2xl border border-border/70 bg-black/30 p-5 text-sm text-muted-foreground">
           <p><strong className="text-foreground">Deleted app data:</strong> profile, settings, broadcasts, RSVPs, connection requests, friendships, conversations, messages you sent, notifications, reports you filed, and block records tied to your rider profile.</p>
           <p><strong className="text-foreground">Possible retention exceptions:</strong> limited records may be retained if required for law, security, fraud prevention, backups, payment/tax obligations if added later, or unresolved safety/moderation investigations.</p>
-          <p><strong className="text-foreground">Public deletion URL:</strong> after publishing, use your full public app URL ending in <span className="text-primary">/account-deletion</span> for App Store and Google Play account deletion requirements.</p>
+          <p><strong className="text-foreground">Public deletion URL:</strong> use <span className="text-primary">https://rideradarapp.com/account-deletion</span> for App Store and Google Play account deletion requirements.</p>
           {status === 'done' ? (
             <div className="rounded-xl border border-primary/25 bg-primary/5 p-3 text-primary">{message}</div>
           ) : (

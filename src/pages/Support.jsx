@@ -17,7 +17,7 @@ export default function Support() {
             <Mail className="mb-2 h-5 w-5 text-primary" /><div className="font-bold">Email support</div><div className="text-sm text-muted-foreground">{SUPPORT_EMAIL}</div>
           </a>
           <div className="rounded-xl border border-border/70 bg-black/30 p-4"><ShieldAlert className="mb-2 h-5 w-5 text-primary" /><div className="font-bold">What support can help with</div><div className="text-sm text-muted-foreground">Account/login issues, profile/onboarding problems, broadcast/event issues, messaging issues, privacy questions, moderation/report/block issues, and account deletion questions. Use Report or Block in the app for fastest moderation review.</div></div>
-          <Link to={ACCOUNT_DELETION_URL} className="rounded-xl border border-border/70 bg-black/30 p-4 hover:border-destructive/35"><Trash2 className="mb-2 h-5 w-5 text-destructive" /><div className="font-bold">Account deletion</div><div className="text-sm text-muted-foreground">Open the public deletion request page.</div></Link>
+          <a href={ACCOUNT_DELETION_URL} className="rounded-xl border border-border/70 bg-black/30 p-4 hover:border-destructive/35"><Trash2 className="mb-2 h-5 w-5 text-destructive" /><div className="font-bold">Account deletion</div><div className="text-sm text-muted-foreground">Open the public deletion request page.</div></a>
         </div>
       </div>
     </div>
