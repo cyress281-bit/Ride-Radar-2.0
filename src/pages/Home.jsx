@@ -101,9 +101,11 @@ export default function Home() {
           </div>
         </div>
         <UserLiveStatus broadcast={myLiveBroadcast} />
-        <div className="relative z-10 grid grid-cols-3 gap-2 mt-4">
+        <div className="relative z-10 mt-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-full border border-border/45 bg-black/18 px-3.5 py-2 text-[11px] font-semibold text-muted-foreground shadow-[inset_0_1px_0_hsl(0_0%_100%/0.035)]">
           <SignalStat icon={CalendarClock} label="Events" value={eventCount} />
+          <span className="h-1 w-1 rounded-full bg-primary/35" />
           <SignalStat icon={Users} label="Nearby Riders" value={nearbyRiderCount} />
+          <span className="h-1 w-1 rounded-full bg-primary/35" />
           <SignalStat icon={Search} label="In Search Of" value={isoCount} />
         </div>
         <AlertPriorityStatus count={alertCount} />
@@ -148,12 +150,10 @@ export default function Home() {
 
 function SignalStat({ icon: Icon, label, value }) {
   return (
-    <div className="relative overflow-hidden rounded-lg border border-border/50 bg-black/20 px-2.5 py-2 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.035)]">
-      <div className="mb-1 flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-[0.13em] text-muted-foreground/85">
-        <Icon className="h-3 w-3 text-primary/65" />
-        <span className="truncate">{label}</span>
-      </div>
-      <div className="font-display text-xl font-extrabold tracking-[-0.04em] text-foreground/90">{value}</div>
+    <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
+      <Icon className="h-3 w-3 text-primary/55" />
+      <span className="uppercase tracking-[0.12em] text-muted-foreground/80">{label}</span>
+      <span className="font-display text-sm font-extrabold tracking-[-0.03em] text-foreground/90">{value}</span>
     </div>
   );
 }
