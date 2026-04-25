@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Clock, Wrench, MapPin, Calendar } from 'lucide-react';
+import { Clock, Wrench, MapPin, Calendar, Bike } from 'lucide-react';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
@@ -31,9 +31,10 @@ const typeStyles = {
   },
 };
 
-export default function BroadcastCard({ broadcast, author, userLat, userLng }) {
+export default function BroadcastCard({ broadcast, author, userLat, userLng, prominentSoloAvatar = false }) {
   const meta = BROADCAST_META[broadcast.type];
   const isAlert = broadcast.type === 'alert';
+  const isProminentSolo = prominentSoloAvatar && broadcast.type === 'solo_ride';
   const styles = typeStyles[broadcast.type] || typeStyles.solo_ride;
 
   const distance =
@@ -58,9 +59,23 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng }) {
             <img src={broadcast.eventImage} className="max-h-72 w-full object-contain" alt="Event poster" />
           </div>
         )}
-        <div className="flex items-start gap-3">
-          {/* Type icon */}
-          <SignalIcon type={broadcast.type} size="md" />
+        <div className={cn('flex items-start', isProminentSolo ? 'gap-4' : 'gap-3')}>
+          {isProminentSolo ? (
+            <div className="relative shrink-0">
+              {author?.avatar ? (
+                <img src={author.avatar} className="h-16 w-16 rounded-2xl border border-solo/45 object-cover shadow-[0_0_26px_hsl(var(--solo)/0.18),0_12px_30px_rgba(0,0,0,0.45)]" alt={author.displayName || 'Rider'} />
+              ) : (
+                <div className="h-16 w-16 rounded-2xl border border-solo/35 bg-solo/10 flex items-center justify-center text-solo shadow-[0_0_24px_hsl(var(--solo)/0.14)]">
+                  <Bike className="h-7 w-7 drop-shadow-[0_0_6px_currentColor]" />
+                </div>
+              )}
+              <div className="absolute -bottom-1.5 -right-1.5 h-7 w-7 rounded-xl border border-solo/45 bg-black/90 flex items-center justify-center text-solo shadow-[0_0_14px_hsl(var(--solo)/0.22)]">
+                <Bike className="h-3.5 w-3.5" strokeWidth={2.5} />
+              </div>
+            </div>
+          ) : (
+            <SignalIcon type={broadcast.type} size="md" />
+          )}
 
           <div className="flex-1 min-w-0">
             {/* Meta row */}
@@ -81,7 +96,7 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng }) {
 
             {/* Footer meta */}
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap mt-2">
-              {author && (
+              {author && !isProminentSolo && (
                 <span className="flex items-center gap-1.5">
                   {author.avatar ? (
                     <img src={author.avatar} className="w-4 h-4 rounded-full object-cover" alt="" />
@@ -89,6 +104,12 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng }) {
                     <div className="w-4 h-4 rounded-full bg-secondary border border-border" />
                   )}
                   {author.displayName}
+                </span>
+              )}
+              {author && isProminentSolo && (
+                <span className="flex items-center gap-1.5 font-semibold text-foreground/90">
+                  {author.displayName}
+                  {author.bike && <span className="text-muted-foreground font-medium">· {author.bike}</span>}
                 </span>
               )}
               {distance && (

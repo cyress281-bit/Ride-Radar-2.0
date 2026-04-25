@@ -100,7 +100,7 @@ export default function Home() {
           {ranked.map((b) => (
             <div key={b.id} className="relative pl-4">
               <span className="absolute left-[21px] top-6 z-10 h-2.5 w-2.5 rounded-full bg-background border border-primary/60 shadow-[0_0_14px_hsl(var(--primary)/0.45)]" />
-              <BroadcastCard broadcast={b} author={getAuthor(b.authorId)} userLat={userLoc.lat} userLng={userLoc.lng} />
+              <BroadcastCard broadcast={b} author={getAuthor(b.authorId)} userLat={userLoc.lat} userLng={userLoc.lng} prominentSoloAvatar />
             </div>
           ))}
         </div>
