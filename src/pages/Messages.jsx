@@ -5,7 +5,9 @@ import { useMyProfile } from '@/lib/useCurrentUser';
 import { MessageCircle, Clock, Radio } from 'lucide-react';
 import { timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
-import { listProfilesByIds } from '@/lib/profileLookup';
+import { useBlockedProfiles } from '@/hooks/useBlockedProfiles';
+import { useProfileBatch } from '@/hooks/useProfileBatch';
+import { useMemo } from 'react';
 
 export default function Messages() {
   const { data: profile, isError: profileError, error: profileLoadError } = useMyProfile();
@@ -14,28 +16,28 @@ export default function Messages() {
     queryKey: ['conversations', profile?.id],
     enabled: !!profile,
     queryFn: async () => await base44.entities.Conversation.filter({ participantIds: profile.id }, '-lastMessageAt', 100),
-    refetchInterval: 20000,
+    refetchInterval: () => (document.hidden ? false : 20000), // Pause when tab hidden
+    refetchOnWindowFocus: true,
   });
 
-  const { data: blocks = [] } = useQuery({
-    queryKey: ['blocks', profile?.id],
-    enabled: !!profile,
-    queryFn: async () => await base44.entities.UserBlock.filter({ blockerProfileId: profile.id }),
-  });
+  // Use shared hooks
+  const { blockedIds } = useBlockedProfiles();
 
-  const blockedIds = new Set(blocks.map((block) => block.blockedProfileId));
-  const visibleConversations = conversations.filter((c) => !c.participantIds?.some((id) => id !== profile?.id && blockedIds.has(id)));
-  const otherIds = Array.from(new Set(visibleConversations.flatMap(c => c.participantIds).filter(id => id !== profile?.id)));
+  const visibleConversations = useMemo(
+    () => conversations.filter((c) => !c.participantIds?.some((id) => id !== profile?.id && blockedIds.has(id))),
+    [conversations, profile?.id, blockedIds]
+  );
 
-  const { data: profiles = [] } = useQuery({
-    queryKey: ['all-profiles', otherIds],
-    enabled: otherIds.length > 0,
-    queryFn: async () => await listProfilesByIds(otherIds),
-  });
+  const otherIds = useMemo(
+    () => visibleConversations.flatMap(c => c.participantIds).filter(id => id !== profile?.id),
+    [visibleConversations, profile?.id]
+  );
+
+  const { getProfile } = useProfileBatch(otherIds);
 
   const getOther = (c) => {
     const otherId = c.participantIds.find((id) => id !== profile?.id);
-    return profiles.find((p) => p.id === otherId);
+    return getProfile(otherId);
   };
 
   const active = visibleConversations.filter((c) => c.status === 'active');

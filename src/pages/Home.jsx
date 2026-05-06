@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import { rankBroadcasts, isExpired, haversineMiles } from '@/lib/broadcastUtils';
 import { Radio, CalendarClock, Search } from 'lucide-react';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
-import { listProfilesByIds } from '@/lib/profileLookup';
 import FeedControls from '@/components/home/FeedControls';
 import RadarMapView from '@/components/home/RadarMapView';
 import UserLiveStatus from '@/components/home/UserLiveStatus';
@@ -13,6 +12,8 @@ import AlertPriorityStatus from '@/components/home/AlertPriorityStatus';
 import RRLogo from '@/components/RRLogo';
 import { useMyProfile } from '@/lib/useCurrentUser';
 import { cn } from '@/lib/utils';
+import { useBlockedProfiles } from '@/hooks/useBlockedProfiles';
+import { useProfileBatch } from '@/hooks/useProfileBatch';
 
 export default function Home() {
   const [userLoc, setUserLoc] = useState({ lat: null, lng: null });
@@ -21,11 +22,8 @@ export default function Home() {
   const [viewMode, setViewMode] = useState('feed');
   const { data: profile } = useMyProfile();
 
-  const { data: blocks = [] } = useQuery({
-    queryKey: ['blocks', profile?.id],
-    enabled: !!profile,
-    queryFn: async () => await base44.entities.UserBlock.filter({ blockerProfileId: profile.id }),
-  });
+  // Use shared hooks to eliminate duplication
+  const { blockedIds } = useBlockedProfiles();
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -43,40 +41,68 @@ export default function Home() {
       const list = await base44.entities.Broadcast.filter({ status: 'active' }, '-created_date', 100);
       return list.filter((b) => !isExpired(b));
     },
-    refetchInterval: 30000,
+    refetchInterval: () => (document.hidden ? false : 30000), // Pause polling when tab hidden
+    refetchOnWindowFocus: true,
   });
 
-  const authorIds = Array.from(new Set(broadcasts.map(b => b.authorId)));
+  // Use shared profile batch hook
+  const authorIds = useMemo(
+    () => broadcasts.map(b => b.authorId),
+    [broadcasts]
+  );
+  const { getProfile } = useProfileBatch(authorIds);
 
-  const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles-for-feed', authorIds],
-    enabled: authorIds.length > 0,
-    queryFn: async () => await listProfilesByIds(authorIds),
-  });
+  // Memoize filtered broadcasts to prevent recalculation
+  const visibleBroadcastsBase = useMemo(
+    () => broadcasts.filter((broadcast) => !blockedIds.has(broadcast.authorId)),
+    [broadcasts, blockedIds]
+  );
 
-  const blockedIds = new Set(blocks.map((block) => block.blockedProfileId));
-  const visibleBroadcastsBase = broadcasts.filter((broadcast) => !blockedIds.has(broadcast.authorId));
-  const ranked = rankBroadcasts(visibleBroadcastsBase, userLoc.lat, userLoc.lng);
-  const alertCount = ranked.filter((b) => b.type === 'alert').length;
-  const eventCount = ranked.filter((b) => b.type === 'event').length;
-  const nearbyRiderCount = ranked.filter((b) => b.type === 'solo_ride').length;
-  const isoCount = ranked.filter((b) => b.type === 'iso').length;
+  // Memoize ranked broadcasts
+  const ranked = useMemo(
+    () => rankBroadcasts(visibleBroadcastsBase, userLoc.lat, userLoc.lng),
+    [visibleBroadcastsBase, userLoc.lat, userLoc.lng]
+  );
 
-  const filteredBroadcasts = visibleBroadcastsBase.filter((broadcast) => feedFilter === 'all' || broadcast.type === feedFilter);
-  const priorityFeed = rankBroadcasts(filteredBroadcasts, userLoc.lat, userLoc.lng);
-  const visibleFeed = [...priorityFeed].sort((a, b) => {
-    if (feedSort === 'newest') return new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
-    if (feedSort === 'nearest' && userLoc.lat != null) {
-      const distanceA = (a.type === 'solo_ride' || a.type === 'iso') && a.frozenLat != null ? haversineMiles(userLoc.lat, userLoc.lng, a.frozenLat, a.frozenLng) : Number.POSITIVE_INFINITY;
-      const distanceB = (b.type === 'solo_ride' || b.type === 'iso') && b.frozenLat != null ? haversineMiles(userLoc.lat, userLoc.lng, b.frozenLat, b.frozenLng) : Number.POSITIVE_INFINITY;
-      return distanceA - distanceB || new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
+  // Memoize counts
+  const { alertCount, eventCount, nearbyRiderCount, isoCount } = useMemo(() => ({
+    alertCount: ranked.filter((b) => b.type === 'alert').length,
+    eventCount: ranked.filter((b) => b.type === 'event').length,
+    nearbyRiderCount: ranked.filter((b) => b.type === 'solo_ride').length,
+    isoCount: ranked.filter((b) => b.type === 'iso').length,
+  }), [ranked]);
+
+  // Memoize final visible feed with sorting
+  const visibleFeed = useMemo(() => {
+    const filtered = feedFilter === 'all'
+      ? ranked
+      : ranked.filter((broadcast) => broadcast.type === feedFilter);
+
+    if (feedSort === 'newest') {
+      return [...filtered].sort((a, b) =>
+        new Date(b.created_date).getTime() - new Date(a.created_date).getTime()
+      );
     }
-    return 0;
-  });
 
-  const myLiveBroadcast = ranked.find((b) => b.type === 'solo_ride' && b.authorId === profile?.id);
+    if (feedSort === 'nearest' && userLoc.lat != null) {
+      return [...filtered].sort((a, b) => {
+        const distanceA = (a.type === 'solo_ride' || a.type === 'iso') && a.frozenLat != null
+          ? haversineMiles(userLoc.lat, userLoc.lng, a.frozenLat, a.frozenLng)
+          : Number.POSITIVE_INFINITY;
+        const distanceB = (b.type === 'solo_ride' || b.type === 'iso') && b.frozenLat != null
+          ? haversineMiles(userLoc.lat, userLoc.lng, b.frozenLat, b.frozenLng)
+          : Number.POSITIVE_INFINITY;
+        return distanceA - distanceB || new Date(b.created_date).getTime() - new Date(a.created_date).getTime();
+      });
+    }
 
-  const getAuthor = (id) => profiles.find((p) => p.id === id);
+    return filtered;
+  }, [ranked, feedFilter, feedSort, userLoc.lat, userLoc.lng]);
+
+  const myLiveBroadcast = useMemo(
+    () => ranked.find((b) => b.type === 'solo_ride' && b.authorId === profile?.id),
+    [ranked, profile?.id]
+  );
 
   return (
     <div className="px-5 pt-5">
@@ -150,7 +176,7 @@ export default function Home() {
           {visibleFeed.map((b) => (
             <div key={b.id} className="relative pl-4">
               <span className="absolute left-[21px] top-6 z-10 h-2.5 w-2.5 rounded-full bg-background border border-primary/60 shadow-[0_0_14px_hsl(var(--primary)/0.45)]" />
-              <BroadcastCard broadcast={b} author={getAuthor(b.authorId)} userLat={userLoc.lat} userLng={userLoc.lng} prominentSoloAvatar />
+              <BroadcastCard broadcast={b} author={getProfile(b.authorId)} userLat={userLoc.lat} userLng={userLoc.lng} prominentSoloAvatar />
             </div>
           ))}
         </div>

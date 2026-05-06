@@ -9,6 +9,7 @@ import SafetyActions from '@/components/safety/SafetyActions';
 import { useMyProfile } from '@/lib/useCurrentUser';
 import { cn } from '@/lib/utils';
 import { getProfileByIdSafe } from '@/lib/profileLookup';
+import { useBlockedProfiles } from '@/hooks/useBlockedProfiles';
 
 export default function ConversationView() {
   const { id } = useParams();
@@ -26,7 +27,8 @@ export default function ConversationView() {
   const { data: messages = [] } = useQuery({
     queryKey: ['messages', id],
     queryFn: async () => await base44.entities.Message.filter({ conversationId: id }, 'created_date', 200),
-    refetchInterval: 5000,
+    refetchInterval: () => (document.hidden ? false : 5000), // Pause when tab hidden
+    refetchOnWindowFocus: true,
   });
 
   const otherId = conversation?.participantIds?.find((p) => p !== profile?.id);
@@ -36,13 +38,9 @@ export default function ConversationView() {
     queryFn: async () => await getProfileByIdSafe(otherId),
   });
 
-  const { data: blocks = [] } = useQuery({
-    queryKey: ['blocks', profile?.id, otherId],
-    enabled: !!profile?.id && !!otherId,
-    queryFn: async () => await base44.entities.UserBlock.filter({ blockerProfileId: profile.id, blockedProfileId: otherId }),
-  });
-
-  const isBlocked = blocks.length > 0;
+  // Use shared hook for block checking
+  const { isBlocked } = useBlockedProfiles();
+  const isOtherBlocked = isBlocked(otherId);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -125,7 +123,7 @@ export default function ConversationView() {
       <div className="p-3 border-t border-border/60 bg-background/90 backdrop-blur">
         {isArchived ? (
           <div className="text-center text-sm text-muted-foreground py-2">This conversation is archived.</div>
-        ) : isBlocked ? (
+        ) : isOtherBlocked ? (
           <div className="text-center text-sm text-muted-foreground py-2">You blocked this rider. Messaging is disabled.</div>
         ) : send.isError ? (
           <div className="text-center text-sm text-destructive py-2">{send.error?.response?.data?.error || send.error.message}</div>

@@ -6,7 +6,8 @@ import { Bell, Users, MessageCircle, Calendar, AlertTriangle, Check, X, Radio, M
 import { Button } from '@/components/ui/button';
 import { timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
-import { listProfilesByIds } from '@/lib/profileLookup';
+import { useProfileBatch } from '@/hooks/useProfileBatch';
+import { useMemo } from 'react';
 
 const iconByType = {
   connection_request: Users,
@@ -31,7 +32,8 @@ export default function Notifications() {
     queryKey: ['notifications', profile?.id],
     enabled: !!profile,
     queryFn: async () => await base44.entities.Notification.filter({ userId: profile.id }, '-created_date', 100),
-    refetchInterval: 30000,
+    refetchInterval: () => (document.hidden ? false : 30000), // Pause when tab hidden
+    refetchOnWindowFocus: true,
   });
 
   const { data: pendingRequests = [] } = useQuery({
@@ -46,16 +48,15 @@ export default function Notifications() {
     queryFn: async () => await base44.entities.Friendship.filter({ userBId: profile.id, status: 'pending' }),
   });
 
-  const userIds = Array.from(new Set([
-    ...pendingRequests.map(r => r.fromUserId),
-    ...pendingFriends.map(f => f.userAId)
-  ]));
+  const userIds = useMemo(
+    () => [
+      ...pendingRequests.map(r => r.fromUserId),
+      ...pendingFriends.map(f => f.userAId)
+    ],
+    [pendingRequests, pendingFriends]
+  );
 
-  const { data: allProfiles = [] } = useQuery({
-    queryKey: ['all-profiles-notif', userIds],
-    enabled: userIds.length > 0,
-    queryFn: async () => await listProfilesByIds(userIds),
-  });
+  const { getProfile } = useProfileBatch(userIds);
 
   const acceptConn = useMutation({
     mutationFn: async (req) => {
@@ -123,8 +124,6 @@ export default function Notifications() {
       qc.invalidateQueries({ queryKey: context?.queryKey || ['notifications', profile?.id] });
     },
   });
-
-  const getProfile = (id) => allProfiles.find((p) => p.id === id);
 
   const hasAnything = pendingRequests.length + pendingFriends.length + notifications.length > 0;
 
