@@ -1,17 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { BROADCAST_META, timeAgo } from '@/lib/broadcastUtils';
+import AdminLayout from '@/components/admin/AdminLayout';
+import { useAdminData } from '@/hooks/useAdminData';
 
 export default function AdminBroadcasts() {
   const qc = useQueryClient();
 
-  const { data: broadcasts = [] } = useQuery({
-    queryKey: ['admin-broadcasts'],
-    queryFn: () => base44.entities.Broadcast.list('-created_date', 500),
-  });
+  const { broadcasts } = useAdminData();
+  const broadcastsData = broadcasts.data || [];
 
   const expire = useMutation({
     mutationFn: async (id) => await base44.entities.Broadcast.update(id, { status: 'expired' }),
@@ -24,14 +23,13 @@ export default function AdminBroadcasts() {
   });
 
   return (
-    <div className="px-5 pt-5">
-      <Link to="/admin" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
-        <ArrowLeft className="w-4 h-4" /> Admin
-      </Link>
-      <h1 className="font-display text-2xl font-bold tracking-tight mb-4">Broadcasts</h1>
+    <AdminLayout
+      title="Broadcasts"
+      description="Manage all broadcast posts and alerts"
+    >
 
       <div className="space-y-2">
-        {broadcasts.map((b) => (
+        {broadcastsData.map((b) => (
           <div key={b.id} className="p-3 rounded-xl bg-card border border-border/60">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{BROADCAST_META[b.type]?.label}</span>
@@ -50,6 +48,6 @@ export default function AdminBroadcasts() {
           </div>
         ))}
       </div>
-    </div>
+    </AdminLayout>
   );
 }

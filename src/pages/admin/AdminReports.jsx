@@ -1,20 +1,22 @@
 import { useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import AdminBackLink from '@/components/admin/AdminBackLink';
+import AdminLayout from '@/components/admin/AdminLayout';
+import { useAdminData } from '@/hooks/useAdminData';
 import { timeAgo } from '@/lib/broadcastUtils';
 import { CheckCircle2, Eye, ShieldAlert, Trash2, XCircle } from 'lucide-react';
 
 export default function AdminReports() {
   const qc = useQueryClient();
-  const { data: reports = [] } = useQuery({ queryKey: ['admin-reports'], queryFn: () => base44.entities.Report.list('-created_date', 500) });
-  const { data: profiles = [] } = useQuery({ queryKey: ['admin-profiles'], queryFn: () => base44.entities.UserProfile.list('-updated_date', 1000) });
-  const { data: broadcasts = [] } = useQuery({ queryKey: ['admin-broadcasts'], queryFn: () => base44.entities.Broadcast.list('-created_date', 1000) });
+  const { reports, profiles, broadcasts } = useAdminData();
 
-  const profileById = useMemo(() => new Map(profiles.map((p) => [p.id, p])), [profiles]);
-  const broadcastById = useMemo(() => new Map(broadcasts.map((b) => [b.id, b])), [broadcasts]);
+  const reportsData = reports.data || [];
+  const profilesData = profiles.data || [];
+  const broadcastsData = broadcasts.data || [];
+
+  const profileById = useMemo(() => new Map(profilesData.map((p) => [p.id, p])), [profilesData]);
+  const broadcastById = useMemo(() => new Map(broadcastsData.map((b) => [b.id, b])), [broadcastsData]);
 
   const setStatus = useMutation({
     mutationFn: ({ id, status, note }) => base44.entities.Report.update(id, { status, details: note }),
@@ -44,13 +46,12 @@ export default function AdminReports() {
   };
 
   return (
-    <div className="px-5 pt-5">
-      <AdminBackLink />
-      <h1 className="mb-1 font-display text-2xl font-bold tracking-tight">Reports</h1>
-      <p className="mb-5 text-sm text-muted-foreground">Review user-submitted safety and content reports.</p>
-
+    <AdminLayout
+      title="Reports"
+      description="Review user-submitted safety and content reports"
+    >
       <div className="space-y-3">
-        {reports.map((report) => {
+        {reportsData.map((report) => {
           const reporter = profileById.get(report.reporterProfileId);
           return (
             <div key={report.id} className="rounded-2xl border border-border/60 bg-card p-4">
@@ -72,8 +73,8 @@ export default function AdminReports() {
             </div>
           );
         })}
-        {reports.length === 0 && <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground"><ShieldAlert className="mx-auto mb-2 h-6 w-6 text-primary" />No reports submitted.</div>}
+        {reportsData.length === 0 && <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground"><ShieldAlert className="mx-auto mb-2 h-6 w-6 text-primary" />No reports submitted.</div>}
       </div>
-    </div>
+    </AdminLayout>
   );
 }

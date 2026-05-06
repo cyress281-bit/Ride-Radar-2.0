@@ -1,36 +1,34 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { USER_ROLES } from '@/lib/roles';
+import AdminLayout from '@/components/admin/AdminLayout';
+import { useAdminData } from '@/hooks/useAdminData';
 
 export default function AdminUsers() {
   const qc = useQueryClient();
   const [q, setQ] = useState('');
 
-  const { data: users = [] } = useQuery({
-    queryKey: ['admin-users'],
-    queryFn: () => base44.entities.User.list('-created_date', 1000),
-  });
+  const { users } = useAdminData();
+  const usersData = users.data || [];
 
   const setRole = useMutation({
     mutationFn: async ({ id, role }) => await base44.entities.User.update(id, { role }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 
-  const filtered = users.filter((u) =>
+  const filtered = usersData.filter((u) =>
     !q || (u.full_name || '').toLowerCase().includes(q.toLowerCase()) || (u.email || '').toLowerCase().includes(q.toLowerCase())
   );
 
   return (
-    <div className="px-5 pt-5">
-      <Link to="/admin" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
-        <ArrowLeft className="w-4 h-4" /> Admin
-      </Link>
-      <h1 className="font-display text-2xl font-bold tracking-tight mb-4">Users</h1>
+    <AdminLayout
+      title="Users"
+      description="Manage user roles and permissions"
+    >
 
       <div className="relative mb-4">
         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -64,6 +62,6 @@ export default function AdminUsers() {
           </div>
         ))}
       </div>
-    </div>
+    </AdminLayout>
   );
 }
