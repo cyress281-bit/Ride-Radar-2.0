@@ -1,18 +1,20 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { useMyProfile } from '@/lib/useCurrentUser';
+import { supabase } from '@/lib/supabase';
+import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bike, UserPlus, MessageCircle, Clock } from 'lucide-react';
 import SafetyActions from '@/components/safety/SafetyActions';
+import OptimizedImage from '@/components/OptimizedImage';
 import { getProfileByIdSafe } from '@/lib/profileLookup';
+import { getOrCreateConversation } from '@/lib/conversationUtils';
 
 // Limited rider profile preview
 export default function RiderProfile() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { data: me } = useMyProfile();
+  const { user } = useSupabaseAuth();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', userId],
@@ -20,56 +22,83 @@ export default function RiderProfile() {
   });
 
   const { data: blocks = [] } = useQuery({
-    queryKey: ['blocks', me?.id, userId],
-    enabled: !!me && !!userId,
-    queryFn: async () => await base44.entities.UserBlock.filter({ blockerProfileId: me.id, blockedProfileId: userId }),
+    queryKey: ['blocks', user?.id, userId],
+    enabled: !!user && !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_blocks')
+        .select('*')
+        .eq('blocker_user_id', user.id)
+        .eq('blocked_user_id', userId);
+
+      if (error) throw error;
+      return data || [];
+    },
   });
 
   const { data: friendship } = useQuery({
-    queryKey: ['friendship', me?.id, userId],
-    enabled: !!me && !!profile,
+    queryKey: ['friendship', user?.id, userId],
+    enabled: !!user && !!profile,
     queryFn: async () => {
-      const [list1, list2] = await Promise.all([
-        base44.entities.Friendship.filter({ userAId: me.id, userBId: userId }),
-        base44.entities.Friendship.filter({ userAId: userId, userBId: me.id })
-      ]);
-      return list1[0] || list2[0] || null;
+      const { data, error } = await supabase
+        .from('friendships')
+        .select('*')
+        .or(`and(user_a_id.eq.${user.id},user_b_id.eq.${userId}),and(user_a_id.eq.${userId},user_b_id.eq.${user.id})`)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
     },
   });
 
   const sendFriendReq = useMutation({
     mutationFn: async () => {
-      const [list1, list2] = await Promise.all([
-        base44.entities.Friendship.filter({ userAId: me.id, userBId: userId }),
-        base44.entities.Friendship.filter({ userAId: userId, userBId: me.id })
-      ]);
-      if (list1.length > 0 || list2.length > 0) return;
+      // Insert with conflict handling: if a friendship already exists between
+      // these two users (in either direction), this is a no-op.
+      // The .or() query above already fetches existing friendships for display,
+      // but we still need to handle the race between two users sending requests
+      // simultaneously.
+      const { error } = await supabase
+        .from('friendships')
+        .insert({
+          user_a_id: user.id,
+          user_b_id: userId,
+          status: 'pending',
+        });
 
-      await base44.functions.invoke('socialAction', {
-        action: 'sendFriendRequest',
-        targetProfileId: userId
-      });
+      // Ignore unique constraint violations (duplicate friend request)
+      // Postgres error code 23505 = unique_violation
+      if (error && error.code !== '23505') {
+        throw error;
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['friendship'] }),
   });
 
   const openFriendChat = useMutation({
     mutationFn: async () => {
-      const res = await base44.functions.invoke('socialAction', {
-        action: 'openFriendChat',
-        targetProfileId: userId
+      // Atomic get-or-create: eliminates TOCTOU race condition
+      // Even with concurrent calls from both users, only one conversation is created
+      const conversation = await getOrCreateConversation({
+        participantIds: [user.id, userId],
+        type: 'friend',
       });
-      navigate(`/messages/${res.data?.conversationId}`);
+
+      return conversation.id;
+    },
+    onSuccess: (convoId) => {
+      qc.invalidateQueries({ queryKey: ['conversations'] });
+      navigate(`/messages/${convoId}`);
     },
   });
 
   if (!profile) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
 
-  const isMe = me?.id === profile.id;
+  const isMe = user?.id === profile.user_id;
   const isFriend = friendship?.status === 'active';
   const isPending = friendship?.status === 'pending';
   const isBlocked = blocks.length > 0;
-  const canSeeDetails = !isBlocked && (isMe || isFriend || profile.isPublic !== false);
+  const canSeeDetails = !isBlocked && (isMe || isFriend || profile.is_public !== false);
 
   return (
     <div className="px-5 pt-5">
@@ -78,15 +107,25 @@ export default function RiderProfile() {
       </button>
 
       <div className="flex items-center gap-4 mb-5">
-        {canSeeDetails && profile.avatar ? (
-          <img src={profile.avatar} className="w-20 h-20 rounded-2xl object-cover" alt="" />
+        {canSeeDetails && profile.avatar_url ? (
+          <OptimizedImage
+            src={profile.avatar_url}
+            alt=""
+            containerClassName="w-20 h-20 rounded-2xl"
+            className="rounded-2xl"
+            objectFit="cover"
+            loading="eager"
+            fetchPriority="high"
+            fadeInDuration={200}
+            showSkeleton
+          />
         ) : (
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground">
-            {canSeeDetails ? (profile.displayName?.[0] || '?') : '?'}
+            {canSeeDetails ? (profile.display_name?.[0] || '?') : '?'}
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h1 className="font-display text-2xl font-bold tracking-tight truncate">{canSeeDetails ? profile.displayName : 'Private Rider'}</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight truncate">{canSeeDetails ? profile.display_name : 'Private Rider'}</h1>
           {canSeeDetails && profile.location && <div className="text-xs text-muted-foreground mt-1">{profile.location}</div>}
         </div>
       </div>
@@ -97,11 +136,20 @@ export default function RiderProfile() {
 
           {profile.bike && (
             <div className="mb-5 overflow-hidden rounded-2xl border border-border/70 bg-secondary/30 text-sm">
-              {profile.bikePhoto && <img src={profile.bikePhoto} className="h-32 w-full object-cover" alt="Bike" />}
+              {profile.bike_photo_url && (
+                <OptimizedImage
+                  src={profile.bike_photo_url}
+                  alt="Bike"
+                  containerClassName="h-32 w-full"
+                  objectFit="cover"
+                  loading="lazy"
+                  showSkeleton
+                />
+              )}
               <div className="flex items-center gap-2 p-3">
                 <Bike className="w-4 h-4 text-primary" />
                 <span>{profile.bike}</span>
-                {profile.rideStyle && <span className="ml-auto text-xs text-muted-foreground capitalize">{profile.rideStyle}</span>}
+                {profile.ride_style && <span className="ml-auto text-xs text-muted-foreground capitalize">{profile.ride_style}</span>}
               </div>
             </div>
           )}
@@ -114,7 +162,7 @@ export default function RiderProfile() {
 
       {!isMe && (
         <div className="mb-4">
-          <SafetyActions targetType="user" targetId={profile.id} targetProfileId={profile.id} />
+          <SafetyActions targetType="user" targetId={profile.user_id} targetProfileId={profile.user_id} />
         </div>
       )}
 
@@ -126,7 +174,7 @@ export default function RiderProfile() {
             </Button>
           ) : isPending ? (
             <Button variant="outline" disabled className="w-full h-11 rounded-full">
-              <Clock className="w-4 h-4 mr-1.5" /> Friend request {friendship.userAId === me?.id ? 'sent' : 'pending'}
+              <Clock className="w-4 h-4 mr-1.5" /> Friend request {friendship.user_a_id === user?.id ? 'sent' : 'pending'}
             </Button>
           ) : (
             <Button onClick={() => sendFriendReq.mutate()} disabled={sendFriendReq.isPending} className="w-full h-11 rounded-full">

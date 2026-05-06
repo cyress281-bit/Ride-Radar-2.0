@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark background -->
+  <rect width="512" height="512" fill="#080808" rx="115"/>
+
+  <!-- Neon green circle radar background -->
+  <circle cx="256" cy="256" r="180" fill="#beff00" opacity="0.1"/>
+  <circle cx="256" cy="256" r="140" stroke="#beff00" stroke-width="2" opacity="0.3" fill="none"/>
+  <circle cx="256" cy="256" r="100" stroke="#beff00" stroke-width="2" opacity="0.4" fill="none"/>
+
+  <!-- Stylized RR letters -->
+  <path d="M180 200 L180 312 M180 200 L220 200 Q240 200 240 220 Q240 240 220 240 L180 240 M220 240 L240 270"
+        stroke="#beff00" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <path d="M280 200 L280 312 M280 200 L320 200 Q340 200 340 220 Q340 240 320 240 L280 240 M320 240 L340 270"
+        stroke="#beff00" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Radar sweep accent -->
+  <circle cx="256" cy="256" r="8" fill="#beff00"/>
+  <path d="M256 256 L336 256" stroke="#beff00" stroke-width="4" opacity="0.6"/>
+</svg>

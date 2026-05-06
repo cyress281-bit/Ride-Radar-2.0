@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
+import { useCreateBroadcast } from '@/hooks/useCreateBroadcast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +12,6 @@ import AlertPhotoUploader from '@/components/broadcast/AlertPhotoUploader';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { cn } from '@/lib/utils';
 import { prepareLocalImage, getImagePreview, uploadImageIfNeeded, uploadImagesIfNeeded } from '@/lib/localImageUpload';
-import { useMyProfile } from '@/lib/useCurrentUser';
 
 const TYPES = [
   { id: 'solo_ride', label: 'Solo Ride', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
@@ -90,8 +89,8 @@ export default function Broadcast() {
 }
 
 function BroadcastForm({ type, onBack, onPosted }) {
-  const { data: profile } = useMyProfile();
-  const qc = useQueryClient();
+  const { user, profile } = useSupabaseAuth();
+  const post = useCreateBroadcast();
 
   const typeMeta = TYPES.find((t) => t.id === type);
   const typeStyles = TYPE_STYLE_MAP[typeMeta.color];
@@ -121,26 +120,26 @@ function BroadcastForm({ type, onBack, onPosted }) {
     }
   }, [type]);
 
-  const post = useMutation({
-    mutationFn: async () => {
-      const [eventImage, alertImages] = await Promise.all([
-        uploadImageIfNeeded(form.eventImage),
-        uploadImagesIfNeeded(form.alertImages),
-      ]);
-      await base44.functions.invoke('createBroadcast', {
+  const handlePost = async () => {
+    const [eventImage, alertImages] = await Promise.all([
+      uploadImageIfNeeded(form.eventImage),
+      uploadImagesIfNeeded(form.alertImages),
+    ]);
+
+    post.mutate(
+      {
         ...form,
         eventImage,
         alertImages,
         type,
         lat: coords.lat,
-        lng: coords.lng
-      });
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['broadcasts'] });
-      onPosted();
-    },
-  });
+        lng: coords.lng,
+      },
+      {
+        onSuccess: () => onPosted(),
+      }
+    );
+  };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -310,10 +309,10 @@ function BroadcastForm({ type, onBack, onPosted }) {
           </div>
         )}
 
-        {post.isError && <p className="text-sm text-destructive">{post.error?.response?.data?.error || post.error.message}</p>}
+        {post.isError && <p className="text-sm text-destructive">{post.error?.message || 'Failed to create broadcast'}</p>}
         <Button
-          onClick={() => post.mutate()}
-          disabled={!canPost || post.isPending || !profile}
+          onClick={handlePost}
+          disabled={!canPost || post.isPending || !user}
           className={cn('w-full h-12 rounded-full mt-2', type === 'alert' && 'bg-alert hover:bg-alert/90 text-alert-foreground')}
         >
           {post.isPending ? 'Broadcasting...' : `Broadcast ${typeMeta.label}`}

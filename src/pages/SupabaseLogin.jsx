@@ -3,6 +3,8 @@ import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import RRLogo from '@/components/RRLogo';
+import { preloadCoreRoutes } from '@/lib/routePreload';
+import { logger } from '@/lib/logger';
 
 export default function SupabaseLogin() {
   const { signIn, signUp, isLoading } = useSupabaseAuth();
@@ -23,8 +25,10 @@ export default function SupabaseLogin() {
       } else {
         await signUp(email, password);
       }
+      // Preload core route chunks while auth redirect is happening
+      preloadCoreRoutes();
     } catch (err) {
-      console.error('Auth error:', err);
+      logger.error('Auth error:', err);
       setError(err.message || 'Authentication failed');
     } finally {
       setLoading(false);

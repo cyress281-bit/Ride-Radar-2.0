@@ -1,49 +1,91 @@
-import { useQuery } from '@tanstack/react-query';
+import { memo, useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { useMyProfile } from '@/lib/useCurrentUser';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
+import { useConversations } from '@/hooks/useConversations';
 import { MessageCircle, Clock, Radio } from 'lucide-react';
 import { timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
 import { useBlockedProfiles } from '@/hooks/useBlockedProfiles';
 import { useProfileBatch } from '@/hooks/useProfileBatch';
-import { useMemo } from 'react';
+import { prefetchConversationMessages } from '@/lib/query-client';
+
+/**
+ * Memoized conversation list item - prevents re-render when parent state changes
+ * but this specific conversation's data has not changed.
+ */
+const ConversationItem = memo(function ConversationItem({ conversation, otherProfile, archived }) {
+  return (
+    <Link
+      to={`/messages/${conversation.id}`}
+      onMouseEnter={() => prefetchConversationMessages(conversation.id)}
+      onFocus={() => prefetchConversationMessages(conversation.id)}
+      className={cn(
+        'flex items-center gap-4 p-4 rounded-[1.35rem] border transition-all duration-300',
+        archived ? 'bg-secondary/15 border-border/30 opacity-70 hover:opacity-100' : 'rr-surface hover:border-primary/35 hover:shadow-[0_18px_55px_-22px_hsl(var(--primary)/0.35)] hover:-translate-y-0.5'
+      )}
+    >
+      {otherProfile?.avatar_url ? (
+        <img src={otherProfile.avatar_url} className="w-12 h-12 rounded-full object-cover shrink-0 border border-border/50" alt="" />
+      ) : (
+        <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center font-display font-bold text-lg text-foreground shrink-0 border border-border/50">
+          {otherProfile?.display_name?.[0] || '?'}
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-sm truncate">{otherProfile?.display_name || 'Rider'}</div>
+        <div className="text-xs text-muted-foreground truncate">
+          {conversation.type === 'connection' ? 'Connection thread' : 'Friend'}
+          {conversation.last_message_at && ` · ${timeAgo(conversation.last_message_at)}`}
+        </div>
+      </div>
+      {conversation.type === 'connection' && conversation.thread_expires_at && conversation.status === 'active' && (
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
+          <Clock className="w-3 h-3" />
+          72h
+        </div>
+      )}
+    </Link>
+  );
+});
 
 export default function Messages() {
-  const { data: profile, isError: profileError, error: profileLoadError } = useMyProfile();
+  const { user, profile } = useSupabaseAuth();
 
-  const { data: conversations = [], isLoading, isError, error } = useQuery({
-    queryKey: ['conversations', profile?.id],
-    enabled: !!profile,
-    queryFn: async () => await base44.entities.Conversation.filter({ participantIds: profile.id }, '-lastMessageAt', 100),
-    refetchInterval: () => (document.hidden ? false : 20000), // Pause when tab hidden
-    refetchOnWindowFocus: true,
-  });
+  // Fetch conversations with real-time updates!
+  const { data: conversations = [], isLoading, isError, error } = useConversations(user?.id);
 
   // Use shared hooks
   const { blockedIds } = useBlockedProfiles();
 
   const visibleConversations = useMemo(
-    () => conversations.filter((c) => !c.participantIds?.some((id) => id !== profile?.id && blockedIds.has(id))),
-    [conversations, profile?.id, blockedIds]
+    () => conversations.filter((c) => !c.participant_ids?.some((id) => id !== user?.id && blockedIds.has(id))),
+    [conversations, user?.id, blockedIds]
   );
 
   const otherIds = useMemo(
-    () => visibleConversations.flatMap(c => c.participantIds).filter(id => id !== profile?.id),
-    [visibleConversations, profile?.id]
+    () => visibleConversations.flatMap(c => c.participant_ids).filter(id => id !== user?.id),
+    [visibleConversations, user?.id]
   );
 
   const { getProfile } = useProfileBatch(otherIds);
 
-  const getOther = (c) => {
-    const otherId = c.participantIds.find((id) => id !== profile?.id);
+  const getOther = useCallback((c) => {
+    const otherId = c.participant_ids.find((id) => id !== user?.id);
     return getProfile(otherId);
-  };
+  }, [user?.id, getProfile]);
 
-  const active = visibleConversations.filter((c) => c.status === 'active');
-  const archived = visibleConversations.filter((c) => c.status === 'archived');
+  const active = useMemo(
+    () => visibleConversations.filter((c) => c.status === 'active'),
+    [visibleConversations]
+  );
 
-  const loadError = profileError ? profileLoadError : isError ? error : null;
+  const archived = useMemo(
+    () => visibleConversations.filter((c) => c.status === 'archived'),
+    [visibleConversations]
+  );
+
+  const loadError = isError ? error : null;
 
   return (
     <div className="px-5 pt-5">
@@ -93,45 +135,81 @@ export default function Messages() {
   );
 }
 
+/**
+ * Virtualized conversation section - only renders visible items + buffer.
+ * With 100+ conversations, this reduces DOM nodes from O(n) to O(visible+overscan).
+ * Falls back to simple rendering for small lists (<20 items) to avoid overhead.
+ */
 function Section({ title, items, getOther, archived }) {
+  const parentRef = useRef(null);
+  const VIRTUAL_THRESHOLD = 20;
+  const shouldVirtualize = items.length >= VIRTUAL_THRESHOLD;
+
+  const virtualizer = useVirtualizer({
+    count: shouldVirtualize ? items.length : 0,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 80, // ~80px per conversation item
+    overscan: 5,
+    getItemKey: (index) => items[index]?.id || index,
+  });
+
+  if (!shouldVirtualize) {
+    // Small list: render normally (no virtualization overhead)
+    return (
+      <div>
+        <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 px-1">{title}</div>
+        <div className="space-y-2">
+          {items.map((c) => (
+            <ConversationItem
+              key={c.id}
+              conversation={c}
+              otherProfile={getOther(c)}
+              archived={archived}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 px-1">{title}</div>
-      <div className="space-y-2">
-        {items.map((c) => {
-          const other = getOther(c);
-          return (
-            <Link
-              key={c.id}
-              to={`/messages/${c.id}`}
-              className={cn(
-                'flex items-center gap-4 p-4 rounded-[1.35rem] border transition-all duration-300',
-                archived ? 'bg-secondary/15 border-border/30 opacity-70 hover:opacity-100' : 'rr-surface hover:border-primary/35 hover:shadow-[0_18px_55px_-22px_hsl(var(--primary)/0.35)] hover:-translate-y-0.5'
-              )}
+      <div
+        ref={parentRef}
+        className="overflow-auto"
+        style={{ maxHeight: 'calc(100vh - 16rem)', contain: 'strict' }}
+      >
+        <div
+          style={{
+            height: `${virtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {virtualizer.getVirtualItems().map((virtualRow) => (
+            <div
+              key={virtualRow.key}
+              data-index={virtualRow.index}
+              ref={virtualizer.measureElement}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
             >
-              {other?.avatar ? (
-                <img src={other.avatar} className="w-12 h-12 rounded-full object-cover shrink-0 border border-border/50" alt="" />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center font-display font-bold text-lg text-foreground shrink-0 border border-border/50">
-                  {other?.displayName?.[0] || '?'}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm truncate">{other?.displayName || 'Rider'}</div>
-                <div className="text-xs text-muted-foreground truncate">
-                  {c.type === 'connection' ? 'Connection thread' : 'Friend'}
-                  {c.lastMessageAt && ` · ${timeAgo(c.lastMessageAt)}`}
-                </div>
+              <div style={{ paddingBottom: '8px' }}>
+                <ConversationItem
+                  conversation={items[virtualRow.index]}
+                  otherProfile={getOther(items[virtualRow.index])}
+                  archived={archived}
+                />
               </div>
-              {c.type === 'connection' && c.threadExpiresAt && c.status === 'active' && (
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
-                  <Clock className="w-3 h-3" />
-                  72h
-                </div>
-              )}
-            </Link>
-          );
-        })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

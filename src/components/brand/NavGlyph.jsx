@@ -1,6 +1,12 @@
+import { memo } from 'react';
 import { cn } from '@/lib/utils';
 
-export default function NavGlyph({ icon: Icon, active, className }) {
+/**
+ * Memoized navigation glyph - renders 4 times per tab bar, only the active state
+ * changes on navigation. Prevents all 4 icons from re-rendering when Layout
+ * re-renders due to route change (only active/inactive icons need update).
+ */
+const NavGlyph = memo(function NavGlyph({ icon: Icon, active, className }) {
   return (
     <div className={cn(
       'relative h-9 w-9 rounded-2xl border flex items-center justify-center overflow-hidden transition-all duration-200',
@@ -18,4 +24,6 @@ export default function NavGlyph({ icon: Icon, active, className }) {
       <Icon className="relative z-10 h-[19px] w-[19px] drop-shadow-[0_0_5px_currentColor]" strokeWidth={active ? 2.55 : 2.2} />
     </div>
   );
-}
+});
+
+export default NavGlyph;

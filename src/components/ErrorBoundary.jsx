@@ -1,5 +1,7 @@
 import { Component } from 'react';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/lib/logger';
+import { captureError } from '@/lib/sentry';
 
 /**
  * Error boundary component to catch and handle React render errors.
@@ -16,8 +18,14 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('[ErrorBoundary] Caught error:', error, errorInfo);
+    logger.error('[ErrorBoundary] Caught error:', error, errorInfo);
     this.setState({ errorInfo });
+
+    // Send error to Sentry
+    captureError(error, {
+      errorBoundary: 'ErrorBoundary',
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   handleReload = () => {

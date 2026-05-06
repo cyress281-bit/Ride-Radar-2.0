@@ -1,0 +1,2 @@
+- [Project Architecture](project_architecture.md) — Ride Radar 2.0 uses Supabase + React Query + Vite, migrated from Base44
+- [Admin Migration](admin_migration.md) — Admin pages migrated to Supabase with RLS policies and role-based access

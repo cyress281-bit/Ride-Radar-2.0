@@ -1,11 +1,14 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, Wrench, MapPin, Calendar } from 'lucide-react';
 import SignalIcon from '@/components/brand/SignalIcon';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import AlertPhotoGrid from '@/components/broadcast/AlertPhotoGrid';
+import OptimizedImage from '@/components/OptimizedImage';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
 import SafetyActions from '@/components/safety/SafetyActions';
+import { prefetchBroadcastDetail } from '@/lib/query-client';
 
 const typeStyles = {
   alert: {
@@ -34,7 +37,7 @@ const typeStyles = {
   },
 };
 
-export default function BroadcastCard({ broadcast, author, userLat, userLng, prominentSoloAvatar = false }) {
+const BroadcastCard = memo(function BroadcastCard({ broadcast, author, userLat, userLng, prominentSoloAvatar = false }) {
   const meta = BROADCAST_META[broadcast.type];
   const isAlert = broadcast.type === 'alert';
   const isProminentSolo = prominentSoloAvatar && broadcast.type === 'solo_ride';
@@ -59,7 +62,15 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng, pro
       <div className="p-4 md:p-5">
         {broadcast.type === 'event' && broadcast.eventImage && (
           <div className="mb-4 flex max-h-80 items-center justify-center overflow-hidden rounded-2xl border border-event/25 bg-black/45 p-2 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.05)]">
-            <img src={broadcast.eventImage} className="max-h-72 w-full object-contain" alt="Event poster" />
+            <OptimizedImage
+              src={broadcast.eventImage}
+              alt="Event poster"
+              className="max-h-72 w-full"
+              containerClassName="w-full"
+              objectFit="contain"
+              loading="lazy"
+              showSkeleton
+            />
           </div>
         )}
         {broadcast.type === 'alert' && <AlertPhotoGrid images={broadcast.alertImages} />}
@@ -67,7 +78,15 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng, pro
           {isProminentSolo ? (
             <div className="relative shrink-0">
               {author?.avatar ? (
-                <img src={author.avatar} className="h-16 w-16 rounded-2xl border border-solo/45 object-cover shadow-[0_0_26px_hsl(var(--solo)/0.18),0_12px_30px_rgba(0,0,0,0.45)]" alt={author.displayName || 'Rider'} />
+                <OptimizedImage
+                  src={author.avatar}
+                  alt={author.displayName || 'Rider'}
+                  containerClassName="h-16 w-16 rounded-2xl border border-solo/45 shadow-[0_0_26px_hsl(var(--solo)/0.18),0_12px_30px_rgba(0,0,0,0.45)]"
+                  className="rounded-2xl"
+                  objectFit="cover"
+                  loading="eager"
+                  fadeInDuration={200}
+                />
               ) : (
                 <OfficialMotorcycleIcon frame className="h-16 w-16 rounded-2xl p-1.5" />
               )}
@@ -96,7 +115,14 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng, pro
 
             {isProminentSolo && author?.bikePhoto && (
               <div className="mb-3 overflow-hidden rounded-2xl border border-solo/20 bg-black/35 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
-                <img src={author.bikePhoto} className="h-24 w-full object-cover" alt="Rider bike" />
+                <OptimizedImage
+                  src={author.bikePhoto}
+                  alt="Rider bike"
+                  containerClassName="h-24 w-full"
+                  objectFit="cover"
+                  loading="lazy"
+                  showSkeleton
+                />
               </div>
             )}
 
@@ -109,7 +135,16 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng, pro
               {author && !isProminentSolo && (
                 <span className="flex items-center gap-1.5">
                   {author.avatar ? (
-                    <img src={author.avatar} className="w-4 h-4 rounded-full object-cover" alt="" />
+                    <OptimizedImage
+                      src={author.avatar}
+                      alt=""
+                      containerClassName="w-4 h-4 rounded-full"
+                      className="rounded-full"
+                      objectFit="cover"
+                      loading="lazy"
+                      fadeInDuration={150}
+                      showSkeleton
+                    />
                   ) : (
                     <div className="w-4 h-4 rounded-full bg-secondary border border-border" />
                   )}
@@ -150,5 +185,29 @@ export default function BroadcastCard({ broadcast, author, userLat, userLng, pro
   );
 
   if (isAlert) return content;
-  return <Link to={`/broadcast/${broadcast.id}`}>{content}</Link>;
-}
+  return (
+    <Link
+      to={`/broadcast/${broadcast.id}`}
+      onMouseEnter={() => prefetchBroadcastDetail(broadcast.id)}
+      onFocus={() => prefetchBroadcastDetail(broadcast.id)}
+    >
+      {content}
+    </Link>
+  );
+}, function broadcastCardAreEqual(prevProps, nextProps) {
+  // Custom equality: only re-render when meaningful props change
+  return (
+    prevProps.broadcast.id === nextProps.broadcast.id &&
+    prevProps.broadcast.title === nextProps.broadcast.title &&
+    prevProps.broadcast.body === nextProps.broadcast.body &&
+    prevProps.broadcast.expiresAt === nextProps.broadcast.expiresAt &&
+    prevProps.broadcast.created_date === nextProps.broadcast.created_date &&
+    prevProps.broadcast.created_at === nextProps.broadcast.created_at &&
+    prevProps.author === nextProps.author &&
+    prevProps.userLat === nextProps.userLat &&
+    prevProps.userLng === nextProps.userLng &&
+    prevProps.prominentSoloAvatar === nextProps.prominentSoloAvatar
+  );
+});
+
+export default BroadcastCard;

@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { supabase } from './supabase';
+import { logger } from './logger';
+import { prefetchHomeData } from './query-client';
 
 const SupabaseAuthContext = createContext();
 
@@ -19,11 +21,11 @@ export const SupabaseAuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    console.log('[SupabaseAuth] Initializing...');
+    logger.debug('[SupabaseAuth] Initializing...');
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[SupabaseAuth] Initial session:', session?.user?.id || 'none');
+      logger.debug('[SupabaseAuth] Initial session:', session?.user?.id ? 'found' : 'none');
       setUser(session?.user ?? null);
       setIsAuthenticated(!!session);
 
@@ -38,7 +40,7 @@ export const SupabaseAuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('[SupabaseAuth] Auth event:', event, session?.user?.id || 'none');
+        logger.debug('[SupabaseAuth] Auth event:', event);
         setUser(session?.user ?? null);
         setIsAuthenticated(!!session);
 
@@ -61,18 +63,40 @@ export const SupabaseAuthProvider = ({ children }) => {
    */
   const loadUserProfile = async (userId) => {
     try {
-      console.log('[SupabaseAuth] Loading profile for user:', userId);
+      logger.debug('[SupabaseAuth] Loading profile...');
+
+      // Get current session to ensure we have auth token
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (!session) {
+        logger.error('[SupabaseAuth] No session available');
+        setIsLoading(false);
+        return;
+      }
 
       // First check if user exists in users table
-      let { data: userData, error: userError } = await supabase
+      const usersQuery = supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single();
 
+      let userData, userError;
+      try {
+        const result = await Promise.race([
+          usersQuery,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Query timeout after 5s')), 5000))
+        ]);
+        userData = result.data;
+        userError = result.error;
+      } catch (err) {
+        logger.error('[SupabaseAuth] Query failed or timed out:', err);
+        userError = err;
+      }
+
       // If user doesn't exist, create them
       if (userError && userError.code === 'PGRST116') {
-        console.log('[SupabaseAuth] Creating new user record');
+        logger.debug('[SupabaseAuth] Creating new user record');
         const { data: authUser } = await supabase.auth.getUser();
 
         const { data: newUser, error: createError } = await supabase
@@ -85,11 +109,14 @@ export const SupabaseAuthProvider = ({ children }) => {
           .select()
           .single();
 
-        if (createError) {
-          console.error('[SupabaseAuth] Error creating user:', createError);
+        if (createError && createError.code !== '23505') {
+          // Ignore unique constraint violations (race condition)
+          logger.error('[SupabaseAuth] Error creating user:', createError);
         } else {
           userData = newUser;
         }
+      } else if (userError) {
+        logger.error('[SupabaseAuth] Unexpected users query error:', userError);
       }
 
       // Load user profile
@@ -99,20 +126,45 @@ export const SupabaseAuthProvider = ({ children }) => {
         .eq('user_id', userId)
         .single();
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('[SupabaseAuth] Error loading profile:', profileError);
+      // CRITICAL FIX: Create user_profiles row if it doesn't exist
+      if (profileError && profileError.code === 'PGRST116') {
+        logger.debug('[SupabaseAuth] Creating new user_profiles record');
+        const { data: authUser } = await supabase.auth.getUser();
+
+        const { data: newProfile, error: profileCreateError } = await supabase
+          .from('user_profiles')
+          .insert({
+            user_id: userId,
+            display_name: authUser?.user?.user_metadata?.full_name || authUser?.user?.email?.split('@')[0] || 'Rider',
+            is_public: true,
+          })
+          .select()
+          .single();
+
+        if (profileCreateError && profileCreateError.code !== '23505') {
+          // Ignore unique constraint violations (race condition)
+          logger.error('[SupabaseAuth] Error creating profile:', profileCreateError);
+        } else if (newProfile) {
+          setProfile(newProfile);
+          setIsLoading(false);
+          return;
+        }
+      } else if (profileError) {
+        logger.error('[SupabaseAuth] Error loading profile:', profileError);
       }
 
       setProfile(profileData || null);
       setIsLoading(false);
     } catch (error) {
-      console.error('[SupabaseAuth] Error in loadUserProfile:', error);
+      logger.error('[SupabaseAuth] Error in loadUserProfile:', error);
       setIsLoading(false);
     }
   };
 
   /**
    * Sign in with email and password
+   * On success, prefetches Home page data (conversations, notifications)
+   * so the first page load is instant.
    */
   const signIn = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -121,6 +173,12 @@ export const SupabaseAuthProvider = ({ children }) => {
     });
 
     if (error) throw error;
+
+    // Prefetch key data in background while auth state propagates
+    if (data?.user?.id) {
+      prefetchHomeData(data.user.id);
+    }
+
     return data;
   };
 
@@ -144,7 +202,7 @@ export const SupabaseAuthProvider = ({ children }) => {
    * Sign out
    */
   const signOut = async () => {
-    console.log('[SupabaseAuth] Signing out');
+    logger.debug('[SupabaseAuth] Signing out');
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };

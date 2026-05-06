@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const filters = [
@@ -8,7 +9,7 @@ const filters = [
   { value: 'alert', label: 'Alerts' },
 ];
 
-export default function FeedControls({ activeFilter, onFilterChange, sort, onSortChange }) {
+const FeedControls = memo(function FeedControls({ activeFilter, onFilterChange, sort, onSortChange }) {
   return (
     <div className="mb-3 rounded-2xl border border-border/55 bg-black/25 p-1.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] backdrop-blur-xl">
       <div className="grid grid-cols-2 gap-1.5">
@@ -35,4 +36,6 @@ export default function FeedControls({ activeFilter, onFilterChange, sort, onSor
       </div>
     </div>
   );
-}
+});
+
+export default FeedControls;

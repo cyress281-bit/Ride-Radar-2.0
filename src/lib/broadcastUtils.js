@@ -28,8 +28,10 @@ export function computeExpiresAt(broadcast) {
 }
 
 export function isExpired(broadcast) {
-  if (!broadcast.expiresAt) return false;
-  return new Date(broadcast.expiresAt).getTime() < Date.now();
+  // CRITICAL FIX: Handle both camelCase (old) and snake_case (Supabase)
+  const expiresAt = broadcast.expires_at || broadcast.expiresAt;
+  if (!expiresAt) return false;
+  return new Date(expiresAt).getTime() < Date.now();
 }
 
 // Fuzz location by ~0.5-1.5 mile radius
@@ -89,19 +91,22 @@ export function rankBroadcasts(broadcasts, userLat, userLng) {
 
     // Events rank by upcoming eventDate
     if (a.type === 'event' && b.type === 'event') {
-      const eA = new Date(a.eventDate || Number.MAX_SAFE_INTEGER).getTime();
-      const eB = new Date(b.eventDate || Number.MAX_SAFE_INTEGER).getTime();
+      // CRITICAL FIX: Use snake_case field from Supabase
+      const eA = new Date(a.event_date || a.eventDate || Number.MAX_SAFE_INTEGER).getTime();
+      const eB = new Date(b.event_date || b.eventDate || Number.MAX_SAFE_INTEGER).getTime();
       if (eA !== eB) return eA - eB;
     }
 
     // Within type: recency first
-    const tA = new Date(a.created_date || 0).getTime();
-    const tB = new Date(b.created_date || 0).getTime();
+    // CRITICAL FIX: Supabase returns created_at (not created_date)
+    const tA = new Date(a.created_at || a.created_date || 0).getTime();
+    const tB = new Date(b.created_at || b.created_date || 0).getTime();
     if (tB !== tA) return tB - tA;
     // Distance secondary for solo/iso
     if ((a.type === 'solo_ride' || a.type === 'iso') && userLat != null && userLng != null) {
-      const dA = haversineMiles(userLat, userLng, a.frozenLat, a.frozenLng) ?? 999;
-      const dB = haversineMiles(userLat, userLng, b.frozenLat, b.frozenLng) ?? 999;
+      // CRITICAL FIX: Use snake_case fields from Supabase
+      const dA = haversineMiles(userLat, userLng, a.frozen_lat || a.frozenLat, a.frozen_lng || a.frozenLng) ?? 999;
+      const dB = haversineMiles(userLat, userLng, b.frozen_lat || b.frozenLat, b.frozen_lng || b.frozenLng) ?? 999;
       return dA - dB;
     }
     return 0;

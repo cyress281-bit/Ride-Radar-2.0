@@ -1,0 +1,111 @@
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { normalizeBroadcasts } from '@/lib/supabaseNormalizer';
+import { logger } from '@/lib/logger';
+
+/**
+ * Hook to fetch nearby broadcasts using Supabase + PostGIS
+ *
+ * Optimized:
+ * - INSERT events use debounced invalidation (batches rapid-fire events)
+ * - UPDATE events apply in-place patches when possible (no full refetch)
+ * - DELETE/status changes remove from cache directly
+ * - staleTime increased since real-time handles freshness
+ */
+export function useNearbyBroadcasts(lat, lng, radiusMiles = 50) {
+  const queryClient = useQueryClient();
+  const invalidateTimerRef = useRef(null);
+
+  const query = useQuery({
+    queryKey: ['broadcasts', 'nearby', lat, lng, radiusMiles],
+    queryFn: async () => {
+      if (!lat || !lng) return [];
+
+      // Call our PostGIS function that does server-side distance calc
+      const { data, error } = await supabase.rpc('get_nearby_broadcasts', {
+        user_lat: lat,
+        user_lng: lng,
+        radius_miles: radiusMiles,
+        limit_count: 100
+      });
+
+      if (error) {
+        logger.error('[useNearbyBroadcasts] Error:', error);
+        throw error;
+      }
+
+      // CRITICAL FIX: Normalize snake_case fields to camelCase for compatibility
+      return normalizeBroadcasts(data || []);
+    },
+    enabled: lat != null && lng != null,
+    staleTime: 60000, // 60 seconds - real-time handles freshness
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false, // Real-time keeps this fresh
+  });
+
+  // Real-time subscription with smart cache updates
+  useEffect(() => {
+    if (!lat || !lng) return;
+
+    // Debounced invalidation: batches multiple rapid events into one refetch
+    const debouncedInvalidate = () => {
+      if (invalidateTimerRef.current) clearTimeout(invalidateTimerRef.current);
+      invalidateTimerRef.current = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['broadcasts', 'nearby'] });
+      }, 2000); // 2s debounce - batches burst of new broadcasts
+    };
+
+    const channel = supabase
+      .channel('broadcasts-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'broadcasts',
+        },
+        (payload) => {
+          logger.debug('[useNearbyBroadcasts] New broadcast received');
+          // Must refetch for distance calculation, but debounce to batch
+          debouncedInvalidate();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'broadcasts',
+        },
+        (payload) => {
+          const updated = payload.new;
+          logger.debug('[useNearbyBroadcasts] Broadcast updated');
+
+          // If broadcast expired or was deactivated, remove from cache
+          if (updated.status !== 'active' || (updated.expires_at && new Date(updated.expires_at) < new Date())) {
+            queryClient.setQueryData(
+              ['broadcasts', 'nearby', lat, lng, radiusMiles],
+              (old = []) => old.filter((b) => b.id !== updated.id)
+            );
+            return;
+          }
+
+          // For field updates (title, body, etc.), patch in-place
+          queryClient.setQueryData(
+            ['broadcasts', 'nearby', lat, lng, radiusMiles],
+            (old = []) => old.map((b) => (b.id === updated.id ? { ...b, ...updated } : b))
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (invalidateTimerRef.current) clearTimeout(invalidateTimerRef.current);
+      supabase.removeChannel(channel);
+    };
+  }, [lat, lng, radiusMiles, queryClient]);
+
+  return query;
+}

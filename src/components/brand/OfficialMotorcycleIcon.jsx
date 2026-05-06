@@ -1,8 +1,14 @@
+import { memo } from 'react';
 import { cn } from '@/lib/utils';
 
 const MOTORCYCLE_ICON_URL = 'https://media.base44.com/images/public/69eaf617762119e163948021/63bd396e4_IMG_2818.jpg';
 
-export default function OfficialMotorcycleIcon({ className, frame = false }) {
+/**
+ * Memoized motorcycle icon - rendered multiple times per BroadcastCard
+ * (main icon + badge overlay) and in SignalIcon. Props are static strings/booleans,
+ * so memo prevents re-renders during feed scrolling and filter changes.
+ */
+const OfficialMotorcycleIcon = memo(function OfficialMotorcycleIcon({ className, frame = false }) {
   return (
     <span
       className={cn(
@@ -18,4 +24,6 @@ export default function OfficialMotorcycleIcon({ className, frame = false }) {
       />
     </span>
   );
-}
+});
+
+export default OfficialMotorcycleIcon;

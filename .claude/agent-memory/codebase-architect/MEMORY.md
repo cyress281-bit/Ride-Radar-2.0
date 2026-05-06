@@ -1,0 +1,1 @@
+- [Architecture Overview](project_architecture.md) — Core architecture, tech stack, and critical migration bugs in Ride Radar 2.0

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { listProfilesByIds } from '@/lib/profileLookup';
+import { normalizeProfiles } from '@/lib/supabaseNormalizer';
 
 /**
  * Efficient hook for fetching multiple profiles at once with caching.
@@ -21,22 +22,26 @@ export function useProfileBatch(ids) {
     [ids]
   );
 
-  // Create stable cache key by sorting IDs
+  // Create stable cache key by sorting IDs (spread to avoid mutation)
   const cacheKey = useMemo(
-    () => uniqueIds.sort().join(','),
+    () => [...uniqueIds].sort().join(','),
     [uniqueIds]
   );
 
-  const { data: profiles = [], isLoading } = useQuery({
+  const { data: rawProfiles = [], isLoading } = useQuery({
     queryKey: ['profile-batch', cacheKey],
     enabled: uniqueIds.length > 0,
     queryFn: () => listProfilesByIds(uniqueIds),
     staleTime: 120000, // 2 minutes - profiles don't change frequently
   });
 
+  // CRITICAL FIX: Normalize snake_case fields to camelCase for compatibility
+  const profiles = useMemo(() => normalizeProfiles(rawProfiles), [rawProfiles]);
+
   // Create a Map for O(1) lookup performance
+  // CRITICAL FIX: Map by user_id (not p.id) since callers pass user UUIDs
   const profileMap = useMemo(
-    () => new Map(profiles.map((p) => [p.id, p])),
+    () => new Map(profiles.map((p) => [p.user_id, p])),
     [profiles]
   );
 

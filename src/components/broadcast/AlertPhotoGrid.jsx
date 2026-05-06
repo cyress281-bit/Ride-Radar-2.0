@@ -1,7 +1,9 @@
+import { memo } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import OptimizedImage from '@/components/OptimizedImage';
 
-export default function AlertPhotoGrid({ images = [], variant = 'card' }) {
+const AlertPhotoGrid = memo(function AlertPhotoGrid({ images = [], variant = 'card' }) {
   const photos = images.filter(Boolean).slice(0, 2);
   if (photos.length === 0) return null;
 
@@ -17,10 +19,14 @@ export default function AlertPhotoGrid({ images = [], variant = 'card' }) {
             isDetail ? 'min-h-56 p-2' : 'min-h-36 p-1.5'
           )}
         >
-          <img
+          <OptimizedImage
             src={url}
             alt={`Alert photo ${index + 1}`}
-            className={cn('h-full w-full object-contain', isDetail ? 'max-h-[62vh]' : 'max-h-52')}
+            containerClassName={cn('h-full w-full', isDetail ? 'max-h-[62vh]' : 'max-h-52')}
+            objectFit="contain"
+            loading="lazy"
+            showSkeleton
+            fadeInDuration={250}
           />
           <div className="absolute left-2 top-2 rounded-full border border-alert/30 bg-black/75 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-alert backdrop-blur">
             <ShieldAlert className="mr-1 inline h-3 w-3" /> Photo {index + 1}
@@ -29,4 +35,6 @@ export default function AlertPhotoGrid({ images = [], variant = 'card' }) {
       ))}
     </div>
   );
-}
+});
+
+export default AlertPhotoGrid;

@@ -1,66 +1,102 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
+import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
-import { ArrowLeft, MapPin, Calendar, Clock, Wrench, Users, Heart, Check } from 'lucide-react';
+import { useState, memo } from 'react';
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check } from 'lucide-react';
 import AlertPhotoGrid from '@/components/broadcast/AlertPhotoGrid';
 import { BROADCAST_META, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
-import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
 import { cn } from '@/lib/utils';
 import { getProfileByIdSafe } from '@/lib/profileLookup';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
+import { prefetchRiderProfile } from '@/lib/query-client';
 
 export default function BroadcastDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { data: profile } = useMyProfile();
+  const { user, profile } = useSupabaseAuth();
 
   const { data: broadcast } = useQuery({
     queryKey: ['broadcast', id],
-    queryFn: async () => await base44.entities.Broadcast.get(id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('broadcasts')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 60000, // 1 min - broadcasts don't change often
   });
 
   const { data: author } = useQuery({
-    queryKey: ['profile', broadcast?.authorId],
-    enabled: !!broadcast?.authorId,
-    queryFn: async () => await getProfileByIdSafe(broadcast.authorId),
+    queryKey: ['profile', broadcast?.author_id],
+    enabled: !!broadcast?.author_id,
+    queryFn: async () => await getProfileByIdSafe(broadcast.author_id),
+    staleTime: 5 * 60 * 1000, // 5 min - profiles are stable
   });
 
   const { data: myRequests = [] } = useQuery({
-    queryKey: ['myRequests', id, profile?.id],
-    enabled: !!profile && !!broadcast,
-    queryFn: async () => await base44.entities.ConnectionRequest.filter({ broadcastId: id, fromUserId: profile.id }),
+    queryKey: ['myRequests', id, user?.id],
+    enabled: !!user && !!broadcast,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('connection_requests')
+        .select('*')
+        .eq('broadcast_id', id)
+        .eq('from_user_id', user.id);
+
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 30000, // 30s - user's own requests
   });
 
   const { data: myRSVP } = useQuery({
-    queryKey: ['myRSVP', id, profile?.id],
-    enabled: !!profile && !!broadcast && broadcast.type === 'event',
+    queryKey: ['myRSVP', id, user?.id],
+    enabled: !!user && !!broadcast && broadcast.type === 'event',
     queryFn: async () => {
-      const list = await base44.entities.EventRSVP.filter({ broadcastId: id, userId: profile.id });
-      return list[0] || null;
+      const { data, error } = await supabase
+        .from('event_rsvps')
+        .select('*')
+        .eq('broadcast_id', id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
     },
+    staleTime: 30000,
   });
 
   const { data: rsvpCounts = { interested: 0, going: 0 } } = useQuery({
     queryKey: ['rsvpCounts', id],
     enabled: !!broadcast && broadcast.type === 'event',
     queryFn: async () => {
-      const list = await base44.entities.EventRSVP.filter({ broadcastId: id });
+      const { data, error } = await supabase
+        .from('event_rsvps')
+        .select('status')
+        .eq('broadcast_id', id);
+
+      if (error) throw error;
       return {
-        interested: list.filter((r) => r.status === 'interested').length,
-        going: list.filter((r) => r.status === 'going').length,
+        interested: (data || []).filter((r) => r.status === 'interested').length,
+        going: (data || []).filter((r) => r.status === 'going').length,
       };
     },
+    staleTime: 30000,
   });
 
   if (!broadcast) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
 
   const meta = BROADCAST_META[broadcast.type];
-  const isAuthor = profile?.id === broadcast.authorId;
+  const isAuthor = user?.id === broadcast.author_id;
   const isAlert = broadcast.type === 'alert';
 
   return (
@@ -81,64 +117,69 @@ export default function BroadcastDetail() {
         )}>
           {broadcast.type === 'solo_ride' && <OfficialMotorcycleIcon className="h-5 w-6 rounded-md" />}
           {meta.label}
-          {broadcast.isoSubtype && ` · ${broadcast.isoSubtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}`}
+          {broadcast.iso_subtype && ` · ${broadcast.iso_subtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}`}
         </div>
 
         <h1 className="font-display text-2xl font-bold tracking-tight mb-2">{broadcast.title}</h1>
         {broadcast.body && <p className="text-[15px] text-foreground/80 leading-relaxed mb-4 whitespace-pre-wrap">{broadcast.body}</p>}
 
-        {broadcast.type === 'event' && broadcast.eventImage && (
+        {broadcast.type === 'event' && broadcast.event_image_url && (
           <div className="my-5 flex max-h-[70vh] items-center justify-center overflow-hidden rounded-2xl border border-event/25 bg-black/45 p-2 shadow-[0_18px_55px_rgba(0,0,0,0.35),inset_0_1px_0_hsl(0_0%_100%/0.05)]">
-            <img src={broadcast.eventImage} className="max-h-[68vh] w-full object-contain" alt="Event poster" />
+            <img src={broadcast.event_image_url} className="max-h-[68vh] w-full object-contain" alt="Event poster" />
           </div>
         )}
-        {isAlert && <AlertPhotoGrid images={broadcast.alertImages} variant="detail" />}
+        {isAlert && <AlertPhotoGrid images={broadcast.alert_image_urls} variant="detail" />}
 
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground mt-3">
-          {(broadcast.type === 'event' || isAlert) && broadcast.exactLocationText && (
-            <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" />{broadcast.exactLocationText}</span>
+          {(broadcast.type === 'event' || isAlert) && broadcast.exact_location_text && (
+            <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" />{broadcast.exact_location_text}</span>
           )}
-          {broadcast.type === 'event' && broadcast.eventDate && (
+          {broadcast.type === 'event' && broadcast.event_date && (
             <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" />
-              {new Date(broadcast.eventDate).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+              {new Date(broadcast.event_date).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
             </span>
           )}
-          <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" />{timeUntilExpiry(broadcast.expiresAt)}</span>
+          <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" />{timeUntilExpiry(broadcast.expires_at)}</span>
         </div>
 
         {author && (
-          <Link to={`/profile/${author.id}`} className="flex items-center gap-2.5 mt-4 pt-4 border-t border-border/60">
-            {author.avatar ? (
-              <img src={author.avatar} className="w-9 h-9 rounded-full object-cover" alt="" />
+          <Link
+            to={`/profile/${author.user_id}`}
+            onMouseEnter={() => prefetchRiderProfile(author.user_id)}
+            onFocus={() => prefetchRiderProfile(author.user_id)}
+            className="flex items-center gap-2.5 mt-4 pt-4 border-t border-border/60"
+          >
+            {author.avatar_url ? (
+              <img src={author.avatar_url} className="w-9 h-9 rounded-full object-cover" alt="" />
             ) : (
               <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-semibold text-sm">
-                {author.displayName?.[0] || '?'}
+                {author.display_name?.[0] || '?'}
               </div>
             )}
             <div>
-              <div className="font-semibold text-sm">{author.displayName}</div>
-              <div className="text-xs text-muted-foreground">{timeAgo(broadcast.created_date)}</div>
+              <div className="font-semibold text-sm">{author.display_name}</div>
+              <div className="text-xs text-muted-foreground">{timeAgo(broadcast.created_at)}</div>
             </div>
           </Link>
         )}
       </div>
 
-      {!isAuthor && profile && (
+      {!isAuthor && user && (
         <div className="mt-4">
-          <SafetyActions targetType="broadcast" targetId={broadcast.id} targetProfileId={broadcast.authorId} />
+          <SafetyActions targetType="broadcast" targetId={broadcast.id} targetProfileId={broadcast.author_id} />
         </div>
       )}
 
       {/* Actions */}
-      {!isAuthor && !isAlert && profile && (
+      {!isAuthor && !isAlert && user && (
         <div className="mt-5">
           {broadcast.type === 'event' ? (
-            <EventRSVP broadcast={broadcast} profile={profile} myRSVP={myRSVP} counts={rsvpCounts} onChange={() => {
+            <EventRSVP broadcast={broadcast} user={user} myRSVP={myRSVP} counts={rsvpCounts} onChange={() => {
               qc.invalidateQueries({ queryKey: ['myRSVP', id] });
               qc.invalidateQueries({ queryKey: ['rsvpCounts', id] });
             }} />
           ) : (
-            <ConnectionAction broadcast={broadcast} profile={profile} existing={myRequests[0]} onChange={() => qc.invalidateQueries({ queryKey: ['myRequests', id] })} />
+            <ConnectionAction broadcast={broadcast} user={user} existing={myRequests[0]} onChange={() => qc.invalidateQueries({ queryKey: ['myRequests', id] })} />
           )}
         </div>
       )}
@@ -153,13 +194,25 @@ export default function BroadcastDetail() {
   );
 }
 
-function EventRSVP({ broadcast, profile, myRSVP, counts, onChange }) {
+/**
+ * Memoized RSVP buttons - prevents re-render when unrelated parent queries
+ * (like the author profile) settle. Only re-renders when RSVP state changes.
+ */
+const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onChange }) {
   const set = useMutation({
     mutationFn: async (status) => {
-      await base44.functions.invoke('rsvpAction', {
-        broadcastId: broadcast.id,
-        status
-      });
+      // Upsert RSVP
+      const { error } = await supabase
+        .from('event_rsvps')
+        .upsert({
+          broadcast_id: broadcast.id,
+          user_id: user.id,
+          status,
+        }, {
+          onConflict: 'broadcast_id,user_id',
+        });
+
+      if (error) throw error;
     },
     onSuccess: onChange,
   });
@@ -188,19 +241,29 @@ function EventRSVP({ broadcast, profile, myRSVP, counts, onChange }) {
       </div>
     </div>
   );
-}
+});
 
-function ConnectionAction({ broadcast, profile, existing, onChange }) {
+/**
+ * Memoized connection request form - prevents re-render when parent
+ * queries (broadcast details, RSVP counts) settle but request status hasn't changed.
+ */
+const ConnectionAction = memo(function ConnectionAction({ broadcast, user, existing, onChange }) {
   const [open, setOpen] = useState(false);
   const [msg, setMsg] = useState('');
 
   const send = useMutation({
     mutationFn: async () => {
-      await base44.functions.invoke('socialAction', {
-        action: 'sendConnectionRequest',
-        broadcastId: broadcast.id,
-        message: msg
-      });
+      const { error } = await supabase
+        .from('connection_requests')
+        .insert({
+          broadcast_id: broadcast.id,
+          from_user_id: user.id,
+          to_user_id: broadcast.author_id,
+          message: msg.trim() || null,
+          status: 'pending',
+        });
+
+      if (error) throw error;
     },
     onSuccess: () => { setOpen(false); onChange(); },
   });
@@ -223,7 +286,7 @@ function ConnectionAction({ broadcast, profile, existing, onChange }) {
       ) : (
         <div className="p-4 rounded-xl bg-card border border-border space-y-3">
           <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Add a quick note (optional)..." rows={3} maxLength={200} />
-          {send.isError && <p className="text-xs text-destructive">{send.error?.response?.data?.error || send.error.message}</p>}
+          {send.isError && <p className="text-xs text-destructive">{send.error?.message || 'Failed to send request'}</p>}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setOpen(false)} className="flex-1">Cancel</Button>
             <Button onClick={() => send.mutate()} disabled={send.isPending} className="flex-1">
@@ -234,4 +297,4 @@ function ConnectionAction({ broadcast, profile, existing, onChange }) {
       )}
     </div>
   );
-}
+});

@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import { logger } from './logger';
 
 // Get credentials from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables!');
-  console.error('Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file');
+  logger.error('Missing Supabase environment variables!');
+  logger.error('Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file');
 }
 
 /**
@@ -34,6 +35,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     schema: 'public'
   }
 });
+
+logger.debug('[Supabase] Client initialized');
+
+// Expose for debugging only in development
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  window.supabase = supabase;
+  logger.debug('[Supabase] Client exposed as window.supabase for debugging');
+}
 
 /**
  * Helper function to get current auth token

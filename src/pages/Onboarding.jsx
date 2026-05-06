@@ -1,24 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
+import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { prepareLocalImage, getImagePreview, uploadImageIfNeeded } from '@/lib/localImageUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCurrentUser } from '@/lib/useCurrentUser';
 import RRLogo from '@/components/RRLogo';
 import { MapPin, Loader2 } from 'lucide-react';
 import BikePhotoUploader from '@/components/profile/BikePhotoUploader';
 
 export default function Onboarding() {
-  const { data: user } = useCurrentUser();
+  const { user, refreshProfile } = useSupabaseAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [form, setForm] = useState({
-    displayName: user?.full_name || '',
+    displayName: user?.email?.split('@')[0] || '',
     avatar: '',
     location: '',
     bike: '',
@@ -75,21 +75,32 @@ export default function Onboarding() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const [avatar, bikePhoto] = await Promise.all([
+      const [avatar_url, bike_photo_url] = await Promise.all([
         uploadImageIfNeeded(form.avatar),
         uploadImageIfNeeded(form.bikePhoto),
       ]);
-      const res = await base44.functions.invoke('createRiderProfile', { ...form, avatar, bikePhoto });
-      return { existing: res.data?.existing };
+
+      // CRITICAL FIX: Use upsert instead of update to handle new users
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: user.id,
+          display_name: form.displayName || user.email,
+          avatar_url,
+          location: form.location,
+          bike: form.bike,
+          bike_photo_url,
+          is_public: true,
+        }, {
+          onConflict: 'user_id',
+        });
+
+      if (error) throw error;
     },
-    onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['myProfile'] });
+    onSuccess: async () => {
+      await refreshProfile();
       navigate('/home');
     },
-    onError: (error) => {
-      const message = error?.response?.data?.error || error.message || '';
-      if (message.toLowerCase().includes('deleted')) navigate('/deleted-account', { replace: true });
-    }
   });
 
   const canSubmit = form.avatar && form.bike.trim().length > 0;
@@ -194,7 +205,7 @@ export default function Onboarding() {
           </div>
 
           {create.isError && (
-            <p className="text-sm text-destructive">{create.error?.response?.data?.error || create.error.message}</p>
+            <p className="text-sm text-destructive">{create.error?.message || 'Failed to create profile'}</p>
           )}
 
           <Button

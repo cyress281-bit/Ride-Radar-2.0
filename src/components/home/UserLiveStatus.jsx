@@ -1,6 +1,12 @@
+import { memo } from 'react';
 import { Radio } from 'lucide-react';
 
-export default function UserLiveStatus({ broadcast }) {
+/**
+ * Memoized live status badge - only re-renders when the user's broadcast
+ * presence changes (live/offline toggle). Prevents re-render on every
+ * feed filter/sort change in Home.jsx.
+ */
+const UserLiveStatus = memo(function UserLiveStatus({ broadcast }) {
   const isLive = !!broadcast;
 
   return (
@@ -13,4 +19,9 @@ export default function UserLiveStatus({ broadcast }) {
       </div>
     </div>
   );
-}
+}, function areEqual(prev, next) {
+  // Only re-render when live status changes (broadcast presence/absence)
+  return !!prev.broadcast === !!next.broadcast;
+});
+
+export default UserLiveStatus;

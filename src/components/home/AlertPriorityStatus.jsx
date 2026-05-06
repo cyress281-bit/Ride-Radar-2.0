@@ -1,7 +1,13 @@
+import { memo } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function AlertPriorityStatus({ count }) {
+/**
+ * Memoized alert priority badge - only re-renders when alert count changes.
+ * In Home.jsx this sits in the header area and would otherwise re-render
+ * on every feed filter/sort interaction.
+ */
+const AlertPriorityStatus = memo(function AlertPriorityStatus({ count }) {
   const hasAlerts = count > 0;
 
   return (
@@ -27,4 +33,6 @@ export default function AlertPriorityStatus({ count }) {
       </div>
     </div>
   );
-}
+});
+
+export default AlertPriorityStatus;

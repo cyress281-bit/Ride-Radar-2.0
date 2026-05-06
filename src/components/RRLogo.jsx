@@ -1,7 +1,12 @@
+import { memo } from 'react';
 import { cn } from '@/lib/utils';
 
-// Ride Radar brand mark — neon green radar/pulse logo
-export default function RRLogo({ size = 'md', glow = true, className }) {
+/**
+ * Memoized brand logo - props are stable across renders (size/glow don't change).
+ * Rendered in Layout header (every page) and Home hero, so preventing
+ * unnecessary re-renders on route changes saves work across the app.
+ */
+const RRLogo = memo(function RRLogo({ size = 'md', glow = true, className }) {
   // Adjusted sizes for the wide image
   const dims = { sm: 20, md: 28, lg: 40, xl: 60 };
   const h = dims[size] || dims.md;
@@ -18,4 +23,6 @@ export default function RRLogo({ size = 'md', glow = true, className }) {
       )}
     />
   );
-}
+});
+
+export default RRLogo;

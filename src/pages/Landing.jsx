@@ -1,12 +1,12 @@
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Route, Search, CalendarClock, ShieldAlert } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import SignalIcon from '@/components/brand/SignalIcon';
 
 export default function Landing() {
-  const { navigateToLogin } = useAuth();
-  const login = () => navigateToLogin('/home');
+  const navigate = useNavigate();
+  const login = () => navigate('/login');
 
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-hidden relative">

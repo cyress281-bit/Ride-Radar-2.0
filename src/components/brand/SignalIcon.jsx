@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ShieldAlert, Search, CalendarClock, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
@@ -30,7 +31,12 @@ const styles = {
   },
 };
 
-export default function SignalIcon({ type = 'solo_ride', size = 'md', className }) {
+/**
+ * Memoized signal icon - rendered once per BroadcastCard in the feed.
+ * Props (type, size) are stable primitive values that rarely change,
+ * making this an ideal memo candidate to prevent feed re-render cascades.
+ */
+const SignalIcon = memo(function SignalIcon({ type = 'solo_ride', size = 'md', className }) {
   const config = styles[type] || styles.solo_ride;
   const Icon = config.Icon;
   const Accent = config.Accent;
@@ -54,4 +60,6 @@ export default function SignalIcon({ type = 'solo_ride', size = 'md', className 
       {Accent && <Accent className="absolute right-1.5 top-1.5 h-3.5 w-3.5 rounded-full bg-background/75 p-0.5 text-current" strokeWidth={2.4} />}
     </div>
   );
-}
+});
+
+export default SignalIcon;

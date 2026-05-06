@@ -1,9 +1,8 @@
-import { useState } from 'react';
+import { useState, memo, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabase';
+import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { prepareLocalImage, getImagePreview, uploadImageIfNeeded } from '@/lib/localImageUpload';
-import { useMyProfile, useCurrentUser } from '@/lib/useCurrentUser';
-import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,20 +11,36 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Settings, LogOut, Edit2, Check, X, Bike, MapPin, Loader2, Gauge, Radio, ShieldCheck } from 'lucide-react';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import BikePhotoUploader from '@/components/profile/BikePhotoUploader';
+import OptimizedImage from '@/components/OptimizedImage';
 import { isExpired } from '@/lib/broadcastUtils';
 import { Link } from 'react-router-dom';
 
 export default function Profile() {
-  const { data: profile, isError, error } = useMyProfile();
-  const { data: user } = useCurrentUser();
-  const { logout } = useAuth();
+  const { user, profile, signOut } = useSupabaseAuth();
   const [editing, setEditing] = useState(false);
 
-  const { data: myBroadcasts = [] } = useQuery({
-    queryKey: ['myBroadcasts', profile?.id],
-    enabled: !!profile,
-    queryFn: async () => await base44.entities.Broadcast.filter({ authorId: profile.id }, '-created_date', 50),
+  const { data: myBroadcasts = [], isError, error } = useQuery({
+    queryKey: ['myBroadcasts', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('broadcasts')
+        .select('*')
+        .eq('author_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      return data || [];
+    },
   });
+
+  // Memoize filtered active broadcasts - recalculates only when broadcast data changes,
+  // not on editing state toggle. Must be called before early returns (React hooks rule).
+  const active = useMemo(
+    () => myBroadcasts.filter((b) => b.status === 'active' && !isExpired(b)),
+    [myBroadcasts]
+  );
 
   if (isError) {
     return (
@@ -40,8 +55,6 @@ export default function Profile() {
 
   if (!profile) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
 
-  const active = myBroadcasts.filter((b) => b.status === 'active' && !isExpired(b));
-
   return (
     <div className="px-5 pt-5">
       {editing ? (
@@ -54,22 +67,29 @@ export default function Profile() {
             <div className="absolute left-5 right-5 bottom-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
             
             <div className="relative z-10 flex items-start gap-4">
-              {profile.avatar ? (
-                <img src={profile.avatar} className="w-20 h-20 rounded-2xl object-cover border border-border/50 shadow-[0_0_18px_rgba(0,0,0,0.48)] shrink-0" alt="" />
+              {profile?.avatar_url ? (
+                <OptimizedImage
+                  src={profile.avatar_url}
+                  alt=""
+                  containerClassName="w-20 h-20 rounded-2xl border border-border/50 shadow-[0_0_18px_rgba(0,0,0,0.48)] shrink-0"
+                  className="rounded-2xl"
+                  objectFit="cover"
+                  loading="eager"
+                  fetchPriority="high"
+                  fadeInDuration={200}
+                  showSkeleton
+                />
               ) : (
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.26)] border border-primary/20 shrink-0">
-                  {profile.displayName?.[0]?.toUpperCase() || '?'}
+                  {profile?.display_name?.[0]?.toUpperCase() || '?'}
                 </div>
               )}
               <div className="flex-1 pt-1 min-w-0">
                 <div className="rr-kicker mb-1">Rider ID</div>
                 <div className="flex items-start gap-2 min-w-0">
-                  <h1 className="font-display text-[clamp(1.15rem,5vw,1.65rem)] leading-tight font-extrabold tracking-[-0.04em] break-words [overflow-wrap:anywhere] min-w-0">{profile.displayName}</h1>
-                  {user?.role === 'admin' && (
-                    <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.5 rounded shadow-sm">Admin</span>
-                  )}
+                  <h1 className="font-display text-[clamp(1.15rem,5vw,1.65rem)] leading-tight font-extrabold tracking-[-0.04em] break-words [overflow-wrap:anywhere] min-w-0">{profile?.display_name || user?.email}</h1>
                 </div>
-                {profile.location && <div className="text-xs text-muted-foreground mt-2 font-medium flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-primary" />{profile.location}</div>}
+                {profile?.location && <div className="text-xs text-muted-foreground mt-2 font-medium flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-primary" />{profile.location}</div>}
               </div>
               <button onClick={() => setEditing(true)} className="p-2.5 rounded-full bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all border border-border/50 shadow-sm">
                 <Edit2 className="w-4 h-4" />
@@ -77,23 +97,30 @@ export default function Profile() {
             </div>
             <div className="relative z-10 mt-4 grid grid-cols-3 gap-2">
               <RiderMetric icon={Radio} label="Signals" value={active.length} compact />
-              <RiderMetric icon={Gauge} label="Style" value={profile.rideStyle || 'Not set'} compact />
-              <RiderMetric icon={ShieldCheck} label="Status" value={profile.isPublic === false ? 'private' : 'public'} compact />
+              <RiderMetric icon={Gauge} label="Style" value={profile?.ride_style || 'Not set'} compact />
+              <RiderMetric icon={ShieldCheck} label="Status" value={profile?.is_public === false ? 'private' : 'public'} compact />
             </div>
           </div>
 
-          {profile.bio && (
+          {profile?.bio && (
             <div className="mb-3 rounded-2xl rr-surface p-4">
               <div className="rr-kicker text-muted-foreground mb-2">Rider note</div>
               <p className="text-[15px] leading-relaxed text-foreground/90">{profile.bio}</p>
             </div>
           )}
 
-          {profile.bike && (
+          {profile?.bike && (
             <div className="mb-4 rounded-2xl rr-surface overflow-hidden">
-              {profile.bikePhoto && (
+              {profile.bike_photo_url && (
                 <div className="relative h-36 border-b border-border/60 bg-black/40">
-                  <img src={profile.bikePhoto} className="h-full w-full object-cover" alt="Bike" />
+                  <OptimizedImage
+                    src={profile.bike_photo_url}
+                    alt="Bike"
+                    containerClassName="h-full w-full"
+                    objectFit="cover"
+                    loading="lazy"
+                    showSkeleton
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                 </div>
               )}
@@ -102,7 +129,7 @@ export default function Profile() {
                   <Bike className="w-4 h-4 text-primary" />
                 </div>
                 <span className="font-medium">{profile.bike}</span>
-                {profile.rideStyle && <span className="ml-auto text-[11px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary/80 px-2 py-1 rounded-md">{profile.rideStyle}</span>}
+                {profile.ride_style && <span className="ml-auto text-[11px] font-bold uppercase tracking-wider text-muted-foreground bg-secondary/80 px-2 py-1 rounded-md">{profile.ride_style}</span>}
               </div>
             </div>
           )}
@@ -111,7 +138,7 @@ export default function Profile() {
             <Link to="/settings" className="flex-1">
               <Button variant="outline" className="w-full rounded-full"><Settings className="w-4 h-4 mr-1.5" />Settings</Button>
             </Link>
-            <Button variant="outline" className="rounded-full" onClick={() => logout(true)}>
+            <Button variant="outline" className="rounded-full" onClick={() => signOut()}>
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
@@ -135,7 +162,12 @@ export default function Profile() {
   );
 }
 
-function RiderMetric({ icon: Icon, label, value, compact }) {
+/**
+ * Memoized rider metric card - rendered 3x in Profile header.
+ * Props (icon, label, value) only change when profile data changes,
+ * not on editing state toggle or broadcast list updates.
+ */
+const RiderMetric = memo(function RiderMetric({ icon: Icon, label, value, compact }) {
   return (
     <div className={compact ? 'rounded-2xl border border-border/70 bg-black/30 p-2.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0 relative overflow-hidden' : 'rounded-2xl border border-border/70 bg-black/25 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0 relative overflow-hidden'}>
       <span className="absolute right-2 top-2 h-1 w-1 rounded-full bg-primary/65" />
@@ -148,11 +180,20 @@ function RiderMetric({ icon: Icon, label, value, compact }) {
       <div className="font-display text-sm font-extrabold tracking-[-0.03em] truncate capitalize">{value}</div>
     </div>
   );
-}
+});
 
 function ProfileEdit({ profile, onDone }) {
+  const { user, refreshProfile } = useSupabaseAuth();
   const qc = useQueryClient();
-  const [form, setForm] = useState({ ...profile });
+  const [form, setForm] = useState({
+    display_name: profile?.display_name || '',
+    bio: profile?.bio || '',
+    location: profile?.location || '',
+    ride_style: profile?.ride_style || '',
+    bike: profile?.bike || '',
+    avatar_url: profile?.avatar_url || '',
+    bike_photo_url: profile?.bike_photo_url || '',
+  });
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [detectingLoc, setDetectingLoc] = useState(false);
@@ -187,22 +228,31 @@ function ProfileEdit({ profile, onDone }) {
 
   const save = useMutation({
     mutationFn: async () => {
-      const [avatar, bikePhoto] = await Promise.all([
-        uploadImageIfNeeded(form.avatar),
-        uploadImageIfNeeded(form.bikePhoto),
+      const [avatar_url, bike_photo_url] = await Promise.all([
+        uploadImageIfNeeded(form.avatar_url),
+        uploadImageIfNeeded(form.bike_photo_url),
       ]);
-      await base44.entities.UserProfile.update(profile.id, {
-        displayName: form.displayName || profile.username,
-        bio: form.bio,
-        location: form.location,
-        rideStyle: form.rideStyle,
-        bike: form.bike,
-        bikePhoto,
-        avatar,
-        userId: profile.userId,
-      });
+
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          display_name: form.display_name || user.email,
+          bio: form.bio,
+          location: form.location,
+          ride_style: form.ride_style,
+          bike: form.bike,
+          avatar_url,
+          bike_photo_url,
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['myProfile'] }); onDone(); },
+    onSuccess: async () => {
+      await refreshProfile();
+      qc.invalidateQueries({ queryKey: ['myBroadcasts'] });
+      onDone();
+    },
   });
 
   const handleAvatar = async (e) => {
@@ -212,7 +262,7 @@ function ProfileEdit({ profile, onDone }) {
     setUploadError('');
     try {
       const localImage = await prepareLocalImage(file, 'avatar');
-      setForm({ ...form, avatar: localImage });
+      setForm({ ...form, avatar_url: localImage });
     } catch (error) {
       setUploadError(error?.response?.data?.error || error.message || 'Image validation failed. Please try another image.');
     } finally { setUploading(false); }
@@ -230,11 +280,11 @@ function ProfileEdit({ profile, onDone }) {
 
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          {getImagePreview(form.avatar) ? (
-            <img src={getImagePreview(form.avatar)} className="w-16 h-16 rounded-2xl object-cover" alt="" />
+          {getImagePreview(form.avatar_url) ? (
+            <img src={getImagePreview(form.avatar_url)} className="w-16 h-16 rounded-2xl object-cover" alt="" />
           ) : (
             <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center font-bold text-xl">
-              {form.displayName?.[0] || '?'}
+              {form.display_name?.[0] || '?'}
             </div>
           )}
           <label className="text-sm text-primary hover:underline cursor-pointer">
@@ -246,7 +296,7 @@ function ProfileEdit({ profile, onDone }) {
 
         <div>
           <Label>Display name</Label>
-          <Input value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} className="mt-1.5" />
+          <Input value={form.display_name} onChange={(e) => setForm({ ...form, display_name: e.target.value })} className="mt-1.5" />
         </div>
         <div>
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5">Approximate Area</Label>
@@ -267,12 +317,12 @@ function ProfileEdit({ profile, onDone }) {
         <div>
           <Label>Bike photo</Label>
           <div className="mt-1.5">
-            <BikePhotoUploader image={form.bikePhoto} onChange={(bikePhoto) => setForm({ ...form, bikePhoto })} />
+            <BikePhotoUploader image={form.bike_photo_url} onChange={(bike_photo_url) => setForm({ ...form, bike_photo_url })} />
           </div>
         </div>
         <div>
           <Label>Ride style</Label>
-          <Select value={form.rideStyle || 'not_selected'} onValueChange={(v) => setForm({ ...form, rideStyle: v === 'not_selected' ? '' : v })}>
+          <Select value={form.ride_style || 'not_selected'} onValueChange={(v) => setForm({ ...form, ride_style: v === 'not_selected' ? '' : v })}>
             <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="not_selected">Not selected</SelectItem>
