@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
@@ -37,9 +37,14 @@ function normalizePresence(row) {
   };
 }
 
+function isMissingRelationError(error) {
+  return error?.code === 'PGRST205' || error?.code === '42P01' || error?.status === 404;
+}
+
 export function useLiveMapPresence(currentLocation = null, options = {}) {
   const { user, profile } = useSupabaseAuth();
   const queryClient = useQueryClient();
+  const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const userId = user?.id;
 
   const settingsQuery = useQuery({
@@ -52,7 +57,17 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        if (isMissingRelationError(error)) {
+          logger.warn('[useLiveMapPresence] user_settings table unavailable:', error);
+          return {
+            user_id: userId,
+            live_map_visible: false,
+            live_map_location_precision: 'approximate',
+          };
+        }
+        throw error;
+      }
 
       if (!data) {
         const { data: created, error: createError } = await supabase
@@ -71,7 +86,17 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
           .select('id,user_id,live_map_visible,live_map_location_precision')
           .single();
 
-        if (createError) throw createError;
+        if (createError) {
+          if (isMissingRelationError(createError)) {
+            logger.warn('[useLiveMapPresence] user_settings table unavailable:', createError);
+            return {
+              user_id: userId,
+              live_map_visible: false,
+              live_map_location_precision: 'approximate',
+            };
+          }
+          throw createError;
+        }
         return created;
       }
 
@@ -92,7 +117,13 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         .order('last_seen_at', { ascending: false })
         .limit(PRESENCE_MARKER_LIMIT);
 
-      if (error) throw error;
+      if (error) {
+        if (isMissingRelationError(error)) {
+          logger.warn('[useLiveMapPresence] live_map_presence table unavailable:', error);
+          return [];
+        }
+        throw error;
+      }
       return (data || []).map(normalizePresence);
     },
     staleTime: 30_000,
@@ -108,7 +139,13 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        if (isMissingRelationError(error)) {
+          logger.warn('[useLiveMapPresence] live_map_presence table unavailable:', error);
+          return null;
+        }
+        throw error;
+      }
       return normalizePresence(data);
     },
     staleTime: 30_000,
@@ -118,7 +155,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     if (!userId) return undefined;
 
     const channel = supabase
-      .channel('live-map-presence-realtime')
+      .channel(`live-map-presence-realtime-${userId}-${instanceId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'live_map_presence' },
@@ -136,7 +173,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient, userId]);
+  }, [instanceId, queryClient, userId]);
 
   const saveLiveMapSettings = useMutation({
     mutationFn: async (patch) => {

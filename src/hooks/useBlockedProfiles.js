@@ -3,6 +3,10 @@ import { supabase } from '@/lib/supabase';
 import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { useMemo } from 'react';
 
+function isMissingRelationError(error) {
+  return error?.code === 'PGRST205' || error?.code === '42P01' || error?.status === 404;
+}
+
 /**
  * Shared hook for fetching and checking blocked profiles for the current user.
  * Eliminates duplicate UserBlock queries across 5+ files.
@@ -27,7 +31,10 @@ export function useBlockedProfiles() {
         .select('*')
         .eq('blocker_user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        if (isMissingRelationError(error)) return [];
+        throw error;
+      }
       return data || [];
     },
     staleTime: 60000, // Cache for 1 minute - blocks don't change frequently

@@ -5,6 +5,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { normalizeBroadcast, normalizeBroadcasts } from '@/lib/supabaseNormalizer';
 import { logger } from '@/lib/logger';
 
+function isUnavailableQueryError(error) {
+  return error?.code === 'PGRST205' || error?.code === '42P01' || error?.status === 404 || error?.status === 400;
+}
+
 /**
  * Hook to fetch nearby broadcasts using Supabase + PostGIS
  *
@@ -35,6 +39,7 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50) {
 
       if (error) {
         logger.error('[useNearbyBroadcasts] Error:', error);
+        if (isUnavailableQueryError(error)) return [];
         throw error;
       }
 

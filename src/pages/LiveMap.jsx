@@ -12,6 +12,10 @@ import { logger } from '@/lib/logger';
 import { cn } from '@/lib/utils';
 import LiveMapSurface from '@/components/map/LiveMapSurface';
 
+function isUnavailableQueryError(error) {
+  return error?.code === 'PGRST205' || error?.code === '42P01' || error?.status === 404 || error?.status === 400;
+}
+
 const FILTERS = [
   { key: 'all', label: 'All', Icon: Radio },
   { key: 'alert', label: 'Alerts', Icon: ShieldAlert },
@@ -71,7 +75,11 @@ export default function LiveMap() {
         .order('created_at', { ascending: false })
         .limit(150);
 
-      if (error) throw error;
+      if (error) {
+        logger.warn('[LiveMap] Active broadcasts query failed:', error);
+        if (isUnavailableQueryError(error)) return [];
+        throw error;
+      }
       return normalizeBroadcasts(data || []);
     },
     enabled: geoError || (userLoc.lat == null && userLoc.lng == null),
