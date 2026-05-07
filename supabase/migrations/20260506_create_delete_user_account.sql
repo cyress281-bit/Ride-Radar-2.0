@@ -9,7 +9,7 @@
 --   - Runs as the function owner (postgres/superuser) to access auth.users
 --   - Explicitly deletes user data before removing the auth record
 --   - CASCADE constraints handle most related data, but we explicitly clean up
---     tables that reference user_profiles.id (not user_id directly)
+--     tables that reference the authenticated user id directly
 -- =============================================================================
 
 CREATE OR REPLACE FUNCTION public.delete_user_account()
@@ -20,7 +20,6 @@ SET search_path = public, auth
 AS $$
 DECLARE
   requesting_user_id UUID;
-  user_profile_id UUID;
   deleted_tables TEXT[] := '{}';
 BEGIN
   -- Step 1: Identify the calling user via their JWT
@@ -33,27 +32,20 @@ BEGIN
     );
   END IF;
 
-  -- Step 2: Get the user's profile ID (needed for tables that reference profile, not user)
-  SELECT id INTO user_profile_id
-  FROM public.user_profiles
-  WHERE user_id = requesting_user_id;
+  -- Step 2: Explicitly delete data from tables that may not cascade from auth.users
+  -- These tables are keyed by the authenticated user id in the live app.
 
-  -- Step 3: Explicitly delete data from tables that may not cascade from auth.users
-  -- Tables with foreign keys to user_profiles.id (not users.id) need explicit cleanup
+  -- Delete user blocks
+  DELETE FROM public.user_blocks
+  WHERE blocker_user_id = requesting_user_id
+     OR blocked_user_id = requesting_user_id;
+  deleted_tables := array_append(deleted_tables, 'user_blocks');
 
-  -- Delete user blocks (references user_profiles.id)
-  IF user_profile_id IS NOT NULL THEN
-    DELETE FROM public.user_blocks
-    WHERE blocker_profile_id = user_profile_id
-       OR blocked_profile_id = user_profile_id;
-    deleted_tables := array_append(deleted_tables, 'user_blocks');
-
-    -- Delete reports filed by or about this user
-    DELETE FROM public.reports
-    WHERE reporter_profile_id = user_profile_id
-       OR target_profile_id = user_profile_id;
-    deleted_tables := array_append(deleted_tables, 'reports');
-  END IF;
+  -- Delete reports filed by or about this user
+  DELETE FROM public.reports
+  WHERE reporter_user_id = requesting_user_id
+     OR target_user_id = requesting_user_id;
+  deleted_tables := array_append(deleted_tables, 'reports');
 
   -- Delete notifications (references users.id, should cascade, but be explicit)
   DELETE FROM public.notifications
@@ -71,9 +63,14 @@ BEGIN
      OR to_user_id = requesting_user_id;
   deleted_tables := array_append(deleted_tables, 'connection_requests');
 
+  -- Delete pending account deletion requests
+  DELETE FROM public.account_deletion_requests
+  WHERE user_id = requesting_user_id;
+  deleted_tables := array_append(deleted_tables, 'account_deletion_requests');
+
   -- Delete messages sent by this user
   DELETE FROM public.messages
-  WHERE sender_id = requesting_user_id;
+  WHERE from_user_id = requesting_user_id;
   deleted_tables := array_append(deleted_tables, 'messages');
 
   -- Remove user from conversations (or delete if they're the only participant)
@@ -98,11 +95,9 @@ BEGIN
   END;
 
   -- Delete user profile
-  IF user_profile_id IS NOT NULL THEN
-    DELETE FROM public.user_profiles
-    WHERE id = user_profile_id;
-    deleted_tables := array_append(deleted_tables, 'user_profiles');
-  END IF;
+  DELETE FROM public.user_profiles
+  WHERE user_id = requesting_user_id;
+  deleted_tables := array_append(deleted_tables, 'user_profiles');
 
   -- Delete user record from public.users table
   DELETE FROM public.users

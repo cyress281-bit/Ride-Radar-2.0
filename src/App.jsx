@@ -2,7 +2,7 @@ import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { SupabaseAuthProvider, useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ChunkErrorBoundary } from '@/components/ChunkErrorBoundary';
@@ -11,6 +11,7 @@ import { OfflineBanner } from '@/components/OfflineBanner';
 import SplashScreen from '@/components/SplashScreen';
 import { AnimatePresence } from 'framer-motion';
 import { usePageTracking } from '@/hooks/usePageTracking';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import { setSentryUser, clearSentryUser } from '@/lib/sentry';
 import { setAnalyticsOptIn } from '@/lib/analytics';
 
@@ -65,6 +66,24 @@ function ProtectedRoute({ children }) {
   }
 
   return children;
+}
+
+function AdminRoute() {
+  const { isAdmin, isLoading } = useAdminRole();
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-secondary border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/home" replace />;
+  }
+
+  return <Outlet />;
 }
 
 function SupabaseAppContent() {
@@ -135,16 +154,18 @@ function SupabaseAppContent() {
               <Route path="/review-readiness" element={<ReviewReadiness />} />
 
               {/* Admin routes */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/reports" element={<AdminReports />} />
-              <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/blocks" element={<AdminBlocks />} />
-              <Route path="/admin/notifications" element={<AdminNotifications />} />
-              <Route path="/admin/deletions" element={<AdminDeletionRequests />} />
-              <Route path="/admin/analytics" element={<AdminAnalyticsAudit />} />
-              <Route path="/admin/compliance" element={<AdminCompliance />} />
-              <Route path="/admin/monitoring" element={<AdminMonitoring />} />
+              <Route element={<AdminRoute />}>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/reports" element={<AdminReports />} />
+                <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/blocks" element={<AdminBlocks />} />
+                <Route path="/admin/notifications" element={<AdminNotifications />} />
+                <Route path="/admin/deletions" element={<AdminDeletionRequests />} />
+                <Route path="/admin/analytics" element={<AdminAnalyticsAudit />} />
+                <Route path="/admin/compliance" element={<AdminCompliance />} />
+                <Route path="/admin/monitoring" element={<AdminMonitoring />} />
+              </Route>
             </Route>
 
             {/* Default redirects */}

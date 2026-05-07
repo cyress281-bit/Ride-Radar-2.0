@@ -18,7 +18,7 @@ import { CheckCircle2, Eye, ShieldAlert, Trash2, XCircle } from 'lucide-react';
  * - Take action: removes/archives the reported content and closes report
  *
  * Data fields (Supabase snake_case):
- * - reporter_profile_id, target_type, target_id, target_profile_id
+ * - reporter_user_id, target_type, target_id, target_user_id
  * - reason, status, details, created_at
  */
 export default function AdminReports() {
@@ -29,8 +29,8 @@ export default function AdminReports() {
   const profilesData = profiles.data || [];
   const broadcastsData = broadcasts.data || [];
 
-  const profileById = useMemo(
-    () => new Map(profilesData.map((p) => [p.id, p])),
+  const profileByUserId = useMemo(
+    () => new Map(profilesData.map((p) => [p.user_id || p.id, p])),
     [profilesData]
   );
   const broadcastById = useMemo(
@@ -55,7 +55,7 @@ export default function AdminReports() {
     mutationFn: async (report) => {
       const targetType = report.target_type;
       const targetId = report.target_id;
-      const targetProfileId = report.target_profile_id;
+      const targetUserId = report.target_user_id || report.target_profile_id;
 
       if (targetType === 'broadcast') {
         await supabase.from('broadcasts').delete().eq('id', targetId);
@@ -66,8 +66,8 @@ export default function AdminReports() {
       if (targetType === 'conversation') {
         await supabase.from('conversations').update({ status: 'archived' }).eq('id', targetId);
       }
-      if (targetType === 'user' && targetProfileId) {
-        await supabase.from('user_profiles').update({ is_public: false }).eq('id', targetProfileId);
+      if (targetType === 'user' && targetUserId) {
+        await supabase.from('user_profiles').update({ is_public: false }).eq('user_id', targetUserId);
       }
 
       const actionNote = targetType === 'user' ? 'profile made private' : 'content removed/archived';
@@ -78,17 +78,30 @@ export default function AdminReports() {
         .update({ status: 'closed', details: updatedDetails })
         .eq('id', report.id);
       if (error) throw error;
+
+      return { targetType, targetId, targetUserId };
     },
-    onSuccess: () => {
+    onSuccess: (_data) => {
       qc.invalidateQueries({ queryKey: ['admin-reports'] });
       qc.invalidateQueries({ queryKey: ['admin-broadcasts'] });
       qc.invalidateQueries({ queryKey: ['admin-profiles'] });
+      qc.invalidateQueries({ queryKey: ['admin-conversations'] });
+      qc.invalidateQueries({ queryKey: ['conversations'] });
+      qc.invalidateQueries({ queryKey: ['messages'] });
+      qc.invalidateQueries({ queryKey: ['broadcasts'] });
+
+      if (_data?.targetType === 'broadcast') {
+        qc.invalidateQueries({ queryKey: ['broadcast', _data.targetId] });
+      }
+      if (_data?.targetType === 'user' && _data.targetUserId) {
+        qc.invalidateQueries({ queryKey: ['profile', _data.targetUserId] });
+      }
     },
   });
 
   const describeTarget = (report) => {
-    const targetProfileId = report.target_profile_id || report.target_id;
-    const profile = profileById.get(targetProfileId);
+    const targetUserId = report.target_user_id || report.target_profile_id;
+    const profile = profileByUserId.get(targetUserId);
     if (report.target_type === 'broadcast') {
       return broadcastById.get(report.target_id)?.title || report.target_id;
     }
@@ -105,7 +118,8 @@ export default function AdminReports() {
     >
       <div className="space-y-3">
         {reportsData.map((report) => {
-          const reporter = profileById.get(report.reporter_profile_id);
+          const reporter = profileByUserId.get(report.reporter_user_id || report.reporter_profile_id);
+          const targetUserId = report.target_user_id || report.target_profile_id;
           return (
             <div key={report.id} className="rounded-2xl border border-border/60 bg-card p-4">
               <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -113,15 +127,15 @@ export default function AdminReports() {
                   {report.reason}
                 </span>
                 <span>{report.status}</span>
-                <span>· {timeAgo(report.created_at)}</span>
+                <span>- {timeAgo(report.created_at)}</span>
               </div>
               <div className="text-sm">
                 <span className="text-muted-foreground">Reported by:</span>{' '}
-                {reporter?.display_name || report.reporter_profile_id || 'Unknown'}
+                {reporter?.display_name || report.reporter_user_id || report.reporter_profile_id || 'Unknown'}
               </div>
               <div className="mt-1 text-sm">
                 <span className="text-muted-foreground">Target:</span>{' '}
-                {report.target_type} · {describeTarget(report)}
+                {report.target_type} - {describeTarget(report)}
               </div>
               {report.details && (
                 <p className="mt-3 whitespace-pre-wrap rounded-xl bg-black/25 p-3 text-sm text-muted-foreground">
@@ -164,9 +178,9 @@ export default function AdminReports() {
                 >
                   <Trash2 className="h-3.5 w-3.5" /> Take action
                 </Button>
-                {report.target_profile_id && (
+                {targetUserId && (
                   <Link
-                    to={`/profile/${report.target_profile_id}`}
+                    to={`/profile/${targetUserId}`}
                     className="text-xs text-primary underline self-center"
                   >
                     View rider

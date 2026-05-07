@@ -9,7 +9,7 @@ import { timeAgo } from '@/lib/broadcastUtils';
  * Purpose: Support and dispute resolution; lets admins see who blocked whom.
  *
  * Data fields (Supabase snake_case):
- * - blocker_profile_id, blocked_profile_id, reason, created_at
+ * - blocker_user_id, blocked_user_id, reason, created_at
  */
 export default function AdminBlocks() {
   const { blocks, profiles } = useAdminData();
@@ -17,12 +17,12 @@ export default function AdminBlocks() {
   const blocksData = blocks.data || [];
   const profilesData = profiles.data || [];
 
-  const profileById = useMemo(
-    () => new Map(profilesData.map((p) => [p.id, p])),
+  const profileByUserId = useMemo(
+    () => new Map(profilesData.map((p) => [p.user_id || p.id, p])),
     [profilesData]
   );
 
-  const name = (id) => profileById.get(id)?.display_name || id || 'Unknown rider';
+  const name = (id) => profileByUserId.get(id)?.display_name || id || 'Unknown rider';
 
   return (
     <AdminLayout
@@ -33,12 +33,12 @@ export default function AdminBlocks() {
         {blocksData.map((block) => (
           <div key={block.id} className="rounded-2xl border border-border/60 bg-card p-4">
             <div className="text-sm">
-              <span className="font-bold">{name(block.blocker_profile_id)}</span>
+              <span className="font-bold">{name(block.blocker_user_id || block.blocker_profile_id)}</span>
               {' '}blocked{' '}
-              <span className="font-bold">{name(block.blocked_profile_id)}</span>
+              <span className="font-bold">{name(block.blocked_user_id || block.blocked_profile_id)}</span>
             </div>
             <div className="mt-1 text-xs text-muted-foreground">
-              Created {timeAgo(block.created_at)} ·{' '}
+              Created {timeAgo(block.created_at)} -{' '}
               {block.created_at ? new Date(block.created_at).toLocaleString() : 'No timestamp'}
             </div>
             {block.reason && (

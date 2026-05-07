@@ -52,11 +52,11 @@ CREATE POLICY admin_read_broadcasts ON broadcasts
 
 -- Reports: admin can see all reports (regular users see only their own)
 CREATE POLICY admin_read_reports ON reports
-  FOR SELECT USING (is_admin() OR reporter_profile_id = auth.uid());
+  FOR SELECT USING (is_admin() OR reporter_user_id = auth.uid());
 
 -- User blocks: admin can see all blocks
 CREATE POLICY admin_read_blocks ON user_blocks
-  FOR SELECT USING (is_admin() OR blocker_profile_id = auth.uid());
+  FOR SELECT USING (is_admin() OR blocker_user_id = auth.uid());
 
 -- Notifications: admin can see all notifications
 CREATE POLICY admin_read_notifications ON notifications
@@ -70,8 +70,7 @@ CREATE POLICY admin_read_deletions ON account_deletion_requests
 CREATE POLICY admin_read_conversations ON conversations
   FOR SELECT USING (
     is_admin()
-    OR participant1_id = auth.uid()
-    OR participant2_id = auth.uid()
+    OR auth.uid() = ANY(participant_ids)
   );
 
 -- =============================================================================
@@ -106,8 +105,7 @@ CREATE POLICY admin_update_profiles ON user_profiles
 CREATE POLICY admin_update_conversations ON conversations
   FOR UPDATE USING (
     is_admin()
-    OR participant1_id = auth.uid()
-    OR participant2_id = auth.uid()
+    OR auth.uid() = ANY(participant_ids)
   );
 
 -- =============================================================================
@@ -120,7 +118,7 @@ CREATE POLICY admin_delete_broadcasts ON broadcasts
 
 -- Messages: admin can delete any message (content moderation)
 CREATE POLICY admin_delete_messages ON messages
-  FOR DELETE USING (is_admin() OR sender_id = auth.uid());
+  FOR DELETE USING (is_admin() OR from_user_id = auth.uid());
 
 -- =============================================================================
 -- INSERT POLICIES - Admin notification sending
