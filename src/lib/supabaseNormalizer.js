@@ -32,6 +32,9 @@ export function normalizeBroadcast(broadcast) {
     alertImages: broadcast.alert_photos ?? broadcast.alert_image_urls ?? broadcast.alertImages ?? [],
     exactLocationText: broadcast.exact_location_text ?? broadcast.exactLocationText,
     isoSubtype: broadcast.iso_subtype ?? broadcast.isoSubtype,
+    locationPrivacy: broadcast.location_privacy ?? broadcast.locationPrivacy,
+    locationGeocodedAt: broadcast.location_geocoded_at ?? broadcast.locationGeocodedAt,
+    locationGeocodeProvider: broadcast.location_geocode_provider ?? broadcast.locationGeocodeProvider,
   };
 }
 

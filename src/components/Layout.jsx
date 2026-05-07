@@ -1,13 +1,15 @@
+import { useEffect, useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Gauge, Radar, MessagesSquare, UserRound, Bell, Shield } from 'lucide-react';
-import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
+import { Gauge, Radar, Map as MapIcon, MessagesSquare, UserRound, Bell, Shield } from 'lucide-react';
 import { useAdminRole } from '@/hooks/useAdminRole';
+import { useLiveMapPresence } from '@/hooks/useLiveMapPresence';
 import { cn } from '@/lib/utils';
 import RRLogo from '@/components/RRLogo';
 import NavGlyph from '@/components/brand/NavGlyph';
 
 const tabs = [
   { to: '/home', icon: Gauge, label: 'Radar' },
+  { to: '/live-map', icon: MapIcon, label: 'Map' },
   { to: '/broadcast', icon: Radar, label: 'Signal' },
   { to: '/messages', icon: MessagesSquare, label: 'Comms' },
   { to: '/profile', icon: UserRound, label: 'Rider' },
@@ -31,9 +33,41 @@ const tabs = [
  * - Max-width container for comfortable reading on larger screens
  */
 export default function Layout() {
-  const { user } = useSupabaseAuth();
   const { pathname } = useLocation();
   const { isAdmin } = useAdminRole();
+  const isLiveMap = pathname.startsWith('/live-map');
+  const [currentLocation, setCurrentLocation] = useState({ lat: null, lng: null });
+
+  useLiveMapPresence(currentLocation, { autoPublish: true, source: 'app-shell' });
+
+  useEffect(() => {
+    let active = true;
+
+    if (!navigator.geolocation) {
+      return () => {
+        active = false;
+      };
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        if (!active) return;
+        setCurrentLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      () => {
+        if (!active) return;
+        setCurrentLocation({ lat: null, lng: null });
+      },
+      { maximumAge: 120000, timeout: 5000, enableHighAccuracy: false }
+    );
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden selection:bg-primary/30">
@@ -55,7 +89,7 @@ export default function Layout() {
 
       {/* Top bar */}
       <header className="sticky top-0 z-40 bg-black/55 backdrop-blur-2xl border-b border-primary/10 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">
-        <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
+        <div className={cn('mx-auto px-5 h-14 flex items-center justify-between', isLiveMap ? 'max-w-[1180px]' : 'max-w-2xl')}>
           <NavLink
             to="/home"
             className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg px-1 py-0.5"
@@ -101,7 +135,7 @@ export default function Layout() {
       </header>
 
       {/* Page content */}
-      <main id="main-content" className="relative z-10 max-w-2xl mx-auto pb-24" role="main">
+      <main id="main-content" className={cn('relative z-10 mx-auto pb-24', isLiveMap ? 'max-w-[1180px]' : 'max-w-2xl')} role="main">
         <Outlet />
       </main>
 
@@ -110,7 +144,7 @@ export default function Layout() {
         className="fixed bottom-0 left-0 right-0 z-40 bg-black/70 backdrop-blur-2xl border-t border-primary/10 pb-safe shadow-[0_-18px_55px_rgba(0,0,0,0.55)]"
         aria-label="Main navigation"
       >
-        <div className="max-w-2xl mx-auto grid grid-cols-4" role="tablist">
+        <div className={cn('mx-auto grid grid-cols-5', isLiveMap ? 'max-w-[1180px]' : 'max-w-2xl')} role="tablist">
           {tabs.map((t) => {
             const active = pathname === t.to || (t.to !== '/home' && pathname.startsWith(t.to));
             const Icon = t.icon;

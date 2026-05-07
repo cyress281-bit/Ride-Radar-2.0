@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, LogOut, ExternalLink, ShieldCheck, Trash2, Mail, FileText, Database, Download, Check, Smartphone, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,6 +11,8 @@ import { ACCOUNT_DELETION_URL, PRIVACY_POLICY_URL, SUPPORT_EMAIL, SUPPORT_URL } 
 import { setAnalyticsOptIn, trackNotificationToggle } from '@/lib/analytics';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { requestPushPermission } from '@/lib/registerSW';
+import { normalizePrecision } from '@/lib/geocoding';
+import { logger } from '@/lib/logger';
 import React, { useState } from 'react';
 
 export default function Settings() {
@@ -43,6 +46,8 @@ export default function Settings() {
             notify_on_rsvp: true,
             notify_on_alert: true,
             show_location: true,
+            live_map_visible: false,
+            live_map_location_precision: 'approximate',
             analytics_enabled: true, // Opt-in by default
           })
           .select()
@@ -73,12 +78,34 @@ export default function Settings() {
       if (error) throw error;
       return patch;
     },
-    onSuccess: (patch) => {
+    onSuccess: async (patch) => {
       qc.invalidateQueries({ queryKey: ['settings'] });
 
       // Update analytics opt-in state
       if ('analytics_enabled' in patch) {
         setAnalyticsOptIn(patch.analytics_enabled);
+      }
+
+      if (patch.live_map_visible === false && user?.id) {
+        const { error } = await supabase
+          .from('live_map_presence')
+          .upsert({
+            user_id: user.id,
+            display_name: profile?.display_name || profile?.displayName || 'Rider',
+            avatar_url: profile?.avatar_url || profile?.avatar || null,
+            is_visible: false,
+            location_precision: normalizePrecision(settings.live_map_location_precision),
+            lat: null,
+            lng: null,
+            accuracy_meters: null,
+            approximate_radius_miles: null,
+            source: 'settings',
+            last_seen_at: new Date().toISOString(),
+            expires_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' });
+
+        if (error) logger.warn('[Settings] Failed to clear live map presence:', error);
+        qc.invalidateQueries({ queryKey: ['live-map-presence'] });
       }
 
       // Track notification toggle events
@@ -129,6 +156,7 @@ export default function Settings() {
     { key: 'notify_on_rsvp', label: 'Event RSVPs' },
     { key: 'notify_on_alert', label: 'Alerts in your area' },
     { key: 'show_location', label: 'Share approximate location on posts' },
+    { key: 'live_map_visible', label: 'Show me on the live map', desc: 'Opt in only when you want other signed-in riders to see your current riding marker' },
     { key: 'analytics_enabled', label: 'Anonymous usage analytics', desc: 'Help improve the app (no personal data collected)' },
   ];
 
@@ -146,10 +174,30 @@ export default function Settings() {
 
       <div className="space-y-1 rr-surface rounded-[1.45rem] p-3 mb-5 overflow-hidden">
         {rows.map((r, i) => <div key={r.key} className={cn('flex items-center justify-between gap-4 px-4 py-4', i !== rows.length - 1 && 'border-b border-border/40')}><div className="flex-1"><span className="text-sm font-medium leading-snug">{r.label}</span>{r.desc && <p className="text-xs text-muted-foreground mt-0.5">{r.desc}</p>}</div><Switch checked={!!settings[r.key]} onCheckedChange={(v) => save.mutate({ [r.key]: v })} /></div>)}
+        {settings.live_map_visible && (
+          <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-border/40">
+            <div className="flex-1">
+              <span className="text-sm font-medium leading-snug">Live map location precision</span>
+              <p className="text-xs text-muted-foreground mt-0.5">Approximate stores a fuzzed marker. Precise stores your current marker coordinate.</p>
+            </div>
+            <Select
+              value={normalizePrecision(settings.live_map_location_precision)}
+              onValueChange={(v) => save.mutate({ live_map_location_precision: normalizePrecision(v) })}
+            >
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="approximate">Approximate</SelectItem>
+                <SelectItem value="precise">Precise</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="flex items-center justify-between gap-4 px-4 py-4 border-t border-border/40 bg-primary/5 -mx-3 -mb-3 rounded-b-2xl mt-2"><span className="text-sm font-medium text-primary">Public profile preview</span><Switch checked={profile.is_public !== false} onCheckedChange={(v) => togglePublic.mutate(v)} /></div>
       </div>
 
-      <div className="mb-5 rounded-[1.45rem] border border-border/70 bg-black/30 p-4"><div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Privacy disclosure</div><p className="text-sm text-muted-foreground">Location posts use approximate, fuzzed, frozen location when enabled. Uploaded images are used for your profile, bike, events, and alerts. Public profile visibility controls what other riders can see.</p></div>
+      <div className="mb-5 rounded-[1.45rem] border border-border/70 bg-black/30 p-4"><div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Privacy disclosure</div><p className="text-sm text-muted-foreground">Location posts use approximate, fuzzed, frozen location when enabled. Live map presence is opt-in and can be approximate or precise. Uploaded images are used for your profile, bike, events, and alerts. Public profile visibility controls what other riders can see.</p></div>
 
       {/* PWA Install Section */}
       {(isInstallable || isInstalled || pushPermission !== 'granted') && (

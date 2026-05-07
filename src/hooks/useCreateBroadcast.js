@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { logger } from '@/lib/logger';
+import { approximateLocation, geocodeLocationText, isValidCoordinate, normalizeLocationText } from '@/lib/geocoding';
 
 /**
  * Hook to create a new broadcast in Supabase
@@ -16,6 +17,19 @@ export function useCreateBroadcast() {
   return useMutation({
     mutationFn: async (broadcastData) => {
       if (!user) throw new Error('Must be authenticated to create broadcast');
+
+      const { data: settings, error: settingsError } = await supabase
+        .from('user_settings')
+        .select('show_location')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (settingsError) {
+        logger.error('[useCreateBroadcast] Settings error:', settingsError);
+        throw settingsError;
+      }
+
+      const showApproximateLocation = settings?.show_location !== false;
 
       // Calculate expiration based on type
       let expires_at = null;
@@ -32,6 +46,73 @@ export function useCreateBroadcast() {
         expires_at = new Date(now.getTime() + 6 * 60 * 60 * 1000).toISOString();
       }
 
+      let frozenLocation = null;
+      let locationPrivacy = 'none';
+      let geocodeResult = null;
+      const exactLocationText = normalizeLocationText(broadcastData.exactLocationText);
+
+      if (
+        (broadcastData.type === 'solo_ride' || broadcastData.type === 'iso') &&
+        isValidCoordinate(broadcastData.lat, broadcastData.lng)
+      ) {
+        if (showApproximateLocation) {
+          frozenLocation = approximateLocation(broadcastData.lat, broadcastData.lng, {
+            seed: `${user.id}:${now.toISOString()}:${broadcastData.type}`,
+          });
+          locationPrivacy = frozenLocation ? 'approximate' : 'none';
+        } else {
+          frozenLocation = {
+            lat: Number(Number(broadcastData.lat).toFixed(6)),
+            lng: Number(Number(broadcastData.lng).toFixed(6)),
+          };
+          locationPrivacy = 'precise';
+        }
+      }
+
+      if (broadcastData.type === 'event' && exactLocationText) {
+        try {
+          geocodeResult = await geocodeLocationText(exactLocationText);
+          if (geocodeResult) {
+            frozenLocation = showApproximateLocation
+              ? approximateLocation(geocodeResult.lat, geocodeResult.lng, {
+                  seed: `${user.id}:${now.toISOString()}:event:${exactLocationText}`,
+                })
+              : { lat: geocodeResult.lat, lng: geocodeResult.lng };
+            locationPrivacy = showApproximateLocation ? 'approximate' : 'exact_event';
+          }
+        } catch (error) {
+          logger.warn('[useCreateBroadcast] Event geocoding failed:', error);
+          throw new Error('We could not locate that event address. Add a nearby city, landmark, or street and try again.');
+        }
+
+        if (!geocodeResult) {
+          throw new Error('We could not locate that event address. Add a nearby city, landmark, or street and try again.');
+        }
+      }
+
+      if (broadcastData.type === 'alert' && exactLocationText) {
+        try {
+          geocodeResult = await geocodeLocationText(exactLocationText);
+          const approximate = geocodeResult
+            ? approximateLocation(geocodeResult.lat, geocodeResult.lng, {
+                seed: `${user.id}:${now.toISOString()}:alert:${exactLocationText}`,
+              })
+            : null;
+
+          if (geocodeResult) {
+            frozenLocation = showApproximateLocation ? approximate : { lat: geocodeResult.lat, lng: geocodeResult.lng };
+            locationPrivacy = showApproximateLocation ? 'approximate' : 'precise';
+          }
+        } catch (error) {
+          logger.warn('[useCreateBroadcast] Alert geocoding failed:', error);
+          throw new Error('We could not locate that alert area. Add a nearby road, city, or landmark and try again.');
+        }
+
+        if (!geocodeResult || !frozenLocation) {
+          throw new Error('We could not locate that alert area. Add a nearby road, city, or landmark and try again.');
+        }
+      }
+
       // Prepare broadcast object
       const broadcast = {
         author_id: user.id,
@@ -41,18 +122,23 @@ export function useCreateBroadcast() {
         status: 'active',
         expires_at,
 
-        // Location data (fuzzed for privacy)
-        lat: broadcastData.lat || null,
-        lng: broadcastData.lng || null,
-        frozen_lat: broadcastData.lat || null, // Frozen at creation time
-        frozen_lng: broadcastData.lng || null,
+        // Location data follows the broadcast privacy language: approximate and frozen
+        // for riders/alerts, exact only for event placement text.
+        lat: frozenLocation?.lat ?? null,
+        lng: frozenLocation?.lng ?? null,
+        frozen_lat: frozenLocation?.lat ?? null,
+        frozen_lng: frozenLocation?.lng ?? null,
+        location_privacy: locationPrivacy,
+        location_geocoded_at: geocodeResult ? now.toISOString() : null,
+        location_geocode_provider: geocodeResult?.provider ?? null,
+        location_geocode_query: geocodeResult?.query ?? null,
 
         // ISO-specific fields
         iso_subtype: broadcastData.isoSubtype || null,
         looking_to: broadcastData.lookingTo || null,
 
         // Event-specific fields
-        exact_location_text: broadcastData.exactLocationText || null,
+        exact_location_text: exactLocationText || null,
         event_date: broadcastData.eventDate ? new Date(broadcastData.eventDate).toISOString() : null,
         event_end_time: broadcastData.eventEndTime ? new Date(broadcastData.eventEndTime).toISOString() : null,
         event_image_url: broadcastData.eventImage || null,
