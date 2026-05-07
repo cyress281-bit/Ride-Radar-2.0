@@ -49,7 +49,7 @@ const NotificationItem = memo(function NotificationItem({ notification, targetPr
   const href =
     notification.related_entity_type === 'conversation' ? `/messages/${notification.related_entity_id}` :
     notification.related_entity_type === 'broadcast' ? `/broadcast/${notification.related_entity_id}` :
-    notification.related_entity_type === 'user_profile' ? `/profile/${targetProfile?.user_id || notification.related_entity_id}` : null;
+    notification.related_entity_type === 'user_profile' && targetProfile?.user_id ? `/profile/${targetProfile.user_id}` : null;
 
   const content = (
     <div
@@ -74,8 +74,8 @@ const NotificationItem = memo(function NotificationItem({ notification, targetPr
       prefetchConversationMessages(notification.related_entity_id);
     } else if (notification.related_entity_type === 'broadcast') {
       prefetchBroadcastDetail(notification.related_entity_id);
-    } else if (notification.related_entity_type === 'user_profile') {
-      prefetchRiderProfile(targetProfile?.user_id || notification.related_entity_id);
+    } else if (notification.related_entity_type === 'user_profile' && targetProfile?.user_id) {
+      prefetchRiderProfile(targetProfile.user_id);
     }
   }, [notification.related_entity_type, notification.related_entity_id, targetProfile?.user_id]);
 

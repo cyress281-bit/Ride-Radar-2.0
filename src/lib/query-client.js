@@ -135,25 +135,14 @@ export function prefetchRiderProfile(userId) {
     queryKey: ['profile', userId],
     queryFn: async () => {
       const { supabase } = await import('@/lib/supabase');
-      const byUserId = await supabase
+      const { data } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
         .eq('is_public', true)
         .maybeSingle();
 
-      if (byUserId.data) return byUserId.data;
-
-      const byProfileId = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .eq('is_public', true)
-        .maybeSingle();
-
-      if (byProfileId.data) return byProfileId.data;
-
-      return null;
+      return data || null;
     },
     staleTime: 5 * 60 * 1000, // 5 min - profiles are stable
   });

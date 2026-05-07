@@ -279,17 +279,28 @@ export function useAdminMutations() {
       });
 
       if (fnError) {
-        // Fallback: insert a broadcast notification record
+        // Fallback: fan out notification rows per user
         logger.warn('[Admin] Edge function unavailable, inserting notification directly');
-        const { error } = await supabase
-          .from('notifications')
-          .insert({
-            type: 'announcement',
-            title,
-            body,
-            is_global: true,
-          });
-        if (error) throw error;
+        const { data: users, error: usersError } = await supabase
+          .from('users')
+          .select('id');
+
+        if (usersError) throw usersError;
+
+        const rows = (users || []).map((userRow) => ({
+          user_id: userRow.id,
+          type: 'announcement',
+          title,
+          body,
+          is_global: true,
+        }));
+
+        for (let i = 0; i < rows.length; i += 500) {
+          const { error } = await supabase
+            .from('notifications')
+            .insert(rows.slice(i, i + 500));
+          if (error) throw error;
+        }
       }
     },
   };

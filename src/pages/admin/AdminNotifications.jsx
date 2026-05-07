@@ -25,30 +25,48 @@ export default function AdminNotifications() {
   const [body, setBody] = useState('');
   const [sent, setSent] = useState(false);
 
+  const insertAnnouncementFallback = async () => {
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id');
+
+    if (usersError) throw usersError;
+
+    const rows = (users || []).map((userRow) => ({
+      user_id: userRow.id,
+      type: 'announcement',
+      title,
+      body,
+      is_global: true,
+    }));
+
+    if (rows.length === 0) return;
+
+    for (let i = 0; i < rows.length; i += 500) {
+      const { error } = await supabase
+        .from('notifications')
+        .insert(rows.slice(i, i + 500));
+
+      if (error) throw error;
+    }
+  };
+
   const broadcast = useMutation({
     mutationFn: async () => {
       // Try Edge Function first
       const { error: fnError } = await supabase.functions.invoke('send-announcement', {
-        body: JSON.stringify({
+        body: {
           title,
           body,
           type: 'announcement',
           send_to_all: true,
-        }),
+        },
       });
 
       if (fnError) {
         // Fallback: insert a broadcast notification directly
         logger.warn('[AdminNotifications] Edge function unavailable, inserting directly:', fnError);
-        const { error } = await supabase
-          .from('notifications')
-          .insert({
-            type: 'announcement',
-            title,
-            body,
-            is_global: true,
-          });
-        if (error) throw error;
+        await insertAnnouncementFallback();
       }
     },
     onSuccess: () => {

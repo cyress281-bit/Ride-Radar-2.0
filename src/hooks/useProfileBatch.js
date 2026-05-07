@@ -45,7 +45,6 @@ export function useProfileBatch(ids) {
       const map = new Map();
       profiles.forEach((p) => {
         if (p.user_id) map.set(p.user_id, p);
-        if (p.id) map.set(p.id, p);
       });
       return map;
     },
