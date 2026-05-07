@@ -11,6 +11,7 @@ import { useProfileBatch } from '@/hooks/useProfileBatch';
 import { cn } from '@/lib/utils';
 import { getOrCreateConversation } from '@/lib/conversationUtils';
 import { prefetchBroadcastDetail, prefetchConversationMessages, prefetchRiderProfile } from '@/lib/query-client';
+import { normalizeNotification, normalizeNotifications } from '@/lib/notificationNormalizer';
 
 /**
  * Memoized connection request card - prevents re-render when other requests
@@ -44,11 +45,11 @@ const ConnectionRequestCard = memo(function ConnectionRequestCard({ request, fro
  * Memoized notification activity item - prevents re-render when unrelated
  * notifications change or parent state updates.
  */
-const NotificationItem = memo(function NotificationItem({ notification, onMarkRead }) {
+const NotificationItem = memo(function NotificationItem({ notification, targetProfile, onMarkRead }) {
   const href =
     notification.related_entity_type === 'conversation' ? `/messages/${notification.related_entity_id}` :
     notification.related_entity_type === 'broadcast' ? `/broadcast/${notification.related_entity_id}` :
-    notification.related_entity_type === 'user_profile' ? `/profile/${notification.related_entity_id}` : null;
+    notification.related_entity_type === 'user_profile' ? `/profile/${targetProfile?.user_id || notification.related_entity_id}` : null;
 
   const content = (
     <div
@@ -74,9 +75,9 @@ const NotificationItem = memo(function NotificationItem({ notification, onMarkRe
     } else if (notification.related_entity_type === 'broadcast') {
       prefetchBroadcastDetail(notification.related_entity_id);
     } else if (notification.related_entity_type === 'user_profile') {
-      prefetchRiderProfile(notification.related_entity_id);
+      prefetchRiderProfile(targetProfile?.user_id || notification.related_entity_id);
     }
-  }, [notification.related_entity_type, notification.related_entity_id]);
+  }, [notification.related_entity_type, notification.related_entity_id, targetProfile?.user_id]);
 
   return href ? (
     <Link to={href} onMouseEnter={handlePrefetch} onFocus={handlePrefetch}>{content}</Link>
@@ -102,7 +103,7 @@ export default function Notifications() {
         .limit(100);
 
       if (error) throw error;
-      return data || [];
+      return normalizeNotifications(data || []);
     },
     staleTime: 60000, // 1 min - real-time handles freshness
     refetchOnWindowFocus: true,
@@ -123,11 +124,12 @@ export default function Notifications() {
           table: 'notifications',
           filter: `user_id=eq.${user.id}`,
         },
-        (payload) => {
+          (payload) => {
           // Append new notification directly to cache (no full refetch)
           qc.setQueryData(['notifications', user.id], (old = []) => {
-            if (old.some((n) => n.id === payload.new.id)) return old;
-            return [payload.new, ...old]; // Prepend (newest first)
+            const next = normalizeNotification(payload.new);
+            if (old.some((n) => n.id === next.id)) return old;
+            return [next, ...old]; // Prepend (newest first)
           });
         }
       )
@@ -142,7 +144,7 @@ export default function Notifications() {
         (payload) => {
           // Update notification in-place (e.g., marked as read from another device)
           qc.setQueryData(['notifications', user.id], (old = []) =>
-            old.map((n) => (n.id === payload.new.id ? payload.new : n))
+            old.map((n) => (n.id === payload.new.id ? normalizeNotification(payload.new) : n))
           );
         }
       )
@@ -174,7 +176,19 @@ export default function Notifications() {
     [pendingRequests]
   );
 
-  const { getProfile } = useProfileBatch(userIds);
+  const notificationTargetIds = useMemo(
+    () => notifications
+      .filter((n) => n.related_entity_type === 'user_profile' && n.related_entity_id)
+      .map((n) => n.related_entity_id),
+    [notifications]
+  );
+
+  const profileIds = useMemo(
+    () => Array.from(new Set([...userIds, ...notificationTargetIds])),
+    [userIds, notificationTargetIds]
+  );
+
+  const { getProfile } = useProfileBatch(profileIds);
 
   const acceptConn = useMutation({
     mutationFn: async (req) => {
@@ -300,6 +314,7 @@ export default function Notifications() {
         <VirtualNotificationSection
           title="Activity"
           notifications={notifications}
+          getProfile={getProfile}
           onMarkRead={handleMarkRead}
         />
       )}
@@ -321,7 +336,7 @@ function Section({ title, children }) {
  * Falls back to simple rendering for small lists (<25 items).
  * This is the highest-count list in the app (notifications accumulate over time).
  */
-function VirtualNotificationSection({ title, notifications, onMarkRead }) {
+function VirtualNotificationSection({ title, notifications, getProfile, onMarkRead }) {
   const parentRef = useRef(null);
   const VIRTUAL_THRESHOLD = 25;
   const shouldVirtualize = notifications.length >= VIRTUAL_THRESHOLD;
@@ -340,7 +355,12 @@ function VirtualNotificationSection({ title, notifications, onMarkRead }) {
         <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 px-1">{title}</div>
         <div className="space-y-2">
           {notifications.map((n) => (
-            <NotificationItem key={n.id} notification={n} onMarkRead={onMarkRead} />
+            <NotificationItem
+              key={n.id}
+              notification={n}
+              targetProfile={n.related_entity_type === 'user_profile' ? getProfile(n.related_entity_id) : null}
+              onMarkRead={onMarkRead}
+            />
           ))}
         </div>
       </div>
@@ -378,6 +398,7 @@ function VirtualNotificationSection({ title, notifications, onMarkRead }) {
               <div style={{ paddingBottom: '8px' }}>
                 <NotificationItem
                   notification={notifications[virtualRow.index]}
+                  targetProfile={notifications[virtualRow.index]?.related_entity_type === 'user_profile' ? getProfile(notifications[virtualRow.index].related_entity_id) : null}
                   onMarkRead={onMarkRead}
                 />
               </div>

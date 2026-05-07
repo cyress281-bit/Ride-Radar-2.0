@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
+import { normalizeNotifications } from '@/lib/notificationNormalizer';
 
 export const queryClientInstance = new QueryClient({
   defaultOptions: {
@@ -84,7 +85,7 @@ export function prefetchHomeData(userId) {
         .limit(100);
 
       if (error) throw error;
-      return data || [];
+      return normalizeNotifications(data || []);
     },
     staleTime: 30000,
   });
@@ -134,15 +135,25 @@ export function prefetchRiderProfile(userId) {
     queryKey: ['profile', userId],
     queryFn: async () => {
       const { supabase } = await import('@/lib/supabase');
-      const { data, error } = await supabase
+      const byUserId = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
         .eq('is_public', true)
-        .single();
+        .maybeSingle();
 
-      if (error) return null;
-      return data;
+      if (byUserId.data) return byUserId.data;
+
+      const byProfileId = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .eq('is_public', true)
+        .maybeSingle();
+
+      if (byProfileId.data) return byProfileId.data;
+
+      return null;
     },
     staleTime: 5 * 60 * 1000, // 5 min - profiles are stable
   });

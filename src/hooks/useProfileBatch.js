@@ -41,7 +41,14 @@ export function useProfileBatch(ids) {
   // Create a Map for O(1) lookup performance
   // CRITICAL FIX: Map by user_id (not p.id) since callers pass user UUIDs
   const profileMap = useMemo(
-    () => new Map(profiles.map((p) => [p.user_id, p])),
+    () => {
+      const map = new Map();
+      profiles.forEach((p) => {
+        if (p.user_id) map.set(p.user_id, p);
+        if (p.id) map.set(p.id, p);
+      });
+      return map;
+    },
     [profiles]
   );
 
