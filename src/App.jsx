@@ -16,44 +16,37 @@ import { setAnalyticsOptIn } from '@/lib/analytics';
 import SupabaseLogin from '@/pages/SupabaseLogin';
 import Layout from '@/components/Layout';
 
-// --- Lazy-loaded page routes (code-split into separate chunks) ---
-// Each lazy() call creates a separate chunk that is only fetched when the route is visited.
-
 // Public pages
 const Landing = lazy(() => import('@/pages/Landing'));
 const AccountDeletion = lazy(() => import('@/pages/AccountDeletion'));
 
-// Core authenticated pages (most frequently visited)
-const Home = lazy(() => import(/* webpackChunkName: "home" */ '@/pages/Home'));
-const Broadcast = lazy(() => import(/* webpackChunkName: "broadcast" */ '@/pages/Broadcast'));
-const BroadcastDetail = lazy(() => import(/* webpackChunkName: "broadcast-detail" */ '@/pages/BroadcastDetail'));
-const Messages = lazy(() => import(/* webpackChunkName: "messages" */ '@/pages/Messages'));
-const ConversationView = lazy(() => import(/* webpackChunkName: "conversation" */ '@/pages/ConversationView'));
-const Notifications = lazy(() => import(/* webpackChunkName: "notifications" */ '@/pages/Notifications'));
-const Profile = lazy(() => import(/* webpackChunkName: "profile" */ '@/pages/Profile'));
-const RiderProfile = lazy(() => import(/* webpackChunkName: "rider-profile" */ '@/pages/RiderProfile'));
+// Core authenticated pages
+const Home = lazy(() => import('@/pages/Home'));
+const Broadcast = lazy(() => import('@/pages/Broadcast'));
+const BroadcastDetail = lazy(() => import('@/pages/BroadcastDetail'));
+const Messages = lazy(() => import('@/pages/Messages'));
+const ConversationView = lazy(() => import('@/pages/ConversationView'));
+const Notifications = lazy(() => import('@/pages/Notifications'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const RiderProfile = lazy(() => import('@/pages/RiderProfile'));
 
 // Less frequently visited pages
-const Settings = lazy(() => import(/* webpackChunkName: "settings" */ '@/pages/Settings'));
-const Onboarding = lazy(() => import(/* webpackChunkName: "onboarding" */ '@/pages/Onboarding'));
-const ReviewReadiness = lazy(() => import(/* webpackChunkName: "review-readiness" */ '@/pages/ReviewReadiness'));
+const Settings = lazy(() => import('@/pages/Settings'));
+const Onboarding = lazy(() => import('@/pages/Onboarding'));
+const ReviewReadiness = lazy(() => import('@/pages/ReviewReadiness'));
 
-// Admin pages — grouped into a single chunk since they share dependencies
-// and are only accessed by admin users (very small % of traffic)
-const AdminDashboard = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/admin/AdminDashboard'));
-const AdminReports = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/admin/AdminReports'));
-const AdminBroadcasts = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/admin/AdminBroadcasts'));
-const AdminUsers = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/admin/AdminUsers'));
-const AdminBlocks = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/admin/AdminBlocks'));
-const AdminNotifications = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/admin/AdminNotifications'));
-const AdminDeletionRequests = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/admin/AdminDeletionRequests'));
-const AdminAnalyticsAudit = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/admin/AdminAnalyticsAudit'));
-const AdminCompliance = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/admin/AdminCompliance'));
-const AdminMonitoring = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/admin/AdminMonitoring'));
+// Admin pages
+const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
+const AdminReports = lazy(() => import('@/pages/admin/AdminReports'));
+const AdminBroadcasts = lazy(() => import('@/pages/admin/AdminBroadcasts'));
+const AdminUsers = lazy(() => import('@/pages/admin/AdminUsers'));
+const AdminBlocks = lazy(() => import('@/pages/admin/AdminBlocks'));
+const AdminNotifications = lazy(() => import('@/pages/admin/AdminNotifications'));
+const AdminDeletionRequests = lazy(() => import('@/pages/admin/AdminDeletionRequests'));
+const AdminAnalyticsAudit = lazy(() => import('@/pages/admin/AdminAnalyticsAudit'));
+const AdminCompliance = lazy(() => import('@/pages/admin/AdminCompliance'));
+const AdminMonitoring = lazy(() => import('@/pages/admin/AdminMonitoring'));
 
-/**
- * Protected route wrapper for Supabase auth
- */
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useSupabaseAuth();
 
@@ -72,16 +65,11 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-/**
- * Main app with Supabase routes
- */
 function SupabaseAppContent() {
   const { isAuthenticated, isLoading, user, profile } = useSupabaseAuth();
 
-  // Track page views on route changes
   usePageTracking();
 
-  // Set Sentry user context when authenticated
   useEffect(() => {
     if (isAuthenticated && user && profile) {
       setSentryUser(user, profile);
@@ -102,7 +90,7 @@ function SupabaseAppContent() {
   }
 
   return (
-    <Router>
+    <>
       <OfflineBanner />
       <ChunkErrorBoundary>
         <Suspense fallback={<PageLoadingSpinner />}>
@@ -115,7 +103,7 @@ function SupabaseAppContent() {
             />
             <Route path="/account-deletion" element={<AccountDeletion />} />
 
-            {/* Onboarding (semi-protected) */}
+            {/* Onboarding */}
             <Route
               path="/onboarding"
               element={
@@ -144,7 +132,7 @@ function SupabaseAppContent() {
               <Route path="/profile/:userId" element={<RiderProfile />} />
               <Route path="/review-readiness" element={<ReviewReadiness />} />
 
-              {/* Admin routes - role check is inside each page */}
+              {/* Admin routes */}
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
@@ -169,24 +157,20 @@ function SupabaseAppContent() {
         </Suspense>
       </ChunkErrorBoundary>
       <Toaster />
-    </Router>
+    </>
   );
 }
 
-/**
- * Supabase-powered app wrapper
- *
- * This is a test version of your app using Supabase instead of Base44.
- * Once we verify everything works, we'll replace the main App.jsx.
- */
 export default function SupabaseApp() {
   return (
     <ErrorBoundary>
-      <SupabaseAuthProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <SupabaseAppContent />
-        </QueryClientProvider>
-      </SupabaseAuthProvider>
+      <Router>
+        <SupabaseAuthProvider>
+          <QueryClientProvider client={queryClientInstance}>
+            <SupabaseAppContent />
+          </QueryClientProvider>
+        </SupabaseAuthProvider>
+      </Router>
     </ErrorBoundary>
   );
 }

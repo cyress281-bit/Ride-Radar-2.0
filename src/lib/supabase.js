@@ -2,13 +2,81 @@ import { createClient } from '@supabase/supabase-js';
 import { logger } from './logger';
 
 // Get credentials from environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(`Missing env vars - URL: ${supabaseUrl}, KEY: ${supabaseAnonKey ? 'exists' : 'missing'}`);
-  logger.error('Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file');
-}
+const getSupabaseProjectRef = (url) => {
+  try {
+    const { hostname } = new URL(url);
+    if (!hostname.endsWith('.supabase.co')) return null;
+    return hostname.split('.')[0];
+  } catch {
+    return null;
+  }
+};
+
+const decodeJwtPayload = (token) => {
+  if (!/^[^.]+\.[^.]+\.[^.]+$/.test(token) || typeof globalThis.atob !== 'function') {
+    return null;
+  }
+
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const paddedPayload = payload.padEnd(payload.length + ((4 - (payload.length % 4)) % 4), '=');
+    return JSON.parse(globalThis.atob(paddedPayload));
+  } catch {
+    return null;
+  }
+};
+
+const validateSupabaseEnv = () => {
+  const errors = [];
+  const placeholderUrls = new Set([
+    'https://your-project-id.supabase.co',
+    'https://your-project.supabase.co',
+  ]);
+
+  if (!supabaseUrl) {
+    errors.push('VITE_SUPABASE_URL is missing');
+  } else {
+    try {
+      new URL(supabaseUrl);
+    } catch {
+      errors.push('VITE_SUPABASE_URL must be a valid URL');
+    }
+
+    if (placeholderUrls.has(supabaseUrl)) {
+      errors.push('VITE_SUPABASE_URL still contains the example placeholder');
+    }
+  }
+
+  if (!supabaseAnonKey) {
+    errors.push('VITE_SUPABASE_ANON_KEY is missing');
+  } else if (supabaseAnonKey === 'your-anon-key-here') {
+    errors.push('VITE_SUPABASE_ANON_KEY still contains the example placeholder');
+  } else if (!supabaseAnonKey.startsWith('sb_publishable_')) {
+    const keyPayload = decodeJwtPayload(supabaseAnonKey);
+
+    if (!keyPayload) {
+      errors.push('VITE_SUPABASE_ANON_KEY must be a valid anon JWT or publishable key');
+    } else if (keyPayload.role !== 'anon') {
+      errors.push(`VITE_SUPABASE_ANON_KEY has role "${keyPayload.role || 'unknown'}"; expected "anon"`);
+    }
+
+    const urlProjectRef = supabaseUrl ? getSupabaseProjectRef(supabaseUrl) : null;
+    if (keyPayload?.ref && urlProjectRef && keyPayload.ref !== urlProjectRef) {
+      errors.push('VITE_SUPABASE_URL project ref does not match VITE_SUPABASE_ANON_KEY');
+    }
+  }
+
+  if (errors.length > 0) {
+    const message = `Invalid Supabase environment configuration: ${errors.join('; ')}`;
+    logger.error(message);
+    throw new Error(message);
+  }
+};
+
+validateSupabaseEnv();
 
 /**
  * Supabase client for Ride Radar 2.0
