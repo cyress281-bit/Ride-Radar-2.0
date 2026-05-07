@@ -102,7 +102,7 @@ const BroadcastCard = memo(function BroadcastCard({ broadcast, author, userLat, 
               <span className={cn('text-[10px] font-bold uppercase tracking-widest', styles.labelColor)}>
                 {meta.label}{isoSubLabel && ` · ${isoSubLabel}`}
               </span>
-              <span className="text-muted-foreground text-xs">· {timeAgo(broadcast.created_date)}</span>
+              <span className="text-muted-foreground text-xs">· {timeAgo(broadcast.createdAt)}</span>
             </div>
 
             <h3 className="font-semibold text-[15px] leading-tight mb-1 line-clamp-2 text-foreground">
@@ -201,8 +201,7 @@ const BroadcastCard = memo(function BroadcastCard({ broadcast, author, userLat, 
     prevProps.broadcast.title === nextProps.broadcast.title &&
     prevProps.broadcast.body === nextProps.broadcast.body &&
     prevProps.broadcast.expiresAt === nextProps.broadcast.expiresAt &&
-    prevProps.broadcast.created_date === nextProps.broadcast.created_date &&
-    prevProps.broadcast.created_at === nextProps.broadcast.created_at &&
+    prevProps.broadcast.createdAt === nextProps.broadcast.createdAt &&
     prevProps.author === nextProps.author &&
     prevProps.userLat === nextProps.userLat &&
     prevProps.userLng === nextProps.userLng &&

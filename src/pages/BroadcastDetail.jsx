@@ -13,12 +13,13 @@ import { getProfileByIdSafe } from '@/lib/profileLookup';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { prefetchRiderProfile } from '@/lib/query-client';
+import { normalizeBroadcast, normalizeProfile } from '@/lib/supabaseNormalizer';
 
 export default function BroadcastDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { user, profile } = useSupabaseAuth();
+  const { user } = useSupabaseAuth();
 
   const { data: broadcast } = useQuery({
     queryKey: ['broadcast', id],
@@ -30,15 +31,15 @@ export default function BroadcastDetail() {
         .single();
 
       if (error) throw error;
-      return data;
+      return normalizeBroadcast(data);
     },
     staleTime: 60000, // 1 min - broadcasts don't change often
   });
 
   const { data: author } = useQuery({
-    queryKey: ['profile', broadcast?.author_id],
-    enabled: !!broadcast?.author_id,
-    queryFn: async () => await getProfileByIdSafe(broadcast.author_id),
+    queryKey: ['profile', broadcast?.authorId],
+    enabled: !!broadcast?.authorId,
+    queryFn: async () => normalizeProfile(await getProfileByIdSafe(broadcast.authorId)),
     staleTime: 5 * 60 * 1000, // 5 min - profiles are stable
   });
 
@@ -96,7 +97,7 @@ export default function BroadcastDetail() {
   if (!broadcast) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
 
   const meta = BROADCAST_META[broadcast.type];
-  const isAuthor = user?.id === broadcast.author_id;
+  const isAuthor = user?.id === broadcast.authorId;
   const isAlert = broadcast.type === 'alert';
 
   return (
@@ -115,31 +116,31 @@ export default function BroadcastDetail() {
           broadcast.type === 'iso' && 'bg-iso/10 text-iso',
           broadcast.type === 'event' && 'bg-event/10 text-event'
         )}>
-          {broadcast.type === 'solo_ride' && <OfficialMotorcycleIcon className="h-5 w-6 rounded-md" />}
-          {meta.label}
-          {broadcast.iso_subtype && ` · ${broadcast.iso_subtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}`}
+        {broadcast.type === 'solo_ride' && <OfficialMotorcycleIcon className="h-5 w-6 rounded-md" />}
+        {meta.label}
+          {broadcast.isoSubtype && ` · ${broadcast.isoSubtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}`}
         </div>
 
         <h1 className="font-display text-2xl font-bold tracking-tight mb-2">{broadcast.title}</h1>
         {broadcast.body && <p className="text-[15px] text-foreground/80 leading-relaxed mb-4 whitespace-pre-wrap">{broadcast.body}</p>}
 
-        {broadcast.type === 'event' && broadcast.event_image_url && (
+        {broadcast.type === 'event' && broadcast.eventImage && (
           <div className="my-5 flex max-h-[70vh] items-center justify-center overflow-hidden rounded-2xl border border-event/25 bg-black/45 p-2 shadow-[0_18px_55px_rgba(0,0,0,0.35),inset_0_1px_0_hsl(0_0%_100%/0.05)]">
-            <img src={broadcast.event_image_url} className="max-h-[68vh] w-full object-contain" alt="Event poster" />
+            <img src={broadcast.eventImage} className="max-h-[68vh] w-full object-contain" alt="Event poster" />
           </div>
         )}
-        {isAlert && <AlertPhotoGrid images={broadcast.alert_image_urls} variant="detail" />}
+        {isAlert && <AlertPhotoGrid images={broadcast.alertImages} variant="detail" />}
 
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground mt-3">
-          {(broadcast.type === 'event' || isAlert) && broadcast.exact_location_text && (
-            <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" />{broadcast.exact_location_text}</span>
+          {(broadcast.type === 'event' || isAlert) && broadcast.exactLocationText && (
+            <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4" />{broadcast.exactLocationText}</span>
           )}
-          {broadcast.type === 'event' && broadcast.event_date && (
+          {broadcast.type === 'event' && broadcast.eventDate && (
             <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" />
-              {new Date(broadcast.event_date).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+              {new Date(broadcast.eventDate).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
             </span>
           )}
-          <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" />{timeUntilExpiry(broadcast.expires_at)}</span>
+          <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" />{timeUntilExpiry(broadcast.expiresAt)}</span>
         </div>
 
         {author && (
@@ -149,16 +150,16 @@ export default function BroadcastDetail() {
             onFocus={() => prefetchRiderProfile(author.user_id)}
             className="flex items-center gap-2.5 mt-4 pt-4 border-t border-border/60"
           >
-            {author.avatar_url ? (
-              <img src={author.avatar_url} className="w-9 h-9 rounded-full object-cover" alt="" />
+            {author.avatar ? (
+              <img src={author.avatar} className="w-9 h-9 rounded-full object-cover" alt="" />
             ) : (
               <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-semibold text-sm">
-                {author.display_name?.[0] || '?'}
+                {author.displayName?.[0] || '?'}
               </div>
             )}
             <div>
-              <div className="font-semibold text-sm">{author.display_name}</div>
-              <div className="text-xs text-muted-foreground">{timeAgo(broadcast.created_at)}</div>
+              <div className="font-semibold text-sm">{author.displayName}</div>
+              <div className="text-xs text-muted-foreground">{timeAgo(broadcast.createdAt)}</div>
             </div>
           </Link>
         )}
@@ -166,7 +167,7 @@ export default function BroadcastDetail() {
 
       {!isAuthor && user && (
         <div className="mt-4">
-          <SafetyActions targetType="broadcast" targetId={broadcast.id} targetProfileId={broadcast.author_id} />
+          <SafetyActions targetType="broadcast" targetId={broadcast.id} targetProfileId={broadcast.authorId} />
         </div>
       )}
 
@@ -258,7 +259,7 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
         .insert({
           broadcast_id: broadcast.id,
           from_user_id: user.id,
-          to_user_id: broadcast.author_id,
+          to_user_id: broadcast.authorId,
           message: msg.trim() || null,
           status: 'pending',
         });

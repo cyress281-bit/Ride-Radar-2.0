@@ -13,6 +13,7 @@ import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import BikePhotoUploader from '@/components/profile/BikePhotoUploader';
 import OptimizedImage from '@/components/OptimizedImage';
 import { isExpired } from '@/lib/broadcastUtils';
+import { normalizeBroadcasts, normalizeProfile } from '@/lib/supabaseNormalizer';
 import { Link } from 'react-router-dom';
 
 export default function Profile() {
@@ -31,7 +32,7 @@ export default function Profile() {
         .limit(50);
 
       if (error) throw error;
-      return data || [];
+      return normalizeBroadcasts(data || []);
     },
   });
 
@@ -41,6 +42,7 @@ export default function Profile() {
     () => myBroadcasts.filter((b) => b.status === 'active' && !isExpired(b)),
     [myBroadcasts]
   );
+  const normalizedProfile = useMemo(() => normalizeProfile(profile), [profile]);
 
   if (isError) {
     return (
@@ -153,7 +155,7 @@ export default function Profile() {
             </div>
           ) : (
             <div className="space-y-3">
-              {active.map((b) => <BroadcastCard key={b.id} broadcast={b} author={profile} />)}
+              {active.map((b) => <BroadcastCard key={b.id} broadcast={b} author={normalizedProfile} />)}
             </div>
           )}
         </>
@@ -213,7 +215,7 @@ function ProfileEdit({ profile, onDone }) {
           const area = data.city || data.locality || 'Unknown area';
           const state = data.principalSubdivision || '';
           setForm(f => ({ ...f, location: `${area} area` + (state ? `, ${state}` : '') }));
-        } catch (e) {
+        } catch {
           setForm(f => ({ ...f, location: 'Location unavailable' }));
         }
         setDetectingLoc(false);
@@ -255,8 +257,8 @@ function ProfileEdit({ profile, onDone }) {
     },
   });
 
-  const handleAvatar = async (e) => {
-    const file = e.target.files?.[0];
+  const handleAvatar = async ({ target }) => {
+    const file = target.files?.[0];
     if (!file) return;
     setUploading(true);
     setUploadError('');

@@ -102,6 +102,8 @@ function reportWebVital(name, metric) {
  * Call this in query hooks to measure query execution time
  */
 export function measureQueryPerformance(queryKey, startTime) {
+  if (startTime == null) return null;
+
   const duration = performance.now() - startTime;
   const queryName = Array.isArray(queryKey) ? queryKey[0] : queryKey;
 
@@ -127,6 +129,8 @@ export function measureQueryPerformance(queryKey, startTime) {
  * Track real-time subscription connection time
  */
 export function measureSubscriptionConnection(channelName, startTime) {
+  if (startTime == null) return null;
+
   const duration = performance.now() - startTime;
 
   // Only track slow connections (>500ms)
@@ -151,6 +155,8 @@ export function measureSubscriptionConnection(channelName, startTime) {
  * Track image load performance
  */
 export function measureImageLoad(imageType, startTime) {
+  if (startTime == null) return null;
+
   const duration = performance.now() - startTime;
 
   // Only track slow loads (>2s)
@@ -176,7 +182,7 @@ export function startRouteTransition() {
 }
 
 export function endRouteTransition(routeName) {
-  if (!routeTransitionStart) return;
+  if (routeTransitionStart == null) return;
 
   const duration = performance.now() - routeTransitionStart;
   routeTransitionStart = null;
@@ -240,11 +246,21 @@ export function checkMemoryUsage() {
  * Get performance summary for dashboard
  */
 export function getPerformanceSummary() {
+  if (typeof performance === 'undefined') {
+    return {
+      domContentLoaded: null,
+      loadComplete: null,
+      firstContentfulPaint: null,
+      largestContentfulPaint: null,
+      memory: null,
+    };
+  }
+
   const navigation = performance.getEntriesByType('navigation')[0];
   const paint = performance.getEntriesByType('paint');
 
   const fcp = paint.find((entry) => entry.name === 'first-contentful-paint');
-  const lcp = paint.find((entry) => entry.name === 'largest-contentful-paint');
+  const lcp = performance.getEntriesByType('largest-contentful-paint')[0];
 
   return {
     domContentLoaded: navigation ? Math.round(navigation.domContentLoadedEventEnd) : null,

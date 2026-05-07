@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { Link, Navigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -18,16 +17,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { getPerformanceSummary } from '@/lib/performanceMonitoring';
 import { useState, useEffect } from 'react';
+import { useAdminRole } from '@/hooks/useAdminRole';
 
-export default function AdminMonitoring() {
-  const { profile } = useSupabaseAuth();
+function AdminMonitoringContent() {
   const [perfData, setPerfData] = useState(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
-
-  // Check admin permission
-  if (!profile?.is_admin) {
-    return <Navigate to="/home" replace />;
-  }
 
   // Get performance metrics
   useEffect(() => {
@@ -305,4 +299,22 @@ export default function AdminMonitoring() {
       </div>
     </div>
   );
+}
+
+export default function AdminMonitoring() {
+  const { isAdmin, isLoading: roleLoading } = useAdminRole();
+
+  if (roleLoading) {
+    return (
+      <div className="px-5 pt-6 flex items-center justify-center min-h-[200px]">
+        <div className="w-8 h-8 border-4 border-secondary border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/home" replace />;
+  }
+
+  return <AdminMonitoringContent />;
 }
