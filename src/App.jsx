@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { SupabaseAuthProvider, useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
@@ -8,6 +8,8 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ChunkErrorBoundary } from '@/components/ChunkErrorBoundary';
 import PageLoadingSpinner from '@/components/PageLoadingSpinner';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import SplashScreen from '@/components/SplashScreen';
+import { AnimatePresence } from 'framer-motion';
 import { usePageTracking } from '@/hooks/usePageTracking';
 import { setSentryUser, clearSentryUser } from '@/lib/sentry';
 import { setAnalyticsOptIn } from '@/lib/analytics';
@@ -162,12 +164,20 @@ function SupabaseAppContent() {
 }
 
 export default function SupabaseApp() {
+  const [showSplash, setShowSplash] = useState(true);
+  const handleSplashComplete = useCallback(() => {
+    setShowSplash(false);
+  }, []);
+
   return (
     <ErrorBoundary>
       <Router>
         <SupabaseAuthProvider>
           <QueryClientProvider client={queryClientInstance}>
             <SupabaseAppContent />
+            <AnimatePresence>
+              {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+            </AnimatePresence>
           </QueryClientProvider>
         </SupabaseAuthProvider>
       </Router>
