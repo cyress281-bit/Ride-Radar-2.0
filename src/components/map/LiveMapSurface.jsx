@@ -226,24 +226,6 @@ function MapSummary({ items, userLat, userLng, variant }) {
   );
 }
 
-function EmptyState({ variant }) {
-  return (
-    <div
-      className={cn(
-        'flex flex-col items-center justify-center rounded-2xl border border-dashed border-primary/30 bg-black/30 p-6 text-center',
-        variant === 'full' ? 'min-h-[520px]' : 'h-[300px]'
-      )}
-      role="status"
-    >
-      <MapPin className="mb-3 h-8 w-8 text-muted-foreground" aria-hidden="true" />
-      <h2 className="font-display text-xl font-bold">No mapped broadcasts</h2>
-      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-        Active broadcasts with recognizable locations will appear here as soon as they hit the network.
-      </p>
-    </div>
-  );
-}
-
 function LoadingState({ variant }) {
   return (
     <div
@@ -490,7 +472,6 @@ export default function LiveMapSurface({
 
   if (isLoading) return <LoadingState variant={variant} />;
   if (mapError) return <ErrorState onRetry={handleRetry} variant={variant} />;
-  if (items.length === 0) return <EmptyState variant={variant} />;
 
   return (
     <section
@@ -529,6 +510,17 @@ export default function LiveMapSurface({
             Skip map
           </a>
           <MapSummary items={items} userLat={userLat} userLng={userLng} variant={variant} />
+          {items.length === 0 && (
+            <div className="pointer-events-none absolute inset-x-4 bottom-4 z-[430] flex justify-center">
+              <div className="max-w-sm rounded-2xl border border-border/65 bg-black/78 p-4 text-center shadow-[0_18px_50px_rgba(0,0,0,0.42)] backdrop-blur-xl">
+                <MapPin className="mx-auto mb-2 h-6 w-6 text-muted-foreground" aria-hidden="true" />
+                <h2 className="font-display text-lg font-bold">No mapped broadcasts</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Active broadcasts with recognizable locations will appear here as soon as they hit the network.
+                </p>
+              </div>
+            </div>
+          )}
           <MapContainer
             center={center}
             zoom={isValidCoordinate(userLat, userLng) ? 11 : 4}

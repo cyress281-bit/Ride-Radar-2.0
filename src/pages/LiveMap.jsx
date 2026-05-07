@@ -16,6 +16,22 @@ function isUnavailableQueryError(error) {
   return error?.code === 'PGRST205' || error?.code === '42P01' || error?.status === 404 || error?.status === 400;
 }
 
+async function fetchActiveBroadcastsFallback() {
+  const { data, error } = await supabase
+    .from('broadcasts')
+    .select('*')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(150);
+
+  if (error) throw error;
+
+  return normalizeBroadcasts(data || []).filter((broadcast) => {
+    if (!broadcast.expires_at && !broadcast.expiresAt) return true;
+    return new Date(broadcast.expires_at || broadcast.expiresAt) > new Date();
+  });
+}
+
 const FILTERS = [
   { key: 'all', label: 'All', Icon: Radio },
   { key: 'alert', label: 'Alerts', Icon: ShieldAlert },
@@ -77,7 +93,7 @@ export default function LiveMap() {
 
       if (error) {
         logger.warn('[LiveMap] Active broadcasts query failed:', error);
-        if (isUnavailableQueryError(error)) return [];
+        if (isUnavailableQueryError(error)) return fetchActiveBroadcastsFallback();
         throw error;
       }
       return normalizeBroadcasts(data || []);

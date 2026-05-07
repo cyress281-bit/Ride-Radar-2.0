@@ -4,9 +4,47 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { normalizeBroadcast, normalizeBroadcasts } from '@/lib/supabaseNormalizer';
 import { logger } from '@/lib/logger';
+import { haversineMiles } from '@/lib/broadcastUtils';
 
 function isUnavailableQueryError(error) {
   return error?.code === 'PGRST205' || error?.code === '42P01' || error?.status === 404 || error?.status === 400;
+}
+
+function hasPoint(broadcast) {
+  return (
+    (broadcast.frozen_lat != null || broadcast.frozenLat != null || broadcast.lat != null) &&
+    (broadcast.frozen_lng != null || broadcast.frozenLng != null || broadcast.lng != null)
+  );
+}
+
+async function fetchNearbyBroadcastsFallback(lat, lng, radiusMiles) {
+  const { data, error } = await supabase
+    .from('broadcasts')
+    .select('*')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(250);
+
+  if (error) throw error;
+
+  return normalizeBroadcasts(data || [])
+    .filter((broadcast) => {
+      if (!hasPoint(broadcast)) return false;
+      if (!broadcast.expires_at && !broadcast.expiresAt) return true;
+      return new Date(broadcast.expires_at || broadcast.expiresAt) > new Date();
+    })
+    .map((broadcast) => {
+      const distance = haversineMiles(
+        lat,
+        lng,
+        broadcast.frozen_lat ?? broadcast.frozenLat ?? broadcast.lat,
+        broadcast.frozen_lng ?? broadcast.frozenLng ?? broadcast.lng
+      );
+      return { ...broadcast, distance_miles: distance };
+    })
+    .filter((broadcast) => broadcast.distance_miles == null || broadcast.distance_miles <= radiusMiles)
+    .sort((a, b) => (a.distance_miles ?? 999) - (b.distance_miles ?? 999))
+    .slice(0, 100);
 }
 
 /**
@@ -39,7 +77,10 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50) {
 
       if (error) {
         logger.error('[useNearbyBroadcasts] Error:', error);
-        if (isUnavailableQueryError(error)) return [];
+        if (isUnavailableQueryError(error)) {
+          logger.warn('[useNearbyBroadcasts] Falling back to client-side nearby filtering');
+          return fetchNearbyBroadcastsFallback(lat, lng, radiusMiles);
+        }
         throw error;
       }
 
