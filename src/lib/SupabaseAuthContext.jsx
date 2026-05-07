@@ -16,6 +16,14 @@ export const SupabaseAuthProvider = ({ children }) => {
 
     logger.debug('[SupabaseAuth] Initializing...');
 
+    const clearAuthState = () => {
+      if (!isMounted) return;
+      setUser(null);
+      setProfile(null);
+      setIsAuthenticated(false);
+      setIsLoading(false);
+    };
+
     const handleSession = (session) => {
       if (!isMounted) return;
 
@@ -36,19 +44,33 @@ export const SupabaseAuthProvider = ({ children }) => {
       }
     };
 
+    const validateAndHandleSession = async (session) => {
+      if (!session) {
+        handleSession(null);
+        return;
+      }
+
+      const { data, error } = await supabase.auth.getUser();
+
+      if (error || !data?.user) {
+        logger.warn('[SupabaseAuth] Cached session is invalid; clearing local auth state', error);
+        await supabase.auth.signOut({ scope: 'local' });
+        clearAuthState();
+        return;
+      }
+
+      handleSession({ ...session, user: data.user });
+    };
+
     supabase.auth
       .getSession()
       .then(({ data: { session } }) => {
         logger.debug('[SupabaseAuth] Initial session:', session?.user?.id ? 'found' : 'none');
-        handleSession(session);
+        void validateAndHandleSession(session);
       })
       .catch((error) => {
         logger.error('[SupabaseAuth] Error getting initial session:', error);
-        if (!isMounted) return;
-        setUser(null);
-        setProfile(null);
-        setIsAuthenticated(false);
-        setIsLoading(false);
+        clearAuthState();
       });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
