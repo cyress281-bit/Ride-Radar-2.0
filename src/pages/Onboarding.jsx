@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
@@ -7,22 +7,23 @@ import { prepareLocalImage, getImagePreview, uploadImageIfNeeded } from '@/lib/l
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import RRLogo from '@/components/RRLogo';
-import { MapPin, Loader2 } from 'lucide-react';
 import BikePhotoUploader from '@/components/profile/BikePhotoUploader';
 
 export default function Onboarding() {
-  const { user, refreshProfile } = useSupabaseAuth();
+  const { user, profile, refreshProfile } = useSupabaseAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [form, setForm] = useState({
-    displayName: user?.email?.split('@')[0] || '',
-    avatar: '',
-    location: '',
-    bike: '',
-    bikePhoto: '',
+    displayName: profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
+    bio: profile?.bio || '',
+    avatar: profile?.avatar_url || '',
+    bikeYear: profile?.bike_year || '',
+    bikeMake: profile?.bike_make || '',
+    bikeModel: profile?.bike_model || '',
+    bikePhoto: profile?.bike_photo_url || '',
   });
-  const [detectingLoc, setDetectingLoc] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
 
@@ -34,59 +35,31 @@ export default function Onboarding() {
     try {
       const localImage = await prepareLocalImage(file, 'avatar');
       setForm({ ...form, avatar: localImage });
+      e.target.value = '';
     } catch (error) {
       setUploadError(error?.response?.data?.error || error.message || 'Image validation failed. Please try another image.');
-    } finally { setUploading(false); }
-  };
-
-  const detectLocation = () => {
-    setDetectingLoc(true);
-    if (!navigator.geolocation) {
-      setForm(f => ({ ...f, location: 'Location unavailable' }));
-      setDetectingLoc(false);
-      return;
+    } finally {
+      setUploading(false);
     }
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`);
-          const data = await res.json();
-          const area = data.city || data.locality || 'Unknown area';
-          const state = data.principalSubdivision || '';
-          setForm(f => ({ ...f, location: `${area} area` + (state ? `, ${state}` : '') }));
-        } catch (e) {
-          setForm(f => ({ ...f, location: 'Location unavailable' }));
-        }
-        setDetectingLoc(false);
-      },
-      () => {
-        setForm(f => ({ ...f, location: 'Location unavailable' }));
-        setDetectingLoc(false);
-      },
-      { timeout: 10000 }
-    );
   };
 
-  useEffect(() => {
-    detectLocation();
-  }, []);
-
-  const create = useMutation({
+  const saveProfile = useMutation({
     mutationFn: async () => {
       const [avatar_url, bike_photo_url] = await Promise.all([
         uploadImageIfNeeded(form.avatar),
         uploadImageIfNeeded(form.bikePhoto),
       ]);
 
-      // CRITICAL FIX: Use upsert instead of update to handle new users
       const { error } = await supabase
         .from('user_profiles')
         .upsert({
           user_id: user.id,
-          display_name: form.displayName || user.email,
+          display_name: form.displayName.trim() || user.email,
+          bio: form.bio.trim(),
           avatar_url,
-          location: form.location,
-          bike: form.bike,
+          bike_year: form.bikeYear ? Number(form.bikeYear) : null,
+          bike_make: form.bikeMake.trim(),
+          bike_model: form.bikeModel.trim(),
           bike_photo_url,
           is_public: true,
         }, {
@@ -97,50 +70,49 @@ export default function Onboarding() {
     },
     onSuccess: async () => {
       await refreshProfile();
-      navigate('/home');
+      qc.invalidateQueries({ queryKey: ['profile'] });
+      navigate('/home', { replace: true });
     },
   });
 
-  const canSubmit = form.avatar && form.bike.trim().length > 0;
+  const hasBike = form.bikeMake.trim().length > 1 && form.bikeModel.trim().length > 1;
+  const canSubmit =
+    form.displayName.trim().length >= 2 &&
+    form.bio.trim().length >= 10 &&
+    !!form.avatar &&
+    hasBike;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center px-5 py-8">
-      {/* Live ambient background */}
       <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-30" />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.12),transparent_30%),linear-gradient(180deg,transparent,rgba(0,0,0,0.5))]" />
-      <div className="absolute top-[-10%] left-[20%] w-[500px] h-[500px] bg-primary/10 ambient-glow" style={{ animationDelay: '0s' }} />
-      <div className="absolute bottom-[0%] right-[-10%] w-[400px] h-[400px] bg-primary/5 ambient-glow" style={{ animationDelay: '-3s' }} />
 
-      <div className="relative z-10 w-full max-w-md px-6 py-8 rr-surface-strong rounded-[1.7rem] overflow-hidden">
-        {/* Brand */}
-        <div className="flex items-center gap-2.5 mb-8">
+      <div className="relative z-10 w-full max-w-md rounded-[1.7rem] rr-surface-strong px-6 py-8">
+        <div className="mb-7 flex items-center gap-2.5">
           <RRLogo size="md" />
-          <span className="font-display font-bold text-xl tracking-tight">
+          <span className="font-display text-xl font-bold tracking-tight">
             Ride<span className="text-primary text-glow-green">Radar</span>
           </span>
         </div>
 
         <div className="rr-chip mb-4"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Rider profile</div>
-        <h1 className="rr-heading text-4xl mb-1 text-foreground">
-          Set up your profile
-        </h1>
-        <p className="text-muted-foreground mb-6 text-sm">Takes a minute. You can edit anything later.</p>
+        <h1 className="rr-heading mb-1 text-4xl text-foreground">Set up your profile</h1>
+        <p className="mb-6 text-sm text-muted-foreground">Add the details other riders expect to see before you enter the network.</p>
 
         <div className="space-y-4">
-          {/* Avatar */}
           <div>
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">
-              Profile Picture *
+            <Label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Profile picture *
             </Label>
             <div className="flex items-center gap-4">
               {getImagePreview(form.avatar) ? (
-                <img src={getImagePreview(form.avatar)} className="w-16 h-16 rounded-2xl object-cover border border-border" alt="" />
+                <img src={getImagePreview(form.avatar)} className="h-16 w-16 rounded-2xl border border-border object-cover" alt="" />
               ) : (
-                <div className="w-16 h-16 rounded-2xl bg-secondary/50 border border-dashed border-border flex items-center justify-center font-display font-bold text-xl text-muted-foreground">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-dashed border-border bg-secondary/50 font-display text-xl font-bold text-muted-foreground">
                   {form.displayName?.[0]?.toUpperCase() || '?'}
                 </div>
               )}
-              <label className="text-sm font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer bg-primary/10 border border-primary/20 px-4 py-2 rounded-full">
+              <label className="cursor-pointer rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-bold text-primary transition-colors hover:text-primary/80">
                 <input type="file" accept="image/*" onChange={handleAvatar} className="hidden" />
                 {uploading ? 'Preparing...' : 'Upload picture'}
               </label>
@@ -148,70 +120,85 @@ export default function Onboarding() {
             {uploadError && <p className="mt-2 text-sm text-destructive">{uploadError}</p>}
           </div>
 
-          {/* Display name */}
           <div>
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
-              Display name
+            <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Display name *
             </Label>
             <Input
               value={form.displayName}
               onChange={(e) => setForm({ ...form, displayName: e.target.value })}
-              placeholder="How others see you"
+              placeholder="How riders see you"
             />
           </div>
 
-          {/* Location */}
           <div>
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
-              Approximate Area
+            <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Bio *
             </Label>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 px-4 py-2.5 rounded-lg border border-input bg-secondary/30 text-sm text-foreground flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-primary" />
-                {detectingLoc ? 'Locating...' : (form.location || 'Location unavailable')}
-              </div>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={detectLocation} 
-                disabled={detectingLoc}
-                className="shrink-0 rounded-lg hover:border-primary hover:text-primary transition-colors"
-              >
-                {detectingLoc ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Detect'}
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">Privacy-safe: We only save a broad area (e.g. "Dallas area").</p>
+            <Textarea
+              value={form.bio}
+              onChange={(e) => setForm({ ...form, bio: e.target.value })}
+              placeholder="Your riding style, local area, and what kind of rides you like."
+              maxLength={220}
+              rows={3}
+            />
           </div>
 
-          {/* Bike */}
+          <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2">
+            <div>
+              <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Year
+              </Label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                value={form.bikeYear}
+                onChange={(e) => setForm({ ...form, bikeYear: e.target.value })}
+                placeholder="2024"
+              />
+            </div>
+            <div>
+              <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Bike make *
+              </Label>
+              <Input
+                value={form.bikeMake}
+                onChange={(e) => setForm({ ...form, bikeMake: e.target.value })}
+                placeholder="Yamaha"
+              />
+            </div>
+          </div>
+
           <div>
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
-              Bike *
+            <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Bike model *
             </Label>
             <Input
-              value={form.bike}
-              onChange={(e) => setForm({ ...form, bike: e.target.value })}
-              placeholder="2022 Triumph Speed Triple"
+              value={form.bikeModel}
+              onChange={(e) => setForm({ ...form, bikeModel: e.target.value })}
+              placeholder="MT-09"
             />
           </div>
 
           <div>
-            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
+            <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Bike photo
             </Label>
             <BikePhotoUploader image={form.bikePhoto} onChange={(bikePhoto) => setForm({ ...form, bikePhoto })} />
           </div>
 
-          {create.isError && (
-            <p className="text-sm text-destructive">{create.error?.message || 'Failed to create profile'}</p>
+          {saveProfile.isError && (
+            <p className="rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive">
+              {saveProfile.error?.message || 'Failed to create profile'}
+            </p>
           )}
 
           <Button
-            onClick={() => create.mutate()}
-            disabled={!canSubmit || create.isPending}
-            className="w-full h-12 rounded-full text-base font-semibold glow-green"
+            onClick={() => saveProfile.mutate()}
+            disabled={!canSubmit || saveProfile.isPending}
+            className="h-12 w-full rounded-full text-base font-semibold glow-green"
           >
-            {create.isPending ? 'Creating...' : 'Join the network'}
+            {saveProfile.isPending ? 'Creating profile...' : 'Join the network'}
           </Button>
         </div>
       </div>

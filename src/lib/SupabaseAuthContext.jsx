@@ -231,6 +231,17 @@ export const SupabaseAuthProvider = ({ children }) => {
     return data;
   };
 
+  const signInWithProvider = async (provider) => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/onboarding`,
+      },
+    });
+    if (error) throw error;
+    return data;
+  };
+
   const signOut = async () => {
     logger.debug('[SupabaseAuth] Signing out');
     const { error } = await supabase.auth.signOut();
@@ -254,7 +265,7 @@ export const SupabaseAuthProvider = ({ children }) => {
     <SupabaseAuthContext.Provider
       value={{
         user, profile, isLoading, isAuthenticated,
-        signIn, signUp, signOut, updatePassword, refreshProfile,
+        signIn, signUp, signInWithProvider, signOut, updatePassword, refreshProfile,
       }}
     >
       {children}

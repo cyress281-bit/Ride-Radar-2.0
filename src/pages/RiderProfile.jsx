@@ -8,6 +8,7 @@ import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/OptimizedImage';
 import { getProfileByIdSafe } from '@/lib/profileLookup';
 import { getOrCreateConversation } from '@/lib/conversationUtils';
+import { normalizeProfile } from '@/lib/supabaseNormalizer';
 
 // Limited rider profile preview
 export default function RiderProfile() {
@@ -94,6 +95,7 @@ export default function RiderProfile() {
 
   if (!profile) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
 
+  const normalizedProfile = normalizeProfile(profile);
   const isMe = user?.id === profile.user_id;
   const isFriend = friendship?.status === 'active';
   const isPending = friendship?.status === 'pending';
@@ -126,7 +128,6 @@ export default function RiderProfile() {
         )}
         <div className="flex-1 min-w-0">
           <h1 className="font-display text-2xl font-bold tracking-tight truncate">{canSeeDetails ? profile.display_name : 'Private Rider'}</h1>
-          {canSeeDetails && profile.location && <div className="text-xs text-muted-foreground mt-1">{profile.location}</div>}
         </div>
       </div>
 
@@ -134,7 +135,7 @@ export default function RiderProfile() {
         <>
           {profile.bio && <p className="text-[15px] mb-4 leading-relaxed">{profile.bio}</p>}
 
-          {profile.bike && (
+          {normalizedProfile?.bike && (
             <div className="mb-5 overflow-hidden rounded-2xl border border-border/70 bg-secondary/30 text-sm">
               {profile.bike_photo_url && (
                 <OptimizedImage
@@ -148,8 +149,7 @@ export default function RiderProfile() {
               )}
               <div className="flex items-center gap-2 p-3">
                 <Bike className="w-4 h-4 text-primary" />
-                <span>{profile.bike}</span>
-                {profile.ride_style && <span className="ml-auto text-xs text-muted-foreground capitalize">{profile.ride_style}</span>}
+                <span>{normalizedProfile.bike}</span>
               </div>
             </div>
           )}

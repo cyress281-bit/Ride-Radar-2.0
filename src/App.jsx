@@ -2,7 +2,7 @@ import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { SupabaseAuthProvider, useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
-import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ChunkErrorBoundary } from '@/components/ChunkErrorBoundary';
@@ -87,8 +87,18 @@ function AdminRoute() {
   return <Outlet />;
 }
 
+function isProfileComplete(profile) {
+  if (!profile) return false;
+  const hasDisplayName = !!String(profile.display_name || '').trim();
+  const hasBio = !!String(profile.bio || '').trim();
+  const hasAvatar = !!profile.avatar_url;
+  const hasBike = !!String([profile.bike_year, profile.bike_make, profile.bike_model].filter(Boolean).join(' ')).trim();
+  return hasDisplayName && hasBio && hasAvatar && hasBike;
+}
+
 function SupabaseAppContent() {
   const { isAuthenticated, isLoading, user, profile } = useSupabaseAuth();
+  const location = useLocation();
 
   usePageTracking();
 
@@ -109,6 +119,10 @@ function SupabaseAppContent() {
         </div>
       </div>
     );
+  }
+
+  if (isAuthenticated && !isProfileComplete(profile) && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace state={{ from: location.pathname }} />;
   }
 
   return (

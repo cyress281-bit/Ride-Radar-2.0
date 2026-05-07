@@ -52,8 +52,8 @@ export function normalizeProfile(profile) {
     displayName: profile.display_name ?? profile.displayName,
     avatar: profile.avatar_url ?? profile.avatar,
     bikePhoto: profile.bike_photo_url ?? profile.bikePhoto,
-    bike: profile.bike_make
-      ? `${profile.bike_make} ${profile.bike_model || ''}`.trim()
+    bike: profile.bike_make || profile.bike_model
+      ? `${profile.bike_year || ''} ${profile.bike_make || ''} ${profile.bike_model || ''}`.trim()
       : profile.bike,
   };
 }
