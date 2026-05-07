@@ -83,7 +83,6 @@ export default function LiveMap() {
   const { blockedIds } = useBlockedProfiles();
   const {
     markers: riderMarkers,
-    isLoading: isLoadingPresence,
   } = useLiveMapPresence(
     { lat: userLoc.lat, lng: userLoc.lng },
     { autoPublish: false, source: 'live-map' }
@@ -180,7 +179,7 @@ export default function LiveMap() {
         getProfile={getProfile}
         userLat={userLoc.lat}
         userLng={userLoc.lng}
-        isLoading={isLoading || isLoadingPresence}
+        isLoading={isLoading}
         variant="full"
       />
     </div>
