@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, Suspense, lazy } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { CalendarClock, LocateFixed, Radio, Search, ShieldAlert } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -10,7 +10,7 @@ import { normalizeBroadcasts } from '@/lib/supabaseNormalizer';
 import { rankBroadcasts } from '@/lib/broadcastUtils';
 import { logger } from '@/lib/logger';
 import { cn } from '@/lib/utils';
-const LiveMapSurface = lazy(() => import('@/components/map/LiveMapSurface.lazy.jsx'));
+import LiveMapSurface from '@/components/map/LiveMapSurface';
 
 const FILTERS = [
   { key: 'all', label: 'All', Icon: Radio },
@@ -52,11 +52,6 @@ export default function LiveMap() {
     return () => {
       active = false;
     };
-  }, []);
-
-  // Lazy-load Leaflet CSS when this page mounts so styles are loaded only when needed
-  useEffect(() => {
-    import('leaflet/dist/leaflet.css').catch((err) => logger.warn('[LiveMap] failed to load leaflet css', err));
   }, []);
 
   const { data: nearbyBroadcasts = [], isLoading: isLoadingNearby } = useNearbyBroadcasts(
@@ -179,17 +174,15 @@ export default function LiveMap() {
         </div>
       )}
 
-      <Suspense fallback={<div className="min-h-[320px]"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto mt-8" aria-hidden="true" /></div>}>
-        <LiveMapSurface
-          broadcasts={filteredBroadcasts}
-          presenceMarkers={riderMarkers}
-          getProfile={getProfile}
-          userLat={userLoc.lat}
-          userLng={userLoc.lng}
-          isLoading={isLoading || isLoadingPresence}
-          variant="full"
-        />
-      </Suspense>
+      <LiveMapSurface
+        broadcasts={filteredBroadcasts}
+        presenceMarkers={riderMarkers}
+        getProfile={getProfile}
+        userLat={userLoc.lat}
+        userLng={userLoc.lng}
+        isLoading={isLoading || isLoadingPresence}
+        variant="full"
+      />
     </div>
   );
 }
