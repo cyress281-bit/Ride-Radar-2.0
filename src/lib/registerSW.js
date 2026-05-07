@@ -34,20 +34,17 @@ export async function registerServiceWorker() {
 
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // New version available
             console.log('[PWA] New version available');
-
-            // Notify user (you could show a toast here)
-            if (window.confirm('New version available! Reload to update?')) {
-              newWorker.postMessage({ type: 'SKIP_WAITING' });
-              window.location.reload();
-            }
+            newWorker.postMessage({ type: 'SKIP_WAITING' });
           }
         });
       });
 
       // Reload when new service worker takes over
+      let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
         console.log('[PWA] Service Worker updated');
         window.location.reload();
       });
