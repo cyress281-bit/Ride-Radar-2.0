@@ -71,6 +71,21 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         runtimeCaching: [
           {
+            // Cache dark map tiles so Radar can still show recently viewed areas under poor signal.
+            urlPattern: /^https:\/\/[a-d]\.basemaps\.cartocdn\.com\/dark_all\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'radar-map-tile-cache',
+              expiration: {
+                maxEntries: 600,
+                maxAgeSeconds: 60 * 60 * 24 * 14 // 14 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
             // Cache Supabase Storage images (avatars, bike photos, etc.)
             urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/object\/public\/.*/i,
             handler: 'CacheFirst',

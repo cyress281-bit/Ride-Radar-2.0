@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Search,
   ShieldAlert,
+  WifiOff,
 } from 'lucide-react';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
@@ -214,6 +215,38 @@ function CenterOnUserButton({ userLat, userLng }) {
     >
       <Crosshair className="h-5 w-5" aria-hidden="true" />
     </button>
+  );
+}
+
+function formatSnapshotAge(timestamp) {
+  if (!timestamp) return 'cached';
+  const minutes = Math.max(0, Math.round((Date.now() - timestamp) / 60000));
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  return `${Math.round(minutes / 60)}h ago`;
+}
+
+function OfflineMapOverlay({ snapshotAt, tileIssue }) {
+  return (
+    <div className="pointer-events-none absolute left-3 right-3 top-3 z-[440] flex justify-center">
+      <div className="max-w-[21rem] rounded-[18px] bg-black/78 px-3 py-2.5 text-left shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_18px_42px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+        <div className="flex items-start gap-2.5">
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary shadow-[0_0_18px_hsl(var(--primary)/0.16)]">
+            <WifiOff className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">
+              Offline radar
+            </span>
+            <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
+              {tileIssue
+                ? 'Map tiles are weak. Showing cached signals and any tiles already saved.'
+                : `Showing cached signals from ${formatSnapshotAge(snapshotAt)}.`}
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -472,6 +505,8 @@ export default function LiveMapSurface({
   fitKey,
   focusUserLocation = false,
   showSelfLocation = false,
+  offlineMode = false,
+  offlineSnapshotAt,
 }) {
   const [mapError, setMapError] = useState(false);
   const [autoFitDisabled, setAutoFitDisabled] = useState(false);
@@ -534,7 +569,7 @@ export default function LiveMapSurface({
   }, [fitKey, variant]);
 
   if (isLoading) return <LoadingState variant={variant} />;
-  if (mapError) return <ErrorState onRetry={handleRetry} variant={variant} />;
+  if (mapError && variant !== 'radar') return <ErrorState onRetry={handleRetry} variant={variant} />;
 
   return (
     <section
@@ -576,6 +611,9 @@ export default function LiveMapSurface({
           >
             Skip map
           </a>
+          {(offlineMode || (mapError && variant === 'radar')) && (
+            <OfflineMapOverlay snapshotAt={offlineSnapshotAt} tileIssue={mapError} />
+          )}
           <MapSummary items={items} userLat={userLat} userLng={userLng} variant={variant} />
           {variant !== 'radar' && items.length === 0 && (
             <div className={cn(
@@ -614,7 +652,7 @@ export default function LiveMapSurface({
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
               url={DARK_TILE_URL}
               keepBuffer={4}
-              updateWhenIdle={false}
+              updateWhenIdle
               updateWhenZooming={false}
               eventHandlers={{ tileerror: handleTileError, tileload: () => setMapError(false) }}
             />

@@ -5,6 +5,7 @@ import { useNearbyBroadcasts } from '@/hooks/useNearbyBroadcasts';
 import { useLiveMapPresence } from '@/hooks/useLiveMapPresence';
 import { useBlockedProfiles } from '@/hooks/useBlockedProfiles';
 import { useProfileBatch } from '@/hooks/useProfileBatch';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import LiveMapSurface from '@/components/map/LiveMapSurface';
@@ -28,7 +29,9 @@ const SORTS = [
 
 const COLLAPSED_SHEET_HEIGHT = '5.25rem';
 const RADAR_LOCATION_CACHE_KEY = 'rr:last-radar-location';
+const RADAR_OFFLINE_SNAPSHOT_KEY = 'rr:radar-offline-snapshot';
 const RADAR_LOCATION_CACHE_MAX_AGE_MS = 15 * 60 * 1000;
+const RADAR_OFFLINE_SNAPSHOT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 const emptyRadarLocation = {
   lat: null,
@@ -69,6 +72,36 @@ function cacheRadarLocation(location) {
   }));
 }
 
+function readRadarOfflineSnapshot() {
+  try {
+    const raw = window.localStorage.getItem(RADAR_OFFLINE_SNAPSHOT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Number.isFinite(Number(parsed.cachedAt)) || Date.now() - Number(parsed.cachedAt) > RADAR_OFFLINE_SNAPSHOT_MAX_AGE_MS) {
+      return null;
+    }
+    return {
+      broadcasts: Array.isArray(parsed.broadcasts) ? parsed.broadcasts : [],
+      riderMarkers: Array.isArray(parsed.riderMarkers) ? parsed.riderMarkers : [],
+      cachedAt: Number(parsed.cachedAt),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function cacheRadarOfflineSnapshot({ broadcasts, riderMarkers }) {
+  try {
+    window.localStorage.setItem(RADAR_OFFLINE_SNAPSHOT_KEY, JSON.stringify({
+      broadcasts: broadcasts.slice(0, 100),
+      riderMarkers: riderMarkers.slice(0, 60),
+      cachedAt: Date.now(),
+    }));
+  } catch {
+    // Storage may be unavailable or full; Radar still works without an offline snapshot.
+  }
+}
+
 function getBroadcastTime(broadcast) {
   return new Date(broadcast.created_at || broadcast.createdAt || broadcast.created_date || 0).getTime();
 }
@@ -99,7 +132,9 @@ function getAuthorId(broadcast) {
 
 export default function Home() {
   const { user } = useSupabaseAuth();
+  const isOnline = useOnlineStatus();
   const [userLoc, setUserLoc] = useState(readCachedRadarLocation);
+  const [offlineSnapshot, setOfflineSnapshot] = useState(readRadarOfflineSnapshot);
   const [isResolvingLocation, setIsResolvingLocation] = useState(() => readCachedRadarLocation().lat == null);
   const [geoError, setGeoError] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -166,7 +201,10 @@ export default function Home() {
   const { data: nearbyBroadcasts = [], isLoading: isLoadingNearby } = useNearbyBroadcasts(userLoc.lat, userLoc.lng, 50);
 
   const hasUserLocation = userLoc.lat != null && userLoc.lng != null;
-  const sourceBroadcasts = hasUserLocation ? nearbyBroadcasts : [];
+  const usingOfflineSnapshot = !isOnline && !!offlineSnapshot;
+  const sourceBroadcasts = hasUserLocation
+    ? usingOfflineSnapshot ? offlineSnapshot.broadcasts : nearbyBroadcasts
+    : [];
   const isLoadingBroadcasts = hasUserLocation ? isLoadingNearby : false;
   const { blockedIds } = useBlockedProfiles();
 
@@ -180,12 +218,14 @@ export default function Home() {
     [sourceBroadcasts, blockedIds]
   );
 
+  const rawRiderMarkers = usingOfflineSnapshot ? offlineSnapshot.riderMarkers : riderMarkers;
+
   const visibleRiderMarkers = useMemo(
-    () => riderMarkers.filter((marker) => {
+    () => rawRiderMarkers.filter((marker) => {
       const markerUserId = marker.user_id || marker.userId;
       return markerUserId !== user?.id && !blockedIds.has(markerUserId);
     }),
-    [blockedIds, riderMarkers, user?.id]
+    [blockedIds, rawRiderMarkers, user?.id]
   );
 
   const rankedBroadcasts = useMemo(
@@ -219,6 +259,16 @@ export default function Home() {
     iso: rankedBroadcasts.filter((broadcast) => broadcast.type === 'iso').length,
     alert: rankedBroadcasts.filter((broadcast) => broadcast.type === 'alert').length,
   }), [rankedBroadcasts]);
+
+  useEffect(() => {
+    if (!isOnline || !hasUserLocation || isLoadingBroadcasts) return;
+    if (visibleBroadcasts.length === 0 && visibleRiderMarkers.length === 0) return;
+    cacheRadarOfflineSnapshot({
+      broadcasts: visibleBroadcasts,
+      riderMarkers: visibleRiderMarkers,
+    });
+    setOfflineSnapshot(readRadarOfflineSnapshot());
+  }, [hasUserLocation, isLoadingBroadcasts, isOnline, visibleBroadcasts, visibleRiderMarkers]);
 
   const shouldVirtualize = filteredFeed.length >= 18;
   const feedVirtualizer = useVirtualizer({
@@ -268,12 +318,14 @@ export default function Home() {
             userLat={userLoc.lat}
             userLng={userLoc.lng}
             userAccuracyMeters={userLoc.accuracyMeters}
-            isLoading={(isResolvingLocation && !hasUserLocation) || isLoadingBroadcasts}
+            isLoading={(isResolvingLocation && !hasUserLocation) || (isLoadingBroadcasts && !usingOfflineSnapshot)}
             variant="radar"
             className="h-full rounded-[28px] border border-primary/25 bg-black/50 p-1.5 shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_0_30px_hsl(var(--primary)/0.16),0_22px_70px_rgba(0,0,0,0.5)]"
             fitKey={`${feedFilter}:${hasUserLocation ? 'self' : 'pending'}`}
             focusUserLocation={hasUserLocation}
             showSelfLocation={hasUserLocation}
+            offlineMode={usingOfflineSnapshot}
+            offlineSnapshotAt={offlineSnapshot?.cachedAt}
           />
         ) : (
           <div className="flex h-full min-h-[560px] flex-col items-center justify-center rounded-[28px] border border-primary/25 bg-black/55 p-8 text-center shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_0_30px_hsl(var(--primary)/0.16),0_22px_70px_rgba(0,0,0,0.5)]">
@@ -378,7 +430,7 @@ export default function Home() {
           </div>
 
           <div ref={feedParentRef} className="rr-rubber-scroll min-h-0 flex-1 overflow-y-auto pr-1 scroll-hide">
-            {isLoadingBroadcasts ? (
+            {isLoadingBroadcasts && !usingOfflineSnapshot ? (
               <div className="space-y-3">
                 {[0, 1, 2].map((item) => (
                   <div key={item} className="h-32 animate-pulse rounded-[20px] bg-white/[0.04] shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04),0_12px_32px_rgba(0,0,0,0.24)]" />
