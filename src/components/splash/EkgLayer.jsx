@@ -22,13 +22,12 @@ export default function EkgLayer() {
         filter="url(#splashNeonGlow)"
         initial={{ pathLength: 0, opacity: 0 }}
         animate={{
-          pathLength: [0, 0, 1, 1, 1, 1, 1],
-          opacity: [0, 0, 1, 1, 1, 1, 0]
+          pathLength: 1,
+          opacity: [0, 1, 1, 0]
         }}
         transition={{
-          duration: 3.45,
-          times: [0, 0.08, 0.52, 0.62, 0.68, 0.72, 0.74],
-          ease: 'easeInOut'
+          pathLength: { delay: 0.2, type: 'spring', stiffness: 72, damping: 18, mass: 0.85 },
+          opacity: { duration: 2.55, times: [0, 0.1, 0.82, 1], ease: [0.22, 1, 0.36, 1] }
         }}
       />
       <motion.path
@@ -40,11 +39,12 @@ export default function EkgLayer() {
         strokeLinejoin="round"
         filter="url(#splashNeonGlow)"
         initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 0, 0, 0.95, 0.24, 0.9, 0] }}
+        animate={{ opacity: [0, 0.72, 0.18, 0.54, 0] }}
         transition={{
-          duration: 3.45,
-          times: [0, 0.54, 0.58, 0.62, 0.66, 0.7, 0.74],
-          ease: 'easeInOut'
+          duration: 1.08,
+          delay: 1.68,
+          times: [0, 0.22, 0.48, 0.68, 1],
+          ease: [0.22, 1, 0.36, 1]
         }}
       />
     </>
