@@ -210,7 +210,7 @@ function CenterOnUserButton({ userLat, userLng }) {
     <button
       type="button"
       onClick={() => map.setView([userLat, userLng], 15, { animate: true, duration: 0.45 })}
-      className="rr-haptic absolute bottom-24 right-3 z-[430] flex h-11 w-11 items-center justify-center rounded-full bg-black/80 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.28),0_0_24px_hsl(var(--primary)/0.18),0_18px_45px_rgba(0,0,0,0.5)] backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="rr-haptic absolute bottom-3 right-3 z-[430] flex h-11 w-11 items-center justify-center rounded-full bg-black/80 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.28),0_0_24px_hsl(var(--primary)/0.18),0_18px_45px_rgba(0,0,0,0.5)] backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       aria-label="Center map on my location"
     >
       <Crosshair className="h-5 w-5" aria-hidden="true" />
@@ -309,7 +309,7 @@ function LoadingState({ variant }) {
         variant === 'full'
           ? 'min-h-[520px]'
           : variant === 'radar'
-            ? 'h-full min-h-[560px] rounded-[28px] border-primary/25 shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_0_30px_hsl(var(--primary)/0.16)]'
+            ? 'h-full min-h-0 rounded-[28px] border-primary/25 shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_0_30px_hsl(var(--primary)/0.16)]'
             : 'h-[300px]'
       )}
       role="status"
@@ -330,7 +330,7 @@ function ErrorState({ onRetry, variant }) {
         variant === 'full'
           ? 'min-h-[520px]'
           : variant === 'radar'
-            ? 'h-full min-h-[560px] rounded-[28px]'
+            ? 'h-full min-h-0 rounded-[28px]'
             : 'h-[300px]'
       )}
       role="alert"
@@ -599,7 +599,7 @@ export default function LiveMapSurface({
             variant === 'full'
               ? 'min-h-[560px] h-[calc(100svh-15rem)] max-h-[760px]'
               : variant === 'radar'
-                ? 'h-full min-h-[560px] rounded-[24px] border border-primary/35 shadow-[0_0_0_1px_hsl(var(--primary)/0.12),0_0_28px_hsl(var(--primary)/0.18),inset_0_0_28px_hsl(var(--primary)/0.06)]'
+                ? 'h-full min-h-0 rounded-[24px] border-2 border-primary/45 shadow-[0_0_0_1px_hsl(var(--primary)/0.14),0_0_32px_hsl(var(--primary)/0.2),inset_0_0_28px_hsl(var(--primary)/0.07)]'
                 : 'h-[320px]'
           )}
           role="application"
