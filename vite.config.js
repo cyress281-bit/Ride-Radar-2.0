@@ -27,6 +27,7 @@ export default defineConfig({
         name: 'Ride Radar',
         short_name: 'Ride Radar',
         description: 'Social network for motorcyclists - find rides, connect with riders, and stay safe on the road',
+        id: '/',
         theme_color: '#beff00',
         background_color: '#080808',
         display: 'standalone',

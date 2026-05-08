@@ -3,6 +3,13 @@ import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 
+const isStaleLocalhostPwaLaunch =
+  window.location.hostname === 'localhost' && window.location.port === '3000';
+
+if (isStaleLocalhostPwaLaunch) {
+  window.location.replace(`https://rideradarapp.com${window.location.pathname}${window.location.search}${window.location.hash}`);
+}
+
 // Initialize monitoring and analytics
 import { initializeSentry } from '@/lib/sentry'
 import { initializeAnalytics } from '@/lib/analytics'
