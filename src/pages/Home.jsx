@@ -249,7 +249,7 @@ export default function Home() {
 
       <section
         className={cn(
-          'fixed left-0 right-0 top-14 z-[45] flex flex-col rounded-t-[1.6rem] border-t border-primary/15 bg-black/88 shadow-[0_-28px_80px_rgba(0,0,0,0.7)] backdrop-blur-2xl transition-transform duration-300 ease-out',
+          'fixed left-0 right-0 top-14 z-[45] flex flex-col rounded-t-[20px] border-t border-primary/15 bg-black/88 shadow-[0_-28px_80px_rgba(0,0,0,0.7)] backdrop-blur-2xl transition-transform duration-300 ease-out',
           sheetOpen ? 'bottom-0 translate-y-0' : 'bottom-0 translate-y-[calc(100%-9.25rem)]'
         )}
         aria-label="Radar broadcast feed"
@@ -257,7 +257,7 @@ export default function Home() {
         <button
           type="button"
           onClick={() => setSheetOpen((value) => !value)}
-          className="flex min-h-12 items-center justify-center rounded-t-[1.6rem] border-b border-border/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="rr-haptic flex min-h-12 items-center justify-center rounded-t-[20px] border-b border-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           aria-expanded={sheetOpen}
         >
           <span className="flex flex-col items-center gap-1">
@@ -282,18 +282,18 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setSheetOpen(true)}
-              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 text-xs font-bold text-primary"
+              className="rr-haptic inline-flex min-h-10 items-center gap-2 rounded-full bg-primary/10 px-4 text-xs font-bold text-primary shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055),0_12px_28px_rgba(0,0,0,0.28)]"
             >
               <LocateFixed className="h-4 w-4" />
               Open feed
             </button>
           </div>
 
-          <div className="mb-3 grid grid-cols-2 gap-2 rounded-2xl border border-border/50 bg-black/30 p-1.5">
+          <div className="rr-glass-border mb-4 grid grid-cols-2 gap-2 rounded-[20px] bg-black/30 p-2">
             <button
               type="button"
               onClick={() => setActivePanel('sort')}
-              className={cn('inline-flex min-h-10 items-center justify-center gap-2 rounded-xl text-xs font-extrabold uppercase tracking-[0.14em] transition', activePanel === 'sort' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground')}
+              className={cn('rr-haptic inline-flex min-h-10 items-center justify-center gap-2 rounded-full text-xs font-extrabold uppercase tracking-[0.14em] transition', activePanel === 'sort' ? 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.2)]' : 'text-muted-foreground hover:text-foreground')}
               aria-pressed={activePanel === 'sort'}
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -302,7 +302,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setActivePanel('filter')}
-              className={cn('inline-flex min-h-10 items-center justify-center gap-2 rounded-xl text-xs font-extrabold uppercase tracking-[0.14em] transition', activePanel === 'filter' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground')}
+              className={cn('rr-haptic inline-flex min-h-10 items-center justify-center gap-2 rounded-full text-xs font-extrabold uppercase tracking-[0.14em] transition', activePanel === 'filter' ? 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.2)]' : 'text-muted-foreground hover:text-foreground')}
               aria-pressed={activePanel === 'filter'}
             >
               <Filter className="h-4 w-4" />
@@ -320,8 +320,8 @@ export default function Home() {
                   type="button"
                   onClick={onClick}
                   className={cn(
-                    'inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-3 text-xs font-bold transition',
-                    active ? 'border-primary bg-primary text-primary-foreground' : 'border-border/60 bg-black/25 text-muted-foreground hover:border-primary/35 hover:text-foreground'
+                    'rr-haptic inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full px-4 text-xs font-bold transition',
+                    active ? 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.18)]' : 'rr-glass-border bg-black/25 text-muted-foreground hover:text-foreground'
                   )}
                 >
                   {item.label}
@@ -335,15 +335,15 @@ export default function Home() {
             })}
           </div>
 
-          <div ref={feedParentRef} className="min-h-0 flex-1 overflow-y-auto pr-1 scroll-hide">
+          <div ref={feedParentRef} className="rr-rubber-scroll min-h-0 flex-1 overflow-y-auto pr-1 scroll-hide">
             {isLoadingBroadcasts ? (
               <div className="space-y-3">
                 {[0, 1, 2].map((item) => (
-                  <div key={item} className="h-32 animate-pulse rounded-2xl border border-border/50 bg-secondary/25" />
+                  <div key={item} className="h-32 animate-pulse rounded-[20px] bg-white/[0.04] shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04),0_12px_32px_rgba(0,0,0,0.24)]" />
                 ))}
               </div>
             ) : filteredFeed.length === 0 ? (
-              <div className="flex min-h-52 flex-col items-center justify-center rounded-3xl border border-dashed border-primary/30 bg-primary/5 p-6 text-center">
+              <div className="rr-surface flex min-h-52 flex-col items-center justify-center rounded-[20px] p-8 text-center">
                 <Radio className="mb-3 h-8 w-8 text-primary" />
                 <h2 className="font-display text-xl font-bold">Radar is quiet</h2>
                 <p className="mt-1 max-w-xs text-sm text-muted-foreground">No active broadcasts match this filter yet.</p>

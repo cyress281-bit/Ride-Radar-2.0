@@ -98,8 +98,8 @@ export default function SupabaseLogin() {
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.14),transparent_32%)]" />
 
       <div className="relative z-10 w-full max-w-md">
-        <div className="rr-surface rounded-3xl border border-border/50 p-7 shadow-2xl">
-          <div className="mb-7 flex flex-col items-center">
+        <div className="rr-surface rounded-[20px] p-8 shadow-2xl">
+          <div className="mb-8 flex flex-col items-center">
             <RRLogo size="lg" className="mb-4" />
             <h1 className="font-display text-center text-3xl font-bold">
               Ride<span className="text-primary">Radar</span>
@@ -115,11 +115,11 @@ export default function SupabaseLogin() {
                 key={provider.id}
                 type="button"
                 variant="outline"
-                className="h-12 rounded-xl justify-start gap-3"
+                className="h-12 justify-start gap-3"
                 onClick={() => handleProvider(provider.id)}
                 disabled={loading || !!providerLoading}
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border/70 bg-black/25 font-display text-sm font-bold">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/25 font-display text-sm font-bold shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055)]">
                   {providerLoading === provider.id ? (
                     <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                   ) : (
@@ -133,7 +133,7 @@ export default function SupabaseLogin() {
             <Button
               type="button"
               variant={showEmailForm ? 'default' : 'outline'}
-              className="h-12 rounded-xl justify-start gap-3"
+              className="h-12 justify-start gap-3"
               onClick={() => {
                 setShowEmailForm(true);
                 setError('');
@@ -141,7 +141,7 @@ export default function SupabaseLogin() {
               }}
               disabled={loading || !!providerLoading}
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border/70 bg-black/25">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/25 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055)]">
                 <Mail className="h-4 w-4" />
               </span>
               Continue with email
@@ -149,27 +149,27 @@ export default function SupabaseLogin() {
           </div>
 
           {notice && (
-            <div role="status" aria-live="polite" className="mt-4 rounded-xl border border-primary/25 bg-primary/5 p-3 text-sm text-primary">
+            <div role="status" aria-live="polite" className="mt-4 rounded-2xl bg-primary/10 p-4 text-sm font-medium text-primary shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055)]">
               {notice}
             </div>
           )}
 
           {error && (
-            <div role="alert" className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <div role="alert" className="mt-4 rounded-2xl bg-destructive/10 p-4 text-sm font-medium text-destructive shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055)]">
               {error}
             </div>
           )}
 
           {showEmailForm && (
             <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-              <div className="grid grid-cols-2 rounded-xl border border-border/70 bg-black/25 p-1" role="tablist" aria-label="Authentication mode">
+              <div className="rr-glass-border grid grid-cols-2 rounded-full bg-black/25 p-1" role="tablist" aria-label="Authentication mode">
                 <button
                   type="button"
                   role="tab"
                   aria-selected={mode === 'signin'}
                   aria-controls="email-auth-panel"
                   onClick={() => setMode('signin')}
-                  className={`min-h-10 rounded-lg text-sm font-bold transition ${mode === 'signin' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  className={`rr-haptic min-h-10 rounded-full text-sm font-bold transition ${mode === 'signin' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                 >
                   Sign in
                 </button>
@@ -179,7 +179,7 @@ export default function SupabaseLogin() {
                   aria-selected={mode === 'signup'}
                   aria-controls="email-auth-panel"
                   onClick={() => setMode('signup')}
-                  className={`min-h-10 rounded-lg text-sm font-bold transition ${mode === 'signup' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  className={`rr-haptic min-h-10 rounded-full text-sm font-bold transition ${mode === 'signup' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                 >
                   Create account
                 </button>
@@ -215,7 +215,7 @@ export default function SupabaseLogin() {
                   />
                 </div>
 
-                <label className="flex items-center gap-3 rounded-xl border border-border/60 bg-black/25 px-3 py-2 text-sm text-muted-foreground">
+                <label className="rr-haptic flex items-center gap-3 rounded-2xl bg-black/25 px-4 py-3 text-sm text-muted-foreground shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055)]">
                   <input
                     type="checkbox"
                     checked={rememberDevice}
@@ -242,7 +242,7 @@ export default function SupabaseLogin() {
           )}
 
           {!showEmailForm && (
-            <label className="mt-4 flex items-center justify-center gap-3 rounded-xl border border-border/60 bg-black/20 px-3 py-2 text-sm text-muted-foreground">
+            <label className="rr-haptic mt-4 flex items-center justify-center gap-3 rounded-2xl bg-black/20 px-4 py-3 text-sm text-muted-foreground shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055)]">
               <input
                 type="checkbox"
                 checked={rememberDevice}

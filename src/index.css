@@ -6,8 +6,8 @@
 
 @layer base {
   :root {
-    --font-sans: 'Inter', system-ui, sans-serif;
-    --font-display: 'Rajdhani', 'Space Grotesk', system-ui, sans-serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
 
     /* === RIDE RADAR DARK THEME === */
     --background: 0 0% 3%;
@@ -38,7 +38,7 @@
     --border: 0 0% 14%;
     --input: 0 0% 12%;
     --ring: 95 100% 50%;
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     /* Broadcast type colors — locked spec */
     --alert: 0 85% 55%;
@@ -53,11 +53,28 @@
 }
 
 @layer base {
-  * { @apply border-border; }
+  * {
+    @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    text-rendering: optimizeLegibility;
+    overscroll-behavior-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    touch-action: manipulation;
   }
   .font-display { font-family: var(--font-display); }
 }
@@ -119,22 +136,28 @@
   }
 
   .rr-surface {
-    background: linear-gradient(145deg, hsl(var(--card) / 0.92), hsl(0 0% 4% / 0.96));
-    border: 1px solid hsl(var(--border) / 0.72);
-    box-shadow: 0 18px 55px hsl(0 0% 0% / 0.42), inset 0 1px 0 hsl(0 0% 100% / 0.045);
+    background:
+      linear-gradient(145deg, hsl(var(--card) / 0.9), hsl(0 0% 4% / 0.94)),
+      hsl(0 0% 4% / 0.78);
+    border: 1px solid hsl(var(--primary) / 0.11);
+    box-shadow: 0 16px 48px hsl(0 0% 0% / 0.42), inset 0 1px 0 hsl(0 0% 100% / 0.055);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
   }
 
   .rr-surface-strong {
     background:
       radial-gradient(circle at 12% 0%, hsl(var(--primary) / 0.09), transparent 34%),
       linear-gradient(145deg, hsl(120 6% 7% / 0.98), hsl(0 0% 3% / 0.98));
-    border: 1px solid hsl(var(--border) / 0.82);
+    border: 1px solid hsl(var(--primary) / 0.14);
     box-shadow: 0 22px 70px hsl(0 0% 0% / 0.5), inset 0 1px 0 hsl(0 0% 100% / 0.055);
+    backdrop-filter: blur(20px) saturate(165%);
+    -webkit-backdrop-filter: blur(20px) saturate(165%);
   }
 
   .rr-heading {
-    @apply font-display font-extrabold tracking-[-0.04em];
-    letter-spacing: -0.04em;
+    @apply font-display font-extrabold;
+    letter-spacing: 0;
   }
 
   .rr-kicker {
@@ -142,8 +165,28 @@
   }
 
   .rr-chip {
-    @apply inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-primary;
+    @apply inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-primary;
     box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.05), 0 0 20px hsl(var(--primary) / 0.08);
+  }
+
+  .rr-haptic {
+    transform: translateZ(0);
+    transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 180ms ease, background-color 180ms ease, color 180ms ease;
+  }
+
+  .rr-haptic:active {
+    transform: scale(0.965) translateY(1px);
+  }
+
+  .rr-glass-border {
+    border: 1px solid hsl(var(--primary) / 0.13);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.055), 0 14px 38px hsl(0 0% 0% / 0.32);
+  }
+
+  .rr-rubber-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
+    scroll-behavior: smooth;
   }
 
   .rr-divider {
