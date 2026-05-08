@@ -24,6 +24,7 @@ dist-ssr
 .agents/
 .claude/
 .mcp.json
+supabase/.temp/
 .DS_Store
 NUL
 *.suo
