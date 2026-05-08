@@ -1,13 +1,33 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import EkgLayer from '@/components/splash/EkgLayer';
 import FinalLogoResolve from '@/components/splash/FinalLogoResolve';
 
-export default function SplashScreen({ onComplete }) {
+const SPLASH_ANIMATION_MS = 3450;
+const SPLASH_READY_GRACE_MS = 6500;
+
+export default function SplashScreen({ onComplete, isReady = true }) {
+  const [animationDone, setAnimationDone] = useState(false);
+  const [readyGraceElapsed, setReadyGraceElapsed] = useState(false);
+
   useEffect(() => {
-    const done = setTimeout(() => onComplete(), 3750);
-    return () => clearTimeout(done);
-  }, [onComplete]);
+    const animationTimer = setTimeout(() => setAnimationDone(true), SPLASH_ANIMATION_MS);
+    const graceTimer = setTimeout(() => setReadyGraceElapsed(true), SPLASH_READY_GRACE_MS);
+
+    return () => {
+      clearTimeout(animationTimer);
+      clearTimeout(graceTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!animationDone || (!isReady && !readyGraceElapsed)) {
+      return undefined;
+    }
+
+    const completeTimer = setTimeout(onComplete, 120);
+    return () => clearTimeout(completeTimer);
+  }, [animationDone, isReady, onComplete, readyGraceElapsed]);
 
   return (
     <motion.div

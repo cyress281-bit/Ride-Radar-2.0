@@ -95,7 +95,7 @@ function isProfileComplete(profile) {
   return String(profile.display_name || '').trim().length >= 2;
 }
 
-function SupabaseAppContent() {
+function SupabaseAppContent({ splashVisible = false }) {
   const { isAuthenticated, isLoading, user, profile } = useSupabaseAuth();
   const location = useLocation();
 
@@ -110,6 +110,10 @@ function SupabaseAppContent() {
   }, [isAuthenticated, user, profile]);
 
   if (isLoading) {
+    if (splashVisible) {
+      return null;
+    }
+
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -203,21 +207,36 @@ function SupabaseAppContent() {
   );
 }
 
-export default function SupabaseApp() {
+function SupabaseAppShell() {
   const [showSplash, setShowSplash] = useState(true);
+  const { isLoading } = useSupabaseAuth();
+
   const handleSplashComplete = useCallback(() => {
     setShowSplash(false);
   }, []);
 
   return (
+    <>
+      <SupabaseAppContent splashVisible={showSplash} />
+      <AnimatePresence>
+        {showSplash && (
+          <SplashScreen
+            isReady={!isLoading}
+            onComplete={handleSplashComplete}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+export default function SupabaseApp() {
+  return (
     <ErrorBoundary>
       <Router>
         <SupabaseAuthProvider>
           <QueryClientProvider client={queryClientInstance}>
-            <SupabaseAppContent />
-            <AnimatePresence>
-              {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-            </AnimatePresence>
+            <SupabaseAppShell />
           </QueryClientProvider>
         </SupabaseAuthProvider>
       </Router>

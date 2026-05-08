@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const LOGO_URL = 'https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png';
+const LOGO_URL = '/ride-radar-logo.svg';
 
 export default function FinalLogoResolve() {
   return (
@@ -9,9 +9,10 @@ export default function FinalLogoResolve() {
       src={LOGO_URL}
       alt="Ride Radar"
       className="absolute inset-0 h-full w-full object-contain"
+      style={{ transformOrigin: 'center center' }}
       initial={{ opacity: 0, scale: 0.985, filter: 'brightness(1) blur(0px)' }}
       animate={{
-        opacity: [0, 0, 0, 1, 1, 0],
+        opacity: [0, 0, 0, 1, 1, 1],
         scale: [0.985, 0.985, 0.985, 1.01, 1, 1],
         filter: [
           'brightness(1) blur(0px)',
@@ -19,7 +20,7 @@ export default function FinalLogoResolve() {
           'brightness(1) blur(0px)',
           'brightness(1.35) blur(1px)',
           'brightness(1) blur(0px)',
-          'brightness(0.8) blur(0px)'
+          'brightness(1) blur(0px)'
         ]
       }}
       transition={{
