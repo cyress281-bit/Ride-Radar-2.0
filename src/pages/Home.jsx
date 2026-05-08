@@ -28,22 +28,34 @@ const SORTS = [
 
 const COLLAPSED_SHEET_HEIGHT = '5.25rem';
 const RADAR_LOCATION_CACHE_KEY = 'rr:last-radar-location';
+const RADAR_LOCATION_CACHE_MAX_AGE_MS = 15 * 60 * 1000;
+
+const emptyRadarLocation = {
+  lat: null,
+  lng: null,
+  accuracyMeters: null,
+  source: 'none',
+};
 
 function readCachedRadarLocation() {
   try {
     const raw = window.localStorage.getItem(RADAR_LOCATION_CACHE_KEY);
-    if (!raw) return { lat: null, lng: null, accuracyMeters: null };
+    if (!raw) return emptyRadarLocation;
     const parsed = JSON.parse(raw);
+    if (!Number.isFinite(Number(parsed.cachedAt)) || Date.now() - Number(parsed.cachedAt) > RADAR_LOCATION_CACHE_MAX_AGE_MS) {
+      return emptyRadarLocation;
+    }
     const lat = Number(parsed.lat);
     const lng = Number(parsed.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { lat: null, lng: null, accuracyMeters: null };
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return emptyRadarLocation;
     return {
       lat,
       lng,
       accuracyMeters: Number.isFinite(Number(parsed.accuracyMeters)) ? Number(parsed.accuracyMeters) : null,
+      source: 'cached',
     };
   } catch {
-    return { lat: null, lng: null, accuracyMeters: null };
+    return emptyRadarLocation;
   }
 }
 
@@ -87,7 +99,7 @@ function getAuthorId(broadcast) {
 
 export default function Home() {
   const { user } = useSupabaseAuth();
-  const [userLoc, setUserLoc] = useState(() => readCachedRadarLocation());
+  const [userLoc, setUserLoc] = useState(readCachedRadarLocation);
   const [isResolvingLocation, setIsResolvingLocation] = useState(() => readCachedRadarLocation().lat == null);
   const [geoError, setGeoError] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -114,6 +126,7 @@ export default function Home() {
         lat: pos.coords.latitude,
         lng: pos.coords.longitude,
         accuracyMeters: pos.coords.accuracy,
+        source: 'live',
       };
       setUserLoc(nextLocation);
       cacheRadarLocation(nextLocation);
@@ -219,7 +232,9 @@ export default function Home() {
   const activeFilterLabel = FILTERS.find((item) => item.value === feedFilter)?.label || 'All';
   const activeSortLabel = SORTS.find((item) => item.value === feedSort)?.label || 'Live / Priority';
   const locationLabel = userLoc.lat != null
-    ? geoError ? 'Showing last known private location' : 'Centered on your private location'
+    ? userLoc.source === 'live'
+      ? 'Centered on your private GPS lock'
+      : 'Using recent private location while GPS locks'
     : geoError
       ? 'Location permission needed for Radar startup'
       : 'Locking onto your location';
