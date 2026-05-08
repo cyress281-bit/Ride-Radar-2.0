@@ -189,6 +189,8 @@ function Stat({ label, value, className }) {
 }
 
 function MapSummary({ items, userLat, userLng, variant }) {
+  if (variant === 'radar') return null;
+
   const alertCount = items.filter((item) => item.type === 'alert').length;
   const riderCount = items.filter((item) => item.type === 'solo_ride').length;
   const eventCount = items.filter((item) => item.type === 'event').length;
@@ -526,13 +528,21 @@ export default function LiveMapSurface({
           </a>
           <MapSummary items={items} userLat={userLat} userLng={userLng} variant={variant} />
           {items.length === 0 && (
-            <div className="pointer-events-none absolute inset-x-4 bottom-4 z-[430] flex justify-center">
-              <div className="max-w-sm rounded-2xl border border-border/65 bg-black/78 p-4 text-center shadow-[0_18px_50px_rgba(0,0,0,0.42)] backdrop-blur-xl">
-                <MapPin className="mx-auto mb-2 h-6 w-6 text-muted-foreground" aria-hidden="true" />
-                <h2 className="font-display text-lg font-bold">No mapped broadcasts</h2>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Active broadcasts with recognizable locations will appear here as soon as they hit the network.
-                </p>
+            <div className={cn(
+              'pointer-events-none absolute inset-x-4 z-[430] flex justify-center',
+              variant === 'radar' ? 'bottom-24' : 'bottom-4'
+            )}>
+              <div className={cn(
+                'max-w-sm rounded-2xl border border-border/65 bg-black/78 text-center shadow-[0_18px_50px_rgba(0,0,0,0.42)] backdrop-blur-xl',
+                variant === 'radar' ? 'px-4 py-3' : 'p-4'
+              )}>
+                <MapPin className={cn('mx-auto text-muted-foreground', variant === 'radar' ? 'mb-1 h-5 w-5' : 'mb-2 h-6 w-6')} aria-hidden="true" />
+                <h2 className={cn('font-display font-bold', variant === 'radar' ? 'text-base' : 'text-lg')}>No mapped broadcasts</h2>
+                {variant !== 'radar' && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Active broadcasts with recognizable locations will appear here as soon as they hit the network.
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -544,7 +554,7 @@ export default function LiveMapSurface({
             scrollWheelZoom={variant === 'full' || variant === 'radar'}
             className="h-full w-full"
             preferCanvas
-            zoomControl={variant === 'full' || variant === 'radar'}
+            zoomControl={variant === 'full'}
             eventHandlers={{
               dragstart: handleMapInteraction,
               zoomstart: handleMapInteraction,

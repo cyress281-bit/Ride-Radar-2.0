@@ -17,6 +17,13 @@ function isUnavailableQueryError(error) {
   );
 }
 
+function isMissingColumnError(error, column) {
+  return (
+    error?.code === '42703' ||
+    String(error?.message || '').toLowerCase().includes(`${column.toLowerCase()} does not exist`)
+  );
+}
+
 function hasPoint(broadcast) {
   return (
     (broadcast.frozen_lat != null || broadcast.frozenLat != null || broadcast.lat != null) &&
@@ -25,12 +32,24 @@ function hasPoint(broadcast) {
 }
 
 async function fetchNearbyBroadcastsFallback(lat, lng, radiusMiles) {
-  const { data, error } = await supabase
+  const baseQuery = () => supabase
     .from('broadcasts')
     .select('*')
-    .eq('status', 'active')
+    .eq('status', 'active');
+
+  let { data, error } = await baseQuery()
     .order('created_at', { ascending: false })
     .limit(250);
+
+  if (isMissingColumnError(error, 'created_at')) {
+    ({ data, error } = await baseQuery()
+      .order('created_date', { ascending: false })
+      .limit(250));
+  }
+
+  if (isMissingColumnError(error, 'created_date')) {
+    ({ data, error } = await baseQuery().limit(250));
+  }
 
   if (error) throw error;
 
