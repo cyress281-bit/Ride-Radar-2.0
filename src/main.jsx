@@ -18,9 +18,7 @@ import { initializeWebVitals } from '@/lib/performanceMonitoring'
 // PWA Setup
 import { registerServiceWorker, setupInstallPrompt } from '@/lib/registerSW'
 
-// Leaflet CSS is now loaded dynamically when RadarMapView is lazy-loaded.
-// This avoids including ~10KB of CSS in the initial bundle for users who
-// never open the map view. The CSS is imported inside RadarMapView.jsx instead.
+// Leaflet CSS is imported by the shared live map surface used by Radar.
 
 // Initialize error tracking and performance monitoring
 initializeSentry()

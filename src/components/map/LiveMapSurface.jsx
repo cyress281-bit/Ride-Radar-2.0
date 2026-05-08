@@ -144,7 +144,7 @@ function getCenter(items, userLat, userLng) {
   return [lat, lng];
 }
 
-function FitMapToItems({ items, userLat, userLng, variant }) {
+function FitMapToItems({ items, userLat, userLng, variant, disabled }) {
   const map = useMap();
   const boundsKey = useMemo(
     () => items.map((item) => `${item.id}:${item.lat.toFixed(4)},${item.lng.toFixed(4)}`).join('|'),
@@ -152,6 +152,8 @@ function FitMapToItems({ items, userLat, userLng, variant }) {
   );
 
   useEffect(() => {
+    if (disabled) return;
+
     window.requestAnimationFrame(() => map.invalidateSize());
 
     if (items.length === 0) {
@@ -172,7 +174,7 @@ function FitMapToItems({ items, userLat, userLng, variant }) {
         maxZoom: variant === 'full' ? 12 : 9,
       }
     );
-  }, [boundsKey, items, map, userLat, userLng, variant]);
+  }, [boundsKey, disabled, items, map, userLat, userLng, variant]);
 
   return null;
 }
@@ -418,8 +420,10 @@ export default function LiveMapSurface({
   isLoading = false,
   variant = 'full',
   className,
+  fitKey,
 }) {
   const [mapError, setMapError] = useState(false);
+  const [autoFitDisabled, setAutoFitDisabled] = useState(false);
 
   const broadcastItems = useMemo(() => {
     return broadcasts
@@ -439,7 +443,7 @@ export default function LiveMapSurface({
         };
       })
       .filter(Boolean)
-      .slice(0, variant === 'full' ? 250 : 75);
+      .slice(0, variant === 'full' || variant === 'radar' ? 250 : 75);
   }, [broadcasts, getProfile, variant]);
 
   const livePresenceItems = useMemo(() => {
@@ -461,7 +465,7 @@ export default function LiveMapSurface({
         };
       })
       .filter(Boolean)
-      .slice(0, variant === 'full' ? 150 : 50);
+      .slice(0, variant === 'full' || variant === 'radar' ? 150 : 50);
   }, [presenceMarkers, variant]);
 
   const items = useMemo(() => [...broadcastItems, ...livePresenceItems], [broadcastItems, livePresenceItems]);
@@ -469,6 +473,13 @@ export default function LiveMapSurface({
   const center = useMemo(() => getCenter(items, userLat, userLng), [items, userLat, userLng]);
   const handleTileError = useCallback(() => setMapError(true), []);
   const handleRetry = useCallback(() => setMapError(false), []);
+  const handleMapInteraction = useCallback(() => {
+    if (variant === 'radar') setAutoFitDisabled(true);
+  }, [variant]);
+
+  useEffect(() => {
+    if (variant === 'radar') setAutoFitDisabled(false);
+  }, [fitKey, variant]);
 
   if (isLoading) return <LoadingState variant={variant} />;
   if (mapError) return <ErrorState onRetry={handleRetry} variant={variant} />;
@@ -477,12 +488,12 @@ export default function LiveMapSurface({
     <section
       className={cn(
         'rr-map-shell relative overflow-hidden rounded-[1.35rem] border border-border/70 bg-black/35 p-3 shadow-[0_22px_70px_rgba(0,0,0,0.42),inset_0_1px_0_hsl(0_0%_100%/0.045)]',
-        variant === 'full' ? 'lg:p-4' : 'p-4',
+        variant === 'full' ? 'lg:p-4' : variant === 'radar' ? 'p-0' : 'p-4',
         className
       )}
       aria-label="Live map of active rider broadcasts"
     >
-      {variant !== 'full' && (
+      {variant !== 'full' && variant !== 'radar' && (
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <div className="rr-kicker text-muted-foreground">Map</div>
@@ -498,7 +509,11 @@ export default function LiveMapSurface({
         <div
           className={cn(
             'relative overflow-hidden rounded-[1.1rem] border border-border/60 bg-background',
-            variant === 'full' ? 'min-h-[560px] h-[calc(100svh-15rem)] max-h-[760px]' : 'h-[320px]'
+            variant === 'full'
+              ? 'min-h-[560px] h-[calc(100svh-15rem)] max-h-[760px]'
+              : variant === 'radar'
+                ? 'h-full min-h-[560px] rounded-none border-0'
+                : 'h-[320px]'
           )}
           role="application"
           aria-label={`Interactive map showing ${items.length} active ${items.length === 1 ? 'broadcast' : 'broadcasts'}`}
@@ -526,10 +541,14 @@ export default function LiveMapSurface({
             zoom={isValidCoordinate(userLat, userLng) ? 11 : 4}
             minZoom={3}
             maxZoom={19}
-            scrollWheelZoom={variant === 'full'}
+            scrollWheelZoom={variant === 'full' || variant === 'radar'}
             className="h-full w-full"
             preferCanvas
-            zoomControl={variant === 'full'}
+            zoomControl={variant === 'full' || variant === 'radar'}
+            eventHandlers={{
+              dragstart: handleMapInteraction,
+              zoomstart: handleMapInteraction,
+            }}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -539,7 +558,13 @@ export default function LiveMapSurface({
               updateWhenZooming={false}
               eventHandlers={{ tileerror: handleTileError, tileload: () => setMapError(false) }}
             />
-            <FitMapToItems items={items} userLat={userLat} userLng={userLng} variant={variant} />
+            <FitMapToItems
+              items={items}
+              userLat={userLat}
+              userLng={userLng}
+              variant={variant}
+              disabled={variant === 'radar' && autoFitDisabled}
+            />
             {items.map((item) => (
               <Marker
                 key={item.id}
@@ -554,7 +579,7 @@ export default function LiveMapSurface({
           </MapContainer>
         </div>
 
-        <SignalList items={items} userLat={userLat} userLng={userLng} variant={variant} />
+        {variant !== 'radar' && <SignalList items={items} userLat={userLat} userLng={userLng} variant={variant} />}
       </div>
     </section>
   );

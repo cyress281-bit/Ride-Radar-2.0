@@ -27,7 +27,6 @@ const Support = lazy(() => import('@/pages/Support'));
 
 // Core authenticated pages
 const Home = lazy(() => import('@/pages/Home'));
-const LiveMap = lazy(() => import('@/pages/LiveMap'));
 const Broadcast = lazy(() => import('@/pages/Broadcast'));
 const BroadcastDetail = lazy(() => import('@/pages/BroadcastDetail'));
 const Messages = lazy(() => import('@/pages/Messages'));
@@ -162,7 +161,7 @@ function SupabaseAppContent() {
               }
             >
               <Route path="/home" element={<Home />} />
-              <Route path="/live-map" element={<LiveMap />} />
+              <Route path="/live-map" element={<Navigate to="/home" replace />} />
               <Route path="/broadcast" element={<Broadcast />} />
               <Route path="/broadcast/:id" element={<BroadcastDetail />} />
               <Route path="/messages" element={<Messages />} />
