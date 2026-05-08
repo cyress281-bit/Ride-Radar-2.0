@@ -10,10 +10,18 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import RRLogo from '@/components/RRLogo';
 import BikePhotoUploader from '@/components/profile/BikePhotoUploader';
+import { MOTORCYCLE_MAKES, getModelSuggestions } from '@/lib/motorcycleCatalog';
+
+const currentYear = new Date().getFullYear();
+const normalizeBikeYear = (value) => {
+  const year = Number(value);
+  return Number.isInteger(year) && year >= 1900 && year <= currentYear + 1 ? year : null;
+};
 
 export default function Onboarding() {
   const { user, profile, refreshProfile } = useSupabaseAuth();
   const navigate = useNavigate();
+  const redirectPath = '/home';
   const qc = useQueryClient();
   const [form, setForm] = useState({
     displayName: profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
@@ -50,37 +58,36 @@ export default function Onboarding() {
         uploadImageIfNeeded(form.bikePhoto),
       ]);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('user_profiles')
         .upsert({
           user_id: user.id,
           display_name: form.displayName.trim() || user.email,
           bio: form.bio.trim(),
           avatar_url,
-          bike_year: form.bikeYear ? Number(form.bikeYear) : null,
+          bike_year: normalizeBikeYear(form.bikeYear),
           bike_make: form.bikeMake.trim(),
           bike_model: form.bikeModel.trim(),
           bike_photo_url,
           is_public: true,
         }, {
           onConflict: 'user_id',
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+      return data;
     },
     onSuccess: async () => {
       await refreshProfile();
       qc.invalidateQueries({ queryKey: ['profile'] });
-      navigate('/home', { replace: true });
+      navigate(redirectPath, { replace: true });
     },
   });
 
-  const hasBike = form.bikeMake.trim().length > 1 && form.bikeModel.trim().length > 1;
-  const canSubmit =
-    form.displayName.trim().length >= 2 &&
-    form.bio.trim().length >= 10 &&
-    !!form.avatar &&
-    hasBike;
+  const modelSuggestions = getModelSuggestions(form.bikeMake);
+  const canSubmit = form.displayName.trim().length >= 2;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col items-center justify-center px-5 py-8">
@@ -97,12 +104,12 @@ export default function Onboarding() {
 
         <div className="rr-chip mb-4"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Rider profile</div>
         <h1 className="rr-heading mb-1 text-4xl text-foreground">Set up your profile</h1>
-        <p className="mb-6 text-sm text-muted-foreground">Add the details other riders expect to see before you enter the network.</p>
+        <p className="mb-6 text-sm text-muted-foreground">Add your rider name now. Bike, photo, and bio details can be finished later.</p>
 
         <div className="space-y-4">
           <div>
             <Label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Profile picture *
+              Profile picture
             </Label>
             <div className="flex items-center gap-4">
               {getImagePreview(form.avatar) ? (
@@ -133,7 +140,7 @@ export default function Onboarding() {
 
           <div>
             <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Bio *
+              Bio
             </Label>
             <Textarea
               value={form.bio}
@@ -152,6 +159,8 @@ export default function Onboarding() {
               <Input
                 type="number"
                 inputMode="numeric"
+                min="1900"
+                max={currentYear + 1}
                 value={form.bikeYear}
                 onChange={(e) => setForm({ ...form, bikeYear: e.target.value })}
                 placeholder="2024"
@@ -159,26 +168,38 @@ export default function Onboarding() {
             </div>
             <div>
               <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Bike make *
+                Bike make
               </Label>
               <Input
                 value={form.bikeMake}
                 onChange={(e) => setForm({ ...form, bikeMake: e.target.value })}
                 placeholder="Yamaha"
+                list="onboarding-bike-make-options"
               />
             </div>
           </div>
+          <datalist id="onboarding-bike-make-options">
+            {MOTORCYCLE_MAKES.map((make) => (
+              <option key={make} value={make} />
+            ))}
+          </datalist>
 
           <div>
             <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Bike model *
+              Bike model
             </Label>
             <Input
               value={form.bikeModel}
               onChange={(e) => setForm({ ...form, bikeModel: e.target.value })}
               placeholder="MT-09"
+              list="onboarding-bike-model-options"
             />
           </div>
+          <datalist id="onboarding-bike-model-options">
+            {modelSuggestions.map((model) => (
+              <option key={model} value={model} />
+            ))}
+          </datalist>
 
           <div>
             <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -199,6 +220,15 @@ export default function Onboarding() {
             className="h-12 w-full rounded-full text-base font-semibold glow-green"
           >
             {saveProfile.isPending ? 'Creating profile...' : 'Join the network'}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => navigate(redirectPath, { replace: true })}
+            disabled={!canSubmit || saveProfile.isPending}
+            className="h-11 w-full rounded-full"
+          >
+            Finish details later
           </Button>
         </div>
       </div>

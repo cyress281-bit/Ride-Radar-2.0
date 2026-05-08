@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { supabase } from './supabase';
 import { logger } from './logger';
 import { prefetchHomeData } from './query-client';
@@ -10,6 +10,7 @@ export const SupabaseAuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const profileLoadSeq = useRef(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -18,6 +19,7 @@ export const SupabaseAuthProvider = ({ children }) => {
 
     const clearAuthState = () => {
       if (!isMounted) return;
+      profileLoadSeq.current += 1;
       setUser(null);
       setProfile(null);
       setIsAuthenticated(false);
@@ -31,14 +33,18 @@ export const SupabaseAuthProvider = ({ children }) => {
       setIsAuthenticated(!!session);
 
       if (session?.user) {
+        const loadSeq = profileLoadSeq.current + 1;
+        profileLoadSeq.current = loadSeq;
+        setProfile(null);
         setIsLoading(true);
         // Supabase warns against awaiting Supabase calls inside auth callbacks.
         window.setTimeout(() => {
           if (isMounted) {
-            void loadUserProfile(session.user.id, session);
+            void loadUserProfile(session.user.id, session, loadSeq);
           }
         }, 0);
       } else {
+        profileLoadSeq.current += 1;
         setProfile(null);
         setIsLoading(false);
       }
@@ -95,14 +101,16 @@ export const SupabaseAuthProvider = ({ children }) => {
     ]);
   };
 
-  const loadUserProfile = async (userId, session) => {
+  const loadUserProfile = async (userId, session, loadSeq = profileLoadSeq.current) => {
+    const canCommit = () => profileLoadSeq.current === loadSeq && session?.user?.id === userId;
+
     try {
       logger.debug('[SupabaseAuth] Loading profile...');
       logger.debug('[SupabaseAuth] Step 1: Checking session...');
 
       if (!session) {
         logger.error('[SupabaseAuth] No session available');
-        setIsLoading(false);
+        if (canCommit()) setIsLoading(false);
         return;
       }
 
@@ -198,6 +206,7 @@ export const SupabaseAuthProvider = ({ children }) => {
         } else if (profileCreateError) {
           logger.error('[SupabaseAuth] Error creating profile:', profileCreateError);
         } else if (newProfile) {
+          if (!canCommit()) return;
           setProfile(newProfile);
           setIsLoading(false);
           return;
@@ -207,12 +216,13 @@ export const SupabaseAuthProvider = ({ children }) => {
       }
 
       logger.debug('[SupabaseAuth] Step 4: Setting profile and finishing...');
+      if (!canCommit()) return;
       setProfile(profileData || null);
       setIsLoading(false);
       logger.debug('[SupabaseAuth] Done! isLoading set to false.');
     } catch (error) {
       logger.error('[SupabaseAuth] Error in loadUserProfile:', error);
-      setIsLoading(false);
+      if (canCommit()) setIsLoading(false);
     }
   };
 
@@ -231,11 +241,11 @@ export const SupabaseAuthProvider = ({ children }) => {
     return data;
   };
 
-  const signInWithProvider = async (provider) => {
+  const signInWithProvider = async (provider, redirectTo = `${window.location.origin}/home`) => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/onboarding`,
+        redirectTo,
       },
     });
     if (error) throw error;
@@ -257,7 +267,9 @@ export const SupabaseAuthProvider = ({ children }) => {
   const refreshProfile = async () => {
     if (user?.id) {
       const { data: { session } } = await supabase.auth.getSession();
-      await loadUserProfile(user.id, session);
+      const loadSeq = profileLoadSeq.current + 1;
+      profileLoadSeq.current = loadSeq;
+      await loadUserProfile(user.id, session, loadSeq);
     }
   };
 

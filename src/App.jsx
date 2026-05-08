@@ -13,7 +13,6 @@ import { AnimatePresence } from 'framer-motion';
 import { usePageTracking } from '@/hooks/usePageTracking';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { setSentryUser, clearSentryUser } from '@/lib/sentry';
-import { setAnalyticsOptIn } from '@/lib/analytics';
 
 // --- Eagerly loaded (needed immediately for auth flow) ---
 import SupabaseLogin from '@/pages/SupabaseLogin';
@@ -89,11 +88,7 @@ function AdminRoute() {
 
 function isProfileComplete(profile) {
   if (!profile) return false;
-  const hasDisplayName = !!String(profile.display_name || '').trim();
-  const hasBio = !!String(profile.bio || '').trim();
-  const hasAvatar = !!profile.avatar_url;
-  const hasBike = !!String([profile.bike_year, profile.bike_make, profile.bike_model].filter(Boolean).join(' ')).trim();
-  return hasDisplayName && hasBio && hasAvatar && hasBike;
+  return String(profile.display_name || '').trim().length >= 2;
 }
 
 function SupabaseAppContent() {

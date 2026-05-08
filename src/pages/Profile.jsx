@@ -14,6 +14,13 @@ import OptimizedImage from '@/components/OptimizedImage';
 import { isExpired } from '@/lib/broadcastUtils';
 import { normalizeBroadcasts, normalizeProfile } from '@/lib/supabaseNormalizer';
 import { Link } from 'react-router-dom';
+import { MOTORCYCLE_MAKES, getModelSuggestions } from '@/lib/motorcycleCatalog';
+
+const currentYear = new Date().getFullYear();
+const normalizeBikeYear = (value) => {
+  const year = Number(value);
+  return Number.isInteger(year) && year >= 1900 && year <= currentYear + 1 ? year : null;
+};
 
 export default function Profile() {
   const { user, profile, signOut } = useSupabaseAuth();
@@ -208,9 +215,9 @@ function ProfileEdit({ profile, onDone }) {
         .update({
           display_name: form.display_name || user.email,
           bio: form.bio,
-          bike_year: form.bike_year ? Number(form.bike_year) : null,
-          bike_make: form.bike_make,
-          bike_model: form.bike_model,
+          bike_year: normalizeBikeYear(form.bike_year),
+          bike_make: form.bike_make.trim(),
+          bike_model: form.bike_model.trim(),
           avatar_url,
           bike_photo_url,
         })
@@ -237,6 +244,8 @@ function ProfileEdit({ profile, onDone }) {
       setUploadError(error?.response?.data?.error || error.message || 'Image validation failed. Please try another image.');
     } finally { setUploading(false); }
   };
+
+  const modelSuggestions = getModelSuggestions(form.bike_make);
 
   return (
     <div>
@@ -271,17 +280,27 @@ function ProfileEdit({ profile, onDone }) {
         <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2">
           <div>
             <Label>Year</Label>
-            <Input type="number" inputMode="numeric" value={form.bike_year || ''} onChange={(e) => setForm({ ...form, bike_year: e.target.value })} className="mt-1.5" />
+            <Input type="number" inputMode="numeric" min="1900" max={currentYear + 1} value={form.bike_year || ''} onChange={(e) => setForm({ ...form, bike_year: e.target.value })} className="mt-1.5" />
           </div>
           <div>
             <Label>Bike make</Label>
-            <Input value={form.bike_make || ''} onChange={(e) => setForm({ ...form, bike_make: e.target.value })} className="mt-1.5" />
+            <Input value={form.bike_make || ''} onChange={(e) => setForm({ ...form, bike_make: e.target.value })} className="mt-1.5" list="profile-bike-make-options" />
           </div>
         </div>
+        <datalist id="profile-bike-make-options">
+          {MOTORCYCLE_MAKES.map((make) => (
+            <option key={make} value={make} />
+          ))}
+        </datalist>
         <div>
           <Label>Bike model</Label>
-          <Input value={form.bike_model || ''} onChange={(e) => setForm({ ...form, bike_model: e.target.value })} className="mt-1.5" />
+          <Input value={form.bike_model || ''} onChange={(e) => setForm({ ...form, bike_model: e.target.value })} className="mt-1.5" list="profile-bike-model-options" />
         </div>
+        <datalist id="profile-bike-model-options">
+          {modelSuggestions.map((model) => (
+            <option key={model} value={model} />
+          ))}
+        </datalist>
         <div>
           <Label>Bike photo</Label>
           <div className="mt-1.5">

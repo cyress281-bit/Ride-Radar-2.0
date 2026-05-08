@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,9 +14,17 @@ const PROVIDERS = [
   { id: 'facebook', label: 'Facebook', mark: 'f' },
 ];
 
+function getSafeRedirect(value) {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/home';
+  if (value.startsWith('/login')) return '/home';
+  return value;
+}
+
 export default function SupabaseLogin() {
   const { signIn, signUp, signInWithProvider, isLoading } = useSupabaseAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = getSafeRedirect(searchParams.get('redirect'));
   const [mode, setMode] = useState('signin');
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState('');
@@ -32,7 +40,7 @@ export default function SupabaseLogin() {
     setProviderLoading(provider);
 
     try {
-      await signInWithProvider(provider);
+      await signInWithProvider(provider, `${window.location.origin}${redirectPath}`);
     } catch (err) {
       logger.error('OAuth error:', err);
       setError(err.message || `Could not continue with ${provider}.`);
@@ -50,7 +58,7 @@ export default function SupabaseLogin() {
       if (mode === 'signin') {
         await signIn(email, password);
         preloadCoreRoutes();
-        navigate('/home', { replace: true });
+        navigate(redirectPath, { replace: true });
       } else {
         const data = await signUp(email, password, {
           full_name: email.split('@')[0],
@@ -207,7 +215,7 @@ export default function SupabaseLogin() {
           )}
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            New accounts finish setup with profile, bike, bio, and photo details.
+            New accounts can add bike, bio, and photo details now or later.
           </p>
         </div>
       </div>
