@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import RRLogo from '@/components/RRLogo';
 import { preloadCoreRoutes } from '@/lib/routePreload';
 import { logger } from '@/lib/logger';
-import { getSafeAuthRedirectFromSearch } from '@/lib/authRedirect';
+import { getAuthErrorFromLocation, getSafeAuthRedirectFromSearch } from '@/lib/authRedirect';
 import { Mail } from 'lucide-react';
 
 const PROVIDERS = [
@@ -16,6 +16,7 @@ const PROVIDERS = [
 export default function SupabaseLogin() {
   const { signIn, signUp, signInWithProvider, isLoading } = useSupabaseAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const redirectPath = getSafeAuthRedirectFromSearch(searchParams);
   const [mode, setMode] = useState('signin');
@@ -26,6 +27,16 @@ export default function SupabaseLogin() {
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(false);
   const [providerLoading, setProviderLoading] = useState('');
+  const [rememberDevice, setRememberDevice] = useState(() => localStorage.getItem('rr_remember_device') !== 'false');
+
+  useEffect(() => {
+    const oauthError = getAuthErrorFromLocation(location.search, location.hash);
+    if (!oauthError) return;
+
+    setError(oauthError.message);
+    setProviderLoading('');
+    navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`, { replace: true });
+  }, [location.hash, location.search, navigate, redirectPath]);
 
   const handleProvider = async (provider) => {
     setError('');
@@ -33,7 +44,8 @@ export default function SupabaseLogin() {
     setProviderLoading(provider);
 
     try {
-      await signInWithProvider(provider, `${window.location.origin}${redirectPath}`);
+      sessionStorage.setItem('rr_oauth_redirect', redirectPath);
+      await signInWithProvider(provider, `${window.location.origin}/login`, { rememberDevice });
     } catch (err) {
       logger.error('OAuth error:', err);
       setError(err.message || `Could not continue with ${provider}.`);
@@ -49,13 +61,13 @@ export default function SupabaseLogin() {
 
     try {
       if (mode === 'signin') {
-        await signIn(email, password);
+        await signIn(email, password, { rememberDevice });
         preloadCoreRoutes();
         navigate(redirectPath, { replace: true });
       } else {
         const data = await signUp(email, password, {
           full_name: email.split('@')[0],
-        });
+        }, { rememberDevice });
 
         if (data?.session) {
           navigate('/onboarding', { replace: true });
@@ -75,14 +87,14 @@ export default function SupabaseLogin() {
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-secondary border-t-primary rounded-full animate-spin" />
+        <div className="h-8 w-8 rounded-full border border-primary/50 shadow-[0_0_18px_hsl(var(--primary)/0.22)]" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
-      <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-30" />
+      <div className="absolute inset-0 radar-grid pointer-events-none opacity-20" />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.14),transparent_32%)]" />
 
       <div className="relative z-10 w-full max-w-md">
@@ -203,6 +215,16 @@ export default function SupabaseLogin() {
                   />
                 </div>
 
+                <label className="flex items-center gap-3 rounded-xl border border-border/60 bg-black/25 px-3 py-2 text-sm text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={rememberDevice}
+                    onChange={(e) => setRememberDevice(e.target.checked)}
+                    className="h-4 w-4 accent-primary"
+                  />
+                  Remember this device
+                </label>
+
                 <Button type="submit" disabled={loading} className="h-12 w-full rounded-xl font-semibold">
                   {loading ? (
                     <span className="flex items-center gap-2">
@@ -217,6 +239,18 @@ export default function SupabaseLogin() {
                 </Button>
               </div>
             </form>
+          )}
+
+          {!showEmailForm && (
+            <label className="mt-4 flex items-center justify-center gap-3 rounded-xl border border-border/60 bg-black/20 px-3 py-2 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={rememberDevice}
+                onChange={(e) => setRememberDevice(e.target.checked)}
+                className="h-4 w-4 accent-primary"
+              />
+              Remember this device
+            </label>
           )}
 
           <p className="mt-6 text-center text-xs text-muted-foreground">

@@ -18,6 +18,7 @@ import { getSafeAuthRedirectFromSearch } from '@/lib/authRedirect';
 // --- Eagerly loaded (needed immediately for auth flow) ---
 import SupabaseLogin from '@/pages/SupabaseLogin';
 import Layout from '@/components/Layout';
+import Home from '@/pages/Home';
 
 // Public pages
 const Landing = lazy(() => import('@/pages/Landing'));
@@ -26,7 +27,6 @@ const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
 const Support = lazy(() => import('@/pages/Support'));
 
 // Core authenticated pages
-const Home = lazy(() => import('@/pages/Home'));
 const Broadcast = lazy(() => import('@/pages/Broadcast'));
 const BroadcastDetail = lazy(() => import('@/pages/BroadcastDetail'));
 const Messages = lazy(() => import('@/pages/Messages'));
@@ -59,7 +59,7 @@ function ProtectedRoute({ children }) {
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-secondary border-t-primary rounded-full animate-spin" />
+        <div className="h-8 w-8 rounded-full border border-primary/50 shadow-[0_0_18px_hsl(var(--primary)/0.22)]" />
       </div>
     );
   }
@@ -78,7 +78,7 @@ function AdminRoute() {
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-secondary border-t-primary rounded-full animate-spin" />
+        <div className="h-8 w-8 rounded-full border border-primary/50 shadow-[0_0_18px_hsl(var(--primary)/0.22)]" />
       </div>
     );
   }
@@ -91,8 +91,7 @@ function AdminRoute() {
 }
 
 function isProfileComplete(profile) {
-  if (!profile) return false;
-  return String(profile.display_name || '').trim().length >= 2;
+  return !!profile;
 }
 
 function SupabaseAppContent({ splashVisible = false }) {
@@ -109,22 +108,22 @@ function SupabaseAppContent({ splashVisible = false }) {
     }
   }, [isAuthenticated, user, profile]);
 
-  if (isLoading) {
-    if (splashVisible) {
-      return null;
-    }
+  if (splashVisible) {
+    return null;
+  }
 
+  if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-secondary border-t-primary rounded-full animate-spin" />
+          <div className="h-12 w-12 rounded-full border border-primary/50 shadow-[0_0_22px_hsl(var(--primary)/0.22)]" />
           <p className="text-sm text-muted-foreground">Loading Supabase auth...</p>
         </div>
       </div>
     );
   }
 
-  const onboardingExemptPaths = new Set(['/landing', '/login', '/account-deletion', '/privacy-policy', '/support']);
+  const onboardingExemptPaths = new Set(['/landing', '/login', '/account-deletion', '/privacy-policy', '/support', '/profile']);
 
   if (isAuthenticated && !isProfileComplete(profile) && location.pathname !== '/onboarding' && !onboardingExemptPaths.has(location.pathname)) {
     return <Navigate to="/onboarding" replace state={{ from: location.pathname }} />;
@@ -194,11 +193,9 @@ function SupabaseAppContent({ splashVisible = false }) {
             {/* Default redirects */}
             <Route
               path="/"
-              element={
-                isAuthenticated ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />
-              }
+              element={<Navigate to="/home" replace />}
             />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
         </Suspense>
       </ChunkErrorBoundary>

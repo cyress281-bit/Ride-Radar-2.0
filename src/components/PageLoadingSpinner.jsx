@@ -6,7 +6,7 @@ export default function PageLoadingSpinner({ message = 'Loading...' }) {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-4 border-secondary border-t-primary rounded-full animate-spin" />
+        <div className="h-10 w-10 rounded-full border border-primary/50 shadow-[0_0_20px_hsl(var(--primary)/0.22)]" />
         <p className="text-sm text-muted-foreground font-medium">{message}</p>
       </div>
     </div>

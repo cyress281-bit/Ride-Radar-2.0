@@ -48,7 +48,18 @@ export default function Profile() {
     () => myBroadcasts.filter((b) => b.status === 'active' && !isExpired(b)),
     [myBroadcasts]
   );
-  const normalizedProfile = useMemo(() => normalizeProfile(profile), [profile]);
+  const displayProfile = useMemo(() => profile || {
+    user_id: user?.id,
+    display_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || user?.email || 'Rider',
+    bio: '',
+    bike_year: '',
+    bike_make: '',
+    bike_model: '',
+    avatar_url: '',
+    bike_photo_url: '',
+    is_public: true,
+  }, [profile, user]);
+  const normalizedProfile = useMemo(() => normalizeProfile(displayProfile), [displayProfile]);
 
   if (isError) {
     return (
@@ -61,12 +72,12 @@ export default function Profile() {
     );
   }
 
-  if (!profile) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
+  if (!user) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
 
   return (
     <div className="px-5 pt-5">
       {editing ? (
-        <ProfileEdit profile={profile} onDone={() => setEditing(false)} />
+        <ProfileEdit profile={displayProfile} onDone={() => setEditing(false)} />
       ) : (
         <>
           <div className="mb-4 rr-surface-strong p-5 rounded-[1.45rem] relative overflow-hidden">
@@ -75,9 +86,9 @@ export default function Profile() {
             <div className="absolute left-5 right-5 bottom-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
             
             <div className="relative z-10 flex items-start gap-4">
-              {profile?.avatar_url ? (
+              {displayProfile?.avatar_url ? (
                 <OptimizedImage
-                  src={profile.avatar_url}
+                  src={displayProfile.avatar_url}
                   alt=""
                   containerClassName="w-20 h-20 rounded-2xl border border-border/50 shadow-[0_0_18px_rgba(0,0,0,0.48)] shrink-0"
                   className="rounded-2xl"
@@ -89,13 +100,13 @@ export default function Profile() {
                 />
               ) : (
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.26)] border border-primary/20 shrink-0">
-                  {profile?.display_name?.[0]?.toUpperCase() || '?'}
+                  {displayProfile?.display_name?.[0]?.toUpperCase() || '?'}
                 </div>
               )}
               <div className="flex-1 pt-1 min-w-0">
                 <div className="rr-kicker mb-1">Rider ID</div>
                 <div className="flex items-start gap-2 min-w-0">
-                  <h1 className="font-display text-[clamp(1.15rem,5vw,1.65rem)] leading-tight font-extrabold tracking-[-0.04em] break-words [overflow-wrap:anywhere] min-w-0">{profile?.display_name || user?.email}</h1>
+                  <h1 className="font-display text-[clamp(1.15rem,5vw,1.65rem)] leading-tight font-extrabold tracking-[-0.04em] break-words [overflow-wrap:anywhere] min-w-0">{displayProfile?.display_name || user?.email}</h1>
                 </div>
               </div>
               <button onClick={() => setEditing(true)} className="p-2.5 rounded-full bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all border border-border/50 shadow-sm">
@@ -105,23 +116,23 @@ export default function Profile() {
             <div className="relative z-10 mt-4 grid grid-cols-3 gap-2">
               <RiderMetric icon={Radio} label="Signals" value={active.length} compact />
               <RiderMetric icon={Gauge} label="Bike" value={normalizedProfile?.bike || 'Not set'} compact />
-              <RiderMetric icon={ShieldCheck} label="Status" value={profile?.is_public === false ? 'private' : 'public'} compact />
+              <RiderMetric icon={ShieldCheck} label="Status" value={displayProfile?.is_public === false ? 'private' : 'public'} compact />
             </div>
           </div>
 
-          {profile?.bio && (
+          {displayProfile?.bio && (
             <div className="mb-3 rounded-2xl rr-surface p-4">
               <div className="rr-kicker text-muted-foreground mb-2">Rider note</div>
-              <p className="text-[15px] leading-relaxed text-foreground/90">{profile.bio}</p>
+              <p className="text-[15px] leading-relaxed text-foreground/90">{displayProfile.bio}</p>
             </div>
           )}
 
           {normalizedProfile?.bike && (
             <div className="mb-4 rounded-2xl rr-surface overflow-hidden">
-              {profile.bike_photo_url && (
+              {displayProfile.bike_photo_url && (
                 <div className="relative h-36 border-b border-border/60 bg-black/40">
                   <OptimizedImage
-                    src={profile.bike_photo_url}
+                    src={displayProfile.bike_photo_url}
                     alt="Bike"
                     containerClassName="h-full w-full"
                     objectFit="cover"
@@ -212,7 +223,8 @@ function ProfileEdit({ profile, onDone }) {
 
       const { error } = await supabase
         .from('user_profiles')
-        .update({
+        .upsert({
+          user_id: user.id,
           display_name: form.display_name || user.email,
           bio: form.bio,
           bike_year: normalizeBikeYear(form.bike_year),
@@ -220,8 +232,10 @@ function ProfileEdit({ profile, onDone }) {
           bike_model: form.bike_model.trim(),
           avatar_url,
           bike_photo_url,
-        })
-        .eq('user_id', user.id);
+          is_public: profile?.is_public !== false,
+        }, {
+          onConflict: 'user_id',
+        });
 
       if (error) throw error;
     },

@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { supabase } from './supabase';
+import { setRememberDevicePreference } from './supabase';
 import { logger } from './logger';
 import { prefetchHomeData } from './query-client';
 
@@ -226,14 +227,16 @@ export const SupabaseAuthProvider = ({ children }) => {
     }
   };
 
-  const signIn = async (email, password) => {
+  const signIn = async (email, password, { rememberDevice = true } = {}) => {
+    setRememberDevicePreference(rememberDevice);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     if (data?.user?.id) prefetchHomeData(data.user.id);
     return data;
   };
 
-  const signUp = async (email, password, metadata = {}) => {
+  const signUp = async (email, password, metadata = {}, { rememberDevice = true } = {}) => {
+    setRememberDevicePreference(rememberDevice);
     const { data, error } = await supabase.auth.signUp({
       email, password, options: { data: metadata },
     });
@@ -241,7 +244,8 @@ export const SupabaseAuthProvider = ({ children }) => {
     return data;
   };
 
-  const signInWithProvider = async (provider, redirectTo = `${window.location.origin}/home`) => {
+  const signInWithProvider = async (provider, redirectTo = `${window.location.origin}/login`, { rememberDevice = true } = {}) => {
+    setRememberDevicePreference(rememberDevice);
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {

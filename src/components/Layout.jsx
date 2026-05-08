@@ -79,12 +79,12 @@ export default function Layout() {
       </a>
 
       {/* Subtle live background - decorative */}
-      <div className="fixed inset-0 radar-grid-animated pointer-events-none opacity-[0.24]" aria-hidden="true" />
+      <div className="fixed inset-0 radar-grid pointer-events-none opacity-[0.24]" aria-hidden="true" />
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_-10%,hsl(var(--primary)/0.11),transparent_34%),linear-gradient(180deg,transparent,rgba(0,0,0,0.35))]" aria-hidden="true" />
 
       {/* Ambient moving glows - decorative */}
-      <div className="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] max-w-[400px] max-h-[400px] bg-primary/10 ambient-glow" style={{ animationDelay: '0s' }} aria-hidden="true" />
-      <div className="fixed bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[500px] max-h-[500px] bg-primary/5 ambient-glow" style={{ animationDelay: '-4s' }} aria-hidden="true" />
+      <div className="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] max-w-[400px] max-h-[400px] rounded-full bg-primary/10 blur-3xl" aria-hidden="true" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[500px] max-h-[500px] rounded-full bg-primary/5 blur-3xl" aria-hidden="true" />
 
       {/* Top bar */}
       <header className="sticky top-0 z-40 bg-black/55 backdrop-blur-2xl border-b border-primary/10 shadow-[0_12px_40px_rgba(0,0,0,0.45)]">

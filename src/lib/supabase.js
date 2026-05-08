@@ -4,6 +4,40 @@ import { logger } from './logger';
 // Get credentials from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
+const REMEMBER_DEVICE_KEY = 'rr_remember_device';
+
+const getBrowserStorage = (type) => {
+  if (typeof window === 'undefined') return null;
+  return type === 'session' ? window.sessionStorage : window.localStorage;
+};
+
+const shouldRememberDevice = () => {
+  const storage = getBrowserStorage('local');
+  return storage?.getItem(REMEMBER_DEVICE_KEY) !== 'false';
+};
+
+const authStorage = {
+  getItem(key) {
+    const primary = shouldRememberDevice() ? getBrowserStorage('local') : getBrowserStorage('session');
+    const fallback = shouldRememberDevice() ? getBrowserStorage('session') : getBrowserStorage('local');
+    return primary?.getItem(key) ?? fallback?.getItem(key) ?? null;
+  },
+  setItem(key, value) {
+    const primary = shouldRememberDevice() ? getBrowserStorage('local') : getBrowserStorage('session');
+    const secondary = shouldRememberDevice() ? getBrowserStorage('session') : getBrowserStorage('local');
+    primary?.setItem(key, value);
+    secondary?.removeItem(key);
+  },
+  removeItem(key) {
+    getBrowserStorage('local')?.removeItem(key);
+    getBrowserStorage('session')?.removeItem(key);
+  },
+};
+
+export function setRememberDevicePreference(remember) {
+  const local = getBrowserStorage('local');
+  local?.setItem(REMEMBER_DEVICE_KEY, remember ? 'true' : 'false');
+}
 
 const getSupabaseProjectRef = (url) => {
   try {
@@ -92,7 +126,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true, // Keep user logged in across browser sessions
     autoRefreshToken: true, // Automatically refresh expired tokens
     detectSessionInUrl: true, // Handle OAuth redirects
-    storage: window.localStorage, // Use localStorage (not sessionStorage)
+    storage: authStorage,
   },
   realtime: {
     params: {
