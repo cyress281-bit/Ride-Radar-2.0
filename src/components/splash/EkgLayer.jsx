@@ -1,9 +1,15 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 const EKG_PATH = 'M102 534 H226 L248 498 L292 574 L344 348 L408 684 L458 470 L480 534 H650';
 
 export default function EkgLayer() {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    return null;
+  }
+
   return (
     <>
       <motion.path

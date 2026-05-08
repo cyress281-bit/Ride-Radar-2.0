@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { cn } from '@/lib/utils';
-
-const LOGO_URL = 'https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png';
+import { RIDE_RADAR_LOGO_URL } from '@/components/splash/logoAsset';
 
 /**
  * Memoized brand logo - props are stable across renders (size/glow don't change).
@@ -15,7 +14,7 @@ const RRLogo = memo(function RRLogo({ size = 'md', glow = true, className }) {
   const isFill = size === 'fill';
   return (
     <img
-      src={LOGO_URL}
+      src={RIDE_RADAR_LOGO_URL}
       alt="Ride Radar Logo"
       style={{ height: isFill ? '100%' : h, width: isFill ? '100%' : 'auto' }}
       className={cn(
