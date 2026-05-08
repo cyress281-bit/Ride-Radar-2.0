@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const LOGO_URL = '/ride-radar-logo.svg';
+const LOGO_URL = 'https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png';
 
 export default function FinalLogoResolve() {
   return (

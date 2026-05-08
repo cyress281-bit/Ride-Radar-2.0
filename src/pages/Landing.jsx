@@ -41,7 +41,7 @@ export default function Landing() {
             Live rider broadcast network
           </div>
 
-          <img src="/ride-radar-logo.svg" alt="Hero Logo" className="w-full max-w-[320px] mb-6 drop-shadow-[0_0_20px_hsl(var(--primary)/0.6)]" />
+          <RRLogo size="fill" className="mb-6 max-h-[110px] w-full max-w-[320px]" />
 
           <h1 className="rr-heading text-5xl md:text-7xl leading-[0.94] mb-6">
             <span className="text-foreground">Signal out.</span>

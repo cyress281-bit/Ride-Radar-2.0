@@ -22,7 +22,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       cleanupOutdatedCaches: true,
-      includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png', 'ride-radar-logo.svg', 'motorcycle-icon.svg'],
+      includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png', 'motorcycle-icon.svg'],
       manifest: {
         name: 'Ride Radar',
         short_name: 'Ride Radar',

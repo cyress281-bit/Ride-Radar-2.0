@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { cn } from '@/lib/utils';
 
-const LOGO_URL = '/ride-radar-logo.svg';
+const LOGO_URL = 'https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png';
 
 /**
  * Memoized brand logo - props are stable across renders (size/glow don't change).
