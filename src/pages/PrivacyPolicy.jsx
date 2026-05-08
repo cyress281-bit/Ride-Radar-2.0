@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
-export const PRIVACY_POLICY_URL = 'https://rideradarapp.com/privacy-policy';
+export const PRIVACY_POLICY_URL = '/privacy-policy';
 export const SUPPORT_EMAIL = 'support@rideradarapp.com';
-export const SUPPORT_URL = 'https://rideradarapp.com/support';
-export const ACCOUNT_DELETION_URL = 'https://rideradarapp.com/account-deletion';
+export const SUPPORT_URL = '/support';
+export const ACCOUNT_DELETION_URL = '/account-deletion';
 
 export default function PrivacyPolicy() {
   return (

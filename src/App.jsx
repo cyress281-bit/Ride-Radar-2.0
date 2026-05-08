@@ -21,6 +21,8 @@ import Layout from '@/components/Layout';
 // Public pages
 const Landing = lazy(() => import('@/pages/Landing'));
 const AccountDeletion = lazy(() => import('@/pages/AccountDeletion'));
+const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy'));
+const Support = lazy(() => import('@/pages/Support'));
 
 // Core authenticated pages
 const Home = lazy(() => import('@/pages/Home'));
@@ -52,6 +54,7 @@ const AdminMonitoring = lazy(() => import('@/pages/admin/AdminMonitoring'));
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useSupabaseAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -62,7 +65,8 @@ function ProtectedRoute({ children }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    const redirect = encodeURIComponent(`${location.pathname}${location.search}`);
+    return <Navigate to={`/login?redirect=${redirect}`} replace />;
   }
 
   return children;
@@ -116,7 +120,9 @@ function SupabaseAppContent() {
     );
   }
 
-  if (isAuthenticated && !isProfileComplete(profile) && location.pathname !== '/onboarding') {
+  const onboardingExemptPaths = new Set(['/landing', '/login', '/account-deletion', '/privacy-policy', '/support']);
+
+  if (isAuthenticated && !isProfileComplete(profile) && location.pathname !== '/onboarding' && !onboardingExemptPaths.has(location.pathname)) {
     return <Navigate to="/onboarding" replace state={{ from: location.pathname }} />;
   }
 
@@ -133,6 +139,8 @@ function SupabaseAppContent() {
               element={isAuthenticated ? <Navigate to="/home" replace /> : <SupabaseLogin />}
             />
             <Route path="/account-deletion" element={<AccountDeletion />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/support" element={<Support />} />
 
             {/* Onboarding */}
             <Route

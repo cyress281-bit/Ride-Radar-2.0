@@ -421,7 +421,14 @@
   .rr-avatar-ring::before,
   .rr-shimmer-button::after,
   .rr-premium-input:focus,
-  .rr-premium-input:focus-visible {
+  .rr-premium-input:focus-visible,
+  .radar-grid-animated,
+  .animate-pulse-green,
+  .animate-pulse-alert,
+  .animate-radar,
+  .animate-ekg,
+  .ambient-glow,
+  .rr-map-marker::before {
     animation: none;
   }
 

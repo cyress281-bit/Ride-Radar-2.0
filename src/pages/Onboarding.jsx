@@ -91,6 +91,7 @@ export default function Onboarding() {
   const inputClassName = 'rr-premium-input';
   const labelClassName = 'mb-2 block text-xs font-semibold uppercase rr-premium-label';
   const panelClassName = 'rr-glass-panel p-4 rr-stagger';
+  const avatarHelpId = uploadError ? 'profile-picture-error' : undefined;
 
   return (
     <div className="rr-carbon-bg min-h-screen relative overflow-hidden flex flex-col items-center justify-center px-5 py-8">
@@ -111,10 +112,10 @@ export default function Onboarding() {
 
         <div className="space-y-4">
           <div className={panelClassName} style={{ '--rr-delay': '320ms' }}>
-            <Label className="mb-3 block text-xs font-semibold uppercase rr-premium-label">
+            <Label htmlFor="profile-picture" className="mb-3 block text-xs font-semibold uppercase rr-premium-label">
               Profile picture
             </Label>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <span className="rr-avatar-ring shrink-0">
                 {getImagePreview(form.avatar) ? (
                   <img src={getImagePreview(form.avatar)} className="relative h-16 w-16 rounded-full border border-primary/30 object-cover" alt="" />
@@ -124,31 +125,43 @@ export default function Onboarding() {
                   </div>
                 )}
               </span>
-              <label className="rr-shimmer-button cursor-pointer rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-sm font-bold text-primary transition-colors hover:bg-primary/15 hover:text-primary">
-                <input type="file" accept="image/*" onChange={handleAvatar} className="hidden" />
+              <label className="rr-shimmer-button flex min-w-0 flex-1 cursor-pointer justify-center rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-center text-sm font-bold text-primary transition-colors hover:bg-primary/15 hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/80">
+                <input
+                  id="profile-picture"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatar}
+                  className="sr-only"
+                  aria-label="Upload profile picture"
+                  aria-describedby={avatarHelpId}
+                />
                 {uploading ? 'Preparing...' : 'Upload picture'}
               </label>
             </div>
-            {uploadError && <p className="mt-2 text-sm text-destructive">{uploadError}</p>}
+            {uploadError && <p id="profile-picture-error" role="alert" className="mt-2 text-sm text-destructive">{uploadError}</p>}
           </div>
 
           <div className={panelClassName} style={{ '--rr-delay': '400ms' }}>
-            <Label className={labelClassName}>
+            <Label htmlFor="display-name" className={labelClassName}>
               Display name *
             </Label>
             <Input
+              id="display-name"
               value={form.displayName}
               onChange={(e) => setForm({ ...form, displayName: e.target.value })}
               placeholder="How riders see you"
               className={inputClassName}
+              autoComplete="nickname"
+              aria-required="true"
             />
           </div>
 
           <div className={panelClassName} style={{ '--rr-delay': '480ms' }}>
-            <Label className={labelClassName}>
+            <Label htmlFor="rider-bio" className={labelClassName}>
               Bio
             </Label>
             <Textarea
+              id="rider-bio"
               value={form.bio}
               onChange={(e) => setForm({ ...form, bio: e.target.value })}
               placeholder="Your riding style, local area, and what kind of rides you like."
@@ -160,10 +173,11 @@ export default function Onboarding() {
 
           <div className={`grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2 ${panelClassName}`} style={{ '--rr-delay': '560ms' }}>
             <div>
-              <Label className={labelClassName}>
+              <Label htmlFor="bike-year" className={labelClassName}>
                 Year
               </Label>
               <Input
+                id="bike-year"
                 type="number"
                 inputMode="numeric"
                 min="1900"
@@ -175,10 +189,11 @@ export default function Onboarding() {
               />
             </div>
             <div>
-              <Label className={labelClassName}>
+              <Label htmlFor="bike-make" className={labelClassName}>
                 Bike make
               </Label>
               <Input
+                id="bike-make"
                 value={form.bikeMake}
                 onChange={(e) => setForm({ ...form, bikeMake: e.target.value })}
                 placeholder="Yamaha"
@@ -194,10 +209,11 @@ export default function Onboarding() {
           </datalist>
 
           <div className={panelClassName} style={{ '--rr-delay': '640ms' }}>
-            <Label className={labelClassName}>
+            <Label htmlFor="bike-model" className={labelClassName}>
               Bike model
             </Label>
             <Input
+              id="bike-model"
               value={form.bikeModel}
               onChange={(e) => setForm({ ...form, bikeModel: e.target.value })}
               placeholder="MT-09"
@@ -219,7 +235,7 @@ export default function Onboarding() {
           </div>
 
           {saveProfile.isError && (
-            <p className="rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive">
+            <p role="alert" className="rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive">
               {saveProfile.error?.message || 'Failed to create profile'}
             </p>
           )}
