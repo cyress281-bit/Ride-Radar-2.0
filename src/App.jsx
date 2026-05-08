@@ -13,6 +13,7 @@ import { AnimatePresence } from 'framer-motion';
 import { usePageTracking } from '@/hooks/usePageTracking';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { setSentryUser, clearSentryUser } from '@/lib/sentry';
+import { getSafeAuthRedirectFromSearch } from '@/lib/authRedirect';
 
 // --- Eagerly loaded (needed immediately for auth flow) ---
 import SupabaseLogin from '@/pages/SupabaseLogin';
@@ -65,7 +66,7 @@ function ProtectedRoute({ children }) {
   }
 
   if (!isAuthenticated) {
-    const redirect = encodeURIComponent(`${location.pathname}${location.search}`);
+    const redirect = encodeURIComponent(`${location.pathname}${location.search}${location.hash}`);
     return <Navigate to={`/login?redirect=${redirect}`} replace />;
   }
 
@@ -136,7 +137,7 @@ function SupabaseAppContent() {
             <Route path="/landing" element={<Landing />} />
             <Route
               path="/login"
-              element={isAuthenticated ? <Navigate to="/home" replace /> : <SupabaseLogin />}
+              element={isAuthenticated ? <Navigate to={getSafeAuthRedirectFromSearch(location.search)} replace /> : <SupabaseLogin />}
             />
             <Route path="/account-deletion" element={<AccountDeletion />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />

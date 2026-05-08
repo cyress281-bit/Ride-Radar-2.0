@@ -6,23 +6,18 @@ import { Input } from '@/components/ui/input';
 import RRLogo from '@/components/RRLogo';
 import { preloadCoreRoutes } from '@/lib/routePreload';
 import { logger } from '@/lib/logger';
+import { getSafeAuthRedirectFromSearch } from '@/lib/authRedirect';
 import { Mail } from 'lucide-react';
 
 const PROVIDERS = [
   { id: 'google', label: 'Google', mark: 'G' },
 ];
 
-function getSafeRedirect(value) {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/home';
-  if (value.startsWith('/login')) return '/home';
-  return value;
-}
-
 export default function SupabaseLogin() {
   const { signIn, signUp, signInWithProvider, isLoading } = useSupabaseAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectPath = getSafeRedirect(searchParams.get('redirect'));
+  const redirectPath = getSafeAuthRedirectFromSearch(searchParams);
   const [mode, setMode] = useState('signin');
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState('');
@@ -142,22 +137,25 @@ export default function SupabaseLogin() {
           </div>
 
           {notice && (
-            <div className="mt-4 rounded-xl border border-primary/25 bg-primary/5 p-3 text-sm text-primary">
+            <div role="status" aria-live="polite" className="mt-4 rounded-xl border border-primary/25 bg-primary/5 p-3 text-sm text-primary">
               {notice}
             </div>
           )}
 
           {error && (
-            <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+            <div role="alert" className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
 
           {showEmailForm && (
             <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-              <div className="grid grid-cols-2 rounded-xl border border-border/70 bg-black/25 p-1">
+              <div className="grid grid-cols-2 rounded-xl border border-border/70 bg-black/25 p-1" role="tablist" aria-label="Authentication mode">
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={mode === 'signin'}
+                  aria-controls="email-auth-panel"
                   onClick={() => setMode('signin')}
                   className={`min-h-10 rounded-lg text-sm font-bold transition ${mode === 'signin' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                 >
@@ -165,6 +163,9 @@ export default function SupabaseLogin() {
                 </button>
                 <button
                   type="button"
+                  role="tab"
+                  aria-selected={mode === 'signup'}
+                  aria-controls="email-auth-panel"
                   onClick={() => setMode('signup')}
                   className={`min-h-10 rounded-lg text-sm font-bold transition ${mode === 'signup' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                 >
@@ -172,43 +173,49 @@ export default function SupabaseLogin() {
                 </button>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium">Email</label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="rider@example.com"
-                  required
-                  disabled={loading}
-                />
-              </div>
+              <div id="email-auth-panel" role="tabpanel" className="space-y-4">
+                <div>
+                  <label htmlFor="login-email" className="mb-2 block text-sm font-medium">Email</label>
+                  <Input
+                    id="login-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="rider@example.com"
+                    required
+                    disabled={loading}
+                    autoComplete="email"
+                  />
+                </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium">Password</label>
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter a secure password"
-                  required
-                  minLength={6}
-                  disabled={loading}
-                />
-              </div>
+                <div>
+                  <label htmlFor="login-password" className="mb-2 block text-sm font-medium">Password</label>
+                  <Input
+                    id="login-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter a secure password"
+                    required
+                    minLength={6}
+                    disabled={loading}
+                    autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                  />
+                </div>
 
-              <Button type="submit" disabled={loading} className="h-12 w-full rounded-xl font-semibold">
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    {mode === 'signin' ? 'Signing in...' : 'Creating account...'}
-                  </span>
-                ) : mode === 'signin' ? (
-                  'Sign in with email'
-                ) : (
-                  'Create account with email'
-                )}
-              </Button>
+                <Button type="submit" disabled={loading} className="h-12 w-full rounded-xl font-semibold">
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      {mode === 'signin' ? 'Signing in...' : 'Creating account...'}
+                    </span>
+                  ) : mode === 'signin' ? (
+                    'Sign in with email'
+                  ) : (
+                    'Create account with email'
+                  )}
+                </Button>
+              </div>
             </form>
           )}
 
