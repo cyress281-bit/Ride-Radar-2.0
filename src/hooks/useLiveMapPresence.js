@@ -113,7 +113,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('live_map_presence')
-        .select('user_id,display_name,avatar_url,vehicle_label,is_visible,location_precision,lat,lng,accuracy_meters,approximate_radius_miles,last_seen_at,expires_at,updated_at')
+        .select('user_id,display_name,avatar_url,vehicle_label,is_visible,location_precision,lat,lng,approximate_radius_miles,last_seen_at,expires_at,updated_at')
         .eq('is_visible', true)
         .gt('expires_at', new Date().toISOString())
         .order('last_seen_at', { ascending: false })

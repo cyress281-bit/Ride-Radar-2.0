@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   CalendarClock,
   Clock,
+  Crosshair,
   LocateFixed,
   MapPin,
   RefreshCw,
@@ -66,6 +67,7 @@ const typeConfig = {
 
 const markerIconCache = new Map();
 const riderMarkerIconCache = new Map();
+let selfMarkerIcon;
 
 function firstNumber(...values) {
   for (const value of values) {
@@ -136,6 +138,20 @@ function getRiderMarkerIcon(presence) {
   return riderMarkerIconCache.get(cacheKey);
 }
 
+function getSelfMarkerIcon() {
+  if (!selfMarkerIcon) {
+    selfMarkerIcon = divIcon({
+      className: 'rr-map-marker-wrapper',
+      html: '<span class="rr-map-marker rr-map-marker-self" aria-hidden="true"><span></span></span>',
+      iconSize: [42, 42],
+      iconAnchor: [21, 21],
+      popupAnchor: [0, -22],
+    });
+  }
+
+  return selfMarkerIcon;
+}
+
 function getCenter(items, userLat, userLng) {
   if (isValidCoordinate(userLat, userLng)) return [userLat, userLng];
   if (items.length === 0) return US_CENTER;
@@ -144,7 +160,7 @@ function getCenter(items, userLat, userLng) {
   return [lat, lng];
 }
 
-function FitMapToItems({ items, userLat, userLng, variant, disabled }) {
+function FitMapToItems({ items, userLat, userLng, variant, disabled, focusUserLocation }) {
   const map = useMap();
   const boundsKey = useMemo(
     () => items.map((item) => `${item.id}:${item.lat.toFixed(4)},${item.lng.toFixed(4)}`).join('|'),
@@ -156,8 +172,13 @@ function FitMapToItems({ items, userLat, userLng, variant, disabled }) {
 
     window.requestAnimationFrame(() => map.invalidateSize());
 
+    if (focusUserLocation && isValidCoordinate(userLat, userLng)) {
+      map.setView([userLat, userLng], 15, { animate: false });
+      return;
+    }
+
     if (items.length === 0) {
-      map.setView(getCenter(items, userLat, userLng), variant === 'full' ? 4 : 3);
+      map.setView(getCenter(items, userLat, userLng), variant === 'full' ? 4 : 12);
       return;
     }
 
@@ -171,12 +192,29 @@ function FitMapToItems({ items, userLat, userLng, variant, disabled }) {
       {
         paddingTopLeft: variant === 'full' ? [34, 34] : [24, 24],
         paddingBottomRight: variant === 'full' ? [34, 34] : [24, 24],
-        maxZoom: variant === 'full' ? 12 : 9,
+        maxZoom: variant === 'full' ? 12 : 13,
       }
     );
-  }, [boundsKey, disabled, items, map, userLat, userLng, variant]);
+  }, [boundsKey, disabled, focusUserLocation, items, map, userLat, userLng, variant]);
 
   return null;
+}
+
+function CenterOnUserButton({ userLat, userLng }) {
+  const map = useMap();
+
+  if (!isValidCoordinate(userLat, userLng)) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => map.setView([userLat, userLng], 15, { animate: true, duration: 0.45 })}
+      className="rr-haptic absolute bottom-24 right-3 z-[430] flex h-11 w-11 items-center justify-center rounded-full bg-black/80 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.28),0_0_24px_hsl(var(--primary)/0.18),0_18px_45px_rgba(0,0,0,0.5)] backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      aria-label="Center map on my location"
+    >
+      <Crosshair className="h-5 w-5" aria-hidden="true" />
+    </button>
+  );
 }
 
 function Stat({ label, value, className }) {
@@ -235,7 +273,11 @@ function LoadingState({ variant }) {
     <div
       className={cn(
         'flex flex-col items-center justify-center rounded-2xl border border-border/45 bg-black/30',
-        variant === 'full' ? 'min-h-[520px]' : 'h-[300px]'
+        variant === 'full'
+          ? 'min-h-[520px]'
+          : variant === 'radar'
+            ? 'h-full min-h-[560px] rounded-[28px] border-primary/25 shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_0_30px_hsl(var(--primary)/0.16)]'
+            : 'h-[300px]'
       )}
       role="status"
       aria-label="Loading map data"
@@ -252,7 +294,11 @@ function ErrorState({ onRetry, variant }) {
     <div
       className={cn(
         'flex flex-col items-center justify-center rounded-2xl border border-destructive/35 bg-destructive/5 p-6 text-center',
-        variant === 'full' ? 'min-h-[520px]' : 'h-[300px]'
+        variant === 'full'
+          ? 'min-h-[520px]'
+          : variant === 'radar'
+            ? 'h-full min-h-[560px] rounded-[28px]'
+            : 'h-[300px]'
       )}
       role="alert"
     >
@@ -419,10 +465,13 @@ export default function LiveMapSurface({
   getProfile,
   userLat,
   userLng,
+  userAccuracyMeters,
   isLoading = false,
   variant = 'full',
   className,
   fitKey,
+  focusUserLocation = false,
+  showSelfLocation = false,
 }) {
   const [mapError, setMapError] = useState(false);
   const [autoFitDisabled, setAutoFitDisabled] = useState(false);
@@ -472,6 +521,7 @@ export default function LiveMapSurface({
 
   const items = useMemo(() => [...broadcastItems, ...livePresenceItems], [broadcastItems, livePresenceItems]);
 
+  const hasUserLocation = isValidCoordinate(userLat, userLng);
   const center = useMemo(() => getCenter(items, userLat, userLng), [items, userLat, userLng]);
   const handleTileError = useCallback(() => setMapError(true), []);
   const handleRetry = useCallback(() => setMapError(false), []);
@@ -514,7 +564,7 @@ export default function LiveMapSurface({
             variant === 'full'
               ? 'min-h-[560px] h-[calc(100svh-15rem)] max-h-[760px]'
               : variant === 'radar'
-                ? 'h-full min-h-[560px] rounded-none border-0'
+                ? 'h-full min-h-[560px] rounded-[24px] border border-primary/35 shadow-[0_0_0_1px_hsl(var(--primary)/0.12),0_0_28px_hsl(var(--primary)/0.18),inset_0_0_28px_hsl(var(--primary)/0.06)]'
                 : 'h-[320px]'
           )}
           role="application"
@@ -527,7 +577,7 @@ export default function LiveMapSurface({
             Skip map
           </a>
           <MapSummary items={items} userLat={userLat} userLng={userLng} variant={variant} />
-          {items.length === 0 && (
+          {variant !== 'radar' && items.length === 0 && (
             <div className={cn(
               'pointer-events-none absolute inset-x-4 z-[430] flex justify-center',
               variant === 'radar' ? 'bottom-24' : 'bottom-4'
@@ -574,7 +624,26 @@ export default function LiveMapSurface({
               userLng={userLng}
               variant={variant}
               disabled={variant === 'radar' && autoFitDisabled}
+              focusUserLocation={focusUserLocation}
             />
+            {showSelfLocation && hasUserLocation && (
+              <Marker position={[userLat, userLng]} icon={getSelfMarkerIcon()}>
+                <Popup>
+                  <div className="min-w-48 text-foreground">
+                    <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Private location</div>
+                    <div className="mt-1 font-display text-base font-bold leading-tight">You are here</div>
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      This exact pin is only shown on your device.
+                    </p>
+                    {Number.isFinite(Number(userAccuracyMeters)) && (
+                      <div className="mt-2 text-xs text-muted-foreground">
+                        Accuracy about {Math.round(Number(userAccuracyMeters))}m
+                      </div>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            )}
             {items.map((item) => (
               <Marker
                 key={item.id}
@@ -586,6 +655,7 @@ export default function LiveMapSurface({
                 </Popup>
               </Marker>
             ))}
+            {variant === 'radar' && <CenterOnUserButton userLat={userLat} userLng={userLng} />}
           </MapContainer>
         </div>
 

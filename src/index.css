@@ -295,6 +295,30 @@
   .rr-map-marker-iso { color: hsl(var(--iso)); }
   .rr-map-marker-event { color: hsl(var(--event)); }
   .rr-map-marker-rider { color: hsl(195 100% 60%); }
+  .rr-map-marker-self {
+    width: 42px;
+    height: 42px;
+    color: hsl(var(--primary));
+    background:
+      radial-gradient(circle, hsl(var(--primary) / 0.34) 0 24%, hsl(0 0% 0% / 0.82) 25% 100%);
+    border: 1px solid hsl(var(--primary) / 0.74);
+    box-shadow:
+      0 0 0 5px hsl(var(--primary) / 0.1),
+      0 0 30px hsl(var(--primary) / 0.34),
+      0 18px 40px hsl(0 0% 0% / 0.6);
+  }
+  .rr-map-marker-self::before {
+    inset: -10px;
+    border-width: 2px;
+    opacity: 0.5;
+  }
+  .rr-map-marker-self span {
+    inset: 13px;
+    background: hsl(var(--primary));
+    box-shadow:
+      0 0 18px hsl(var(--primary)),
+      0 0 34px hsl(var(--primary) / 0.55);
+  }
   .rr-map-marker-rider span {
     inset: 0;
     background: transparent;

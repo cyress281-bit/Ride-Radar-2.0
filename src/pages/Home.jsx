@@ -1,16 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ChevronDown, ChevronsUp, Filter, LocateFixed, Radio, SlidersHorizontal } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { ChevronDown, ChevronsUp, Filter, LocateFixed, MapPin, Radio, SlidersHorizontal } from 'lucide-react';
 import { useNearbyBroadcasts } from '@/hooks/useNearbyBroadcasts';
 import { useLiveMapPresence } from '@/hooks/useLiveMapPresence';
 import { useBlockedProfiles } from '@/hooks/useBlockedProfiles';
 import { useProfileBatch } from '@/hooks/useProfileBatch';
+import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import LiveMapSurface from '@/components/map/LiveMapSurface';
 import { haversineMiles, rankBroadcasts } from '@/lib/broadcastUtils';
-import { normalizeBroadcasts } from '@/lib/supabaseNormalizer';
 import { logger } from '@/lib/logger';
 import { cn } from '@/lib/utils';
 
@@ -29,44 +27,34 @@ const SORTS = [
 ];
 
 const COLLAPSED_SHEET_HEIGHT = '5.25rem';
+const RADAR_LOCATION_CACHE_KEY = 'rr:last-radar-location';
 
-function isUnavailableQueryError(error) {
-  return error?.code === 'PGRST205' || error?.code === '42P01' || error?.status === 404 || error?.status === 400;
+function readCachedRadarLocation() {
+  try {
+    const raw = window.localStorage.getItem(RADAR_LOCATION_CACHE_KEY);
+    if (!raw) return { lat: null, lng: null, accuracyMeters: null };
+    const parsed = JSON.parse(raw);
+    const lat = Number(parsed.lat);
+    const lng = Number(parsed.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { lat: null, lng: null, accuracyMeters: null };
+    return {
+      lat,
+      lng,
+      accuracyMeters: Number.isFinite(Number(parsed.accuracyMeters)) ? Number(parsed.accuracyMeters) : null,
+    };
+  } catch {
+    return { lat: null, lng: null, accuracyMeters: null };
+  }
 }
 
-function isMissingColumnError(error, column) {
-  return (
-    error?.code === '42703' ||
-    String(error?.message || '').toLowerCase().includes(`${column.toLowerCase()} does not exist`)
-  );
-}
-
-async function fetchActiveBroadcastsFallback() {
-  const baseQuery = () => supabase
-    .from('broadcasts')
-    .select('*')
-    .eq('status', 'active');
-
-  let { data, error } = await baseQuery()
-    .order('created_at', { ascending: false })
-    .limit(200);
-
-  if (isMissingColumnError(error, 'created_at')) {
-    ({ data, error } = await baseQuery()
-      .order('created_date', { ascending: false })
-      .limit(200));
-  }
-
-  if (isMissingColumnError(error, 'created_date')) {
-    ({ data, error } = await baseQuery().limit(200));
-  }
-
-  if (error) throw error;
-
-  return normalizeBroadcasts(data || []).filter((broadcast) => {
-    const expiresAt = broadcast.expires_at || broadcast.expiresAt;
-    return !expiresAt || new Date(expiresAt) > new Date();
-  });
+function cacheRadarLocation(location) {
+  if (!Number.isFinite(Number(location.lat)) || !Number.isFinite(Number(location.lng))) return;
+  window.localStorage.setItem(RADAR_LOCATION_CACHE_KEY, JSON.stringify({
+    lat: location.lat,
+    lng: location.lng,
+    accuracyMeters: location.accuracyMeters,
+    cachedAt: Date.now(),
+  }));
 }
 
 function getBroadcastTime(broadcast) {
@@ -98,7 +86,9 @@ function getAuthorId(broadcast) {
 }
 
 export default function Home() {
-  const [userLoc, setUserLoc] = useState({ lat: null, lng: null, accuracyMeters: null });
+  const { user } = useSupabaseAuth();
+  const [userLoc, setUserLoc] = useState(() => readCachedRadarLocation());
+  const [isResolvingLocation, setIsResolvingLocation] = useState(() => readCachedRadarLocation().lat == null);
   const [geoError, setGeoError] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [activePanel, setActivePanel] = useState('sort');
@@ -108,78 +98,63 @@ export default function Home() {
 
   useEffect(() => {
     let active = true;
+    let watchId = null;
 
     if (!navigator.geolocation) {
       setGeoError(true);
+      setIsResolvingLocation(false);
       return () => {
         active = false;
       };
     }
 
+    const applyPosition = (pos) => {
+      if (!active) return;
+      const nextLocation = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracyMeters: pos.coords.accuracy,
+      };
+      setUserLoc(nextLocation);
+      cacheRadarLocation(nextLocation);
+      setGeoError(false);
+      setIsResolvingLocation(false);
+    };
+
+    const handlePositionError = (err) => {
+      if (!active) return;
+      logger.warn('[Radar] Geolocation error:', err.message);
+      setGeoError(true);
+      setIsResolvingLocation(false);
+    };
+
     navigator.geolocation.getCurrentPosition(
+      applyPosition,
+      handlePositionError,
+      { maximumAge: 30000, timeout: 9000, enableHighAccuracy: true }
+    );
+
+    watchId = navigator.geolocation.watchPosition(
       (pos) => {
-        if (!active) return;
-        setUserLoc({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracyMeters: pos.coords.accuracy,
-        });
-        setGeoError(false);
+        applyPosition(pos);
       },
       (err) => {
-        if (!active) return;
-        logger.warn('[Radar] Geolocation error:', err.message);
-        setGeoError(true);
+        logger.warn('[Radar] Geolocation watch error:', err.message);
       },
-      { maximumAge: 120000, timeout: 6000, enableHighAccuracy: false }
+      { maximumAge: 15000, timeout: 12000, enableHighAccuracy: true }
     );
 
     return () => {
       active = false;
+      if (watchId != null) navigator.geolocation.clearWatch(watchId);
     };
   }, []);
 
   const { data: nearbyBroadcasts = [], isLoading: isLoadingNearby } = useNearbyBroadcasts(userLoc.lat, userLoc.lng, 50);
 
-  const { data: allBroadcasts = [], isLoading: isLoadingAll } = useQuery({
-    queryKey: ['broadcasts', 'all', 'radar'],
-    queryFn: async () => {
-      const baseQuery = () => supabase
-        .from('broadcasts')
-        .select('*')
-        .eq('status', 'active')
-        .gte('expires_at', new Date().toISOString());
-
-      let { data, error } = await baseQuery()
-        .order('created_at', { ascending: false })
-        .limit(200);
-
-      if (isMissingColumnError(error, 'created_at')) {
-        ({ data, error } = await baseQuery()
-          .order('created_date', { ascending: false })
-          .limit(200));
-      }
-
-      if (isMissingColumnError(error, 'created_date')) {
-        ({ data, error } = await baseQuery().limit(200));
-      }
-
-      if (error) {
-        logger.warn('[Radar] Active broadcasts query failed:', error);
-        if (isUnavailableQueryError(error)) return fetchActiveBroadcastsFallback();
-        throw error;
-      }
-
-      return normalizeBroadcasts(data || []);
-    },
-    enabled: geoError || (userLoc.lat == null && userLoc.lng == null),
-    staleTime: 30000,
-    gcTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
-
-  const sourceBroadcasts = userLoc.lat != null ? nearbyBroadcasts : allBroadcasts;
-  const isLoadingBroadcasts = userLoc.lat != null ? isLoadingNearby : isLoadingAll;
+  const hasUserLocation = userLoc.lat != null && userLoc.lng != null;
+  const sourceBroadcasts = hasUserLocation ? nearbyBroadcasts : [];
+  const isLoadingBroadcasts = hasUserLocation ? isLoadingNearby : false;
   const { blockedIds } = useBlockedProfiles();
 
   const { markers: riderMarkers } = useLiveMapPresence(
@@ -193,8 +168,11 @@ export default function Home() {
   );
 
   const visibleRiderMarkers = useMemo(
-    () => riderMarkers.filter((marker) => !blockedIds.has(marker.user_id || marker.userId)),
-    [riderMarkers, blockedIds]
+    () => riderMarkers.filter((marker) => {
+      const markerUserId = marker.user_id || marker.userId;
+      return markerUserId !== user?.id && !blockedIds.has(markerUserId);
+    }),
+    [blockedIds, riderMarkers, user?.id]
   );
 
   const rankedBroadcasts = useMemo(
@@ -241,10 +219,10 @@ export default function Home() {
   const activeFilterLabel = FILTERS.find((item) => item.value === feedFilter)?.label || 'All';
   const activeSortLabel = SORTS.find((item) => item.value === feedSort)?.label || 'Live / Priority';
   const locationLabel = userLoc.lat != null
-    ? 'Live signals near you'
+    ? geoError ? 'Showing last known private location' : 'Centered on your private location'
     : geoError
-      ? 'Location unavailable, showing active network signals'
-      : 'Resolving location, syncing active signals';
+      ? 'Location permission needed for Radar startup'
+      : 'Locking onto your location';
 
   return (
     <div className="relative min-h-[calc(100svh-3.5rem)] overflow-hidden">
@@ -261,23 +239,38 @@ export default function Home() {
         </div>
         {geoError && (
           <p className="mt-2 rounded-xl bg-primary/5 px-3 py-2 text-[11px] leading-snug text-muted-foreground">
-            Enable location for nearest sorting.
+            Enable location so Radar can open on your private pin.
           </p>
         )}
       </div>
 
-      <div className="h-[calc(100svh-3.5rem)] min-h-[560px]">
-        <LiveMapSurface
-          broadcasts={mapBroadcasts}
-          presenceMarkers={visibleRiderMarkers}
-          getProfile={getProfile}
-          userLat={userLoc.lat}
-          userLng={userLoc.lng}
-          isLoading={isLoadingBroadcasts}
-          variant="radar"
-          className="h-full rounded-none border-0 p-0 shadow-none"
-          fitKey={feedFilter}
-        />
+      <div className="h-[calc(100svh-3.5rem)] min-h-[560px] p-2 pt-[5.75rem]">
+        {hasUserLocation || isResolvingLocation ? (
+          <LiveMapSurface
+            broadcasts={mapBroadcasts}
+            presenceMarkers={visibleRiderMarkers}
+            getProfile={getProfile}
+            userLat={userLoc.lat}
+            userLng={userLoc.lng}
+            userAccuracyMeters={userLoc.accuracyMeters}
+            isLoading={(isResolvingLocation && !hasUserLocation) || isLoadingBroadcasts}
+            variant="radar"
+            className="h-full rounded-[28px] border border-primary/25 bg-black/50 p-1.5 shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_0_30px_hsl(var(--primary)/0.16),0_22px_70px_rgba(0,0,0,0.5)]"
+            fitKey={`${feedFilter}:${hasUserLocation ? 'self' : 'pending'}`}
+            focusUserLocation={hasUserLocation}
+            showSelfLocation={hasUserLocation}
+          />
+        ) : (
+          <div className="flex h-full min-h-[560px] flex-col items-center justify-center rounded-[28px] border border-primary/25 bg-black/55 p-8 text-center shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_0_30px_hsl(var(--primary)/0.16),0_22px_70px_rgba(0,0,0,0.5)]">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary shadow-[0_0_28px_hsl(var(--primary)/0.2)]">
+              <MapPin className="h-7 w-7" aria-hidden="true" />
+            </div>
+            <h2 className="font-display text-2xl font-extrabold">Location required</h2>
+            <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
+              Radar opens on your private pin. Allow location access to load the map.
+            </p>
+          </div>
+        )}
       </div>
 
       <section
