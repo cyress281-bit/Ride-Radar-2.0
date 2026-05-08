@@ -10,8 +10,6 @@ import { Mail } from 'lucide-react';
 
 const PROVIDERS = [
   { id: 'google', label: 'Google', mark: 'G' },
-  { id: 'apple', label: 'Apple', mark: 'A' },
-  { id: 'facebook', label: 'Facebook', mark: 'f' },
 ];
 
 function getSafeRedirect(value) {
