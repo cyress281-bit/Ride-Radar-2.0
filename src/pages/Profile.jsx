@@ -22,31 +22,63 @@ const normalizeBikeYear = (value) => {
   return Number.isInteger(year) && year >= 1900 && year <= currentYear + 1 ? year : null;
 };
 
+const getBroadcastTime = (broadcast) => (
+  broadcast?.created_at
+  ?? broadcast?.created_date
+  ?? broadcast?.createdAt
+  ?? broadcast?.createdDate
+  ?? ''
+);
+
+const sortNewestFirst = (broadcasts) => [...broadcasts].sort((a, b) => (
+  new Date(getBroadcastTime(b) || 0).getTime() - new Date(getBroadcastTime(a) || 0).getTime()
+));
+
+const isMissingColumnError = (error, column) => (
+  error?.code === '42703'
+  || String(error?.message || '').toLowerCase().includes(`${column.toLowerCase()} does not exist`)
+);
+
+async function fetchMyBroadcasts(userId) {
+  const baseQuery = () => supabase
+    .from('broadcasts')
+    .select('*')
+    .eq('author_id', userId);
+
+  let { data, error } = await baseQuery()
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (isMissingColumnError(error, 'created_at')) {
+    ({ data, error } = await baseQuery()
+      .order('created_date', { ascending: false })
+      .limit(50));
+  }
+
+  if (isMissingColumnError(error, 'created_date')) {
+    ({ data, error } = await baseQuery().limit(50));
+  }
+
+  if (error) throw error;
+
+  return normalizeBroadcasts(sortNewestFirst(data || []));
+}
+
 export default function Profile() {
   const { user, profile, signOut } = useSupabaseAuth();
   const [editing, setEditing] = useState(false);
 
-  const { data: myBroadcasts = [], isError, error } = useQuery({
+  const { data: myBroadcasts = [], isError: broadcastsFailed, error: broadcastsError } = useQuery({
     queryKey: ['myBroadcasts', user?.id],
     enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('broadcasts')
-        .select('*')
-        .eq('author_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      return normalizeBroadcasts(data || []);
-    },
+    queryFn: () => fetchMyBroadcasts(user.id),
   });
 
   // Memoize filtered active broadcasts - recalculates only when broadcast data changes,
   // not on editing state toggle. Must be called before early returns (React hooks rule).
   const active = useMemo(
-    () => myBroadcasts.filter((b) => b.status === 'active' && !isExpired(b)),
-    [myBroadcasts]
+    () => (broadcastsFailed ? [] : myBroadcasts.filter((b) => b.status === 'active' && !isExpired(b))),
+    [broadcastsFailed, myBroadcasts]
   );
   const displayProfile = useMemo(() => profile || {
     user_id: user?.id,
@@ -60,17 +92,6 @@ export default function Profile() {
     is_public: true,
   }, [profile, user]);
   const normalizedProfile = useMemo(() => normalizeProfile(displayProfile), [displayProfile]);
-
-  if (isError) {
-    return (
-      <div className="px-5 pt-6">
-        <div className="text-center py-16 rounded-3xl border border-destructive/30 bg-card/40 backdrop-blur-xl mt-8">
-          <h3 className="font-display font-bold text-xl mb-2">Profile failed to load</h3>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto">{error?.message || 'Please refresh and try again.'}</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!user) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
 
@@ -164,7 +185,12 @@ export default function Profile() {
             <h2 className="rr-kicker text-muted-foreground">Active broadcasts</h2>
             <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Rider signal</span>
           </div>
-          {active.length === 0 ? (
+          {broadcastsFailed ? (
+            <div className="rr-surface rounded-[20px] p-4 text-sm text-muted-foreground">
+              <h3 className="font-display text-base font-bold text-foreground mb-1">Broadcasts unavailable</h3>
+              <p>{broadcastsError?.message || 'Your profile is available, but active broadcasts could not be loaded.'}</p>
+            </div>
+          ) : active.length === 0 ? (
             <div className="text-sm text-muted-foreground py-6 text-center border border-dashed border-border/60 rounded-xl">
               No active broadcasts
             </div>
