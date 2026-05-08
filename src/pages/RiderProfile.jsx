@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Bike, UserPlus, MessageCircle, Clock } from 'lucide-react';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/OptimizedImage';
-import { getProfileByIdSafe } from '@/lib/profileLookup';
+import { getProfileByIdSafe, isValidUuid } from '@/lib/profileLookup';
 import { getOrCreateConversation } from '@/lib/conversationUtils';
 import { normalizeProfile } from '@/lib/supabaseNormalizer';
 
@@ -16,15 +16,12 @@ export default function RiderProfile() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { user } = useSupabaseAuth();
-
-  const { data: profile } = useQuery({
-    queryKey: ['profile', userId],
-    queryFn: async () => await getProfileByIdSafe(userId),
-  });
+  const hasValidUserId = isValidUuid(userId);
+  const isMeRoute = user?.id === userId;
 
   const { data: blocks = [] } = useQuery({
     queryKey: ['blocks', user?.id, userId],
-    enabled: !!user && !!userId,
+    enabled: !!user && hasValidUserId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_blocks')
@@ -39,7 +36,7 @@ export default function RiderProfile() {
 
   const { data: friendship } = useQuery({
     queryKey: ['friendship', user?.id, userId],
-    enabled: !!user && !!profile,
+    enabled: !!user && hasValidUserId && !isMeRoute,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('friendships')
@@ -50,6 +47,15 @@ export default function RiderProfile() {
       if (error) throw error;
       return data;
     },
+  });
+
+  const canQueryPrivateProfile = isMeRoute || friendship?.status === 'active';
+
+  const { data: profile, isLoading: isProfileLoading, isError: isProfileError } = useQuery({
+    queryKey: ['profile', userId, canQueryPrivateProfile ? 'private' : 'public'],
+    enabled: hasValidUserId,
+    queryFn: async () => await getProfileByIdSafe(userId, { publicOnly: !canQueryPrivateProfile }),
+    staleTime: 5 * 60 * 1000,
   });
 
   const sendFriendReq = useMutation({
@@ -93,10 +99,32 @@ export default function RiderProfile() {
     },
   });
 
-  if (!profile) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
+  if (!hasValidUserId) {
+    return (
+      <div className="px-5 pt-5">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <div className="p-10 text-center text-sm text-muted-foreground">Invalid rider link.</div>
+      </div>
+    );
+  }
+
+  if (isProfileLoading) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
+
+  if (isProfileError || !profile) {
+    return (
+      <div className="px-5 pt-5">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <div className="p-10 text-center text-sm text-muted-foreground">Rider profile not found or private.</div>
+      </div>
+    );
+  }
 
   const normalizedProfile = normalizeProfile(profile);
-  const isMe = user?.id === profile.user_id;
+  const isMe = isMeRoute;
   const isFriend = friendship?.status === 'active';
   const isPending = friendship?.status === 'pending';
   const isBlocked = blocks.length > 0;

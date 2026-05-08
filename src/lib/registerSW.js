@@ -5,7 +5,6 @@
  * - Service worker registration and lifecycle
  * - Update notifications
  * - Installation prompting
- * - Push notification setup (infrastructure only)
  */
 
 let deferredPrompt = null;
@@ -117,110 +116,10 @@ export function isInstalledPWA() {
          localStorage.getItem('pwa-installed') === 'true';
 }
 
-/**
- * Request push notification permissions
- * @param {string} userId - User ID to associate with push token
- */
-export async function requestPushPermission(userId) {
-  if (!('Notification' in window)) {
-    console.log('[PWA] Push notifications not supported');
-    return null;
-  }
-
-  if (Notification.permission === 'granted') {
-    return await subscribeToPush(userId);
-  }
-
-  if (Notification.permission !== 'denied') {
-    const permission = await Notification.requestPermission();
-
-    if (permission === 'granted') {
-      return await subscribeToPush(userId);
-    }
-  }
-
-  return null;
-}
-
-/**
- * Subscribe to push notifications
- * @private
- */
-async function subscribeToPush(userId) {
-  try {
-    if (!registration) {
-      console.error('[PWA] Service worker not registered');
-      return null;
-    }
-
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(
-        // TODO: Replace with your VAPID public key from Supabase Edge Function
-        'YOUR_VAPID_PUBLIC_KEY_HERE'
-      ),
-    });
-
-    const token = JSON.stringify(subscription);
-
-    // Store in user_settings table
-    // TODO: Implement Supabase mutation to save push token
-    console.log('[PWA] Push subscription:', token.substring(0, 50) + '...');
-
-    return token;
-  } catch (error) {
-    console.error('[PWA] Push subscription failed:', error);
-    return null;
-  }
-}
-
-/**
- * Convert VAPID key to Uint8Array
- * @private
- */
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/\-/g, '+')
-    .replace(/_/g, '/');
-
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-
-  return outputArray;
-}
-
-/**
- * Unsubscribe from push notifications
- */
-export async function unsubscribePush() {
-  try {
-    if (!registration) return false;
-
-    const subscription = await registration.pushManager.getSubscription();
-    if (subscription) {
-      await subscription.unsubscribe();
-      console.log('[PWA] Push unsubscribed');
-      return true;
-    }
-
-    return false;
-  } catch (error) {
-    console.error('[PWA] Push unsubscribe failed:', error);
-    return false;
-  }
-}
-
 export default {
   registerServiceWorker,
   setupInstallPrompt,
   promptInstall,
   isInstallable,
   isInstalledPWA,
-  requestPushPermission,
-  unsubscribePush,
 };

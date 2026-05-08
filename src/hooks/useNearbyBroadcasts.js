@@ -7,7 +7,14 @@ import { logger } from '@/lib/logger';
 import { haversineMiles } from '@/lib/broadcastUtils';
 
 function isUnavailableQueryError(error) {
-  return error?.code === 'PGRST205' || error?.code === '42P01' || error?.status === 404 || error?.status === 400;
+  return (
+    error?.code === 'PGRST202' ||
+    error?.code === 'PGRST205' ||
+    error?.code === '42P01' ||
+    error?.code === '42883' ||
+    error?.status === 404 ||
+    error?.status === 400
+  );
 }
 
 function hasPoint(broadcast) {

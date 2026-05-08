@@ -56,18 +56,22 @@ export default function AdminReports() {
       const targetType = report.target_type;
       const targetId = report.target_id;
       const targetUserId = report.target_user_id || report.target_profile_id;
+      const runAction = async (query) => {
+        const { error } = await query;
+        if (error) throw error;
+      };
 
       if (targetType === 'broadcast') {
-        await supabase.from('broadcasts').delete().eq('id', targetId);
+        await runAction(supabase.from('broadcasts').delete().eq('id', targetId));
       }
       if (targetType === 'message') {
-        await supabase.from('messages').delete().eq('id', targetId);
+        await runAction(supabase.from('messages').delete().eq('id', targetId));
       }
       if (targetType === 'conversation') {
-        await supabase.from('conversations').update({ status: 'archived' }).eq('id', targetId);
+        await runAction(supabase.from('conversations').update({ status: 'archived' }).eq('id', targetId));
       }
       if (targetType === 'user' && targetUserId) {
-        await supabase.from('user_profiles').update({ is_public: false }).eq('user_id', targetUserId);
+        await runAction(supabase.from('user_profiles').update({ is_public: false }).eq('user_id', targetUserId));
       }
 
       const actionNote = targetType === 'user' ? 'profile made private' : 'content removed/archived';

@@ -60,25 +60,17 @@ export function useCreateBroadcast() {
             seed: `${user.id}:${now.toISOString()}:${broadcastData.type}`,
           });
           locationPrivacy = frozenLocation ? 'approximate' : 'none';
-        } else {
-          frozenLocation = {
-            lat: Number(Number(broadcastData.lat).toFixed(6)),
-            lng: Number(Number(broadcastData.lng).toFixed(6)),
-          };
-          locationPrivacy = 'precise';
         }
       }
 
-      if (broadcastData.type === 'event' && exactLocationText) {
+      if (broadcastData.type === 'event' && exactLocationText && showApproximateLocation) {
         try {
           geocodeResult = await geocodeLocationText(exactLocationText);
           if (geocodeResult) {
-            frozenLocation = showApproximateLocation
-              ? approximateLocation(geocodeResult.lat, geocodeResult.lng, {
-                  seed: `${user.id}:${now.toISOString()}:event:${exactLocationText}`,
-                })
-              : { lat: geocodeResult.lat, lng: geocodeResult.lng };
-            locationPrivacy = showApproximateLocation ? 'approximate' : 'exact_event';
+            frozenLocation = approximateLocation(geocodeResult.lat, geocodeResult.lng, {
+              seed: `${user.id}:${now.toISOString()}:event:${exactLocationText}`,
+            });
+            locationPrivacy = frozenLocation ? 'approximate' : 'none';
           }
         } catch (error) {
           logger.warn('[useCreateBroadcast] Event geocoding failed:', error);
@@ -90,7 +82,7 @@ export function useCreateBroadcast() {
         }
       }
 
-      if (broadcastData.type === 'alert' && exactLocationText) {
+      if (broadcastData.type === 'alert' && exactLocationText && showApproximateLocation) {
         try {
           geocodeResult = await geocodeLocationText(exactLocationText);
           const approximate = geocodeResult
@@ -100,8 +92,8 @@ export function useCreateBroadcast() {
             : null;
 
           if (geocodeResult) {
-            frozenLocation = showApproximateLocation ? approximate : { lat: geocodeResult.lat, lng: geocodeResult.lng };
-            locationPrivacy = showApproximateLocation ? 'approximate' : 'precise';
+            frozenLocation = approximate;
+            locationPrivacy = frozenLocation ? 'approximate' : 'none';
           }
         } catch (error) {
           logger.warn('[useCreateBroadcast] Alert geocoding failed:', error);

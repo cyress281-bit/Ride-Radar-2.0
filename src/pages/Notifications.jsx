@@ -197,6 +197,7 @@ export default function Notifications() {
         .from('connection_requests')
         .select('status')
         .eq('id', req.id)
+        .eq('to_user_id', user.id)
         .single();
 
       if (currentReq?.status === 'accepted') {
@@ -213,6 +214,7 @@ export default function Notifications() {
         .from('connection_requests')
         .update({ status: 'accepted' })
         .eq('id', req.id)
+        .eq('to_user_id', user.id)
         .eq('status', 'pending'); // Optimistic lock: only update if still pending
 
       if (updateError) throw updateError;
@@ -240,7 +242,8 @@ export default function Notifications() {
       const { error } = await supabase
         .from('connection_requests')
         .update({ status: 'declined' })
-        .eq('id', req.id);
+        .eq('id', req.id)
+        .eq('to_user_id', user.id);
 
       if (error) throw error;
     },
@@ -252,7 +255,8 @@ export default function Notifications() {
       const { error } = await supabase
         .from('notifications')
         .update({ is_read: true })
-        .eq('id', notification.id);
+        .eq('id', notification.id)
+        .eq('user_id', user.id);
 
       if (error) throw error;
     },

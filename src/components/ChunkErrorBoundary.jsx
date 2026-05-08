@@ -49,7 +49,11 @@ export class ChunkErrorBoundary extends Component {
     this.setState({ hasError: false, error: null });
     if ('caches' in window) {
       const cacheNames = await window.caches.keys();
-      await Promise.all(cacheNames.map((cacheName) => window.caches.delete(cacheName)));
+      await Promise.all(
+        cacheNames
+          .filter((cacheName) => cacheName.includes('workbox-precache'))
+          .map((cacheName) => window.caches.delete(cacheName))
+      );
     }
 
     if ('serviceWorker' in navigator) {

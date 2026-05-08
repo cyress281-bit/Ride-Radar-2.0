@@ -7,6 +7,8 @@ import { logger } from '@/lib/logger';
 
 const PRESENCE_TTL_MINUTES = 10;
 const PRESENCE_MARKER_LIMIT = 250;
+const PRESENCE_REFRESH_MS = 30_000;
+const PRESENCE_HEARTBEAT_MS = 4 * 60_000;
 
 function getVehicleLabel(profile) {
   const parts = [profile?.bike_year, profile?.bike_make, profile?.bike_model]
@@ -127,6 +129,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
       return (data || []).map(normalizePresence);
     },
     staleTime: 30_000,
+    refetchInterval: PRESENCE_REFRESH_MS,
   });
 
   const myPresenceQuery = useQuery({
@@ -149,6 +152,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
       return normalizePresence(data);
     },
     staleTime: 30_000,
+    refetchInterval: settingsQuery.data?.live_map_visible ? PRESENCE_REFRESH_MS : false,
   });
 
   useEffect(() => {
@@ -330,6 +334,30 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     currentLocation?.lng,
     options.autoPublish,
     options.source,
+    settingsQuery.data?.live_map_visible,
+  ]);
+
+  useEffect(() => {
+    if (!options.autoPublish || !settingsQuery.data?.live_map_visible) return undefined;
+    if (!isValidCoordinate(currentLocation?.lat, currentLocation?.lng)) return undefined;
+
+    const heartbeat = window.setInterval(() => {
+      publishPresence.mutate({
+        lat: currentLocation.lat,
+        lng: currentLocation.lng,
+        accuracyMeters: currentLocation.accuracyMeters,
+        source: options.source || 'heartbeat',
+      });
+    }, PRESENCE_HEARTBEAT_MS);
+
+    return () => window.clearInterval(heartbeat);
+  }, [
+    currentLocation?.accuracyMeters,
+    currentLocation?.lat,
+    currentLocation?.lng,
+    options.autoPublish,
+    options.source,
+    publishPresence.mutate,
     settingsQuery.data?.live_map_visible,
   ]);
 

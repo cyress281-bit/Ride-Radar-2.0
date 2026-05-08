@@ -2,8 +2,8 @@
  * Normalizes Supabase snake_case fields to camelCase for compatibility
  * with existing component code.
  *
- * CRITICAL FIX: After migration from Base44 to Supabase, the database
- * uses snake_case naming (frozen_lat, author_id, created_at) but the
+ * The Supabase database uses snake_case naming
+ * (frozen_lat, author_id, created_at), but the
  * frontend code was written expecting camelCase (frozenLat, authorId, created_date).
  *
  * This utility provides backward compatibility while we gradually migrate

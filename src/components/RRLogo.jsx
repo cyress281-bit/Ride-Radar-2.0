@@ -1,6 +1,8 @@
 import { memo } from 'react';
 import { cn } from '@/lib/utils';
 
+const LOGO_URL = '/ride-radar-logo.svg';
+
 /**
  * Memoized brand logo - props are stable across renders (size/glow don't change).
  * Rendered in Layout header (every page) and Home hero, so preventing
@@ -13,7 +15,7 @@ const RRLogo = memo(function RRLogo({ size = 'md', glow = true, className }) {
   const isFill = size === 'fill';
   return (
     <img
-      src="https://media.base44.com/images/public/69eaf617762119e163948021/010dd6122_Neonheartbeatmotorcyclelogo.png"
+      src={LOGO_URL}
       alt="Ride Radar Logo"
       style={{ height: isFill ? '100%' : h, width: isFill ? '100%' : 'auto' }}
       className={cn(

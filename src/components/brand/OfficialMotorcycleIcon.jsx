@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { cn } from '@/lib/utils';
 
-const MOTORCYCLE_ICON_URL = 'https://media.base44.com/images/public/69eaf617762119e163948021/63bd396e4_IMG_2818.jpg';
+const MOTORCYCLE_ICON_URL = '/motorcycle-icon.svg';
 
 /**
  * Memoized motorcycle icon - rendered multiple times per BroadcastCard

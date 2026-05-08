@@ -44,56 +44,58 @@ function AdminMonitoringContent() {
       const now = new Date();
       const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const readCount = async (query, label, optional = false) => {
+        const { count, error } = await query;
+        if (error) {
+          if (optional && error.code === '42P01') return 0;
+          throw new Error(`${label}: ${error.message}`);
+        }
+        return count || 0;
+      };
 
       // Active users (last 5 min)
-      const { count: activeUsers } = await supabase
+      const activeUsers = await readCount(supabase
         .from('user_profiles')
         .select('*', { count: 'exact', head: true })
-        .gte('updated_at', fiveMinAgo.toISOString());
+        .gte('updated_at', fiveMinAgo.toISOString()), 'Active users');
 
       // Broadcasts created today
-      const { count: broadcastsToday } = await supabase
+      const broadcastsToday = await readCount(supabase
         .from('broadcasts')
         .select('*', { count: 'exact', head: true })
-        .gte('created_at', todayStart.toISOString());
+        .gte('created_at', todayStart.toISOString()), 'Broadcasts today');
 
       // Messages sent today
-      const { count: messagesToday } = await supabase
+      const messagesToday = await readCount(supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
-        .gte('created_at', todayStart.toISOString());
+        .gte('created_at', todayStart.toISOString()), 'Messages today');
 
       // Reports filed today
-      const { count: reportsToday } = await supabase
+      const reportsToday = await readCount(supabase
         .from('reports')
         .select('*', { count: 'exact', head: true })
-        .gte('created_at', todayStart.toISOString());
+        .gte('created_at', todayStart.toISOString()), 'Reports today');
 
       // Recent errors (from error_logs table if it exists)
-      let recentErrors = 0;
-      try {
-        const { count } = await supabase
-          .from('error_logs')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', fiveMinAgo.toISOString());
-        recentErrors = count || 0;
-      } catch {
-        // error_logs table doesn't exist, that's fine
-      }
+      const recentErrors = await readCount(supabase
+        .from('error_logs')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', fiveMinAgo.toISOString()), 'Recent errors', true);
 
       // Connection requests today
-      const { count: connectionsToday } = await supabase
+      const connectionsToday = await readCount(supabase
         .from('connection_requests')
         .select('*', { count: 'exact', head: true })
-        .gte('created_at', todayStart.toISOString());
+        .gte('created_at', todayStart.toISOString()), 'Connections today');
 
       return {
-        activeUsers: activeUsers || 0,
-        broadcastsToday: broadcastsToday || 0,
-        messagesToday: messagesToday || 0,
-        reportsToday: reportsToday || 0,
+        activeUsers,
+        broadcastsToday,
+        messagesToday,
+        reportsToday,
         recentErrors,
-        connectionsToday: connectionsToday || 0,
+        connectionsToday,
       };
     },
     refetchInterval: autoRefresh ? 30000 : false, // Refresh every 30s if enabled
@@ -159,7 +161,9 @@ function AdminMonitoringContent() {
     },
     {
       name: 'Supabase Dashboard',
-      url: import.meta.env.VITE_SUPABASE_URL?.replace('.supabase.co', '.supabase.co/project/_/settings') || '#',
+      url: import.meta.env.VITE_SUPABASE_URL
+        ? `https://supabase.com/dashboard/project/${new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0]}`
+        : '#',
       desc: 'Database, auth, and storage management',
       enabled: true,
     },

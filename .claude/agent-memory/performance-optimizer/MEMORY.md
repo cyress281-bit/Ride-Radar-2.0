@@ -1,3 +1,0 @@
-- [Image Optimization System](image_optimization_system.md) — WebP conversion, multi-size uploads, OptimizedImage component with blur-up placeholders
-- [Virtual Scrolling Implementation](virtual_scrolling.md) — TanStack Virtual added to 4 list views with threshold-based activation
-- [Memo and Prefetch Optimizations](memo-and-prefetch-optimizations.md) — React.memo on 10 components, prefetch on hover for messages/profiles/broadcasts

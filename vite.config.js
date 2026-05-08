@@ -22,7 +22,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       cleanupOutdatedCaches: true,
-      includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png'],
+      includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png', 'ride-radar-logo.svg', 'motorcycle-icon.svg'],
       manifest: {
         name: 'Ride Radar',
         short_name: 'Ride Radar',
@@ -70,22 +70,6 @@ export default defineConfig({
         clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         runtimeCaching: [
-          {
-            // Cache API responses from Supabase
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-api-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              },
-              networkTimeoutSeconds: 10
-            }
-          },
           {
             // Cache Supabase Storage images (avatars, bike photos, etc.)
             urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/object\/public\/.*/i,

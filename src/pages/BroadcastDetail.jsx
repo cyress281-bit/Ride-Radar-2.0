@@ -9,7 +9,7 @@ import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check } from 'lucide-
 import AlertPhotoGrid from '@/components/broadcast/AlertPhotoGrid';
 import { BROADCAST_META, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
-import { getProfileByIdSafe } from '@/lib/profileLookup';
+import { getProfileByIdSafe, isValidUuid } from '@/lib/profileLookup';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { prefetchRiderProfile } from '@/lib/query-client';
@@ -20,17 +20,20 @@ export default function BroadcastDetail() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { user } = useSupabaseAuth();
+  const hasValidBroadcastId = isValidUuid(id);
 
-  const { data: broadcast } = useQuery({
+  const { data: broadcast, isLoading: isBroadcastLoading, isError: isBroadcastError } = useQuery({
     queryKey: ['broadcast', id],
+    enabled: hasValidBroadcastId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('broadcasts')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) return null;
       return normalizeBroadcast(data);
     },
     staleTime: 60000, // 1 min - broadcasts don't change often
@@ -94,7 +97,40 @@ export default function BroadcastDetail() {
     staleTime: 30000,
   });
 
-  if (!broadcast) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
+  if (!hasValidBroadcastId) {
+    return (
+      <div className="px-5 pt-5">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <div className="p-10 text-center text-sm text-muted-foreground">Invalid broadcast link.</div>
+      </div>
+    );
+  }
+
+  if (isBroadcastLoading) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
+
+  if (isBroadcastError) {
+    return (
+      <div className="px-5 pt-5">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <div className="p-10 text-center text-sm text-muted-foreground">Unable to load this broadcast.</div>
+      </div>
+    );
+  }
+
+  if (!broadcast) {
+    return (
+      <div className="px-5 pt-5">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <div className="p-10 text-center text-sm text-muted-foreground">Broadcast not found.</div>
+      </div>
+    );
+  }
 
   const meta = BROADCAST_META[broadcast.type];
   const isAuthor = user?.id === broadcast.authorId;

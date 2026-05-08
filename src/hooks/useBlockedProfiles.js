@@ -11,7 +11,7 @@ function isMissingRelationError(error) {
  * Shared hook for fetching and checking blocked profiles for the current user.
  * Eliminates duplicate UserBlock queries across 5+ files.
  *
- * Now using Supabase instead of Base44!
+ * Uses Supabase user_blocks rows.
  *
  * Returns:
  * - blocks: Array of user_blocks records

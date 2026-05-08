@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Ride Radar 2.0 is a React-based social network for motorcyclists, recently migrated from Base44 to Supabase. The app enables riders to:
+Ride Radar 2.0 is a React-based social network for motorcyclists built on Supabase. The app enables riders to:
 - Create and discover nearby rides (broadcasts)
 - Message other riders in real-time
 - Build connections and manage friendships
@@ -21,7 +21,6 @@ Ride Radar 2.0 is a React-based social network for motorcyclists, recently migra
 
 **AI Development Tools:**
 - Supabase MCP Server (direct database access for Claude Code)
-- Agent Skills (55 agents with Supabase + Postgres expertise)
 - See `SUPABASE_MCP_SETUP.md` for MCP configuration and authentication
 
 ## Development Commands
@@ -77,7 +76,6 @@ The app uses custom hooks (in `src/hooks/`) that wrap TanStack Query for Supabas
 - **useBlockedProfiles** - Block management
 - **useProfileBatch** - Efficient profile lookups (avoids waterfalls)
 - **useOnlineStatus** - Detects online/offline network state
-- **useOfflineQueue** - Queues mutations when offline, syncs when back online
 - **usePWAInstall** - Manages PWA install prompt and detection
 
 ### Real-Time Subscriptions
@@ -149,15 +147,7 @@ import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 ```
 
 ## Migration Status
-The app was fully migrated from Base44 to Supabase on May 5, 2026. Key changes:
-- ✅ Removed all Base44 dependencies and code
-- ✅ Replaced auth with Supabase auth (persistent sessions)
-- ✅ Migrated all data queries to Supabase
-- ✅ Added real-time subscriptions for broadcasts and messages
-- ✅ Implemented PostGIS geospatial queries (server-side distance calc)
-- ⚠️ Admin pages (`src/pages/admin/`) still reference old Base44 code - migrate if needed
-
-See `MIGRATION_COMPLETE.md` for full migration details.
+The app uses Supabase for auth, database, storage, realtime subscriptions, and PostGIS geospatial queries. Legacy backend code and dependencies have been removed from the active repository.
 
 ## Analytics & Monitoring
 
@@ -261,10 +251,9 @@ Ride Radar is a fully functional PWA with offline support, installability, and b
 - Admin routes: Not cached (always fresh)
 
 **Installation:**
-1. Generate icons: Open `public/create-icon-placeholders.html` in browser, download PNGs
-2. Build: `npm run build` (generates service worker)
-3. Test: `npm run preview` and open in browser
-4. Install: Click install prompt or "Install App" in Settings
+1. Build: `npm run build` (generates service worker)
+2. Test: `npm run preview` and open in browser
+3. Install: Click install prompt or "Install App" in Settings
 
 ## Tailwind Theme
 Custom broadcast type colors are defined in `tailwind.config.js`:
@@ -274,6 +263,3 @@ Custom broadcast type colors are defined in `tailwind.config.js`:
 - `bg-event` - Green for events
 
 These are safelisted to ensure they're included in the build.
-
-## Base44 Legacy
-The `base44/` directory contains old schema files (`.jsonc` entities) from the previous backend. These are kept for reference during migration but are not used by the app.

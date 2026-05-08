@@ -5,23 +5,19 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, LogOut, ExternalLink, ShieldCheck, Trash2, Mail, FileText, Database, Download, Check, Smartphone, Bell } from 'lucide-react';
+import { ArrowLeft, LogOut, ExternalLink, ShieldCheck, Trash2, Mail, FileText, Database, Download, Check, Smartphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ACCOUNT_DELETION_URL, PRIVACY_POLICY_URL, SUPPORT_EMAIL, SUPPORT_URL } from '@/pages/PrivacyPolicy';
 import { setAnalyticsOptIn, trackNotificationToggle } from '@/lib/analytics';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
-import { requestPushPermission } from '@/lib/registerSW';
 import { normalizePrecision } from '@/lib/geocoding';
 import { logger } from '@/lib/logger';
-import React, { useState } from 'react';
+import React from 'react';
 
 export default function Settings() {
   const { user, profile, signOut, refreshProfile } = useSupabaseAuth();
   const qc = useQueryClient();
   const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
-  const [pushPermission, setPushPermission] = useState(
-    typeof Notification !== 'undefined' ? Notification.permission : 'default'
-  );
 
   const { data: settings } = useQuery({
     queryKey: ['settings', user?.id],
@@ -138,16 +134,6 @@ export default function Settings() {
     }
   };
 
-  const handleEnablePush = async () => {
-    const token = await requestPushPermission(user.id);
-    if (token) {
-      setPushPermission('granted');
-      console.log('[PWA] Push notifications enabled');
-    } else {
-      setPushPermission(Notification.permission);
-    }
-  };
-
   if (!settings || !profile) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
 
   const rows = [
@@ -200,7 +186,7 @@ export default function Settings() {
       <div className="mb-5 rounded-[1.45rem] border border-border/70 bg-black/30 p-4"><div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Privacy disclosure</div><p className="text-sm text-muted-foreground">Location posts use approximate, fuzzed, frozen location when enabled. Live map presence is opt-in and can be approximate or precise. Uploaded images are used for your profile, bike, events, and alerts. Public profile visibility controls what other riders can see.</p></div>
 
       {/* PWA Install Section */}
-      {(isInstallable || isInstalled || pushPermission !== 'granted') && (
+      {(isInstallable || isInstalled) && (
         <div className="mb-5 rr-surface rounded-[1.45rem] p-4">
           <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">App Features</div>
           <div className="space-y-2">
@@ -222,16 +208,6 @@ export default function Settings() {
                 </div>
                 <Smartphone className="h-5 w-5 text-primary" />
               </div>
-            )}
-            {pushPermission !== 'granted' && typeof Notification !== 'undefined' && (
-              <Button
-                onClick={handleEnablePush}
-                variant="outline"
-                className="w-full h-12 rounded-2xl"
-              >
-                <Bell className="w-4 h-4 mr-2" />
-                Enable Push Notifications
-              </Button>
             )}
           </div>
         </div>

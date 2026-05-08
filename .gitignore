@@ -1,6 +1,7 @@
 #env
 .env
 .env.*
+!.env.example
 
 # Logs
 /logs
@@ -20,7 +21,11 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
+.agents/
+.claude/
+.mcp.json
 .DS_Store
+NUL
 *.suo
 *.ntvs*
 *.njsproj

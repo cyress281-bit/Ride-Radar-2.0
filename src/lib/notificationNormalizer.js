@@ -1,8 +1,8 @@
 /**
- * Normalizes notification rows from Supabase or legacy Base44-shaped payloads.
+ * Normalizes notification rows from Supabase and older camelCase payloads.
  *
  * Rules / mapping summary:
- * - Accepts Supabase row shapes (snake_case) and legacy Base44 shapes (camelCase)
+ * - Accepts Supabase row shapes (snake_case) and older camelCase shapes
  * - Accepts realtime payload envelopes (e.g. { new: { ... } }) and will use the inner record
  * - Normalizes related entity types to snake_case ('Conversation'|'conversation' -> 'conversation')
  * - Maps several legacy numeric type codes to their string equivalents (defensive)
@@ -68,7 +68,7 @@ function normalizeType(raw) {
     const mapped = LEGACY_TYPE_MAP[Number(raw)];
     if (mapped) return mapped;
   }
-  // otherwise normalize string values to snake_case-like format used in Base44 entity definition
+  // otherwise normalize string values to the snake_case-like format used by current notification types
   return String(raw).trim().replace(/([a-z0-9])([A-Z])/g, '$1_$2').replace(/[-\s]+/g, '_').toLowerCase();
 }
 

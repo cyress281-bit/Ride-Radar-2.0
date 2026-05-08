@@ -45,7 +45,7 @@ export function useAdminRole() {
     },
     enabled: isAuthenticated && !!user?.id,
     staleTime: 0, // Revalidate on mount so role changes take effect quickly.
-    cacheTime: 10 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   return {
