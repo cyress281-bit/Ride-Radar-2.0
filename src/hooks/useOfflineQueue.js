@@ -156,8 +156,8 @@ export function useMessageQueue() {
               .from('messages')
               .insert({
                 conversation_id: data.conversationId,
-                sender_id: data.senderId,
-                content: data.content,
+                from_user_id: data.senderId,
+                body: data.content,
                 created_at: new Date().toISOString(),
               });
 
