@@ -8,7 +8,7 @@ import { useConversationMessages } from '@/hooks/useConversationMessages';
 import { useSendMessage } from '@/hooks/useSendMessage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Clock } from 'lucide-react';
+import { ArrowLeft, Send, Clock, Shield } from 'lucide-react';
 import SafetyActions from '@/components/safety/SafetyActions';
 import { cn } from '@/lib/utils';
 import { getProfileByIdSafe } from '@/lib/profileLookup';
@@ -24,8 +24,10 @@ const MessageBubble = memo(function MessageBubble({ body, isMine }) {
   return (
     <div className={cn('flex', isMine ? 'justify-end' : 'justify-start')}>
       <div className={cn(
-        'max-w-[75%] px-3.5 py-2 rounded-2xl text-[14.5px] leading-relaxed',
-        isMine ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-secondary text-secondary-foreground rounded-bl-md'
+        'max-w-[80%] px-4 py-2.5 rounded-2xl text-[14.5px] leading-relaxed border',
+        isMine 
+          ? 'bg-primary/10 text-foreground border-primary/25 rounded-br-md shadow-[0_0_18px_hsl(var(--primary)/0.08)]' 
+          : 'bg-secondary/70 text-secondary-foreground border-border/40 rounded-bl-md'
       )}>
         {body}
       </div>
@@ -113,8 +115,9 @@ export default function ConversationView() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem-5rem)]">
+      {/* Secure Chat Header */}
       <div className="px-5 py-3 border-b border-border/60 flex items-center gap-3 bg-background/90 backdrop-blur">
-        <button onClick={() => navigate('/messages')} className="p-1 hover:bg-secondary rounded-full">
+        <button onClick={() => navigate('/messages')} className="rr-haptic p-1.5 hover:bg-secondary/60 rounded-full border border-border/30">
           <ArrowLeft className="w-5 h-5" />
         </button>
         {other && (
@@ -125,15 +128,20 @@ export default function ConversationView() {
             className="flex items-center gap-2.5 flex-1 min-w-0"
           >
             {other.avatar_url ? (
-              <img src={other.avatar_url} className="w-9 h-9 rounded-full object-cover" alt="" />
+              <div className="relative">
+                <img src={other.avatar_url} className="w-9 h-9 rounded-full object-cover border border-primary/20" alt="" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary border-2 border-background" />
+              </div>
             ) : (
-              <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-semibold text-sm">
+              <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-semibold text-sm border border-border/50">
                 {other.display_name?.[0] || '?'}
               </div>
             )}
             <div className="min-w-0">
               <div className="font-semibold text-sm truncate">{other.display_name}</div>
-              <div className="text-xs text-muted-foreground truncate">Rider</div>
+              <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                <Shield className="w-3 h-3" /> Secure channel
+              </div>
             </div>
           </Link>
         )}
@@ -200,6 +208,7 @@ export default function ConversationView() {
         </div>
       )}
 
+      {/* Floating Input Bar */}
       <div className="p-3 border-t border-border/60 bg-background/90 backdrop-blur">
         {isArchived ? (
           <div className="text-center text-sm text-muted-foreground py-2">This conversation is archived.</div>
@@ -208,15 +217,20 @@ export default function ConversationView() {
         ) : send.isError ? (
           <div className="text-center text-sm text-destructive py-2">{send.error?.message || 'Failed to send message'}</div>
         ) : (
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <Input
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Message..."
-              className="rounded-full"
+              placeholder="Type a secure message..."
+              className="rr-premium-input rounded-full flex-1"
             />
-            <Button onClick={handleSend} disabled={send.isPending || !text.trim()} size="icon" className="rounded-full shrink-0">
+            <Button 
+              onClick={handleSend} 
+              disabled={send.isPending || !text.trim()} 
+              size="icon" 
+              className="rounded-full shrink-0 glow-green-sm h-10 w-10"
+            >
               <Send className="w-4 h-4" />
             </Button>
           </div>

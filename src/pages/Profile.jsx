@@ -7,12 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Settings, LogOut, Edit2, Check, X, Bike, Gauge, Radio, ShieldCheck } from 'lucide-react';
+import { Settings, LogOut, Edit2, Check, X, Bike, Radio, ShieldCheck } from 'lucide-react';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import BikePhotoUploader from '@/components/profile/BikePhotoUploader';
 import OptimizedImage from '@/components/OptimizedImage';
 import { isExpired } from '@/lib/broadcastUtils';
-import { normalizeBroadcasts, normalizeProfile } from '@/lib/supabaseNormalizer';
+
 import { Link } from 'react-router-dom';
 import { MOTORCYCLE_MAKES, getModelSuggestions } from '@/lib/motorcycleCatalog';
 
@@ -22,46 +22,23 @@ const normalizeBikeYear = (value) => {
   return Number.isInteger(year) && year >= 1900 && year <= currentYear + 1 ? year : null;
 };
 
-const getBroadcastTime = (broadcast) => (
-  broadcast?.created_at
-  ?? broadcast?.created_date
-  ?? broadcast?.createdAt
-  ?? broadcast?.createdDate
-  ?? ''
-);
+const getBroadcastTime = (broadcast) => broadcast?.created_at ?? '';
 
 const sortNewestFirst = (broadcasts) => [...broadcasts].sort((a, b) => (
   new Date(getBroadcastTime(b) || 0).getTime() - new Date(getBroadcastTime(a) || 0).getTime()
 ));
 
-const isMissingColumnError = (error, column) => (
-  error?.code === '42703'
-  || String(error?.message || '').toLowerCase().includes(`${column.toLowerCase()} does not exist`)
-);
-
 async function fetchMyBroadcasts(userId) {
-  const baseQuery = () => supabase
+  const { data, error } = await supabase
     .from('broadcasts')
     .select('*')
-    .eq('author_id', userId);
-
-  let { data, error } = await baseQuery()
+    .eq('author_id', userId)
     .order('created_at', { ascending: false })
     .limit(50);
 
-  if (isMissingColumnError(error, 'created_at')) {
-    ({ data, error } = await baseQuery()
-      .order('created_date', { ascending: false })
-      .limit(50));
-  }
-
-  if (isMissingColumnError(error, 'created_date')) {
-    ({ data, error } = await baseQuery().limit(50));
-  }
-
   if (error) throw error;
 
-  return normalizeBroadcasts(sortNewestFirst(data || []));
+  return sortNewestFirst(data || []);
 }
 
 export default function Profile() {
@@ -91,37 +68,47 @@ export default function Profile() {
     bike_photo_url: '',
     is_public: true,
   }, [profile, user]);
-  const normalizedProfile = useMemo(() => normalizeProfile(displayProfile), [displayProfile]);
+  const bikeLabel = useMemo(() => {
+    const parts = [displayProfile?.bike_year, displayProfile?.bike_make, displayProfile?.bike_model]
+      .filter(Boolean)
+      .map(String);
+    return parts.join(' ') || null;
+  }, [displayProfile]);
 
   if (!user) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
 
   return (
-    <div className="px-5 pt-5">
+    <div className="px-5 pt-5 pb-8">
       {editing ? (
         <ProfileEdit profile={displayProfile} onDone={() => setEditing(false)} />
       ) : (
         <>
-          <div className="mb-4 rr-surface-strong p-5 rounded-[1.45rem] relative overflow-hidden">
+          {/* Identity Card */}
+          <div className="mb-4 rr-surface-strong rounded-[1.45rem] p-5 relative overflow-hidden">
             <div className="absolute top-[-20%] right-[-10%] w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-primary/15" />
             <div className="absolute left-5 right-5 bottom-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
             
             <div className="relative z-10 flex items-start gap-4">
               {displayProfile?.avatar_url ? (
-                <OptimizedImage
-                  src={displayProfile.avatar_url}
-                  alt=""
-                  containerClassName="w-20 h-20 rounded-2xl border border-border/50 shadow-[0_0_18px_rgba(0,0,0,0.48)] shrink-0"
-                  className="rounded-2xl"
-                  objectFit="cover"
-                  loading="eager"
-                  fetchPriority="high"
-                  fadeInDuration={200}
-                  showSkeleton
-                />
+                <div className="rr-avatar-ring shrink-0">
+                  <OptimizedImage
+                    src={displayProfile.avatar_url}
+                    alt=""
+                    containerClassName="w-[4.5rem] h-[4.5rem] rounded-full border border-primary/30 shadow-[0_0_18px_rgba(0,0,0,0.48)] shrink-0"
+                    className="rounded-full"
+                    objectFit="cover"
+                    loading="eager"
+                    fetchPriority="high"
+                    fadeInDuration={200}
+                    showSkeleton
+                  />
+                </div>
               ) : (
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.26)] border border-primary/20 shrink-0">
-                  {displayProfile?.display_name?.[0]?.toUpperCase() || '?'}
+                <div className="rr-avatar-ring shrink-0">
+                  <div className="w-[4.5rem] h-[4.5rem] rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center font-display font-bold text-2xl text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.26)] border border-primary/20 shrink-0">
+                    {displayProfile?.display_name?.[0]?.toUpperCase() || '?'}
+                  </div>
                 </div>
               )}
               <div className="flex-1 pt-1 min-w-0">
@@ -130,17 +117,20 @@ export default function Profile() {
                   <h1 className="font-display text-[clamp(1.15rem,5vw,1.65rem)] leading-tight font-extrabold tracking-[-0.04em] break-words [overflow-wrap:anywhere] min-w-0">{displayProfile?.display_name || user?.email}</h1>
                 </div>
               </div>
-              <button onClick={() => setEditing(true)} className="p-2.5 rounded-full bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all border border-border/50 shadow-sm">
+              <button onClick={() => setEditing(true)} className="rr-haptic p-2.5 rounded-full bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-foreground transition-all border border-border/50 shadow-sm">
                 <Edit2 className="w-4 h-4" />
               </button>
             </div>
-            <div className="relative z-10 mt-4 grid grid-cols-3 gap-2">
-              <RiderMetric icon={Radio} label="Signals" value={active.length} compact />
-              <RiderMetric icon={Gauge} label="Bike" value={normalizedProfile?.bike || 'Not set'} compact />
-              <RiderMetric icon={ShieldCheck} label="Status" value={displayProfile?.is_public === false ? 'private' : 'public'} compact />
+
+            {/* Dashboard Gauges */}
+            <div className="relative z-10 mt-5 grid grid-cols-3 gap-2">
+              <RiderMetric icon={Radio} label="Signals" value={active.length} />
+              <RiderMetric icon={Bike} label="Bike" value={bikeLabel || 'Not set'} />
+              <RiderMetric icon={ShieldCheck} label="Status" value={displayProfile?.is_public === false ? 'Private' : 'Public'} />
             </div>
           </div>
 
+          {/* Bio Card */}
           {displayProfile?.bio && (
             <div className="mb-3 rounded-2xl rr-surface p-4">
               <div className="rr-kicker text-muted-foreground mb-2">Rider note</div>
@@ -148,10 +138,11 @@ export default function Profile() {
             </div>
           )}
 
-          {normalizedProfile?.bike && (
+          {/* Cinematic Bike Photo */}
+          {bikeLabel && (
             <div className="mb-4 rounded-2xl rr-surface overflow-hidden">
               {displayProfile.bike_photo_url && (
-                <div className="relative h-36 border-b border-border/60 bg-black/40">
+                <div className="relative h-44 border-b border-border/60 bg-black/40">
                   <OptimizedImage
                     src={displayProfile.bike_photo_url}
                     alt="Bike"
@@ -160,30 +151,43 @@ export default function Profile() {
                     loading="lazy"
                     showSkeleton
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-3 left-4 right-4">
+                    <div className="rr-kicker text-primary mb-1">Machine</div>
+                    <div className="font-display text-lg font-bold text-white drop-shadow-lg">{bikeLabel}</div>
+                  </div>
                 </div>
               )}
-              <div className="flex items-center gap-3 p-4 text-sm">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bike className="w-4 h-4 text-primary" />
+              {!displayProfile.bike_photo_url && (
+                <div className="flex items-center gap-3 p-4 text-sm">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                    <Bike className="w-5 h-5 text-primary" />
+                  </div>
+                  <span className="font-medium">{bikeLabel}</span>
                 </div>
-                <span className="font-medium">{normalizedProfile.bike}</span>
-              </div>
+              )}
             </div>
           )}
 
+          {/* Action Buttons */}
           <div className="flex gap-2 mb-5">
             <Link to="/settings" className="flex-1">
-              <Button variant="outline" className="w-full rounded-full"><Settings className="w-4 h-4 mr-1.5" />Settings</Button>
+              <Button variant="outline" className="w-full rounded-full h-11 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all">
+                <Settings className="w-4 h-4 mr-1.5" />Settings
+              </Button>
             </Link>
-            <Button variant="outline" className="rounded-full" onClick={() => signOut()}>
+            <Button variant="outline" className="rounded-full h-11 border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all" onClick={() => signOut()}>
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
 
+          {/* Signal Log */}
           <div className="mb-3 flex items-center justify-between px-1">
             <h2 className="rr-kicker text-muted-foreground">Active broadcasts</h2>
-            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Rider signal</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" />
+              Signal log
+            </span>
           </div>
           {broadcastsFailed ? (
             <div className="rr-surface rounded-[20px] p-4 text-sm text-muted-foreground">
@@ -191,12 +195,13 @@ export default function Profile() {
               <p>{broadcastsError?.message || 'Your profile is available, but active broadcasts could not be loaded.'}</p>
             </div>
           ) : active.length === 0 ? (
-            <div className="text-sm text-muted-foreground py-6 text-center border border-dashed border-border/60 rounded-xl">
+            <div className="text-sm text-muted-foreground py-8 text-center border border-dashed border-border/60 rounded-xl rr-surface bg-transparent">
+              <Radio className="w-5 h-5 mx-auto mb-2 text-muted-foreground/50" />
               No active broadcasts
             </div>
           ) : (
             <div className="space-y-3">
-              {active.map((b) => <BroadcastCard key={b.id} broadcast={b} author={normalizedProfile} />)}
+              {active.map((b) => <BroadcastCard key={b.id} broadcast={b} author={displayProfile} />)}
             </div>
           )}
         </>
@@ -210,17 +215,17 @@ export default function Profile() {
  * Props (icon, label, value) only change when profile data changes,
  * not on editing state toggle or broadcast list updates.
  */
-const RiderMetric = memo(function RiderMetric({ icon: Icon, label, value, compact }) {
+const RiderMetric = memo(function RiderMetric({ icon: Icon, label, value }) {
   return (
-    <div className={compact ? 'rounded-2xl border border-border/70 bg-black/30 p-2.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0 relative overflow-hidden' : 'rounded-2xl border border-border/70 bg-black/25 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] min-w-0 relative overflow-hidden'}>
-      <span className="absolute right-2 top-2 h-1 w-1 rounded-full bg-primary/65" />
-      <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-1.5">
-        <span className="h-5 w-5 rounded-lg border border-primary/25 bg-primary/10 flex items-center justify-center text-primary">
+    <div className="rounded-2xl border border-border/60 bg-black/30 p-3 min-w-0 relative overflow-hidden backdrop-blur-sm">
+      <div className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary/60 animate-pulse-green" />
+      <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-2">
+        <span className="h-6 w-6 rounded-lg border border-primary/25 bg-primary/10 flex items-center justify-center text-primary">
           <Icon className="w-3.5 h-3.5 drop-shadow-[0_0_4px_currentColor]" />
         </span>
         {label}
       </div>
-      <div className="font-display text-sm font-extrabold tracking-[-0.03em] truncate capitalize">{value}</div>
+      <div className="font-display text-sm font-extrabold tracking-[-0.03em] truncate capitalize text-foreground">{value}</div>
     </div>
   );
 });
@@ -290,66 +295,81 @@ function ProfileEdit({ profile, onDone }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-2xl font-bold tracking-tight">Edit profile</h1>
+        <div>
+          <div className="rr-kicker mb-1">Identity config</div>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Edit profile</h1>
+        </div>
         <div className="flex gap-2">
-          <Button variant="ghost" size="icon" onClick={onDone}><X className="w-4 h-4" /></Button>
-          <Button size="icon" onClick={() => save.mutate()} disabled={save.isPending}><Check className="w-4 h-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={onDone} className="rounded-full border border-border/50"><X className="w-4 h-4" /></Button>
+          <Button size="icon" onClick={() => save.mutate()} disabled={save.isPending} className="rounded-full glow-green-sm"><Check className="w-4 h-4" /></Button>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          {getImagePreview(form.avatar_url) ? (
-            <img src={getImagePreview(form.avatar_url)} className="w-16 h-16 rounded-2xl object-cover" alt="" />
-          ) : (
-            <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center font-bold text-xl">
-              {form.display_name?.[0] || '?'}
-            </div>
-          )}
-          <label className="text-sm text-primary hover:underline cursor-pointer">
-            <input type="file" accept="image/*" onChange={handleAvatar} className="hidden" />
-            {uploading ? 'Preparing...' : 'Change avatar'}
-          </label>
+      <div className="space-y-5">
+        {/* Avatar Upload */}
+        <div className="rr-glass-panel p-4">
+          <div className="flex items-center gap-4">
+            <span className="rr-avatar-ring shrink-0">
+              {getImagePreview(form.avatar_url) ? (
+                <img src={getImagePreview(form.avatar_url)} className="relative w-16 h-16 rounded-full object-cover border border-primary/30" alt="" />
+              ) : (
+                <div className="relative flex w-16 h-16 items-center justify-center rounded-full border border-primary/25 bg-[rgba(57,255,20,0.06)] font-display text-2xl font-bold text-primary">
+                  {form.display_name?.[0] || '?'}
+                </div>
+              )}
+            </span>
+            <label className="rr-shimmer-button flex min-w-0 flex-1 cursor-pointer justify-center rounded-full border border-primary/25 bg-primary/10 px-4 py-2.5 text-center text-sm font-bold text-primary transition-colors hover:bg-primary/15 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/80">
+              <input type="file" accept="image/*" onChange={handleAvatar} className="hidden" />
+              {uploading ? 'Preparing...' : 'Change avatar'}
+            </label>
+          </div>
+          {uploadError && <p className="text-sm text-destructive mt-2">{uploadError}</p>}
         </div>
-        {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
 
-        <div>
-          <Label>Display name</Label>
-          <Input value={form.display_name} onChange={(e) => setForm({ ...form, display_name: e.target.value })} className="mt-1.5" />
-        </div>
-        <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2">
+        {/* Form Fields */}
+        <div className="rr-glass-panel p-4 space-y-4">
           <div>
-            <Label>Year</Label>
-            <Input type="number" inputMode="numeric" min="1900" max={currentYear + 1} value={form.bike_year || ''} onChange={(e) => setForm({ ...form, bike_year: e.target.value })} className="mt-1.5" />
+            <Label className="rr-kicker text-muted-foreground mb-2 block">Display name</Label>
+            <Input 
+              value={form.display_name} 
+              onChange={(e) => setForm({ ...form, display_name: e.target.value })} 
+              className="rr-premium-input rounded-xl" 
+            />
+          </div>
+          <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3">
+            <div>
+              <Label className="rr-kicker text-muted-foreground mb-2 block">Year</Label>
+              <Input type="number" inputMode="numeric" min="1900" max={currentYear + 1} value={form.bike_year || ''} onChange={(e) => setForm({ ...form, bike_year: e.target.value })} className="rr-premium-input rounded-xl" />
+            </div>
+            <div>
+              <Label className="rr-kicker text-muted-foreground mb-2 block">Bike make</Label>
+              <Input value={form.bike_make || ''} onChange={(e) => setForm({ ...form, bike_make: e.target.value })} className="rr-premium-input rounded-xl" list="profile-bike-make-options" />
+            </div>
+          </div>
+          <datalist id="profile-bike-make-options">
+            {MOTORCYCLE_MAKES.map((make) => (
+              <option key={make} value={make} />
+            ))}
+          </datalist>
+          <div>
+            <Label className="rr-kicker text-muted-foreground mb-2 block">Bike model</Label>
+            <Input value={form.bike_model || ''} onChange={(e) => setForm({ ...form, bike_model: e.target.value })} className="rr-premium-input rounded-xl" list="profile-bike-model-options" />
+          </div>
+          <datalist id="profile-bike-model-options">
+            {modelSuggestions.map((model) => (
+              <option key={model} value={model} />
+            ))}
+          </datalist>
+          <div>
+            <Label className="rr-kicker text-muted-foreground mb-2 block">Bike photo</Label>
+            <div className="mt-1.5">
+              <BikePhotoUploader image={form.bike_photo_url} onChange={(bike_photo_url) => setForm({ ...form, bike_photo_url })} />
+            </div>
           </div>
           <div>
-            <Label>Bike make</Label>
-            <Input value={form.bike_make || ''} onChange={(e) => setForm({ ...form, bike_make: e.target.value })} className="mt-1.5" list="profile-bike-make-options" />
+            <Label className="rr-kicker text-muted-foreground mb-2 block">Bio</Label>
+            <Textarea value={form.bio || ''} onChange={(e) => setForm({ ...form, bio: e.target.value })} className="rr-premium-input rounded-xl" maxLength={200} rows={3} />
           </div>
-        </div>
-        <datalist id="profile-bike-make-options">
-          {MOTORCYCLE_MAKES.map((make) => (
-            <option key={make} value={make} />
-          ))}
-        </datalist>
-        <div>
-          <Label>Bike model</Label>
-          <Input value={form.bike_model || ''} onChange={(e) => setForm({ ...form, bike_model: e.target.value })} className="mt-1.5" list="profile-bike-model-options" />
-        </div>
-        <datalist id="profile-bike-model-options">
-          {modelSuggestions.map((model) => (
-            <option key={model} value={model} />
-          ))}
-        </datalist>
-        <div>
-          <Label>Bike photo</Label>
-          <div className="mt-1.5">
-            <BikePhotoUploader image={form.bike_photo_url} onChange={(bike_photo_url) => setForm({ ...form, bike_photo_url })} />
-          </div>
-        </div>
-        <div>
-          <Label>Bio</Label>
-          <Textarea value={form.bio || ''} onChange={(e) => setForm({ ...form, bio: e.target.value })} className="mt-1.5" maxLength={200} rows={3} />
         </div>
       </div>
     </div>

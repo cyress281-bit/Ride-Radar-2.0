@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { logger } from '@/lib/logger';
 import { captureError } from '@/lib/sentry';
 import { trackEvent } from '@/lib/analytics';
+import { Zap } from 'lucide-react';
 
 /**
  * Error boundary specifically for handling chunk/lazy-load failures.
@@ -67,31 +68,35 @@ export class ChunkErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="fixed inset-0 flex items-center justify-center bg-background px-6">
-          <div className="max-w-sm rounded-2xl border border-border bg-card p-6 text-center shadow-2xl">
-            <div className="mb-4 flex items-center justify-center">
-              <div className="h-12 w-12 rounded-full border-2 border-destructive/30 bg-destructive/10 flex items-center justify-center">
-                <svg className="h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-              </div>
+        <div className="fixed inset-0 flex items-center justify-center bg-background/95 backdrop-blur-sm px-6 z-50">
+          <div className="rr-surface-strong max-w-sm rounded-[24px] p-8 text-center shadow-[0_28px_90px_rgba(0,0,0,0.62)] border border-primary/15">
+            {/* Icon with glow */}
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 shadow-[0_0_24px_hsl(var(--primary)/0.18)]">
+              <Zap className="h-8 w-8 text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]" aria-hidden="true" />
             </div>
-            <h2 className="font-display text-lg font-bold mb-2">
-              Page failed to load
+
+            <h2 className="font-display text-lg font-extrabold tracking-tight mb-2 text-foreground">
+              Page Failed to Load
             </h2>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground mb-6">
               This can happen due to a network issue or an app update. Please try again.
             </p>
-            <div className="flex gap-2 justify-center">
-              <Button onClick={this.handleRetry} variant="default" size="sm">
-                Reload page
+
+            <div className="flex gap-3 justify-center">
+              <Button
+                onClick={this.handleRetry}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_hsl(var(--primary)/0.25)] font-bold tracking-wide"
+                size="sm"
+              >
+                Retry
               </Button>
               <Button
                 onClick={() => (window.location.href = '/home')}
                 variant="outline"
+                className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary font-bold tracking-wide"
                 size="sm"
               >
-                Go home
+                Go Home
               </Button>
             </div>
           </div>

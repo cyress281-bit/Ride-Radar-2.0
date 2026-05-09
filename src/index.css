@@ -194,6 +194,10 @@
     min-height: 0;
   }
 
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   .rr-divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.45), hsl(var(--border) / 0.7), transparent);

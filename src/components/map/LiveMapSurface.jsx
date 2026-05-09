@@ -31,6 +31,8 @@ const typeConfig = {
     text: 'text-alert',
     border: 'border-alert/45',
     bg: 'bg-alert/10',
+    leftStripe: 'bg-alert',
+    glow: 'shadow-[0_0_20px_hsl(var(--alert)/0.35)]',
   },
   solo_ride: {
     label: 'Rider',
@@ -39,6 +41,8 @@ const typeConfig = {
     text: 'text-solo',
     border: 'border-solo/45',
     bg: 'bg-solo/10',
+    leftStripe: 'bg-solo',
+    glow: 'shadow-[0_0_20px_hsl(var(--solo)/0.3)]',
   },
   iso: {
     label: 'ISO',
@@ -47,6 +51,8 @@ const typeConfig = {
     text: 'text-iso',
     border: 'border-iso/45',
     bg: 'bg-iso/10',
+    leftStripe: 'bg-iso',
+    glow: 'shadow-[0_0_20px_hsl(var(--iso)/0.3)]',
   },
   event: {
     label: 'Event',
@@ -55,6 +61,8 @@ const typeConfig = {
     text: 'text-event',
     border: 'border-event/45',
     bg: 'bg-event/10',
+    leftStripe: 'bg-event',
+    glow: 'shadow-[0_0_20px_hsl(var(--event)/0.3)]',
   },
   rider_presence: {
     label: 'Rider',
@@ -63,6 +71,8 @@ const typeConfig = {
     text: 'text-cyan-300',
     border: 'border-cyan-400/40',
     bg: 'bg-cyan-400/10',
+    leftStripe: 'bg-cyan-400',
+    glow: 'shadow-[0_0_20px_hsl(195_100%_60%/0.3)]',
   },
 };
 
@@ -84,21 +94,17 @@ function isValidCoordinate(lat, lng) {
 }
 
 function getBroadcastPoint(broadcast) {
-  const lat = firstNumber(broadcast.frozenLat, broadcast.frozen_lat, broadcast.lat);
-  const lng = firstNumber(broadcast.frozenLng, broadcast.frozen_lng, broadcast.lng);
+  const lat = firstNumber(broadcast.frozen_lat, broadcast.lat);
+  const lng = firstNumber(broadcast.frozen_lng, broadcast.lng);
   if (!isValidCoordinate(lat, lng)) return null;
   return { lat, lng };
 }
 
 function getPresencePoint(presence) {
-  const lat = firstNumber(presence.lat, presence.frozenLat, presence.frozen_lat);
-  const lng = firstNumber(presence.lng, presence.frozenLng, presence.frozen_lng);
+  const lat = firstNumber(presence.lat, presence.frozen_lat);
+  const lng = firstNumber(presence.lng, presence.frozen_lng);
   if (!isValidCoordinate(lat, lng)) return null;
   return { lat, lng };
-}
-
-function getAuthorId(broadcast) {
-  return broadcast.authorId || broadcast.author_id;
 }
 
 function getMarkerIcon(type) {
@@ -119,9 +125,9 @@ function getMarkerIcon(type) {
 }
 
 function getRiderMarkerIcon(presence) {
-  const displayName = String(presence.displayName || presence.display_name || 'Rider').trim();
+  const displayName = String(presence.display_name || 'Rider').trim();
   const label = displayName.charAt(0).toUpperCase() || 'R';
-  const cacheKey = `${presence.userId || presence.user_id}:${presence.locationPrecision || presence.location_precision}:${label}`;
+  const cacheKey = `${presence.user_id}:${presence.location_precision}:${label}`;
 
   if (!riderMarkerIconCache.has(cacheKey)) {
     riderMarkerIconCache.set(
@@ -309,15 +315,30 @@ function LoadingState({ variant }) {
         variant === 'full'
           ? 'min-h-[520px]'
           : variant === 'radar'
-            ? 'h-full min-h-0 rounded-[28px] border-primary/25 shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_0_30px_hsl(var(--primary)/0.16)]'
+            ? 'h-full min-h-0 rounded-[28px] border-primary/25 bg-black/50 shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_0_30px_hsl(var(--primary)/0.16)]'
             : 'h-[300px]'
       )}
       role="status"
       aria-label="Loading map data"
     >
-      <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      <p className="text-sm font-semibold text-foreground">Loading live map...</p>
-      <p className="mt-1 text-xs text-muted-foreground">Syncing broadcasts and rider markers</p>
+      {variant === 'radar' ? (
+        <>
+          {/* Tactical radar sweep loader */}
+          <div className="relative mb-4 flex h-12 w-12 items-center justify-center">
+            <div className="absolute inset-0 rounded-full border border-primary/20" />
+            <div className="absolute inset-0 animate-radar rounded-full border-t-2 border-primary/60" />
+            <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.8)]" />
+          </div>
+          <p className="text-sm font-semibold text-foreground">Initializing radar...</p>
+          <p className="mt-1 text-xs text-muted-foreground">Acquiring location lock and syncing signals</p>
+        </>
+      ) : (
+        <>
+          <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="text-sm font-semibold text-foreground">Loading live map...</p>
+          <p className="mt-1 text-xs text-muted-foreground">Syncing broadcasts and rider markers</p>
+        </>
+      )}
     </div>
   );
 }
@@ -330,12 +351,12 @@ function ErrorState({ onRetry, variant }) {
         variant === 'full'
           ? 'min-h-[520px]'
           : variant === 'radar'
-            ? 'h-full min-h-0 rounded-[28px]'
+            ? 'h-full min-h-0 rounded-[28px] border-alert/30 bg-alert/[0.04]'
             : 'h-[300px]'
       )}
       role="alert"
     >
-      <AlertTriangle className="mb-3 h-8 w-8 text-destructive" aria-hidden="true" />
+      <AlertTriangle className={cn('mb-3', variant === 'radar' ? 'h-9 w-9 text-alert animate-pulse-alert' : 'h-8 w-8 text-destructive')} aria-hidden="true" />
       <p className="text-sm font-semibold text-foreground">Map tiles failed to load</p>
       <p className="mt-1 max-w-xs text-xs text-muted-foreground">Check your connection and try again.</p>
       <button
@@ -382,42 +403,47 @@ function SignalListItem({ item, userLat, userLng }) {
   const distance = isValidCoordinate(userLat, userLng)
     ? formatDistance(haversineMiles(userLat, userLng, item.lat, item.lng))
     : null;
-  const signalAge = item.createdAt ? timeAgo(item.createdAt) : 'live';
+  const signalAge = item.created_at ? timeAgo(item.created_at) : 'live';
   const isPresence = item.type === 'rider_presence';
   const title = isPresence
-    ? item.displayName || item.display_name || 'Live rider'
+    ? item.display_name || 'Live rider'
     : item.title || BROADCAST_META[item.type]?.label || 'Broadcast';
   const detail = isPresence
-    ? item.vehicleLabel || item.vehicle_label || null
-    : item.exactLocationText || item.exact_location_text || null;
+    ? item.vehicle_label || null
+    : item.exact_location_text || null;
   const riderPrecision = isPresence
-    ? item.locationPrecision || item.location_precision || 'approximate'
+    ? item.location_precision || 'approximate'
     : null;
 
   return (
     <Link
-      to={isPresence ? `/profile/${item.userId || item.user_id}` : `/broadcast/${item.id}`}
+      to={isPresence ? `/profile/${item.user_id}` : `/broadcast/${item.id}`}
       className={cn(
-        'group flex min-h-[62px] items-start gap-3 rounded-2xl border bg-black/30 p-3 transition hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-        config.border
+        'group relative flex min-h-[62px] items-start gap-3 overflow-hidden rounded-2xl border bg-black/35 p-3 transition-all duration-200 hover:bg-white/[0.045] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+        config.border,
+        config.glow,
+        'border-l-[3px]'
       )}
       role="listitem"
     >
-      <span className={cn('mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border', config.bg, config.border, config.text)}>
+      {/* Colored left stripe */}
+      <div className={cn('absolute left-0 top-0 bottom-0 w-[3px]', config.leftStripe)} />
+
+      <span className={cn('mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border', config.bg, config.border, config.text)}>
         <Icon className="h-4 w-4" aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1">
         <span className={cn('block text-[10px] font-bold uppercase tracking-[0.16em]', config.text)}>
           {config.label}
-          {!isPresence && item.author?.displayName ? ` / ${item.author.displayName}` : ''}
+          {!isPresence && item.author?.display_name ? ` / ${item.author.display_name}` : ''}
         </span>
         <span className="block truncate text-sm font-bold text-foreground" title={title}>
           {title}
         </span>
-        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+        <span className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-muted-foreground font-mono tracking-tight">
           {distance && (
-            <span className="inline-flex items-center gap-1">
-              <LocateFixed className="h-3 w-3" aria-hidden="true" />
+            <span className="inline-flex items-center gap-1 tabular-nums">
+              <LocateFixed className="h-3 w-3 opacity-60" aria-hidden="true" />
               {distance}
             </span>
           )}
@@ -425,12 +451,12 @@ function SignalListItem({ item, userLat, userLng }) {
             <span className="truncate">{detail}</span>
           )}
           {riderPrecision && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-black/25 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em]">
+            <span className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-black/25 px-2 py-0.5 text-[10px] font-sans uppercase tracking-[0.12em]">
               {riderPrecision}
             </span>
           )}
-          <span className="inline-flex items-center gap-1">
-            <Clock className="h-3 w-3" aria-hidden="true" />
+          <span className="inline-flex items-center gap-1 tabular-nums">
+            <Clock className="h-3 w-3 opacity-60" aria-hidden="true" />
             {signalAge}
           </span>
         </span>
@@ -444,50 +470,55 @@ function SignalPopup({ item, userLat, userLng }) {
   const distance = isValidCoordinate(userLat, userLng)
     ? formatDistance(haversineMiles(userLat, userLng, item.lat, item.lng))
     : null;
-  const signalAge = item.createdAt ? timeAgo(item.createdAt) : 'live';
+  const signalAge = item.created_at ? timeAgo(item.created_at) : 'live';
   const isPresence = item.type === 'rider_presence';
   const title = isPresence
-    ? item.displayName || item.display_name || 'Live rider'
+    ? item.display_name || 'Live rider'
     : item.title || BROADCAST_META[item.type]?.label || 'Broadcast';
   const detail = isPresence
-    ? item.vehicleLabel || item.vehicle_label || null
-    : item.exactLocationText || item.exact_location_text || null;
+    ? item.vehicle_label || null
+    : item.exact_location_text || null;
   const riderPrecision = isPresence
-    ? item.locationPrecision || item.location_precision || 'approximate'
+    ? item.location_precision || 'approximate'
     : null;
 
   return (
     <div className="min-w-56 max-w-72 text-foreground">
-      <div className={cn('text-[10px] font-bold uppercase tracking-[0.16em]', config.text)}>
-        {config.label}
-        {!isPresence && item.author?.displayName ? ` / ${item.author.displayName}` : ''}
-      </div>
-      <div className="mt-1 break-words font-display text-base font-bold leading-tight">
-        {title}
-      </div>
-      {!isPresence && item.body && <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">{item.body}</p>}
-      {detail && (
-        <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="truncate">{detail}</span>
+      {/* Dramatic top accent */}
+      <div className={cn('h-[2px] w-full rounded-full', config.leftStripe, isPresence ? 'opacity-60' : 'opacity-80')} />
+
+      <div className="mt-2.5">
+        <div className={cn('text-[10px] font-bold uppercase tracking-[0.16em]', config.text)}>
+          {config.label}
+          {!isPresence && item.author?.display_name ? ` / ${item.author.display_name}` : ''}
         </div>
-      )}
-      {riderPrecision && (
-        <div className="mt-2 inline-flex rounded-full border border-border/50 bg-black/25 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-          {riderPrecision} location
+        <div className="mt-1 break-words font-display text-base font-bold leading-tight">
+          {title}
         </div>
-      )}
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        {distance && <span>{distance}</span>}
-        <span>{signalAge}</span>
-        {item.expiresAt && <span>{timeUntilExpiry(item.expiresAt)}</span>}
+        {!isPresence && item.body && <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">{item.body}</p>}
+        {detail && (
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <MapPin className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden="true" />
+            <span className="truncate">{detail}</span>
+          </div>
+        )}
+        {riderPrecision && (
+          <div className="mt-2 inline-flex rounded-full border border-border/50 bg-black/25 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+            {riderPrecision} location
+          </div>
+        )}
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground font-mono tracking-tight">
+          {distance && <span className="tabular-nums">{distance}</span>}
+          <span className="tabular-nums">{signalAge}</span>
+          {item.expires_at && <span className="tabular-nums">{timeUntilExpiry(item.expires_at)}</span>}
+        </div>
+        <Link
+          to={isPresence ? `/profile/${item.user_id}` : `/broadcast/${item.id}`}
+          className="mt-3 inline-flex min-h-9 w-full items-center justify-center rounded-full bg-primary px-3 py-2 text-xs font-extrabold uppercase tracking-[0.12em] text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary shadow-[0_0_16px_hsl(var(--primary)/0.35)]"
+        >
+          {isPresence ? 'Open profile' : 'Open signal'}
+        </Link>
       </div>
-      <Link
-        to={isPresence ? `/profile/${item.userId || item.user_id}` : `/broadcast/${item.id}`}
-        className="mt-3 inline-flex min-h-9 w-full items-center justify-center rounded-full bg-primary px-3 py-2 text-xs font-extrabold uppercase tracking-[0.12em] text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-      >
-        {isPresence ? 'Open profile' : 'Open signal'}
-      </Link>
     </div>
   );
 }
@@ -517,15 +548,13 @@ export default function LiveMapSurface({
         if (!typeConfig[broadcast.type]) return null;
         const point = getBroadcastPoint(broadcast);
         if (!point) return null;
-        const authorId = getAuthorId(broadcast);
         return {
           ...broadcast,
           ...point,
-          authorId,
-          author: getProfile && authorId ? getProfile(authorId) : null,
-          createdAt: broadcast.createdAt || broadcast.created_at || broadcast.created_date,
-          expiresAt: broadcast.expiresAt || broadcast.expires_at,
-          exactLocationText: broadcast.exactLocationText || broadcast.exact_location_text,
+          author: getProfile && broadcast.author_id ? getProfile(broadcast.author_id) : null,
+          created_at: broadcast.created_at,
+          expires_at: broadcast.expires_at,
+          exact_location_text: broadcast.exact_location_text,
         };
       })
       .filter(Boolean)
@@ -541,13 +570,13 @@ export default function LiveMapSurface({
         return {
           ...presence,
           ...point,
-          id: presence.userId || presence.user_id,
+          id: presence.user_id,
           type: 'rider_presence',
-          title: presence.displayName || presence.display_name || 'Live rider',
-          body: presence.vehicleLabel || presence.vehicle_label || null,
-          createdAt: presence.lastSeenAt || presence.last_seen_at || presence.updatedAt || presence.updated_at || null,
-          expiresAt: presence.expiresAt || presence.expires_at || null,
-          exactLocationText: presence.locationPrecision === 'precise' ? 'Precise live location' : 'Approximate live location',
+          title: presence.display_name || 'Live rider',
+          body: presence.vehicle_label || null,
+          created_at: presence.last_seen_at || presence.updated_at || null,
+          expires_at: presence.expires_at || null,
+          exact_location_text: presence.location_precision === 'precise' ? 'Precise live location' : 'Approximate live location',
         };
       })
       .filter(Boolean)
@@ -592,7 +621,8 @@ export default function LiveMapSurface({
         </div>
       )}
 
-      <div className={cn('grid gap-3', variant === 'full' && 'lg:grid-cols-[minmax(0,1fr)_20rem]')}>
+      <div className={cn('grid gap-3', variant === 'full' && 'lg:grid-cols-[minmax(0,1fr)_20rem]')}
+      >
         <div
           className={cn(
             'relative overflow-hidden rounded-[1.1rem] border border-border/60 bg-background',
@@ -605,6 +635,13 @@ export default function LiveMapSurface({
           role="application"
           aria-label={`Interactive map showing ${items.length} active ${items.length === 1 ? 'broadcast' : 'broadcasts'}`}
         >
+          {/* EKG bottom border for radar */}
+          {variant === 'radar' && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[435] h-[2px] overflow-hidden">
+              <div className="h-full w-full animate-ekg bg-primary/40 shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
+            </div>
+          )}
+
           <a
             href={variant === 'full' ? '#live-map-list' : '#map-legend'}
             className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[500] focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:shadow-lg"
@@ -674,8 +711,8 @@ export default function LiveMapSurface({
                       This exact pin is only shown on your device.
                     </p>
                     {Number.isFinite(Number(userAccuracyMeters)) && (
-                      <div className="mt-2 text-xs text-muted-foreground">
-                        Accuracy about {Math.round(Number(userAccuracyMeters))}m
+                      <div className="mt-2 text-xs text-muted-foreground font-mono tracking-tight">
+                        Accuracy ~{Math.round(Number(userAccuracyMeters))}m
                       </div>
                     )}
                   </div>

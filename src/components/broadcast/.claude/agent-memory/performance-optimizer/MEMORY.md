@@ -1,3 +1,0 @@
-- [React Memo Optimization](react-memo-optimization.md) — BroadcastCard, AlertPhotoGrid, FeedControls, ConversationItem, NotificationItem all wrapped with React.memo
-- [Code Splitting Implementation](code-splitting-implementation.md) — Route-level lazy loading, Vite manual chunks, Leaflet deferred to map view, admin pages grouped
-- [React Query Optimization](react-query-optimization.md) — Optimistic updates, setQueryData over invalidation, prefetch on hover, staleTime strategy

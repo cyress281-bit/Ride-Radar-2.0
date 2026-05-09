@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { Radio, Crosshair } from 'lucide-react';
 import { useNearbyBroadcasts } from '@/hooks/useNearbyBroadcasts';
 import { useLiveMapPresence } from '@/hooks/useLiveMapPresence';
 import { useBlockedProfiles } from '@/hooks/useBlockedProfiles';
@@ -85,7 +85,7 @@ function cacheRadarOfflineSnapshot({ broadcasts, riderMarkers }) {
 }
 
 function getAuthorId(broadcast) {
-  return broadcast.author_id || broadcast.authorId;
+  return broadcast.author_id;
 }
 
 export default function Home() {
@@ -203,8 +203,29 @@ export default function Home() {
   }, [hasUserLocation, isLoadingBroadcasts, isOnline, visibleBroadcasts, visibleRiderMarkers]);
 
   return (
-    <div className="rr-radar-page relative overflow-hidden p-2">
-      <div className="h-full min-h-0">
+    <div className="rr-radar-page relative overflow-hidden">
+      {/* Atmospheric grid background */}
+      <div className="pointer-events-none absolute inset-0 radar-grid opacity-40" aria-hidden="true" />
+
+      {/* Ambient glow orbs */}
+      <div className="pointer-events-none absolute -left-32 top-0 h-64 w-64 rounded-full bg-[hsl(var(--primary)/0.06)] blur-[100px]" aria-hidden="true" />
+      <div className="pointer-events-none absolute -right-32 bottom-0 h-64 w-64 rounded-full bg-[hsl(var(--primary)/0.04)] blur-[100px]" aria-hidden="true" />
+
+      {/* Tactical corner accents */}
+      <div className="pointer-events-none absolute left-2 top-2 z-10" aria-hidden="true">
+        <div className="h-3 w-3 border-l-2 border-t-2 border-[hsl(var(--primary)/0.35)]" />
+      </div>
+      <div className="pointer-events-none absolute right-2 top-2 z-10" aria-hidden="true">
+        <div className="h-3 w-3 border-r-2 border-t-2 border-[hsl(var(--primary)/0.35)]" />
+      </div>
+      <div className="pointer-events-none absolute left-2 bottom-2 z-10" aria-hidden="true">
+        <div className="h-3 w-3 border-l-2 border-b-2 border-[hsl(var(--primary)/0.35)]" />
+      </div>
+      <div className="pointer-events-none absolute right-2 bottom-2 z-10" aria-hidden="true">
+        <div className="h-3 w-3 border-r-2 border-b-2 border-[hsl(var(--primary)/0.35)]" />
+      </div>
+
+      <div className="relative z-0 h-full min-h-0 p-2">
         {hasUserLocation || isResolvingLocation ? (
           <LiveMapSurface
             broadcasts={rankedBroadcasts}
@@ -223,14 +244,78 @@ export default function Home() {
             offlineSnapshotAt={offlineSnapshot?.cachedAt}
           />
         ) : (
-          <div className="flex h-full min-h-0 flex-col items-center justify-center rounded-[28px] border-2 border-primary/35 bg-black/55 p-8 text-center shadow-[0_0_0_1px_hsl(var(--primary)/0.14),0_0_32px_hsl(var(--primary)/0.2),0_22px_70px_rgba(0,0,0,0.5)]">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary shadow-[0_0_28px_hsl(var(--primary)/0.2)]">
-              <MapPin className="h-7 w-7" aria-hidden="true" />
+          <div className="rr-surface-strong relative flex h-full min-h-0 flex-col items-center justify-center rounded-[28px] border-2 border-primary/35 p-8 text-center shadow-[0_0_0_1px_hsl(var(--primary)/0.14),0_0_32px_hsl(var(--primary)/0.2),0_22px_70px_rgba(0,0,0,0.5)]">
+            {/* Tactical corner brackets */}
+            <div className="pointer-events-none absolute left-4 top-4" aria-hidden="true">
+              <div className="h-5 w-5 border-l-2 border-t-2 border-[hsl(var(--primary)/0.4)]" />
             </div>
-            <h2 className="font-display text-2xl font-extrabold">Location required</h2>
+            <div className="pointer-events-none absolute right-4 top-4" aria-hidden="true">
+              <div className="h-5 w-5 border-r-2 border-t-2 border-[hsl(var(--primary)/0.4)]" />
+            </div>
+            <div className="pointer-events-none absolute left-4 bottom-4" aria-hidden="true">
+              <div className="h-5 w-5 border-l-2 border-b-2 border-[hsl(var(--primary)/0.4)]" />
+            </div>
+            <div className="pointer-events-none absolute right-4 bottom-4" aria-hidden="true">
+              <div className="h-5 w-5 border-r-2 border-b-2 border-[hsl(var(--primary)/0.4)]" />
+            </div>
+
+            {/* Pulsing radar icon */}
+            <div className="relative mb-5 flex h-16 w-16 items-center justify-center">
+              <div className="absolute inset-0 animate-pulse-green rounded-full border border-primary/25" />
+              <div className="absolute inset-2 rounded-full border border-primary/15" />
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary shadow-[0_0_28px_hsl(var(--primary)/0.25)]">
+                <Crosshair className="h-5 w-5" aria-hidden="true" />
+              </div>
+            </div>
+
+            <h2 className="font-display text-2xl font-extrabold tracking-tight">
+              <span className="text-gradient-green">Location required</span>
+            </h2>
             <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
               Radar opens on your private pin. Allow location access to load the map.
             </p>
+
+            {geoError && (
+              <>
+                <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-alert/30 bg-alert/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-alert">
+                  <Radio className="h-3 w-3 animate-pulse" />
+                  Signal blocked
+                </div>
+                <button
+                  onClick={() => {
+                    setGeoError(false);
+                    setIsResolvingLocation(true);
+                    navigator.geolocation.getCurrentPosition(
+                      (pos) => {
+                        const nextLocation = {
+                          lat: pos.coords.latitude,
+                          lng: pos.coords.longitude,
+                          accuracyMeters: pos.coords.accuracy,
+                          source: 'live',
+                        };
+                        setUserLoc(nextLocation);
+                        cacheRadarLocation(nextLocation);
+                        setGeoError(false);
+                        setIsResolvingLocation(false);
+                      },
+                      (err) => {
+                        logger.warn('[Radar] Geolocation retry error:', err.message);
+                        setGeoError(true);
+                        setIsResolvingLocation(false);
+                      },
+                      { maximumAge: 30000, timeout: 9000, enableHighAccuracy: true }
+                    );
+                  }}
+                  className="mt-4 rr-haptic inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]"
+                >
+                  <Crosshair className="h-4 w-4" />
+                  Retry location
+                </button>
+                <p className="mt-3 max-w-xs text-xs text-muted-foreground">
+                  If location keeps failing, check your browser settings and ensure location access is allowed for this site.
+                </p>
+              </>
+            )}
           </div>
         )}
       </div>

@@ -4,7 +4,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { supabase } from '@/lib/supabase';
 import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Bell, Check, X } from 'lucide-react';
+import { Bell, Check, X, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { timeAgo } from '@/lib/broadcastUtils';
 import { useProfileBatch } from '@/hooks/useProfileBatch';
@@ -19,21 +19,28 @@ import { normalizeNotification, normalizeNotifications } from '@/lib/notificatio
  */
 const ConnectionRequestCard = memo(function ConnectionRequestCard({ request, fromProfile, onAccept, onDecline, isAccepting }) {
   return (
-    <div className="p-5 rounded-2xl bg-card border border-border/60 hover:border-primary/30 transition-colors shadow-sm">
-      <div className="flex items-center gap-3 mb-2">
-        {fromProfile?.avatar_url ? <img src={fromProfile.avatar_url} className="w-9 h-9 rounded-full object-cover" alt="" /> :
-          <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-semibold">{fromProfile?.display_name?.[0] || '?'}</div>}
+    <div className="p-5 rounded-2xl rr-surface border border-border/60 hover:border-primary/30 transition-colors">
+      <div className="flex items-center gap-3 mb-3">
+        {fromProfile?.avatar_url ? (
+          <div className="rr-avatar-ring shrink-0" style={{ padding: '3px' }}>
+            <img src={fromProfile.avatar_url} className="w-10 h-10 rounded-full object-cover border border-primary/30" alt="" />
+          </div>
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-semibold border border-border/50">
+            {fromProfile?.display_name?.[0] || '?'}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-sm">{fromProfile?.display_name}</div>
           <div className="text-xs text-muted-foreground">{timeAgo(request.created_at)}</div>
         </div>
       </div>
-      {request.message && <p className="text-sm text-muted-foreground mb-3 pl-12">"{request.message}"</p>}
-      <div className="flex gap-2 pl-12">
-        <Button size="sm" onClick={() => onAccept(request)} disabled={isAccepting} className="rounded-full">
+      {request.message && <p className="text-sm text-muted-foreground mb-3 pl-13">&ldquo;{request.message}&rdquo;</p>}
+      <div className="flex gap-2">
+        <Button size="sm" onClick={() => onAccept(request)} disabled={isAccepting} className="rounded-full glow-green-sm">
           <Check className="w-3.5 h-3.5 mr-1" /> Accept
         </Button>
-        <Button size="sm" variant="outline" onClick={() => onDecline(request)} className="rounded-full">
+        <Button size="sm" variant="outline" onClick={() => onDecline(request)} className="rounded-full border-primary/20">
           <X className="w-3.5 h-3.5 mr-1" /> Decline
         </Button>
       </div>
@@ -53,14 +60,25 @@ const NotificationItem = memo(function NotificationItem({ notification, targetPr
 
   const content = (
     <div
-      className={cn('p-3 rounded-xl flex items-start gap-3 transition', notification.is_read ? 'bg-card/50' : 'bg-card border border-border/60 cursor-pointer')}
+      className={cn(
+        'p-4 rounded-xl flex items-start gap-3 transition-all duration-200 rr-haptic',
+        notification.is_read 
+          ? 'bg-card/40 border border-border/30 opacity-70' 
+          : 'rr-surface border-l-2 border-l-primary border-y border-r border-border/60 cursor-pointer hover:border-primary/40'
+      )}
       onClick={() => { if (!notification.is_read) onMarkRead(notification); }}
     >
-      <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center shrink-0">
-        <Bell className="w-4 h-4 text-primary" />
+      <div className={cn(
+        "w-9 h-9 rounded-full flex items-center justify-center shrink-0",
+        notification.is_read ? 'bg-secondary/50' : 'bg-primary/10 border border-primary/20'
+      )}>
+        <Bell className={cn("w-4 h-4", notification.is_read ? 'text-muted-foreground' : 'text-primary')} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-semibold text-sm">{notification.title}</div>
+        <div className="flex items-center gap-2">
+          <div className="font-semibold text-sm">{notification.title}</div>
+          {!notification.is_read && <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0 animate-pulse-green" />}
+        </div>
         {notification.body && <div className="text-sm text-muted-foreground line-clamp-2">{notification.body}</div>}
         <div className="text-[11px] text-muted-foreground mt-1">{timeAgo(notification.created_at)}</div>
       </div>
@@ -283,19 +301,38 @@ export default function Notifications() {
   const handleMarkRead = useCallback((n) => markRead.mutate(n), [markRead]);
 
   const hasAnything = pendingRequests.length + notifications.length > 0;
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
-    <div className="px-5 pt-6">
-      <h1 className="font-display text-3xl font-bold tracking-tight mb-1">Notifications</h1>
-      <p className="text-sm text-muted-foreground mb-6">Requests and updates</p>
+    <div className="px-5 pt-5 pb-8">
+      {/* Header */}
+      <div className="mb-5 rr-surface-strong rounded-[1.45rem] p-5 relative overflow-hidden">
+        <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full border border-primary/15" />
+        <div className="absolute left-5 right-5 bottom-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+        <div className="relative z-10">
+          <div className="rr-chip mb-3"><Activity className="h-3.5 w-3.5" /> Activity feed</div>
+          <h1 className="rr-heading text-4xl mb-1">Notifications</h1>
+          <p className="text-sm text-muted-foreground">
+            {unreadCount > 0 ? (
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" />
+                {unreadCount} unread
+              </span>
+            ) : 'Requests and updates'}
+          </p>
+        </div>
+      </div>
 
       {!hasAnything && (
-        <div className="text-center py-20 rounded-3xl border border-dashed border-border bg-secondary/20 mt-8">
-          <div className="w-16 h-16 rounded-full bg-secondary mx-auto flex items-center justify-center mb-5 border border-border/50">
-            <Bell className="w-7 h-7 text-muted-foreground" />
+        <div className="text-center py-20 rounded-3xl border border-dashed border-primary/25 bg-card/40 backdrop-blur-xl mt-4 shadow-2xl relative overflow-hidden rr-scanline">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 bg-primary/8 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute left-10 right-10 top-16 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
+          <div className="relative z-10 w-16 h-16 rounded-2xl bg-primary/10 mx-auto flex items-center justify-center mb-5 border border-primary/30 shadow-[0_0_22px_hsl(var(--primary)/0.16)]">
+            <Bell className="w-7 h-7 text-primary drop-shadow-[0_0_5px_currentColor]" />
           </div>
-          <h3 className="font-display font-bold text-xl mb-2">All caught up</h3>
-          <p className="text-sm text-muted-foreground max-w-xs mx-auto">You'll see requests and updates here.</p>
+          <div className="rr-kicker mb-2 relative z-10">All caught up</div>
+          <h3 className="font-display font-bold text-xl mb-2 relative z-10">Channel clear</h3>
+          <p className="text-sm text-muted-foreground max-w-xs mx-auto relative z-10">You&apos;ll see requests and updates here.</p>
         </div>
       )}
 
@@ -329,8 +366,8 @@ export default function Notifications() {
 function Section({ title, children }) {
   return (
     <div className="mb-6">
-      <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 px-1">{title}</div>
-      <div className="space-y-2">{children}</div>
+      <div className="rr-kicker text-muted-foreground mb-2 px-1">{title}</div>
+      <div className="space-y-3">{children}</div>
     </div>
   );
 }
@@ -356,7 +393,7 @@ function VirtualNotificationSection({ title, notifications, getProfile, onMarkRe
   if (!shouldVirtualize) {
     return (
       <div className="mb-6">
-        <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 px-1">{title}</div>
+        <div className="rr-kicker text-muted-foreground mb-2 px-1">{title}</div>
         <div className="space-y-2">
           {notifications.map((n) => (
             <NotificationItem
@@ -373,7 +410,7 @@ function VirtualNotificationSection({ title, notifications, getProfile, onMarkRe
 
   return (
     <div className="mb-6">
-      <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2 px-1">{title}</div>
+      <div className="rr-kicker text-muted-foreground mb-2 px-1">{title}</div>
       <div
         ref={parentRef}
         className="overflow-auto"

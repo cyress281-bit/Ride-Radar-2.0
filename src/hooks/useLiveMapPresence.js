@@ -21,28 +21,6 @@ function getExpiresAt() {
   return new Date(Date.now() + PRESENCE_TTL_MINUTES * 60 * 1000).toISOString();
 }
 
-function normalizePresence(row) {
-  if (!row) return null;
-
-  return {
-    ...row,
-    userId: row.user_id,
-    displayName: row.display_name,
-    avatarUrl: row.avatar_url,
-    vehicleLabel: row.vehicle_label,
-    isVisible: row.is_visible,
-    locationPrecision: row.location_precision,
-    accuracyMeters: row.accuracy_meters,
-    approximateRadiusMiles: row.approximate_radius_miles,
-    lastSeenAt: row.last_seen_at,
-    expiresAt: row.expires_at,
-  };
-}
-
-function isMissingRelationError(error) {
-  return error?.code === 'PGRST205' || error?.code === '42P01' || error?.status === 404;
-}
-
 export function useLiveMapPresence(currentLocation = null, options = {}) {
   const { user, profile } = useSupabaseAuth();
   const queryClient = useQueryClient();
@@ -59,17 +37,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (error) {
-        if (isMissingRelationError(error)) {
-          logger.warn('[useLiveMapPresence] user_settings table unavailable:', error);
-          return {
-            user_id: userId,
-            live_map_visible: false,
-            live_map_location_precision: 'approximate',
-          };
-        }
-        throw error;
-      }
+      if (error) throw error;
 
       if (!data) {
         const { data: created, error: createError } = await supabase
@@ -88,17 +56,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
           .select('id,user_id,live_map_visible,live_map_location_precision')
           .single();
 
-        if (createError) {
-          if (isMissingRelationError(createError)) {
-            logger.warn('[useLiveMapPresence] user_settings table unavailable:', createError);
-            return {
-              user_id: userId,
-              live_map_visible: false,
-              live_map_location_precision: 'approximate',
-            };
-          }
-          throw createError;
-        }
+        if (createError) throw createError;
         return created;
       }
 
@@ -119,14 +77,8 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         .order('last_seen_at', { ascending: false })
         .limit(PRESENCE_MARKER_LIMIT);
 
-      if (error) {
-        if (isMissingRelationError(error)) {
-          logger.warn('[useLiveMapPresence] live_map_presence table unavailable:', error);
-          return [];
-        }
-        throw error;
-      }
-      return (data || []).map(normalizePresence);
+      if (error) throw error;
+      return data || [];
     },
     staleTime: 30_000,
     refetchInterval: PRESENCE_REFRESH_MS,
@@ -142,14 +94,8 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (error) {
-        if (isMissingRelationError(error)) {
-          logger.warn('[useLiveMapPresence] live_map_presence table unavailable:', error);
-          return null;
-        }
-        throw error;
-      }
-      return normalizePresence(data);
+      if (error) throw error;
+      return data || null;
     },
     staleTime: 30_000,
     refetchInterval: settingsQuery.data?.live_map_visible ? PRESENCE_REFRESH_MS : false,
@@ -219,8 +165,8 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
           .from('live_map_presence')
           .upsert({
             user_id: userId,
-            display_name: profile?.display_name || profile?.displayName || 'Rider',
-            avatar_url: profile?.avatar_url || profile?.avatar || null,
+            display_name: profile?.display_name || 'Rider',
+            avatar_url: profile?.avatar_url || null,
             vehicle_label: getVehicleLabel(profile),
             is_visible: false,
             location_precision: normalizePrecision(settingsQuery.data?.live_map_location_precision),
@@ -236,7 +182,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
           .single();
 
         if (error) throw error;
-        return normalizePresence(data);
+        return data;
       }
 
       if (!isValidCoordinate(lat, lng)) {
@@ -258,8 +204,8 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         .from('live_map_presence')
         .upsert({
           user_id: userId,
-          display_name: profile?.display_name || profile?.displayName || 'Rider',
-          avatar_url: profile?.avatar_url || profile?.avatar || null,
+          display_name: profile?.display_name || 'Rider',
+          avatar_url: profile?.avatar_url || null,
           vehicle_label: getVehicleLabel(profile),
           is_visible: true,
           location_precision: markerLocation.locationPrecision,
@@ -277,7 +223,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         .single();
 
       if (error) throw error;
-      return normalizePresence(data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['live-map-presence'] });
@@ -293,8 +239,8 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         .from('live_map_presence')
         .upsert({
           user_id: userId,
-          display_name: profile?.display_name || profile?.displayName || 'Rider',
-          avatar_url: profile?.avatar_url || profile?.avatar || null,
+          display_name: profile?.display_name || 'Rider',
+          avatar_url: profile?.avatar_url || null,
           vehicle_label: getVehicleLabel(profile),
           is_visible: false,
           location_precision: normalizePrecision(settingsQuery.data?.live_map_location_precision),
@@ -310,7 +256,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         .single();
 
       if (error) throw error;
-      return normalizePresence(data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['live-map-presence'] });

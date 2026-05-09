@@ -1,5 +1,4 @@
 import { memo } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const filters = [
   { value: 'all', label: 'All' },
@@ -9,30 +8,55 @@ const filters = [
   { value: 'alert', label: 'Alerts' },
 ];
 
+const sorts = [
+  { value: 'priority', label: 'Live' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'nearest', label: 'Nearest' },
+];
+
 const FeedControls = memo(function FeedControls({ activeFilter, onFilterChange, sort, onSortChange }) {
   return (
-    <div className="mb-3 rounded-2xl border border-border/55 bg-black/25 p-1.5 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] backdrop-blur-xl">
-      <div className="grid grid-cols-2 gap-1.5">
-        <Select value={activeFilter} onValueChange={onFilterChange}>
-          <SelectTrigger className="h-8 rounded-xl border-border/45 bg-secondary/20 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-foreground/90 shadow-none hover:border-primary/35 hover:bg-primary/5">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" className="border-border/70 bg-popover/95 shadow-2xl shadow-black/50">
-            {filters.map((filter) => (
-              <SelectItem key={filter.value} value={filter.value}>{filter.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={sort} onValueChange={onSortChange}>
-          <SelectTrigger className="h-8 rounded-xl border-border/45 bg-secondary/20 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-foreground/90 shadow-none hover:border-primary/35 hover:bg-primary/5">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="end" className="border-border/70 bg-popover/95 shadow-2xl shadow-black/50">
-            <SelectItem value="priority">Live / Priority</SelectItem>
-            <SelectItem value="newest">Newest</SelectItem>
-            <SelectItem value="nearest">Nearest</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="mb-3 rounded-2xl border border-border/40 bg-black/35 p-2 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04),0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+      {/* Filter pills */}
+      <div className="flex flex-wrap gap-1.5">
+        {filters.map((filter) => {
+          const isActive = activeFilter === filter.value;
+          return (
+            <button
+              key={filter.value}
+              type="button"
+              onClick={() => onFilterChange(filter.value)}
+              className={`rr-haptic relative overflow-hidden rounded-full px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.14em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background ${
+                isActive
+                  ? 'bg-primary text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.45),inset_0_1px_0_hsl(0_0%_100%/0.2)]'
+                  : 'border border-border/50 bg-secondary/20 text-foreground/70 hover:border-primary/35 hover:bg-primary/10 hover:text-foreground'
+              }`}
+            >
+              {filter.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Sort pills */}
+      <div className="mt-1.5 flex gap-1.5 border-t border-border/25 pt-1.5">
+        {sorts.map((s) => {
+          const isActive = sort === s.value;
+          return (
+            <button
+              key={s.value}
+              type="button"
+              onClick={() => onSortChange(s.value)}
+              className={`rr-haptic relative overflow-hidden rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.14em] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background ${
+                isActive
+                  ? 'border border-primary/50 bg-primary/15 text-primary shadow-[0_0_12px_hsl(var(--primary)/0.25)]'
+                  : 'border border-transparent text-muted-foreground hover:text-foreground hover:bg-white/[0.03]'
+              }`}
+            >
+              {s.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

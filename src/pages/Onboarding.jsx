@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import RRLogo from '@/components/RRLogo';
 import BikePhotoUploader from '@/components/profile/BikePhotoUploader';
 import { MOTORCYCLE_MAKES, getModelSuggestions } from '@/lib/motorcycleCatalog';
+import { Check, User, FileText, Bike, Camera } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const currentYear = new Date().getFullYear();
 const normalizeBikeYear = (value) => {
@@ -88,6 +90,16 @@ export default function Onboarding() {
 
   const modelSuggestions = getModelSuggestions(form.bikeMake);
   const canSubmit = form.displayName.trim().length >= 2;
+
+  // Progress tracking
+  const steps = [
+    { id: 'identity', label: 'Identity', icon: User, done: form.displayName.trim().length >= 2 },
+    { id: 'bike', label: 'Machine', icon: Bike, done: !!(form.bikeMake && form.bikeModel) },
+    { id: 'details', label: 'Details', icon: FileText, done: !!(form.bio || form.avatar || form.bikePhoto) },
+  ];
+  const completedSteps = steps.filter(s => s.done).length;
+  const progressPercent = Math.round((completedSteps / steps.length) * 100);
+
   const inputClassName = 'rr-premium-input';
   const labelClassName = 'mb-2 block text-xs font-semibold uppercase rr-premium-label';
   const panelClassName = 'rr-glass-panel p-4 rr-stagger';
@@ -99,18 +111,54 @@ export default function Onboarding() {
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(57,255,20,0.12),transparent_30%),linear-gradient(180deg,transparent,rgba(0,0,0,0.58))]" />
 
       <div className="relative z-10 w-full max-w-md rounded-[1.7rem] rr-premium-shell px-6 py-8">
-        <div className="mb-7 flex items-center gap-2.5 rr-stagger" style={{ '--rr-delay': '0ms' }}>
+        {/* Logo & Header */}
+        <div className="mb-6 flex items-center gap-2.5 rr-stagger" style={{ '--rr-delay': '0ms' }}>
           <span className="rr-led-logo"><RRLogo size="md" /></span>
           <span className="font-display text-2xl font-bold uppercase tracking-[0.04em]">
             Ride<span className="text-primary text-glow-green">Radar</span>
           </span>
         </div>
 
-        <div className="rr-chip mb-4 rr-stagger" style={{ '--rr-delay': '80ms' }}><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Rider profile</div>
-        <h1 className="rr-aggressive-heading mb-1 text-5xl font-bold leading-none text-foreground rr-stagger" style={{ '--rr-delay': '160ms' }}>Set up your profile</h1>
-        <p className="mb-6 text-sm text-muted-foreground rr-stagger" style={{ '--rr-delay': '240ms' }}>Add your rider name now. Bike, photo, and bio details can be finished later.</p>
+        <div className="rr-chip mb-3 rr-stagger" style={{ '--rr-delay': '80ms' }}>
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Boot sequence
+        </div>
+        <h1 className="rr-aggressive-heading mb-1 text-4xl font-bold leading-none text-foreground rr-stagger" style={{ '--rr-delay': '160ms' }}>
+          Join the network
+        </h1>
+        <p className="mb-5 text-sm text-muted-foreground rr-stagger" style={{ '--rr-delay': '240ms' }}>
+          Set up your rider profile to broadcast signals and connect with the pack.
+        </p>
+
+        {/* Progress */}
+        <div className="mb-6 rr-stagger" style={{ '--rr-delay': '280ms' }}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Profile completion</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">{progressPercent}%</span>
+          </div>
+          <div className="h-1.5 rounded-full bg-secondary/50 overflow-hidden">
+            <div 
+              className="h-full bg-primary rounded-full transition-all duration-500 shadow-[0_0_8px_hsl(var(--primary)/0.5)]"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+          <div className="flex items-center gap-2 mt-3">
+            {steps.map((step, i) => (
+              <div key={step.id} className={cn(
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all duration-300",
+                step.done 
+                  ? 'bg-primary/10 border-primary/30 text-primary' 
+                  : 'bg-secondary/20 border-border/40 text-muted-foreground'
+              )}>
+                <step.icon className="w-3 h-3" />
+                {step.label}
+                {step.done && <Check className="w-3 h-3" />}
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div className="space-y-4">
+          {/* Avatar */}
           <div className={panelClassName} style={{ '--rr-delay': '320ms' }}>
             <Label htmlFor="profile-picture" className="mb-3 block text-xs font-semibold uppercase rr-premium-label">
               Profile picture
@@ -141,6 +189,7 @@ export default function Onboarding() {
             {uploadError && <p id="profile-picture-error" role="alert" className="mt-2 text-sm text-destructive">{uploadError}</p>}
           </div>
 
+          {/* Display Name */}
           <div className={panelClassName} style={{ '--rr-delay': '400ms' }}>
             <Label htmlFor="display-name" className={labelClassName}>
               Display name *
@@ -154,8 +203,14 @@ export default function Onboarding() {
               autoComplete="nickname"
               aria-required="true"
             />
+            {form.displayName.trim().length >= 2 && (
+              <div className="mt-2 flex items-center gap-1 text-[11px] font-bold text-primary">
+                <Check className="w-3 h-3" /> Identity confirmed
+              </div>
+            )}
           </div>
 
+          {/* Bio */}
           <div className={panelClassName} style={{ '--rr-delay': '480ms' }}>
             <Label htmlFor="rider-bio" className={labelClassName}>
               Bio
@@ -171,6 +226,7 @@ export default function Onboarding() {
             />
           </div>
 
+          {/* Bike Year & Make */}
           <div className={`grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2 ${panelClassName}`} style={{ '--rr-delay': '560ms' }}>
             <div>
               <Label htmlFor="bike-year" className={labelClassName}>
@@ -208,6 +264,7 @@ export default function Onboarding() {
             ))}
           </datalist>
 
+          {/* Bike Model */}
           <div className={panelClassName} style={{ '--rr-delay': '640ms' }}>
             <Label htmlFor="bike-model" className={labelClassName}>
               Bike model
@@ -220,6 +277,11 @@ export default function Onboarding() {
               list="onboarding-bike-model-options"
               className={inputClassName}
             />
+            {form.bikeMake && form.bikeModel && (
+              <div className="mt-2 flex items-center gap-1 text-[11px] font-bold text-primary">
+                <Check className="w-3 h-3" /> Machine registered
+              </div>
+            )}
           </div>
           <datalist id="onboarding-bike-model-options">
             {modelSuggestions.map((model) => (
@@ -227,11 +289,17 @@ export default function Onboarding() {
             ))}
           </datalist>
 
+          {/* Bike Photo */}
           <div className={panelClassName} style={{ '--rr-delay': '720ms' }}>
             <Label className={labelClassName}>
               Bike photo
             </Label>
             <BikePhotoUploader image={form.bikePhoto} onChange={(bikePhoto) => setForm({ ...form, bikePhoto })} />
+            {form.bikePhoto && (
+              <div className="mt-2 flex items-center gap-1 text-[11px] font-bold text-primary">
+                <Camera className="w-3 h-3" /> Photo uploaded
+              </div>
+            )}
           </div>
 
           {saveProfile.isError && (
@@ -243,7 +311,7 @@ export default function Onboarding() {
           <Button
             onClick={() => saveProfile.mutate()}
             disabled={!canSubmit || saveProfile.isPending}
-            className="rr-shimmer-button h-12 w-full rounded-full text-base font-semibold glow-green rr-stagger"
+            className="rr-shimmer-button h-12 w-full rounded-full text-base font-semibold glow-green rr-stagger rr-haptic"
             style={{ '--rr-delay': '800ms' }}
           >
             {saveProfile.isPending ? 'Creating profile...' : 'Join the network'}

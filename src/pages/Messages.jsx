@@ -15,25 +15,37 @@ import { prefetchConversationMessages } from '@/lib/query-client';
  * but this specific conversation's data has not changed.
  */
 const ConversationItem = memo(function ConversationItem({ conversation, otherProfile, archived }) {
+  const hasUnread = conversation.unread_count > 0;
+  const isActive = conversation.status === 'active';
+
   return (
     <Link
       to={`/messages/${conversation.id}`}
       onMouseEnter={() => prefetchConversationMessages(conversation.id)}
       onFocus={() => prefetchConversationMessages(conversation.id)}
       className={cn(
-        'flex items-center gap-4 p-4 rounded-[1.35rem] border transition-all duration-300',
-        archived ? 'bg-secondary/15 border-border/30 opacity-70 hover:opacity-100' : 'rr-surface hover:border-primary/35 hover:shadow-[0_18px_55px_-22px_hsl(var(--primary)/0.35)] hover:-translate-y-0.5'
+        'flex items-center gap-4 p-4 rounded-[1.35rem] border transition-all duration-300 rr-haptic',
+        archived ? 'bg-secondary/15 border-border/30 opacity-70 hover:opacity-100' : 'rr-surface hover:border-primary/35 hover:shadow-[0_18px_55px_-22px_hsl(var(--primary)/0.35)] hover:-translate-y-0.5',
+        isActive && !archived && 'border-primary/20'
       )}
     >
-      {otherProfile?.avatar_url ? (
-        <img src={otherProfile.avatar_url} className="w-12 h-12 rounded-full object-cover shrink-0 border border-border/50" alt="" />
-      ) : (
-        <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center font-display font-bold text-lg text-foreground shrink-0 border border-border/50">
-          {otherProfile?.display_name?.[0] || '?'}
-        </div>
-      )}
+      <div className="relative shrink-0">
+        {otherProfile?.avatar_url ? (
+          <img src={otherProfile.avatar_url} className="w-12 h-12 rounded-full object-cover shrink-0 border border-border/50" alt="" />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center font-display font-bold text-lg text-foreground shrink-0 border border-border/50">
+            {otherProfile?.display_name?.[0] || '?'}
+          </div>
+        )}
+        {hasUnread && (
+          <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-primary border-2 border-background animate-pulse-green" />
+        )}
+      </div>
       <div className="flex-1 min-w-0">
-        <div className="font-semibold text-sm truncate">{otherProfile?.display_name || 'Rider'}</div>
+        <div className="flex items-center gap-2">
+          <div className="font-semibold text-sm truncate">{otherProfile?.display_name || 'Rider'}</div>
+          {hasUnread && <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0 animate-pulse-green" />}
+        </div>
         <div className="text-xs text-muted-foreground truncate">
           {conversation.type === 'connection' ? 'Connection thread' : 'Friend'}
           {conversation.last_message_at && ` · ${timeAgo(conversation.last_message_at)}`}
@@ -88,7 +100,7 @@ export default function Messages() {
   const loadError = isError ? error : null;
 
   return (
-    <div className="px-5 pt-5">
+    <div className="px-5 pt-5 pb-8">
       <div className="mb-4 rr-surface-strong rounded-[1.45rem] p-5 relative overflow-hidden">
         <div className="absolute -right-14 -top-14 h-36 w-36 rounded-full border border-primary/15" />
         <div className="absolute left-5 right-5 bottom-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />

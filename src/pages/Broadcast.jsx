@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
 import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 import { useCreateBroadcast } from '@/hooks/useCreateBroadcast';
 import { Button } from '@/components/ui/button';
@@ -22,20 +23,32 @@ const TYPES = [
 
 const TYPE_STYLE_MAP = {
   solo: {
-    hover: 'hover:border-solo/35 hover:bg-solo/5',
+    hover: 'hover:border-solo/40 hover:bg-solo/8',
     glow: 'bg-solo',
+    border: 'border-solo/25',
+    text: 'text-solo',
+    bg: 'bg-solo/10',
   },
   iso: {
-    hover: 'hover:border-iso/35 hover:bg-iso/5',
+    hover: 'hover:border-iso/40 hover:bg-iso/8',
     glow: 'bg-iso',
+    border: 'border-iso/25',
+    text: 'text-iso',
+    bg: 'bg-iso/10',
   },
   event: {
-    hover: 'hover:border-event/35 hover:bg-event/5',
+    hover: 'hover:border-event/40 hover:bg-event/8',
     glow: 'bg-event',
+    border: 'border-event/25',
+    text: 'text-event',
+    bg: 'bg-event/10',
   },
   alert: {
-    hover: 'hover:border-alert/35 hover:bg-alert/5',
+    hover: 'hover:border-alert/40 hover:bg-alert/8',
     glow: 'bg-alert',
+    border: 'border-alert/25',
+    text: 'text-alert',
+    bg: 'bg-alert/10',
   },
 };
 
@@ -46,7 +59,7 @@ export default function Broadcast() {
 
   if (!type) {
     return (
-      <div className="px-5 pt-5">
+      <div className="px-5 pt-5 pb-8">
         <div className="mb-4 rr-surface-strong rounded-[1.45rem] p-5 relative overflow-hidden">
           <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full border border-primary/15" />
           <div className="rr-chip mb-3"><span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Signal console</div>
@@ -57,7 +70,7 @@ export default function Broadcast() {
             Broadcast types
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-2.5">
+        <div className="grid grid-cols-1 gap-3">
           {TYPES.map((t) => {
             const styles = TYPE_STYLE_MAP[t.color];
             return (
@@ -65,17 +78,20 @@ export default function Broadcast() {
                 key={t.id}
                 onClick={() => setType(t.id)}
                 className={cn(
-                  "w-full text-left p-4 rounded-[1.35rem] rr-surface transition-all duration-300 group relative overflow-hidden hover:-translate-y-0.5",
+                  "w-full text-left p-5 rounded-[1.35rem] rr-surface transition-all duration-300 group relative overflow-hidden hover:-translate-y-0.5 rr-haptic",
                   styles.hover
                 )}
               >
-                <div className={cn("absolute top-0 right-0 w-28 h-28 opacity-[0.055] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-125", styles.glow)} />
+                <div className={cn("absolute top-0 right-0 w-32 h-32 opacity-[0.06] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-125", styles.glow)} />
                 <div className="relative z-10 flex items-center gap-4">
-                  <SignalIcon type={t.id} size="lg" className="transition-transform duration-300 group-hover:scale-105" />
+                  <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center border shrink-0", styles.border, styles.bg)}>
+                    <SignalIcon type={t.id} size="lg" className="transition-transform duration-300 group-hover:scale-105" />
+                  </div>
                   <div className="flex-1">
-                    <div className="font-display font-extrabold tracking-[-0.03em] text-xl mb-1 text-foreground">{t.label}</div>
+                    <div className="font-display font-extrabold tracking-[-0.03em] text-xl mb-0.5 text-foreground">{t.label}</div>
                     <div className="text-[13px] text-muted-foreground font-medium">{t.desc}</div>
                   </div>
+                  <div className={cn("h-2 w-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity", styles.glow)} />
                 </div>
               </button>
             );
@@ -136,7 +152,13 @@ function BroadcastForm({ type, onBack, onPosted }) {
         lng: coords.lng,
       },
       {
-        onSuccess: () => onPosted(),
+        onSuccess: () => {
+          toast({
+            title: `${typeMeta.label} broadcasted`,
+            description: 'Your signal is now live on the radar.',
+          });
+          onPosted();
+        },
       }
     );
   };
@@ -171,26 +193,30 @@ function BroadcastForm({ type, onBack, onPosted }) {
     (type !== 'alert' || form.exactLocationText.trim().length > 0);
 
   return (
-    <div className="px-5 pt-5">
-      <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+    <div className="px-5 pt-5 pb-8">
+      <button onClick={onBack} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="w-4 h-4" /> All types
       </button>
 
+      {/* Type Header */}
       <div className="flex items-center gap-4 mb-5 rr-surface-strong p-5 rounded-[1.45rem] relative overflow-hidden">
-        <div className={cn("absolute top-0 right-0 w-40 h-40 opacity-[0.06] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2", typeStyles.glow)} />
-        <SignalIcon type={type} size="lg" />
+        <div className={cn("absolute top-0 right-0 w-40 h-40 opacity-[0.07] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2", typeStyles.glow)} />
+        <div className={cn("h-14 w-14 rounded-2xl flex items-center justify-center border shrink-0 relative z-10", typeStyles.border, typeStyles.bg)}>
+          <SignalIcon type={type} size="lg" />
+        </div>
         <div className="relative z-10">
           <h1 className="font-display text-2xl font-extrabold tracking-[-0.04em]">{typeMeta.label}</h1>
           <p className="text-xs text-muted-foreground font-medium mt-0.5">{typeMeta.desc}</p>
         </div>
       </div>
 
-      <div className="space-y-4 rr-surface rounded-[1.45rem] p-4">
+      {/* Form */}
+      <div className="space-y-5 rr-glass-panel p-5">
         {type === 'iso' && (
           <div>
-            <Label>Looking for</Label>
+            <Label className="rr-kicker text-muted-foreground mb-2 block">Looking for</Label>
             <Select value={form.isoSubtype} onValueChange={(v) => setForm({ ...form, isoSubtype: v })}>
-              <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="rr-premium-input rounded-xl mt-1.5"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="mechanic">Mechanic</SelectItem>
                 <SelectItem value="bike_crew">Bike Crew</SelectItem>
@@ -201,9 +227,9 @@ function BroadcastForm({ type, onBack, onPosted }) {
 
         {type === 'iso' && form.isoSubtype === 'bike_crew' ? (
           <div>
-            <Label>Looking to</Label>
+            <Label className="rr-kicker text-muted-foreground mb-2 block">Looking to</Label>
             <Select value={form.lookingTo} onValueChange={(v) => setForm({ ...form, lookingTo: v })}>
-              <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="rr-premium-input rounded-xl mt-1.5"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="join_crew">Join a crew</SelectItem>
                 <SelectItem value="start_crew">Start a crew</SelectItem>
@@ -212,24 +238,24 @@ function BroadcastForm({ type, onBack, onPosted }) {
           </div>
         ) : (
           <div>
-            <Label>Title *</Label>
+            <Label className="rr-kicker text-muted-foreground mb-2 block">Title *</Label>
             <Input
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder={type === 'alert' ? 'Deer on I-70 near exit 252' : type === 'event' ? 'Sunday canyon run' : type === 'iso' ? 'Need a mechanic tonight' : 'Who\'s rolling tonight?'}
-              className="mt-1.5"
+              className="rr-premium-input rounded-xl mt-1.5"
               maxLength={120}
             />
           </div>
         )}
 
         <div>
-          <Label>Details</Label>
+          <Label className="rr-kicker text-muted-foreground mb-2 block">Details</Label>
           <Textarea
             value={form.body}
             onChange={(e) => setForm({ ...form, body: e.target.value })}
             placeholder={type === 'iso' && form.isoSubtype === 'mechanic' ? 'Describe what is happening with your bike...' : type === 'iso' && form.isoSubtype === 'bike_crew' ? 'Add your area, riding style, pace, or timing...' : 'Add context...'}
-            className="mt-1.5"
+            className="rr-premium-input rounded-xl mt-1.5"
             rows={4}
             maxLength={500}
           />
@@ -238,26 +264,26 @@ function BroadcastForm({ type, onBack, onPosted }) {
         {type === 'event' && (
           <>
             <div>
-              <Label>Location *</Label>
+              <Label className="rr-kicker text-muted-foreground mb-2 block">Location *</Label>
               <Input
                 value={form.exactLocationText}
                 onChange={(e) => setForm({ ...form, exactLocationText: e.target.value })}
                 placeholder="Red Rocks Park, parking lot 2"
-                className="mt-1.5"
+                className="rr-premium-input rounded-xl mt-1.5"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Start *</Label>
-                <Input type="datetime-local" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} className="mt-1.5" />
+                <Label className="rr-kicker text-muted-foreground mb-2 block">Start *</Label>
+                <Input type="datetime-local" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} className="rr-premium-input rounded-xl mt-1.5" />
               </div>
               <div>
-                <Label>End *</Label>
-                <Input type="datetime-local" value={form.eventEndTime} onChange={(e) => setForm({ ...form, eventEndTime: e.target.value })} className="mt-1.5" />
+                <Label className="rr-kicker text-muted-foreground mb-2 block">End *</Label>
+                <Input type="datetime-local" value={form.eventEndTime} onChange={(e) => setForm({ ...form, eventEndTime: e.target.value })} className="rr-premium-input rounded-xl mt-1.5" />
               </div>
             </div>
             <div>
-              <Label>Event poster (optional)</Label>
+              <Label className="rr-kicker text-muted-foreground mb-2 block">Event poster (optional)</Label>
               <div className="mt-1.5 rounded-2xl border border-border/70 bg-black/30 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
                 {form.eventImage ? (
                   <div className="space-y-3">
@@ -265,19 +291,19 @@ function BroadcastForm({ type, onBack, onPosted }) {
                       <img src={getImagePreview(form.eventImage)} className="max-h-64 w-full object-contain" alt="Event poster preview" />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <label className="flex h-10 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-primary/50 hover:text-primary">
+                      <label className="rr-haptic flex h-10 cursor-pointer items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-xs font-bold text-primary transition hover:bg-primary/15">
                         <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                         {uploading ? 'Preparing...' : 'Replace'}
                       </label>
-                      <button type="button" onClick={() => setForm({ ...form, eventImage: '' })} className="h-10 rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive">Remove</button>
+                      <button type="button" onClick={() => setForm({ ...form, eventImage: '' })} className="rr-haptic h-10 rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive">Remove</button>
                     </div>
                   </div>
                 ) : (
-                  <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-6 text-center transition hover:border-primary/50 hover:bg-primary/10">
+                  <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-6 text-center transition hover:border-primary/50 hover:bg-primary/10 rr-haptic">
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                    <Upload className="mb-2 h-5 w-5 text-primary" />
-                    <div className="text-sm font-bold text-foreground">{uploading ? 'Preparing preview...' : 'Upload one event poster'}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">Vertical, square, or horizontal images are preserved.</div>
+                    <Upload className="mb-2 h-6 w-6 text-primary" />
+                    <div className="text-sm font-bold text-foreground">{uploading ? 'Preparing preview...' : 'Upload event poster'}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">Drag and drop or tap to browse</div>
                   </label>
                 )}
               </div>
@@ -289,12 +315,12 @@ function BroadcastForm({ type, onBack, onPosted }) {
         {type === 'alert' && (
           <>
             <div>
-              <Label>Approximate area *</Label>
+              <Label className="rr-kicker text-muted-foreground mb-2 block">Approximate area *</Label>
               <Input
                 value={form.exactLocationText}
                 onChange={(e) => setForm({ ...form, exactLocationText: e.target.value })}
                 placeholder="I-70 westbound near Idaho Springs"
-                className="mt-1.5"
+                className="rr-premium-input rounded-xl mt-1.5"
               />
               <p className="text-xs text-muted-foreground mt-1.5">Describe the area. No exact pin is shared.</p>
             </div>
@@ -303,9 +329,9 @@ function BroadcastForm({ type, onBack, onPosted }) {
         )}
 
         {(type === 'solo_ride' || type === 'iso') && (
-          <div className="p-3 bg-accent/50 rounded-lg text-xs text-accent-foreground">
-            <MapPin className="w-3.5 h-3.5 inline mr-1.5" />
-            Your location will be fuzzed and frozen at post time. No live tracking.
+          <div className="p-3 bg-primary/5 rounded-xl text-xs text-primary border border-primary/15 flex items-start gap-2">
+            <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>Your location will be fuzzed and frozen at post time. No live tracking.</span>
           </div>
         )}
 
@@ -313,9 +339,12 @@ function BroadcastForm({ type, onBack, onPosted }) {
         <Button
           onClick={handlePost}
           disabled={!canPost || post.isPending || !user}
-          className={cn('w-full h-12 rounded-full mt-2', type === 'alert' && 'bg-alert hover:bg-alert/90 text-alert-foreground')}
+          className={cn(
+            'w-full h-12 rounded-full mt-2 text-base font-bold rr-haptic glow-green',
+            type === 'alert' && 'bg-alert hover:bg-alert/90 text-alert-foreground'
+          )}
         >
-          {post.isPending ? 'Broadcasting...' : `Broadcast ${typeMeta.label}`}
+          {post.isPending ? 'Broadcasting...' : `Publish ${typeMeta.label}`}
         </Button>
       </div>
     </div>

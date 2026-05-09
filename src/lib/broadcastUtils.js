@@ -28,8 +28,7 @@ export function computeExpiresAt(broadcast) {
 }
 
 export function isExpired(broadcast) {
-  // CRITICAL FIX: Handle both camelCase (old) and snake_case (Supabase)
-  const expiresAt = broadcast.expires_at || broadcast.expiresAt;
+  const expiresAt = broadcast.expires_at;
   if (!expiresAt) return false;
   return new Date(expiresAt).getTime() < Date.now();
 }

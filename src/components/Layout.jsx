@@ -5,7 +5,6 @@ import { useAdminRole } from '@/hooks/useAdminRole';
 import { useLiveMapPresence } from '@/hooks/useLiveMapPresence';
 import { cn } from '@/lib/utils';
 import RRLogo from '@/components/RRLogo';
-import NavGlyph from '@/components/brand/NavGlyph';
 
 const tabs = [
   { to: '/home', icon: Gauge, label: 'Radar' },
@@ -15,7 +14,7 @@ const tabs = [
 ];
 
 /**
- * Layout - App shell with sticky header and bottom tab navigation.
+ * Layout - App shell with premium native mobile feel.
  *
  * Accessibility:
  * - Skip-to-content link for keyboard users
@@ -138,37 +137,62 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      {/* Bottom tab bar */}
+      {/* Floating dock-style bottom tab bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 bg-black/70 backdrop-blur-2xl border-t border-primary/10 pb-safe shadow-[0_-18px_55px_rgba(0,0,0,0.55)]"
+        className="fixed bottom-0 left-0 right-0 z-50 pb-safe pointer-events-none"
         aria-label="Main navigation"
       >
-        <div className={cn('mx-auto grid grid-cols-4', isRadar ? 'max-w-[1180px]' : 'max-w-2xl')} role="tablist">
-          {tabs.map((t) => {
-            const active = pathname === t.to || (t.to !== '/home' && pathname.startsWith(t.to));
-            const Icon = t.icon;
-            return (
-              <NavLink
-                key={t.to}
-                to={t.to}
-                role="tab"
-                aria-selected={active}
-                aria-label={t.label}
-                className={cn(
-                  'flex flex-col items-center gap-1 py-3 min-h-[56px] transition-colors group',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary'
-                )}
-              >
-                <NavGlyph icon={Icon} active={active} />
-                <span className={cn(
-                  'text-[10px] tracking-[0.08em] font-bold uppercase',
-                  active ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                )}>
-                  {t.label}
-                </span>
-              </NavLink>
-            );
-          })}
+        <div className={cn('mx-auto flex justify-center px-4 pb-3 pt-2', isRadar ? 'max-w-[1180px]' : 'max-w-2xl')}>
+          <div
+            className="rr-surface-strong pointer-events-auto flex items-center gap-1 rounded-full px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.65)] border border-primary/15"
+            role="tablist"
+          >
+            {tabs.map((t) => {
+              const active = pathname === t.to || (t.to !== '/home' && pathname.startsWith(t.to));
+              const Icon = t.icon;
+              return (
+                <NavLink
+                  key={t.to}
+                  to={t.to}
+                  role="tab"
+                  aria-selected={active}
+                  aria-label={t.label}
+                  className={cn(
+                    'relative flex flex-col items-center justify-center gap-1 rounded-full min-w-[64px] min-h-[52px] px-3 transition-all duration-200 active:scale-95',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                    active
+                      ? 'bg-primary/[0.13] text-primary'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {/* Active glow dot */}
+                  {active && (
+                    <span className="absolute top-1.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary animate-pulse-green shadow-[0_0_8px_hsl(var(--primary)/0.8)]" />
+                  )}
+                  <Icon
+                    className={cn(
+                      'h-[22px] w-[22px] transition-all duration-200',
+                      active && 'drop-shadow-[0_0_6px_hsl(var(--primary)/0.55)]'
+                    )}
+                    strokeWidth={active ? 2.6 : 2}
+                    aria-hidden="true"
+                  />
+                  <span
+                    className={cn(
+                      'text-[9px] tracking-[0.12em] font-bold uppercase transition-colors duration-200',
+                      active ? 'text-primary' : 'text-muted-foreground'
+                    )}
+                  >
+                    {t.label}
+                  </span>
+                  {/* Active pill background glow */}
+                  {active && (
+                    <span className="absolute inset-0 rounded-full border border-primary/20 pointer-events-none shadow-[inset_0_1px_0_hsl(0_0%_100%/0.06)]" />
+                  )}
+                </NavLink>
+              );
+            })}
+          </div>
         </div>
       </nav>
     </div>
