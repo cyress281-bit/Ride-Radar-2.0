@@ -3,18 +3,12 @@
  *
  * After login succeeds, we preload the Home route chunk so the user
  * doesn't see a loading spinner on their first navigation.
- *
- * Usage:
- *   import { preloadHome } from '@/lib/routePreload';
- *   // After login success:
- *   preloadHome();
  */
 
-// These match the lazy() imports in App.jsx — Vite will deduplicate the chunks.
-export const preloadHome = () => import('@/pages/Home');
-export const preloadMessages = () => import('@/pages/Messages');
-export const preloadBroadcast = () => import('@/pages/Broadcast');
-export const preloadProfile = () => import('@/pages/Profile');
+export const preloadHome = () => import('@/features/broadcast/pages/BroadcastFeedPage');
+export const preloadMessages = () => import('@/features/chat/pages/ConversationsPage');
+export const preloadBroadcast = () => import('@/features/broadcast/pages/BroadcastCreatePage');
+export const preloadProfile = () => import('@/features/profile/pages/ProfilePage');
 
 /**
  * Preload the core authenticated routes after login.
@@ -23,7 +17,6 @@ export const preloadProfile = () => import('@/pages/Profile');
 export function preloadCoreRoutes() {
   const load = () => {
     preloadHome();
-    // Delay secondary routes slightly to prioritize Home
     setTimeout(() => {
       preloadMessages();
       preloadBroadcast();

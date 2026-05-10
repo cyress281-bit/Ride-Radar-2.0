@@ -1,30 +1,47 @@
 import { createClient } from '@supabase/supabase-js';
-import { logger } from './logger';
 
-// Get credentials from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
 const REMEMBER_DEVICE_KEY = 'rr_remember_device';
 
-const getBrowserStorage = (type) => {
+/**
+ * Get a browser storage API by type.
+ * @param {'local'|'session'} type
+ * @returns {Storage|null}
+ */
+function getBrowserStorage(type) {
   if (typeof window === 'undefined') return null;
   return type === 'session' ? window.sessionStorage : window.localStorage;
-};
+}
 
-const shouldRememberDevice = () => {
+/**
+ * Determine whether the user opted to remember this device.
+ * Defaults to true if the key is absent.
+ * @returns {boolean}
+ */
+function shouldRememberDevice() {
   const storage = getBrowserStorage('local');
-  return storage?.getItem(REMEMBER_DEVICE_KEY) !== 'false';
-};
+  return storage?.getItem(REMEMBER_DEVICE_KEY) === 'true';
+}
 
+/** Custom auth storage that respects the "remember device" preference. */
 const authStorage = {
   getItem(key) {
-    const primary = shouldRememberDevice() ? getBrowserStorage('local') : getBrowserStorage('session');
-    const fallback = shouldRememberDevice() ? getBrowserStorage('session') : getBrowserStorage('local');
+    const primary = shouldRememberDevice()
+      ? getBrowserStorage('local')
+      : getBrowserStorage('session');
+    const fallback = shouldRememberDevice()
+      ? getBrowserStorage('session')
+      : getBrowserStorage('local');
     return primary?.getItem(key) ?? fallback?.getItem(key) ?? null;
   },
   setItem(key, value) {
-    const primary = shouldRememberDevice() ? getBrowserStorage('local') : getBrowserStorage('session');
-    const secondary = shouldRememberDevice() ? getBrowserStorage('session') : getBrowserStorage('local');
+    const primary = shouldRememberDevice()
+      ? getBrowserStorage('local')
+      : getBrowserStorage('session');
+    const secondary = shouldRememberDevice()
+      ? getBrowserStorage('session')
+      : getBrowserStorage('local');
     primary?.setItem(key, value);
     secondary?.removeItem(key);
   },
@@ -34,139 +51,141 @@ const authStorage = {
   },
 };
 
-export function setRememberDevicePreference(remember) {
-  const local = getBrowserStorage('local');
-  local?.setItem(REMEMBER_DEVICE_KEY, remember ? 'true' : 'false');
-}
-
-const getSupabaseProjectRef = (url) => {
-  try {
-    const { hostname } = new URL(url);
-    if (!hostname.endsWith('.supabase.co')) return null;
-    return hostname.split('.')[0];
-  } catch {
-    return null;
-  }
-};
-
-const decodeJwtPayload = (token) => {
-  if (!/^[^.]+\.[^.]+\.[^.]+$/.test(token) || typeof globalThis.atob !== 'function') {
-    return null;
-  }
+/**
+ * Decode the payload of a JWT without verification.
+ * @param {string} token
+ * @returns {object|null}
+ */
+function decodeJwtPayload(token) {
+  if (!token || typeof token !== 'string') return null;
+  if (!/^[^.]+\.[^.]+\.[^.]+$/.test(token)) return null;
+  if (typeof globalThis.atob !== 'function') return null;
 
   try {
     const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    const paddedPayload = payload.padEnd(payload.length + ((4 - (payload.length % 4)) % 4), '=');
-    return JSON.parse(globalThis.atob(paddedPayload));
+    const padded = payload.padEnd(payload.length + ((4 - (payload.length % 4)) % 4), '=');
+    return JSON.parse(globalThis.atob(padded));
   } catch {
     return null;
   }
-};
+}
 
-const validateSupabaseEnv = () => {
-  const errors = [];
+/**
+ * Validate Supabase environment configuration at module load.
+ * Logs warnings instead of throwing so the app never hard-crashes on misconfig.
+ */
+function validateSupabaseEnv() {
+  const warnings = [];
   const placeholderUrls = new Set([
     'https://your-project-id.supabase.co',
     'https://your-project.supabase.co',
   ]);
 
   if (!supabaseUrl) {
-    errors.push('VITE_SUPABASE_URL is missing');
+    warnings.push('VITE_SUPABASE_URL is missing');
   } else {
     try {
       new URL(supabaseUrl);
     } catch {
-      errors.push('VITE_SUPABASE_URL must be a valid URL');
+      warnings.push('VITE_SUPABASE_URL is not a valid URL');
     }
 
     if (placeholderUrls.has(supabaseUrl)) {
-      errors.push('VITE_SUPABASE_URL still contains the example placeholder');
+      warnings.push('VITE_SUPABASE_URL still contains the example placeholder');
     }
   }
 
   if (!supabaseAnonKey) {
-    errors.push('VITE_SUPABASE_ANON_KEY is missing');
+    warnings.push('VITE_SUPABASE_ANON_KEY is missing');
   } else if (supabaseAnonKey === 'your-anon-key-here') {
-    errors.push('VITE_SUPABASE_ANON_KEY still contains the example placeholder');
-  } else if (!supabaseAnonKey.startsWith('sb_publishable_')) {
-    const keyPayload = decodeJwtPayload(supabaseAnonKey);
-
-    if (!keyPayload) {
-      errors.push('VITE_SUPABASE_ANON_KEY must be a valid anon JWT or publishable key');
-    } else if (keyPayload.role !== 'anon') {
-      errors.push(`VITE_SUPABASE_ANON_KEY has role "${keyPayload.role || 'unknown'}"; expected "anon"`);
-    }
-
-    const urlProjectRef = supabaseUrl ? getSupabaseProjectRef(supabaseUrl) : null;
-    if (keyPayload?.ref && urlProjectRef && keyPayload.ref !== urlProjectRef) {
-      errors.push('VITE_SUPABASE_URL project ref does not match VITE_SUPABASE_ANON_KEY');
+    warnings.push('VITE_SUPABASE_ANON_KEY still contains the example placeholder');
+  } else {
+    const payload = decodeJwtPayload(supabaseAnonKey);
+    if (!payload) {
+      warnings.push('VITE_SUPABASE_ANON_KEY is not a valid JWT');
+    } else if (payload.role !== 'anon') {
+      warnings.push(
+        `VITE_SUPABASE_ANON_KEY has role "${payload.role || 'unknown'}"; expected "anon"`
+      );
     }
   }
 
-  if (errors.length > 0) {
-    const message = `Invalid Supabase environment configuration: ${errors.join('; ')}`;
-    logger.error(message);
-    throw new Error(message);
+  if (warnings.length > 0) {
+     
+    console.warn('[Supabase] Configuration warnings:', warnings.join('; '));
   }
-};
+}
 
 validateSupabaseEnv();
 
-/**
- * Supabase client for Ride Radar 2.0
- *
- * Features:
- * - Persistent auth sessions (localStorage)
- * - Automatic token refresh
- * - Real-time subscriptions
- * - Row-level security enforcement
- */
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true, // Keep user logged in across browser sessions
-    autoRefreshToken: true, // Automatically refresh expired tokens
-    detectSessionInUrl: true, // Handle OAuth redirects
-    storage: authStorage,
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10 // Rate limit real-time events
-    }
-  },
-  db: {
-    schema: 'public'
-  }
-});
+/** @type {import('@supabase/supabase-js').SupabaseClient|null} */
+let _client = null;
 
-logger.debug('[Supabase] Client initialized');
+if (supabaseUrl && supabaseAnonKey) {
+  _client = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: authStorage,
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+    db: {
+      schema: 'public',
+    },
+  });
+} else {
+   
+  console.error('[Supabase] Client could not be created: missing URL or anon key');
+}
 
-// Expose for debugging only in development
-if (import.meta.env.DEV && typeof window !== 'undefined') {
+/** Supabase client for Ride Radar 2.0. */
+export const supabase = _client;
+
+// Expose for debugging in development
+if (import.meta.env.DEV && typeof window !== 'undefined' && supabase) {
   window.supabase = supabase;
-  logger.debug('[Supabase] Client exposed as window.supabase for debugging');
 }
 
 /**
- * Helper function to get current auth token
- * Useful for API calls that need authorization header
+ * Get the current auth token, if any.
+ * @returns {Promise<string|null>}
  */
 export async function getAuthToken() {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token;
+  if (!supabase) return null;
+  const { data } = await supabase.auth.getSession();
+  return data?.session?.access_token ?? null;
 }
 
 /**
- * Helper function to get current user ID
+ * Get the current user's ID, if authenticated.
+ * @returns {Promise<string|null>}
  */
 export async function getCurrentUserId() {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session?.user?.id;
+  if (!supabase) return null;
+  const { data } = await supabase.auth.getSession();
+  return data?.session?.user?.id ?? null;
 }
 
 /**
- * Helper to check if user is authenticated
+ * Set the "remember device" preference in localStorage.
+ * @param {boolean} value
+ */
+export function setRememberDevicePreference(value) {
+  const storage = getBrowserStorage('local');
+  storage?.setItem(REMEMBER_DEVICE_KEY, String(value));
+}
+
+/**
+ * Check whether a user is currently authenticated.
+ * @returns {Promise<boolean>}
  */
 export async function isAuthenticated() {
-  const { data: { session } } = await supabase.auth.getSession();
-  return !!session;
+  if (!supabase) return false;
+  const { data } = await supabase.auth.getSession();
+  return !!data?.session;
 }

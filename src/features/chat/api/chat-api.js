@@ -1,0 +1,103 @@
+import { supabase } from '@/lib/supabase.js';
+import { getOrCreateConversation as rpcGetOrCreateConversation } from '@/lib/conversationUtils.js';
+
+/**
+ * Fetch all conversations where the user is a participant.
+ * @param {string} userId
+ * @returns {Promise<{data: Array<object>|null, error: Error|null}>}
+ */
+export async function getConversations(userId) {
+  const { data, error } = await supabase
+    .from('conversations')
+    .select('*')
+    .contains('participant_ids', [userId])
+    .order('last_message_at', { ascending: false });
+
+  return { data, error };
+}
+
+/**
+ * Fetch messages for a conversation ordered by created_at ascending.
+ * @param {string} conversationId
+ * @returns {Promise<{data: Array<object>|null, error: Error|null}>}
+ */
+export async function getMessages(conversationId) {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*')
+    .eq('conversation_id', conversationId)
+    .order('created_at', { ascending: true });
+
+  return { data, error };
+}
+
+/**
+ * Insert a new message into a conversation.
+ * @param {Object} payload
+ * @param {string} payload.conversation_id
+ * @param {string} payload.from_user_id
+ * @param {string} payload.body
+ * @returns {Promise<{data: object|null, error: Error|null}>}
+ */
+export async function sendMessage({ conversation_id, from_user_id, body }) {
+  const { data, error } = await supabase
+    .from('messages')
+    .insert({ conversation_id, from_user_id, body })
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+/**
+ * Mark a conversation as read for a user by updating the notification status.
+ * @param {string} conversationId
+ * @param {string} userId
+ * @returns {Promise<{data: object|null, error: Error|null}>}
+ */
+export async function markConversationRead(conversationId, userId) {
+  const { data, error } = await supabase
+    .from('conversation_notifications')
+    .upsert(
+      { conversation_id: conversationId, user_id: userId, read_at: new Date().toISOString() },
+      { onConflict: 'conversation_id,user_id' }
+    )
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+/**
+ * Create a new conversation with the given participants.
+ * @param {string[]} participantIds
+ * @returns {Promise<{data: object|null, error: Error|null}>}
+ */
+export async function createConversation(participantIds) {
+  const sorted = [...participantIds].sort();
+  const { data, error } = await supabase
+    .from('conversations')
+    .insert({ participant_ids: sorted, status: 'active' })
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+/**
+ * Atomically get or create a conversation between participants via RPC.
+ * @param {string[]} participantIds
+ * @returns {Promise<{data: object|null, error: Error|null}>}
+ */
+export async function getOrCreateConversation(participantIds) {
+  try {
+    const result = await rpcGetOrCreateConversation({
+      participantIds,
+      type: 'friend',
+      threadExpiresAt: null,
+    });
+    return { data: result, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+}
