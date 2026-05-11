@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthActions } from '@/features/auth/hooks/use-auth.js';
 import { deleteAccount } from '@/features/settings/api/settings-api.js';
 import { trackAccountDeleted } from '@/lib/analytics.js';
 import { logger } from '@/lib/logger.js';
@@ -24,7 +24,7 @@ import RRLogo from '@/components/RRLogo';
 
 export default function AccountDeletionPage() {
   const navigate = useNavigate();
-  const { signOut } = useSupabaseAuth();
+  const { signOut } = useAuthActions();
 
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);

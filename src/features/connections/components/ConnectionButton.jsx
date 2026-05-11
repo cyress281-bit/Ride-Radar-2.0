@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import {
   useConnectionRequests,
   useSentRequests,
@@ -24,8 +24,8 @@ import { UserPlus, Clock, MessageCircle, Check, X, Loader2 } from 'lucide-react'
  * @param {object} [props.profile]
  * @param {string} [props.className]
  */
-export default function ConnectionButton({ targetUserId, profile, className }) {
-  const { user } = useSupabaseAuth();
+export default function ConnectionButton({ targetUserId, profile: _profile, className }) {
+  const { user } = useAuthState();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 

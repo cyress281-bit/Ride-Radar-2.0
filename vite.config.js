@@ -83,7 +83,7 @@ export default defineConfig({
             options: {
               cacheName: 'radar-map-tile-cache',
               expiration: {
-                maxEntries: 600,
+                maxEntries: 1000,
                 maxAgeSeconds: 60 * 60 * 24 * 14 // 14 days
               },
               cacheableResponse: {
@@ -199,7 +199,7 @@ export default defineConfig({
           }
 
           // All admin pages in one chunk
-          if (id.includes('/src/pages/admin/')) {
+          if (id.includes('/src/features/admin/pages/')) {
             return 'pages-admin';
           }
         },

@@ -3,7 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { getReports, createReport } from '@/features/safety/api/safety-api.js';
 
 /** Query key factory for reports. */
@@ -17,7 +17,7 @@ export const reportKeys = {
  * @returns {import('@tanstack/react-query').UseQueryResult<object[]>}
  */
 export function useReports() {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   return useQuery({
     queryKey: reportKeys.list(user?.id),
     queryFn: async () => {

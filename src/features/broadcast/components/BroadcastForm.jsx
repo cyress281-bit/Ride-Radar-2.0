@@ -11,7 +11,7 @@ import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin } 
 import AlertPhotoUploader from './AlertPhotoUploader';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { cn } from '@/lib/utils.js';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useCreateBroadcast } from '@/features/broadcast/hooks/use-create-broadcast.js';
 import { prepareLocalImage } from '@/lib/image-utils.js';
 import { toast } from '@/components/ui/use-toast';
@@ -85,7 +85,7 @@ const isoSchema = z.object({
  * @param {Function} props.onPosted
  */
 export default function BroadcastForm({ type, onBack, onPosted }) {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const post = useCreateBroadcast();
   const typeMeta = TYPES.find((t) => t.id === type);
   const typeStyles = TYPE_STYLE_MAP[typeMeta.color];
@@ -111,7 +111,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
     watch,
     setValue,
   } = useForm({
@@ -129,7 +129,6 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   });
 
   const isoSubtype = watch('isoSubtype');
-  const titleValue = watch('title');
   const exactLocationTextValue = watch('exactLocationText');
   const eventDateValue = watch('eventDate');
   const eventEndTimeValue = watch('eventEndTime');

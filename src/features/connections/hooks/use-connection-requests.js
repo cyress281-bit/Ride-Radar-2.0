@@ -3,7 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import {
   getConnectionRequests,
   getSentRequests,
@@ -24,7 +24,7 @@ export const connectionRequestKeys = {
  * @returns {import('@tanstack/react-query').UseQueryResult<object[]>}
  */
 export function useConnectionRequests() {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   return useQuery({
     queryKey: connectionRequestKeys.incoming(user?.id),
     queryFn: async () => {
@@ -42,7 +42,7 @@ export function useConnectionRequests() {
  * @returns {import('@tanstack/react-query').UseQueryResult<object[]>}
  */
 export function useSentRequests() {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   return useQuery({
     queryKey: connectionRequestKeys.sent(user?.id),
     queryFn: async () => {

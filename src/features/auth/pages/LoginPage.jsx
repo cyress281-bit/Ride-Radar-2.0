@@ -5,9 +5,9 @@
  * and redirect handling after successful authentication.
  */
 
-import { useEffect } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import LoginForm from '@/features/auth/components/LoginForm.jsx';
 import RRLogo from '@/components/RRLogo';
 import { getSafeAuthRedirectFromSearch } from '@/lib/auth-redirect.js';
@@ -17,10 +17,9 @@ import { getAuthErrorFromLocation } from '@/lib/auth-redirect';
 import { RIDE_RADAR_LOGO_URL } from '@/components/splash/logoAsset';
 
 export default function LoginPage() {
-  const { isAuthenticated, isLoading } = useSupabaseAuth();
+  const { isLoading } = useAuthState();
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
   const redirectPath = getSafeAuthRedirectFromSearch(location.search);
 
   // Handle OAuth error params in URL
@@ -32,10 +31,10 @@ export default function LoginPage() {
     navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`, { replace: true });
   }, [location.hash, location.search, navigate, redirectPath]);
 
-  const handleSuccess = () => {
+  const handleSuccess = useCallback(() => {
     preloadCoreRoutes();
     navigate(redirectPath, { replace: true });
-  };
+  }, [navigate, redirectPath]);
 
   // Show brand loading state while auth state is initializing
   if (isLoading) {

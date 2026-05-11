@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Crosshair, Plus, SlidersHorizontal, ChevronUp, Navigation } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import { useNearbyBroadcasts } from '@/features/broadcast/hooks/use-nearby-broadcasts.js';
 import { useLiveMapPresence } from '@/features/map/hooks/use-live-map.js';
-import { useBlockedIds } from '@/features/safety/hooks/use-blocks';
-import { useProfileBatch } from '@/features/profile/hooks/use-profile-batch';
-import { useOnlineStatus } from '@/hooks/useOnlineStatus';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
+import { useProfileBatch } from '@/hooks/use-profile-batch.js';
+import { useOnlineStatus } from '@/hooks/use-online-status.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import LiveMap from '@/features/map/components/LiveMap';
-import BroadcastCard from '@/features/broadcast/components/BroadcastCard';
+import BroadcastCard from '@/components/shared/BroadcastCard';
 import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
 import { logger } from '@/lib/logger';
 import { cn } from '@/lib/utils.js';
@@ -56,6 +56,8 @@ function cacheRadarLocation(location) {
   );
 }
 
+export default memo(BroadcastFeedPage);
+
 function readRadarOfflineSnapshot() {
   try {
     const raw = window.localStorage.getItem(RADAR_OFFLINE_SNAPSHOT_KEY);
@@ -98,9 +100,9 @@ function getAuthorId(broadcast) {
  * Location is optional. The map shows a default view (US center) until
  * the user taps "Locate me" to grant permission.
  */
-export default function BroadcastFeedPage() {
+function BroadcastFeedPage() {
   const navigate = useNavigate();
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const isOnline = useOnlineStatus();
 
   const [userLoc, setUserLoc] = useState(readCachedRadarLocation);
@@ -236,6 +238,15 @@ export default function BroadcastFeedPage() {
     return () => { if (watchId != null) navigator.geolocation.clearWatch(watchId); };
   }, [hasUserLocation]);
 
+  // Preload map tiles around user location for offline use
+  useEffect(() => {
+    if (!hasUserLocation) return;
+    const timer = setTimeout(() => {
+      preloadTilesAround(effectiveLoc.lat, effectiveLoc.lng, [10, 11, 12, 13, 14], 2);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [hasUserLocation, effectiveLoc.lat, effectiveLoc.lng]);
+
   // Bottom sheet drag handling
   const handleSheetTouchStart = useCallback((e) => {
     sheetStartY.current = e.touches[0].clientY;
@@ -254,6 +265,17 @@ export default function BroadcastFeedPage() {
       setSheetOpen(false);
     }
   }, []);
+
+  // Prevent body scroll when bottom sheet is open
+  useEffect(() => {
+    if (sheetOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [sheetOpen]);
 
   const activeCount = filteredBroadcasts.length;
 
@@ -280,7 +302,7 @@ export default function BroadcastFeedPage() {
       </div>
 
       {/* Top info pill */}
-      <div className="absolute top-16 left-4 right-4 z-10 flex justify-center pointer-events-none">
+      <div className="absolute top-header-offset left-4 right-4 z-10 flex justify-center pointer-events-none">
         <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
           <span className="h-2 w-2 rounded-full bg-primary animate-pulse-green " />
           <span className="text-xs font-bold text-foreground">
@@ -332,7 +354,7 @@ export default function BroadcastFeedPage() {
 
       {/* Location error toast */}
       {geoError && (
-        <div className="absolute top-28 left-4 right-4 z-10 flex justify-center">
+        <div className="absolute top-32 left-4 right-4 z-10 flex justify-center">
           <div className="rounded-2xl border border-alert/30 bg-alert/10 backdrop-blur-xl px-4 py-3 text-center shadow-lg">
             <p className="text-xs font-bold text-alert">Location access denied</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">Enable location in settings to see nearby signals</p>
@@ -360,7 +382,7 @@ export default function BroadcastFeedPage() {
         {/* Sheet handle */}
         <button
           onClick={() => setSheetOpen((v) => !v)}
-          className="w-full flex flex-col items-center pt-3 pb-2 min-h-[44px]"
+          className="w-full flex flex-col items-center pt-3 pb-2 min-h-[44px] active:scale-95 active:opacity-80 transition-all duration-150"
         >
           <span className="h-1 w-10 rounded-full bg-white/20" />
           <div className="flex items-center gap-2 mt-2">
@@ -374,15 +396,15 @@ export default function BroadcastFeedPage() {
         </button>
 
         {/* Sheet content */}
-        <div className={cn('overflow-y-auto overscroll-contain px-4 pb-6 pb-safe', sheetOpen ? 'max-h-[55vh]' : 'max-h-0')}>
+        <div className={cn('overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] px-4 pb-6 pb-safe', sheetOpen ? 'max-h-[55vh]' : 'max-h-0')}>
           {/* Filters */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 scroll-hide">
+          <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 scroll-hide [-webkit-overflow-scrolling:touch]">
             {FILTER_TYPES.map((f) => (
               <button
                 key={f.id}
                 onClick={() => setFilter(f.id)}
                 className={cn(
-                  'shrink-0 rounded-full px-4 py-2 min-h-[40px] text-xs font-bold transition',
+                  'shrink-0 rounded-full px-4 py-2 min-h-[44px] text-xs font-bold transition-all duration-150 active:scale-95 active:opacity-80',
                   filter === f.id
                     ? 'bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]'
                     : 'bg-white/5 text-muted-foreground hover:bg-white/10'
@@ -391,12 +413,12 @@ export default function BroadcastFeedPage() {
                 {f.label}
               </button>
             ))}
-            <div className="ml-auto flex items-center gap-1">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+            <div className="ml-auto flex items-center gap-1 min-h-[44px] px-2">
+              <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-transparent text-xs font-bold text-muted-foreground outline-none"
+                className="bg-transparent text-xs font-bold text-muted-foreground outline-none py-2 px-1"
               >
                 <option value="rank">Rank</option>
                 <option value="distance">Distance</option>
@@ -407,6 +429,14 @@ export default function BroadcastFeedPage() {
 
           {/* Broadcast list */}
           <div className="space-y-3">
+            {isLoadingBroadcasts && filteredBroadcasts.length === 0 && (
+              <div className="py-12 flex flex-col items-center gap-4">
+                <RRLogo size="sm" className="opacity-40 animate-pulse" glow={false} />
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground animate-pulse">
+                  Scanning area…
+                </p>
+              </div>
+            )}
             {filteredBroadcasts.map((broadcast) => (
               <BroadcastCard
                 key={broadcast.id}
@@ -417,10 +447,10 @@ export default function BroadcastFeedPage() {
               />
             ))}
             {filteredBroadcasts.length === 0 && !isLoadingBroadcasts && (
-              <div className="py-8 text-center">
-                <RRLogo size="sm" className="mx-auto mb-3 opacity-60" />
-                <p className="text-sm text-muted-foreground">No signals in this area.</p>
-                <p className="text-xs text-muted-foreground/60 mt-1">Tap the + button to create one.</p>
+              <div className="py-12 text-center">
+                <RRLogo size="sm" className="mx-auto mb-4 opacity-50" glow={false} />
+                <p className="text-sm font-medium text-muted-foreground">No signals in this area.</p>
+                <p className="text-xs text-muted-foreground/60 mt-2">Tap the + button to create one.</p>
               </div>
             )}
           </div>

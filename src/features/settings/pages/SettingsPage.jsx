@@ -5,7 +5,7 @@
  * Each toggle saves immediately. Properly exposes error and refetch from the query hook.
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -35,9 +35,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth.js';
 import { useSettings, useUpdateSettings } from '@/features/settings/hooks/use-settings.js';
-import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { usePWAInstall } from '@/hooks/use-pwa-install.js';
 import { cn } from '@/lib/utils.js';
 import { SUPPORT_EMAIL } from '@/lib/constants.js';
 import { setAnalyticsOptIn, trackNotificationToggle } from '@/lib/analytics.js';
@@ -49,7 +49,7 @@ import { queryClient } from '@/lib/query-client.js';
 /**
  * Section wrapper with title and optional error state.
  */
-function SettingsSection({ title, icon: Icon, children, error }) {
+const SettingsSection = memo(function SettingsSection({ title, icon: Icon, children, error }) {
   return (
     <div className="mb-5 rr-glass-panel overflow-hidden p-1">
       <div className="flex items-center gap-2 px-4 pt-4 pb-2">
@@ -65,12 +65,14 @@ function SettingsSection({ title, icon: Icon, children, error }) {
       )}
     </div>
   );
-}
+});
+
+export default memo(SettingsPage);
 
 /**
  * Toggle row within a settings section.
  */
-function ToggleRow({ label, description, checked, onChange, disabled }) {
+const ToggleRow = memo(function ToggleRow({ label, description, checked, onChange, disabled }) {
   return (
     <div className="flex items-center justify-between gap-4 px-4 py-4">
       <div className="flex-1">
@@ -82,7 +84,35 @@ function ToggleRow({ label, description, checked, onChange, disabled }) {
       <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} />
     </div>
   );
-}
+});
+
+const SETTINGS_LINKS = [
+  {
+    to: '/privacy-policy',
+    icon: FileText,
+    label: 'Privacy Policy',
+    desc: 'Data collection, location, uploads, and deletion',
+  },
+  {
+    to: '/support',
+    icon: Mail,
+    label: 'Contact / Support',
+    desc: SUPPORT_EMAIL,
+  },
+  {
+    to: '/review-readiness',
+    icon: Database,
+    label: 'Data Safety Summary',
+    desc: 'Store review disclosure checklist',
+  },
+  {
+    to: '/account-deletion',
+    icon: Trash2,
+    label: 'Delete Account',
+    desc: 'Permanently delete Ride Radar app data',
+    danger: true,
+  },
+];
 
 /**
  * Loading skeleton for the settings page.
@@ -98,8 +128,9 @@ function SettingsSkeleton() {
   );
 }
 
-export default function SettingsPage() {
-  const { user, profile, signOut, refreshProfile } = useSupabaseAuth();
+function SettingsPage() {
+  const { user, profile } = useAuthState();
+  const { signOut, refreshProfile } = useAuthActions();
   const navigate = useNavigate();
   const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
 
@@ -234,33 +265,7 @@ export default function SettingsPage() {
     );
   }
 
-  const links = [
-    {
-      to: '/privacy-policy',
-      icon: FileText,
-      label: 'Privacy Policy',
-      desc: 'Data collection, location, uploads, and deletion',
-    },
-    {
-      to: '/support',
-      icon: Mail,
-      label: 'Contact / Support',
-      desc: SUPPORT_EMAIL,
-    },
-    {
-      to: '/review-readiness',
-      icon: Database,
-      label: 'Data Safety Summary',
-      desc: 'Store review disclosure checklist',
-    },
-    {
-      to: '/account-deletion',
-      icon: Trash2,
-      label: 'Delete Account',
-      desc: 'Permanently delete Ride Radar app data',
-      danger: true,
-    },
-  ];
+  const links = SETTINGS_LINKS;
 
   return (
     <div className="px-5 pt-5 pb-8">

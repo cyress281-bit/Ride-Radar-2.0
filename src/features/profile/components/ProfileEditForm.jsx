@@ -11,7 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth';
+import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
 import { useUpdateProfile, useUsernameAvailability } from '@/features/profile/hooks/use-profile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,7 +59,8 @@ const schema = z.object({
  * @param {() => void} props.onDone — called after successful save or cancel
  */
 export default function ProfileEditForm({ profile, onDone }) {
-  const { user, refreshProfile } = useSupabaseAuth();
+  const { user } = useAuthState();
+  const { refreshProfile } = useAuthActions();
   const qc = useQueryClient();
   const updateMutation = useUpdateProfile();
 

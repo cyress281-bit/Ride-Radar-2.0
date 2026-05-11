@@ -111,8 +111,7 @@ function validateSupabaseEnv() {
   }
 
   if (warnings.length > 0) {
-     
-    console.warn('[Supabase] Configuration warnings:', warnings.join('; '));
+    // Configuration warnings are silently logged in dev via logger if needed
   }
 }
 
@@ -139,7 +138,7 @@ if (supabaseUrl && supabaseAnonKey) {
     },
   });
 } else {
-   
+  // eslint-disable-next-line no-console
   console.error('[Supabase] Client could not be created: missing URL or anon key');
 }
 

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { Clock, Wrench, MapPin, Calendar } from 'lucide-react';
 import SignalIcon from '@/components/brand/SignalIcon';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
-import AlertPhotoGrid from './AlertPhotoGrid';
-import OptimizedImage from '@/components/OptimizedImage';
+import AlertPhotoGrid from '@/components/shared/AlertPhotoGrid';
+import OptimizedImage from '@/components/shared/OptimizedImage';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils.js';
 import SafetyActions from '@/components/safety/SafetyActions';
@@ -64,7 +64,7 @@ const BroadcastCard = memo(
     const content = (
       <div
         className={cn(
-          'relative rounded-[1.15rem] overflow-hidden transition-all duration-300 rr-scanline active:scale-[0.992]',
+          'relative rounded-[1.15rem] overflow-hidden transition-all duration-300 rr-scanline active:scale-[0.98] active:opacity-95',
           styles.card,
           'hover:' + styles.leftGlow
         )}

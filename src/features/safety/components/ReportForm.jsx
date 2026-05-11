@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useCreateReport } from '@/features/safety/hooks/use-reports.js';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,7 +32,7 @@ const DETAILS_MAX_LENGTH = 500;
  * @param {() => void} [props.onSuccess]
  */
 export default function ReportForm({ targetType, targetId, targetUserId, onSuccess }) {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const [reason, setReason] = useState('spam');
   const [details, setDetails] = useState('');
   const createReport = useCreateReport();

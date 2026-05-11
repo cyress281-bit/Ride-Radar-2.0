@@ -25,7 +25,6 @@ export function initializeAnalytics() {
   const isProd = import.meta.env.PROD;
 
   if (!isProd || !enabled || !domain) {
-    console.log('[Analytics] Disabled (dev mode or not configured)');
     return;
   }
 
@@ -36,7 +35,6 @@ export function initializeAnalytics() {
   });
 
   analyticsEnabled = true;
-  console.log('[Analytics] Initialized with Plausible');
 }
 
 /**
@@ -45,7 +43,6 @@ export function initializeAnalytics() {
  */
 export function setAnalyticsOptIn(optedIn) {
   userOptedOut = !optedIn;
-  console.log(`[Analytics] User ${optedIn ? 'opted in' : 'opted out'}`);
 }
 
 /**

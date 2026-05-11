@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
-import OptimizedImage from '@/components/OptimizedImage';
+import OptimizedImage from '@/components/shared/OptimizedImage';
 
 const AlertPhotoGrid = memo(function AlertPhotoGrid({ images = [], variant = 'card' }) {
   const photos = images.filter(Boolean).slice(0, 2);

@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
-import { useProfileBatch } from '@/features/profile/hooks/use-profile-batch.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
+import { useProfileBatch } from '@/hooks/use-profile-batch.js';
 import { useConversations } from '@/features/chat/hooks/use-conversations.js';
 import ConversationList from '@/features/chat/components/ConversationList.jsx';
 import { MessageCircle, Plus } from 'lucide-react';
@@ -13,8 +13,8 @@ import RRLogo from '@/components/RRLogo';
  *
  * Displays all active chat threads with real-time updates.
  */
-export default function ConversationsPage() {
-  const { user } = useSupabaseAuth();
+function ConversationsPage() {
+  const { user } = useAuthState();
   const navigate = useNavigate();
 
   const { data: conversations = [], isLoading, isError, error } = useConversations();
@@ -83,3 +83,5 @@ export default function ConversationsPage() {
     </div>
   );
 }
+
+export default memo(ConversationsPage);

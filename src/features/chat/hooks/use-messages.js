@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { getMessages, markConversationRead } from '@/features/chat/api/chat-api.js';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
@@ -14,7 +14,7 @@ import { logger } from '@/lib/logger.js';
  */
 export function useMessages(conversationId) {
   const queryClient = useQueryClient();
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const seenIdsRef = useRef(new Set());
 
   const query = useQuery({
@@ -82,7 +82,7 @@ export function useMessages(conversationId) {
  * @param {string} conversationId
  */
 export function useMarkRead(conversationId) {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
 
   return useMutation({
     mutationFn: async () => {

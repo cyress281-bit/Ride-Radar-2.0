@@ -13,14 +13,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bell, Check, X, Activity } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import { Button } from '@/components/ui/button';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
 import { timeAgo } from '@/lib/utils.js';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
 import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/features/notifications/hooks/use-notifications.js';
 import NotificationItem from '@/features/notifications/components/NotificationItem.jsx';
 import { getOrCreateConversation } from '@/lib/conversationUtils.js';
-import { useProfileBatch } from '@/features/profile/hooks/use-profile-batch';
+import { useProfileBatch } from '@/hooks/use-profile-batch.js';
 
 // ------------------------------------------------------------------
 // Date grouping helpers
@@ -191,7 +191,7 @@ function VirtualNotificationList({ notifications, onMarkRead }) {
 // ------------------------------------------------------------------
 
 export default function NotificationsPage() {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const qc = useQueryClient();
   const navigate = useNavigate();
 

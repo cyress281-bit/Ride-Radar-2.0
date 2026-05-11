@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Crosshair, Radio, MessageSquare, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import RRLogo from '@/components/RRLogo';
 
 const TABS = [
   { to: '/home', icon: Crosshair, label: 'Radar' },
@@ -29,7 +30,7 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 pb-safe pointer-events-none"
+      className="fixed bottom-0 left-0 right-0 z-50 pb-safe px-safe pointer-events-none"
       aria-label="Main navigation"
     >
       <div className={cn('mx-auto flex justify-center px-4 pb-3 pt-2', isRadar ? 'max-w-[1180px]' : 'max-w-2xl')}>
@@ -48,6 +49,7 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
               pathname === tab.to ||
               (tab.to !== '/home' && pathname.startsWith(tab.to));
             const Icon = tab.icon;
+            const isRadarTab = tab.to === '/home';
 
             return (
               <NavLink
@@ -57,9 +59,9 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
                 aria-selected={isActive}
                 aria-label={tab.label}
                 className={cn(
-                  'relative flex flex-col items-center justify-center gap-1 rounded-xl min-w-[64px] min-h-[52px] px-3 transition-all duration-200',
+                  'relative flex flex-col items-center justify-center gap-1 rounded-xl min-w-[64px] min-h-[52px] px-3 transition-all duration-200 select-none',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                  'active:scale-95',
+                  'active:scale-95 active:opacity-80',
                   isActive
                     ? 'bg-primary/[0.13] text-primary scale-105'
                     : 'text-muted-foreground hover:text-foreground'
@@ -67,17 +69,28 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
               >
                 {/* Active glow dot */}
                 {isActive && (
-                  <span className="absolute top-1.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary animate-pulse-green shadow-[0_0_8px_hsl(var(--primary)/0.8)]" />
+                  <span className="absolute top-2 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary animate-pulse-green shadow-[0_0_8px_hsl(var(--primary)/0.8)]" />
                 )}
 
-                <Icon
-                  className={cn(
-                    'h-[22px] w-[22px] transition-all duration-200',
-                    isActive && 'drop-shadow-[0_0_6px_hsl(var(--primary)/0.55)]'
-                  )}
-                  strokeWidth={isActive ? 2.6 : 2}
-                  aria-hidden="true"
-                />
+                {isRadarTab && isActive ? (
+                  <RRLogo
+                    size="xs"
+                    glow
+                    className={cn(
+                      'transition-all duration-200',
+                      isActive && 'drop-shadow-[0_0_6px_hsl(var(--primary)/0.55)]'
+                    )}
+                  />
+                ) : (
+                  <Icon
+                    className={cn(
+                      'h-[22px] w-[22px] transition-all duration-200',
+                      isActive && 'drop-shadow-[0_0_6px_hsl(var(--primary)/0.55)]'
+                    )}
+                    strokeWidth={isActive ? 2.6 : 2}
+                    aria-hidden="true"
+                  />
+                )}
 
                 <span
                   className={cn(

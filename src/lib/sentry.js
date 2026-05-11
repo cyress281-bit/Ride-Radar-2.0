@@ -25,7 +25,6 @@ export function initializeSentry() {
 
   // Only initialize in production with valid DSN
   if (!isProd || !dsn) {
-    console.log('[Sentry] Skipped initialization (dev mode or no DSN)');
     return;
   }
 
@@ -119,7 +118,7 @@ export function initializeSentry() {
     },
   });
 
-  console.log(`[Sentry] Initialized (${environment})`);
+
 }
 
 /**

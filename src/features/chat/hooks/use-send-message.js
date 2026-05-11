@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { sendMessage as apiSendMessage } from '@/features/chat/api/chat-api.js';
 import { supabase } from '@/lib/supabase.js';
 import { toast } from '@/components/ui/use-toast';
@@ -13,7 +13,7 @@ import { logger } from '@/lib/logger.js';
  * so we do NOT invalidate the messages query on success.
  */
 export function useSendMessage(conversationId) {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const queryClient = useQueryClient();
 
   return useMutation({

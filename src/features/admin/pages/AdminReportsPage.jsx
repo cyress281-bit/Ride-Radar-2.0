@@ -52,7 +52,6 @@ export default function AdminReportsPage() {
     mutationFn: async (report) => {
       const targetType = report.target_type;
       const targetId = report.target_id;
-      const targetUserId = report.target_user_id || report.target_profile_id;
 
       if (targetType === 'broadcast') {
         const { error } = await supabase.from('broadcasts').delete().eq('id', targetId);

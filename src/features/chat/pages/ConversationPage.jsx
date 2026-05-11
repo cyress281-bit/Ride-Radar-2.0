@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useMessages, useMarkRead } from '@/features/chat/hooks/use-messages.js';
 import { useSendMessage } from '@/features/chat/hooks/use-send-message.js';
 import MessageBubble from '@/features/chat/components/MessageBubble.jsx';
 import MessageInput from '@/features/chat/components/MessageInput.jsx';
-import VirtualList from '@/components/VirtualList.jsx';
+import VirtualList from '@/components/shared/VirtualList.jsx';
 import { supabase } from '@/lib/supabase.js';
 import { cn } from '@/lib/utils.js';
 import { ArrowLeft, Shield } from 'lucide-react';
@@ -43,16 +43,18 @@ function ConversationSkeleton() {
   );
 }
 
+export default memo(ConversationPage);
+
 /**
  * Single chat thread page.
  *
  * Displays messages, handles real-time updates, optimistic sends,
  * and auto-scrolls to the bottom on new messages.
  */
-export default function ConversationPage() {
+function ConversationPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const endRef = useRef(null);
 
   const { data: conversation, isLoading: isConversationLoading } = useQuery({
@@ -103,6 +105,16 @@ export default function ConversationPage() {
       send.mutate(body);
     },
     [send]
+  );
+
+  const renderMessage = useCallback(
+    (message) => (
+      <MessageBubble
+        message={message}
+        isMine={message.from_user_id === user?.id}
+      />
+    ),
+    [user?.id]
   );
 
   // Auto-scroll to bottom on new messages
@@ -173,12 +185,7 @@ export default function ConversationPage() {
         <div className="flex-1 overflow-hidden">
           <VirtualList
             items={messages}
-            renderItem={(message) => (
-              <MessageBubble
-                message={message}
-                isMine={message.from_user_id === user?.id}
-              />
-            )}
+            renderItem={renderMessage}
             estimateSize={52}
             overscan={10}
             gap={8}

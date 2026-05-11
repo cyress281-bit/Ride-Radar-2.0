@@ -10,7 +10,7 @@ import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth';
+import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { getProfileByUserId } from '@/features/profile/api/profile-api';
 import { getOrCreateConversation } from '@/lib/conversationUtils';
 import { isValidUuid } from '@/lib/utils';
@@ -26,8 +26,8 @@ import {
 } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import SafetyActions from '@/components/safety/SafetyActions';
-import OptimizedImage from '@/components/OptimizedImage';
-import BroadcastCard from '@/components/broadcast/BroadcastCard';
+import OptimizedImage from '@/components/shared/OptimizedImage';
+import BroadcastCard from '@/components/shared/BroadcastCard';
 import { isExpired } from '@/lib/broadcastUtils';
 
 async function fetchRiderBroadcasts(userId) {
@@ -46,7 +46,7 @@ export default function RiderProfilePage() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
 
   const hasValidUserId = isValidUuid(userId);
   const isMeRoute = user?.id === userId;

@@ -9,13 +9,13 @@ import { useState, useMemo, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth';
+import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Settings, LogOut, Edit2, Radio, Bike, ShieldCheck, Users } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
-import BroadcastCard from '@/components/broadcast/BroadcastCard';
+import BroadcastCard from '@/components/shared/BroadcastCard';
 import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
-import OptimizedImage from '@/components/OptimizedImage';
+import OptimizedImage from '@/components/shared/OptimizedImage';
 import { isExpired } from '@/lib/broadcastUtils';
 
 async function fetchMyBroadcasts(userId) {
@@ -41,8 +41,9 @@ async function fetchConnectionsCount(userId) {
   return count ?? 0;
 }
 
-export default function ProfilePage() {
-  const { user, profile, signOut } = useSupabaseAuth();
+function ProfilePage() {
+  const { user, profile } = useAuthState();
+  const { signOut } = useAuthActions();
   const [editing, setEditing] = useState(false);
 
   const {
@@ -260,5 +261,7 @@ const RiderMetric = memo(function RiderMetric({ icon: Icon, label, value }) {
     </div>
   );
 });
+
+export default memo(ProfilePage);
 
 

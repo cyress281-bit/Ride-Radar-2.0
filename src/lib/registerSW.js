@@ -20,7 +20,7 @@ export async function registerServiceWorker() {
         scope: '/',
       });
 
-      console.log('[PWA] Service Worker registered:', registration.scope);
+
 
       // Check for updates every hour
       setInterval(() => {
@@ -33,7 +33,6 @@ export async function registerServiceWorker() {
 
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            console.log('[PWA] New version available');
             newWorker.postMessage({ type: 'SKIP_WAITING' });
           }
         });
@@ -44,7 +43,6 @@ export async function registerServiceWorker() {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (refreshing) return;
         refreshing = true;
-        console.log('[PWA] Service Worker updated');
         window.location.reload();
       });
 
@@ -61,15 +59,12 @@ export function setupInstallPrompt() {
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    console.log('[PWA] Install prompt captured');
-
     // Dispatch custom event so UI can show install button
     window.dispatchEvent(new CustomEvent('pwa-installable'));
   });
 
   // Track successful installation
   window.addEventListener('appinstalled', () => {
-    console.log('[PWA] App installed');
     deferredPrompt = null;
     localStorage.setItem('pwa-installed', 'true');
     localStorage.setItem('pwa-install-date', new Date().toISOString());
@@ -82,7 +77,7 @@ export function setupInstallPrompt() {
  */
 export async function promptInstall() {
   if (!deferredPrompt) {
-    console.log('[PWA] Install prompt not available');
+
     return false;
   }
 
@@ -90,7 +85,6 @@ export async function promptInstall() {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
 
-    console.log(`[PWA] Install prompt ${outcome}`);
     deferredPrompt = null;
 
     return outcome === 'accepted';

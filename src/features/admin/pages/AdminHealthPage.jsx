@@ -38,7 +38,7 @@ export default function AdminHealthPage() {
     // 2. Database query
     try {
       const start = performance.now();
-      const { data, error } = await supabase.from('users').select('count', { count: 'exact', head: true });
+      const { error } = await supabase.from('users').select('count', { count: 'exact', head: true });
       const ms = Math.round(performance.now() - start);
       results.push({
         name: 'Database Query',
@@ -111,7 +111,7 @@ export default function AdminHealthPage() {
     // 6. Vercel Deployment
     try {
       const start = performance.now();
-      const res = await fetch(`${DEPLOYMENT_URL}/home`, { method: 'HEAD', mode: 'no-cors' });
+      await fetch(`${DEPLOYMENT_URL}/home`, { method: 'HEAD', mode: 'no-cors' });
       const ms = Math.round(performance.now() - start);
       results.push({
         name: 'Vercel Deployment',

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import {
@@ -67,7 +67,7 @@ function getCenter(items, userLat, userLng) {
   return [lat, lng];
 }
 
-function FitMapToItems({ items, userLat, userLng, variant, disabled, focusUserLocation }) {
+const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, variant, disabled, focusUserLocation }) {
   const map = useMap();
   const boundsKey = useMemo(
     () => items.map((item) => `${item.id}:${item.lat.toFixed(4)},${item.lng.toFixed(4)}`).join('|'),
@@ -101,9 +101,9 @@ function FitMapToItems({ items, userLat, userLng, variant, disabled, focusUserLo
   }, [boundsKey, disabled, focusUserLocation, items, map, userLat, userLng, variant]);
 
   return null;
-}
+});
 
-function CenterOnUserButton({ userLat, userLng }) {
+const CenterOnUserButton = memo(function CenterOnUserButton({ userLat, userLng }) {
   const map = useMap();
   if (!isValidCoordinate(userLat, userLng)) return null;
   return (
@@ -116,7 +116,7 @@ function CenterOnUserButton({ userLat, userLng }) {
       <Crosshair className="h-5 w-5" aria-hidden="true" />
     </button>
   );
-}
+});
 
 function formatSnapshotAge(timestamp) {
   if (!timestamp) return 'cached';
@@ -126,7 +126,7 @@ function formatSnapshotAge(timestamp) {
   return `${Math.round(minutes / 60)}h ago`;
 }
 
-function OfflineMapOverlay({ snapshotAt, tileIssue }) {
+const OfflineMapOverlay = memo(function OfflineMapOverlay({ snapshotAt, tileIssue }) {
   return (
     <div className="pointer-events-none absolute left-3 right-3 top-3 z-[440] flex justify-center">
       <div className="max-w-[21rem] rounded-[18px] bg-black/78 px-3 py-2.5 text-left shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_18px_42px_rgba(0,0,0,0.55)] backdrop-blur-xl">
@@ -135,27 +135,31 @@ function OfflineMapOverlay({ snapshotAt, tileIssue }) {
             <WifiOff className="h-4 w-4" aria-hidden="true" />
           </span>
           <span className="min-w-0">
-            <span className="block text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">Offline radar</span>
+            <span className="block text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">
+              {tileIssue ? 'Map unavailable' : 'Offline radar'}
+            </span>
             <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
-              {tileIssue ? 'Map tiles are weak. Showing cached signals and any tiles already saved.' : `Showing cached signals from ${formatSnapshotAge(snapshotAt)}.`}
+              {tileIssue
+                ? 'Map unavailable offline. Cached signals still visible.'
+                : `Showing cached signals from ${formatSnapshotAge(snapshotAt)}.`}
             </span>
           </span>
         </div>
       </div>
     </div>
   );
-}
+});
 
-function Stat({ label, value, className }) {
+const Stat = memo(function Stat({ label, value, className }) {
   return (
     <div className="rounded-xl border border-border/45 bg-white/[0.03] px-2 py-1.5">
       <div className={cn('font-display text-base font-extrabold leading-none', className)}>{value}</div>
       <div className="mt-0.5 truncate">{label}</div>
     </div>
   );
-}
+});
 
-function MapSummary({ items, userLat, userLng, variant }) {
+const MapSummary = memo(function MapSummary({ items, userLat, userLng, variant }) {
   if (variant === 'radar') return null;
   const alertCount = items.filter((i) => i.type === 'alert').length;
   const riderCount = items.filter((i) => i.type === 'solo_ride').length;
@@ -187,9 +191,9 @@ function MapSummary({ items, userLat, userLng, variant }) {
       )}
     </div>
   );
-}
+});
 
-function LoadingState({ variant }) {
+const LoadingState = memo(function LoadingState({ variant }) {
   return (
     <div className={cn('flex flex-col items-center justify-center rounded-2xl border border-border/45 bg-black/30', variant === 'full' ? 'min-h-[520px]' : variant === 'radar' ? 'h-full min-h-0 rounded-[28px] border-primary/25 bg-black/50 shadow-[0_0_0_1px_hsl(var(--primary)/0.1),0_0_30px_hsl(var(--primary)/0.16)]' : 'h-[300px]')} role="status" aria-label="Loading map data">
       {variant === 'radar' ? (
@@ -211,9 +215,29 @@ function LoadingState({ variant }) {
       )}
     </div>
   );
-}
+});
 
-function ErrorState({ onRetry, variant }) {
+const TileLoadingOverlay = memo(function TileLoadingOverlay({ variant }) {
+  return (
+    <div
+      className={cn(
+        'pointer-events-none absolute inset-0 z-[435] flex flex-col items-center justify-center bg-black/35 backdrop-blur-[1px] transition-opacity duration-700',
+        variant === 'radar' ? 'rounded-none' : 'rounded-[1.1rem]'
+      )}
+    >
+      <div className="flex flex-col items-center gap-2.5">
+        <div className="relative flex h-10 w-10 items-center justify-center">
+          <div className="absolute inset-0 rounded-full border border-primary/20" />
+          <div className="absolute inset-0 animate-spin rounded-full border-t-2 border-primary/70" />
+          <div className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.8)]" />
+        </div>
+        <span className="text-xs font-semibold text-foreground">Loading map tiles…</span>
+      </div>
+    </div>
+  );
+});
+
+const ErrorState = memo(function ErrorState({ onRetry, variant }) {
   return (
     <div className={cn('flex flex-col items-center justify-center rounded-2xl border border-destructive/35 bg-destructive/5 p-6 text-center', variant === 'full' ? 'min-h-[520px]' : variant === 'radar' ? 'h-full min-h-0 rounded-[28px] border-alert/30 bg-alert/[0.04]' : 'h-[300px]')} role="alert">
       <AlertTriangle className={cn('mb-3', variant === 'radar' ? 'h-9 w-9 text-alert animate-pulse-alert' : 'h-8 w-8 text-destructive')} aria-hidden="true" />
@@ -224,9 +248,9 @@ function ErrorState({ onRetry, variant }) {
       </button>
     </div>
   );
-}
+});
 
-function SignalList({ items, userLat, userLng, variant }) {
+const SignalList = memo(function SignalList({ items, userLat, userLng, variant }) {
   const maxItems = variant === 'full' ? 18 : 6;
   const visible = items.slice(0, maxItems);
   return (
@@ -239,9 +263,9 @@ function SignalList({ items, userLat, userLng, variant }) {
       )}
     </div>
   );
-}
+});
 
-function SignalListItem({ item, userLat, userLng }) {
+const SignalListItem = memo(function SignalListItem({ item, userLat, userLng }) {
   const config = typeConfig[item.type] || typeConfig.solo_ride;
   const distance = isValidCoordinate(userLat, userLng) ? formatDistance(haversineMiles(userLat, userLng, item.lat, item.lng)) : null;
   const signalAge = item.created_at ? timeAgo(item.created_at) : 'live';
@@ -283,14 +307,14 @@ function SignalListItem({ item, userLat, userLng }) {
       </span>
     </Link>
   );
-}
+});
 
 /**
  * LiveMap - Leaflet map with dark CARTO tiles.
  *
  * Variants: `full`, `radar`, `compact`
  */
-export default function LiveMap({
+function LiveMap({
   broadcasts = [],
   presenceMarkers = [],
   getProfile,
@@ -308,6 +332,9 @@ export default function LiveMap({
 }) {
   const [mapError, setMapError] = useState(false);
   const [autoFitDisabled, setAutoFitDisabled] = useState(false);
+  const [tileLayerKey, setTileLayerKey] = useState(0);
+  const [tilesLoading, setTilesLoading] = useState(true);
+  const [hasLoadedAnyTile, setHasLoadedAnyTile] = useState(false);
 
   const broadcastItems = useMemo(() => {
     return broadcasts
@@ -351,17 +378,39 @@ export default function LiveMap({
   const hasUserLocation = isValidCoordinate(userLat, userLng);
   const center = useMemo(() => getCenter(items, userLat, userLng), [items, userLat, userLng]);
   const handleTileError = useCallback(() => setMapError(true), []);
-  const handleRetry = useCallback(() => setMapError(false), []);
+  const handleTileLoad = useCallback(() => {
+    setMapError(false);
+    setHasLoadedAnyTile(true);
+    setTilesLoading(false);
+  }, []);
+  const handleRetry = useCallback(() => {
+    setMapError(false);
+    setTilesLoading(true);
+    setHasLoadedAnyTile(false);
+    setTileLayerKey((k) => k + 1);
+  }, []);
   const handleMapInteraction = useCallback(() => {
     if (variant === 'radar') setAutoFitDisabled(true);
   }, [variant]);
+
+  const mapEventHandlers = useMemo(
+    () => ({ dragstart: handleMapInteraction, zoomstart: handleMapInteraction }),
+    [handleMapInteraction]
+  );
+
+  const tileEventHandlers = useMemo(
+    () => ({ tileerror: handleTileError, tileload: handleTileLoad }),
+    [handleTileError, handleTileLoad]
+  );
 
   useEffect(() => {
     if (variant === 'radar') setAutoFitDisabled(false);
   }, [fitKey, variant]);
 
+  const showFatalError = mapError && variant !== 'radar' && items.length === 0 && !offlineMode;
+
   if (isLoading) return <LoadingState variant={variant} />;
-  if (mapError && variant !== 'radar') return <ErrorState onRetry={handleRetry} variant={variant} />;
+  if (showFatalError) return <ErrorState onRetry={handleRetry} variant={variant} />;
 
   return (
     <section
@@ -399,7 +448,8 @@ export default function LiveMap({
 
           <a href={variant === 'full' ? '#live-map-list' : '#map-legend'} className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[500] focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:shadow-lg">Skip map</a>
 
-          {(offlineMode || (mapError && variant === 'radar')) && <OfflineMapOverlay snapshotAt={offlineSnapshotAt} tileIssue={mapError} />}
+          {(offlineMode || mapError) && <OfflineMapOverlay snapshotAt={offlineSnapshotAt} tileIssue={mapError} />}
+          {tilesLoading && !hasLoadedAnyTile && !mapError && <TileLoadingOverlay variant={variant} />}
           <MapSummary items={items} userLat={userLat} userLng={userLng} variant={variant} />
 
           {variant !== 'radar' && items.length === 0 && (
@@ -418,18 +468,22 @@ export default function LiveMap({
             minZoom={3}
             maxZoom={19}
             scrollWheelZoom={variant === 'full' || variant === 'radar'}
-            className="h-full w-full"
+            className={cn('h-full w-full', mapError && 'leaflet-offline')}
             preferCanvas
             zoomControl={variant === 'full'}
-            eventHandlers={{ dragstart: handleMapInteraction, zoomstart: handleMapInteraction }}
+            eventHandlers={mapEventHandlers}
           >
             <TileLayer
+              key={tileLayerKey}
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
               url={DARK_TILE_URL}
+              subdomains="abcd"
+              crossOrigin="anonymous"
+              detectRetina={false}
               keepBuffer={4}
               updateWhenIdle
               updateWhenZooming={false}
-              eventHandlers={{ tileerror: handleTileError, tileload: () => setMapError(false) }}
+              eventHandlers={tileEventHandlers}
             />
             <FitMapToItems items={items} userLat={userLat} userLng={userLng} variant={variant} disabled={variant === 'radar' && autoFitDisabled} focusUserLocation={focusUserLocation} />
             {showSelfLocation && hasUserLocation && (
@@ -465,3 +519,22 @@ export default function LiveMap({
     </section>
   );
 }
+
+export default memo(LiveMap, (prev, next) => {
+  return (
+    prev.broadcasts === next.broadcasts &&
+    prev.presenceMarkers === next.presenceMarkers &&
+    prev.getProfile === next.getProfile &&
+    prev.userLat === next.userLat &&
+    prev.userLng === next.userLng &&
+    prev.userAccuracyMeters === next.userAccuracyMeters &&
+    prev.isLoading === next.isLoading &&
+    prev.variant === next.variant &&
+    prev.className === next.className &&
+    prev.fitKey === next.fitKey &&
+    prev.focusUserLocation === next.focusUserLocation &&
+    prev.showSelfLocation === next.showSelfLocation &&
+    prev.offlineMode === next.offlineMode &&
+    prev.offlineSnapshotAt === next.offlineSnapshotAt
+  );
+});

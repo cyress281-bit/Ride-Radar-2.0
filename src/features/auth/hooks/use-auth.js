@@ -1,11 +1,13 @@
 /**
  * @fileoverview Main auth hook for Ride Radar 2.0.
  *
- * Provides `useSupabaseAuth()` which returns the current user, profile,
- * loading state, and auth actions. Uses React Context + Provider pattern.
+ * Provides split contexts to minimize re-renders:
+ * - useAuthState()   → { user, profile, isAuthenticated, isLoading }
+ * - useAuthActions() → { signIn, signUp, signInWithProvider, signOut, updatePassword, refreshProfile }
+ * - useSupabaseAuth() → combines both (legacy compatibility)
  *
  * On mount: restores session, validates it, then loads the user's profile
- * from `public.users` and `public.user_profiles`. Auto-creates missing rows.
+ * from public.users and public.user_profiles. Auto-creates missing rows.
  */
 
 import {
@@ -15,6 +17,7 @@ import {
   useEffect,
   useRef,
   useCallback,
+  useMemo,
 } from 'react';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
@@ -30,11 +33,14 @@ import {
 } from '@/features/auth/api/auth-api.js';
 
 // ------------------------------------------------------------------
-// Context
+// Contexts
 // ------------------------------------------------------------------
 
-/** @type {React.Context<ReturnType<typeof useAuthProvider>|null>} */
-const AuthContext = createContext(null);
+/** @type {React.Context<{user:object|null,profile:object|null,isAuthenticated:boolean,isLoading:boolean}|null>} */
+const AuthStateContext = createContext(null);
+
+/** @type {React.Context<{signIn:Function,signUp:Function,signInWithProvider:Function,signOut:Function,updatePassword:Function,refreshProfile:Function}>} */
+const AuthActionsContext = createContext(null);
 
 // ------------------------------------------------------------------
 // Provider hook
@@ -43,18 +49,7 @@ const AuthContext = createContext(null);
 /**
  * Hook that encapsulates all auth state and side-effects.
  * Intended to be called once inside `<AuthProvider>`.
- * @returns {{
- *   user: object|null,
- *   profile: object|null,
- *   isAuthenticated: boolean,
- *   isLoading: boolean,
- *   signIn: (email: string, password: string) => Promise<object>,
- *   signUp: (email: string, password: string) => Promise<object>,
- *   signInWithProvider: (provider: string) => Promise<object>,
- *   signOut: () => Promise<void>,
- *   updatePassword: (newPassword: string) => Promise<object>,
- *   refreshProfile: () => Promise<void>,
- * }}
+ * @returns {{ state: object, actions: object }}
  */
 export function useAuthProvider() {
   const [user, setUser] = useState(null);
@@ -137,7 +132,7 @@ export function useAuthProvider() {
 
   // Load or create the profile row in public.user_profiles
   const ensureProfileRow = useCallback(
-    async (userId, authUser, seq) => {
+    async (userId, authUser, _seq) => {
       let { data: profileData, error: profileError } = await withTimeout(
         supabase.from('user_profiles').select('*').eq('user_id', userId).single(),
         'User profile query'
@@ -351,35 +346,73 @@ export function useAuthProvider() {
     }
   }, [user?.id, loadUserProfile]);
 
-  return {
-    user,
-    profile,
-    isAuthenticated,
-    isLoading,
-    signIn,
-    signUp,
-    signInWithProvider,
-    signOut: signOutUser,
-    updatePassword: updateUserPassword,
-    refreshProfile,
-  };
+  // ------------------------------------------------------------------
+  // Memoized value objects for contexts
+  // ------------------------------------------------------------------
+
+  const state = useMemo(
+    () => ({
+      user,
+      profile,
+      isAuthenticated,
+      isLoading,
+    }),
+    [user, profile, isAuthenticated, isLoading]
+  );
+
+  const actions = useMemo(
+    () => ({
+      signIn,
+      signUp,
+      signInWithProvider,
+      signOut: signOutUser,
+      updatePassword: updateUserPassword,
+      refreshProfile,
+    }),
+    [signIn, signUp, signInWithProvider, signOutUser, updateUserPassword, refreshProfile]
+  );
+
+  return { state, actions };
 }
 
 // ------------------------------------------------------------------
-// Consumer hook
+// Consumer hooks
 // ------------------------------------------------------------------
 
 /**
- * Consume the auth context.
- * @returns {ReturnType<typeof useAuthProvider>}
+ * Consume the auth state context (lightweight; does not trigger on action changes).
+ * @returns {{ user: object|null, profile: object|null, isAuthenticated: boolean, isLoading: boolean }}
  */
-export function useSupabaseAuth() {
-  const context = useContext(AuthContext);
+export function useAuthState() {
+  const context = useContext(AuthStateContext);
   if (!context) {
-    throw new Error('useSupabaseAuth must be used within AuthProvider');
+    throw new Error('useAuthState must be used within AuthProvider');
   }
   return context;
 }
 
-// Export the context so AuthProvider.jsx can use it
-export { AuthContext };
+/**
+ * Consume the auth actions context (stable; does not trigger on state changes).
+ * @returns {{ signIn: Function, signUp: Function, signInWithProvider: Function, signOut: Function, updatePassword: Function, refreshProfile: Function }}
+ */
+export function useAuthActions() {
+  const context = useContext(AuthActionsContext);
+  if (!context) {
+    throw new Error('useAuthActions must be used within AuthProvider');
+  }
+  return context;
+}
+
+/**
+ * Consume the full auth context (state + actions).
+ * Prefer useAuthState or useAuthActions to avoid unnecessary re-renders.
+ * @returns {ReturnType<typeof useAuthState> & ReturnType<typeof useAuthActions>}
+ */
+export function useSupabaseAuth() {
+  const state = useAuthState();
+  const actions = useAuthActions();
+  return useMemo(() => ({ ...state, ...actions }), [state, actions]);
+}
+
+// Export contexts so AuthProvider.jsx can use them
+export { AuthStateContext, AuthActionsContext };

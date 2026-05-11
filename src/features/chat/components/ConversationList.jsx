@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import VirtualList from '@/components/VirtualList.jsx';
+import VirtualList from '@/components/shared/VirtualList.jsx';
 import ConversationItem from './ConversationItem.jsx';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
 
@@ -84,7 +84,7 @@ export default function ConversationList({
   return (
     <VirtualList
       items={conversations}
-      renderItem={(item) => renderItem(item)}
+      renderItem={renderItem}
       estimateSize={80}
       overscan={5}
       gap={8}

@@ -1,13 +1,13 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase.js';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, memo } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
-import AlertPhotoGrid from '@/features/broadcast/components/AlertPhotoGrid';
+import AlertPhotoGrid from '@/components/shared/AlertPhotoGrid';
 import { BROADCAST_META, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils.js';
 import { getProfileById } from '@/features/profile/api/profile-api.js';
@@ -19,11 +19,11 @@ import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
  * Single broadcast detail page.
  * FIX: Uses `broadcast.author_id` (snake_case) everywhere.
  */
-export default function BroadcastDetailPage() {
+function BroadcastDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const hasValidBroadcastId = isValidUuid(id);
 
   const { data: broadcast, isLoading: isBroadcastLoading, isError: isBroadcastError } = useQuery({
@@ -245,16 +245,7 @@ export default function BroadcastDetailPage() {
       )}
 
       {!isAuthor && !isAlert && user && (
-        <div className="mt-5">
-          {broadcast.type === 'event' ? (
-            <EventRSVP broadcast={broadcast} user={user} myRSVP={myRSVP} counts={rsvpCounts} onChange={() => {
-              qc.invalidateQueries({ queryKey: ['myRSVP', id] });
-              qc.invalidateQueries({ queryKey: ['rsvpCounts', id] });
-            }} />
-          ) : (
-            <ConnectionAction broadcast={broadcast} user={user} existing={myRequests[0]} onChange={() => qc.invalidateQueries({ queryKey: ['myRequests', id] })} />
-          )}
-        </div>
+        <BroadcastActions broadcast={broadcast} user={user} myRSVP={myRSVP} rsvpCounts={rsvpCounts} myRequests={myRequests} id={id} />
       )}
 
       {isAuthor && broadcast.type === 'event' && (
@@ -356,6 +347,31 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
             </Button>
           </div>
         </div>
+      )}
+    </div>
+  );
+});
+
+export default memo(BroadcastDetailPage);
+
+const BroadcastActions = memo(function BroadcastActions({ broadcast, user, myRSVP, rsvpCounts, myRequests, id }) {
+  const qc = useQueryClient();
+
+  const handleRsvpChange = useCallback(() => {
+    qc.invalidateQueries({ queryKey: ['myRSVP', id] });
+    qc.invalidateQueries({ queryKey: ['rsvpCounts', id] });
+  }, [qc, id]);
+
+  const handleConnectionChange = useCallback(() => {
+    qc.invalidateQueries({ queryKey: ['myRequests', id] });
+  }, [qc, id]);
+
+  return (
+    <div className="mt-5">
+      {broadcast.type === 'event' ? (
+        <EventRSVP broadcast={broadcast} user={user} myRSVP={myRSVP} counts={rsvpCounts} onChange={handleRsvpChange} />
+      ) : (
+        <ConnectionAction broadcast={broadcast} user={user} existing={myRequests[0]} onChange={handleConnectionChange} />
       )}
     </div>
   );

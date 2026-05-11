@@ -4,7 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { getFriendships, removeFriendship } from '@/features/connections/api/connections-api.js';
 
 /** Query key factory for friendships. */
@@ -19,7 +19,7 @@ export const friendshipKeys = {
  * @returns {import('@tanstack/react-query').UseQueryResult<object[]>}
  */
 export function useFriendships() {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   return useQuery({
     queryKey: friendshipKeys.list(user?.id),
     queryFn: async () => {
@@ -38,7 +38,7 @@ export function useFriendships() {
  * @returns {{ isFriend: boolean, isLoading: boolean }}
  */
 export function useIsFriend(userId) {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const { data: friendships = [], isLoading } = useQuery({
     queryKey: friendshipKeys.detail(user?.id, userId),
     queryFn: async () => {

@@ -3,8 +3,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import {
   getBlocks,
   createBlock,
@@ -24,7 +23,7 @@ export const blockKeys = {
  * @returns {import('@tanstack/react-query').UseQueryResult<object[]>}
  */
 export function useBlocks() {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   return useQuery({
     queryKey: blockKeys.list(user?.id),
     queryFn: async () => {
@@ -38,25 +37,12 @@ export function useBlocks() {
 }
 
 /**
- * Hook to get a Set of blocked user IDs for quick lookup.
- * @returns {{ blockedIds: Set<string>, isLoading: boolean }}
- */
-export function useBlockedIds() {
-  const { data: blocks = [], isLoading } = useBlocks();
-  const blockedIds = useMemo(
-    () => new Set(blocks.map((b) => b.blocked_user_id)),
-    [blocks]
-  );
-  return { blockedIds, isLoading };
-}
-
-/**
  * Hook to check if the current user has blocked a specific user.
  * @param {string|null} userId
  * @returns {import('@tanstack/react-query').UseQueryResult<boolean>}
  */
 export function useIsBlocked(userId) {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   return useQuery({
     queryKey: blockKeys.check(user?.id, userId),
     queryFn: async () => {
@@ -109,3 +95,6 @@ export function useRemoveBlock() {
     },
   });
 }
+
+// Re-export shared useBlockedIds for backward compatibility
+export { useBlockedIds } from '@/hooks/use-blocked-ids.js';

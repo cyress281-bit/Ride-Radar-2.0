@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase.js';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth.js';
 import {
   prepareLocalImage,
   uploadImage,
@@ -83,7 +83,8 @@ const onboardingSchema = z.object({
 // ------------------------------------------------------------------
 
 export default function OnboardingPage() {
-  const { user, refreshProfile } = useSupabaseAuth();
+  const { user } = useAuthState();
+  const { refreshProfile } = useAuthActions();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const redirectPath = '/home';
@@ -111,7 +112,6 @@ export default function OnboardingPage() {
 
   const watchBikeMake = form.watch('bike_make');
   const watchDisplayName = form.watch('display_name');
-  const watchUsername = form.watch('username');
 
   // ------------------------------------------------------------------
   // Username uniqueness check

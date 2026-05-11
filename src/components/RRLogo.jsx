@@ -9,13 +9,14 @@ import { RIDE_RADAR_LOGO_URL } from '@/components/splash/logoAsset';
  */
 const RRLogo = memo(function RRLogo({ size = 'md', glow = true, className }) {
   // Adjusted sizes for the wide image
-  const dims = { sm: 20, md: 28, lg: 40, xl: 60 };
+  const dims = { xs: 16, sm: 20, md: 28, lg: 40, xl: 60 };
   const h = dims[size] || dims.md;
   const isFill = size === 'fill';
   return (
     <img
       src={RIDE_RADAR_LOGO_URL}
       alt="Ride Radar Logo"
+      decoding="async"
       style={{ height: isFill ? '100%' : h, width: isFill ? '100%' : 'auto' }}
       className={cn(
         'object-contain',

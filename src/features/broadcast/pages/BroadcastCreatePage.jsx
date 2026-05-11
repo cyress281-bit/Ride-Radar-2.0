@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ShieldAlert, Route, Search, CalendarClock } from 'lucide-react';
 import SignalIcon from '@/components/brand/SignalIcon';
@@ -23,7 +23,7 @@ const TYPE_STYLE_MAP = {
 /**
  * Broadcast creation page.
  */
-export default function BroadcastCreatePage() {
+function BroadcastCreatePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlType = searchParams.get('type');
@@ -80,3 +80,5 @@ export default function BroadcastCreatePage() {
 
   return <BroadcastForm type={type} onBack={() => setType(null)} onPosted={() => navigate('/home')} />;
 }
+
+export default memo(BroadcastCreatePage);

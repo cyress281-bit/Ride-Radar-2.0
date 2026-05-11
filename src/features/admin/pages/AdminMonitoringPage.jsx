@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -22,7 +22,6 @@ import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
 import { cn } from '@/lib/utils.js';
 
 function AdminMonitoringContent() {
-  const qc = useQueryClient();
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   const { data: stats, refetch } = useQuery({

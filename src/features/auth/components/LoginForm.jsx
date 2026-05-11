@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthActions } from '@/features/auth/hooks/use-auth.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -65,7 +65,7 @@ function getFriendlyErrorMessage(error) {
  * }} props
  */
 export default function LoginForm({ onSuccess, defaultMode = 'signin' }) {
-  const { signIn, signUp, signInWithProvider } = useSupabaseAuth();
+  const { signIn, signUp, signInWithProvider } = useAuthActions();
   const [mode, setMode] = useState(defaultMode);
   const [loading, setLoading] = useState(false);
   const [providerLoading, setProviderLoading] = useState('');

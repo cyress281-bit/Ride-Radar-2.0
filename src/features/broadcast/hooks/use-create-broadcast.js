@@ -7,7 +7,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase.js';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { BROADCAST_EXPIRY_MS } from '@/lib/constants.js';
 import { geocodeAddress, approximateLocation } from '@/lib/geocoding.js';
 import { logger } from '@/lib/logger.js';
@@ -21,7 +21,7 @@ function normalizeLocationText(text) {
  * Hook to create a new broadcast.
  */
 export function useCreateBroadcast() {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const queryClient = useQueryClient();
 
   return useMutation({

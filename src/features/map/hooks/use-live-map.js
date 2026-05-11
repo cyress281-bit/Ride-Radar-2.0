@@ -5,14 +5,11 @@
 
 import { useEffect, useId, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
 import { getLiveMapPresence } from '@/features/map/api/map-api.js';
 import { buildPresenceLocation, isValidCoordinate } from '@/lib/geocoding.js';
 
-function normalizePrecision(precision) {
-  return precision === 'precise' ? 'precise' : 'approximate';
-}
 import { logger } from '@/lib/logger.js';
 import { HEARTBEAT_INTERVAL_MS, PRESENCE_REFRESH_MS } from '@/lib/constants.js';
 
@@ -37,7 +34,7 @@ function getExpiresAt() {
  * @param {object} [options] - { autoPublish, source }
  */
 export function useLiveMapPresence(currentLocation = null, options = {}) {
-  const { user, profile } = useSupabaseAuth();
+  const { user, profile } = useAuthState();
   const queryClient = useQueryClient();
   const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const userId = user?.id;

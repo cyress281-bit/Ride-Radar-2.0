@@ -85,7 +85,7 @@ export function getSelfMarkerIcon() {
  * Pure data component for marker metadata.
  * Actual rendering is handled by Leaflet Marker in LiveMap.
  */
-const MapMarker = memo(function MapMarker({ item }) {
+const MapMarker = memo(function MapMarker({ item: _item }) {
   // This component is a no-op render; it's used for type documentation
   // and potential future React-based marker rendering.
   return null;

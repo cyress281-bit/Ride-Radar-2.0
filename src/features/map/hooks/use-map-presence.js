@@ -3,7 +3,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { getMyPresence, publishPresence, clearPresence } from '@/features/map/api/map-api.js';
 import { logger } from '@/lib/logger.js';
 
@@ -16,7 +16,7 @@ export const presenceKeys = {
  * Hook to fetch the current user's presence record.
  */
 export function useMyPresence() {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const userId = user?.id;
 
   return useQuery({
@@ -60,7 +60,7 @@ export function usePublishPresence() {
  * Mutation hook to clear presence.
  */
 export function useClearPresence() {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const queryClient = useQueryClient();
   const userId = user?.id;
 

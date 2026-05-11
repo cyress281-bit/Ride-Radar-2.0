@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useState, useCallback, memo } from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -11,9 +11,10 @@ import { AppProviders } from './providers/AppProviders';
 import AppLayout from './components/layout/AppLayout';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import PageLoader from './components/shared/PageLoader';
-import { useSupabaseAuth } from './features/auth/hooks/use-auth';
+import { useAuthState } from './features/auth/hooks/use-auth';
 import { useAdminRole } from './features/auth/hooks/use-admin-role';
 import { getSafeAuthRedirectFromSearch } from './lib/auth-redirect';
+import SplashScreen from './components/layout/SplashScreen';
 
 // ------------------------------------------------------------------
 // Eagerly loaded (shell components needed immediately)
@@ -69,8 +70,8 @@ const AdminHealthPage = lazy(() => import('./features/admin/pages/AdminHealthPag
  *
  * @param {{ children: React.ReactNode }} props
  */
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading } = useSupabaseAuth();
+const ProtectedRoute = memo(function ProtectedRoute({ children }) {
+  const { isAuthenticated, isLoading } = useAuthState();
   const location = useLocation();
 
   if (isLoading) {
@@ -89,13 +90,13 @@ function ProtectedRoute({ children }) {
   }
 
   return children;
-}
+});
 
 /**
  * AdminRoute - Ensures only admin users can access wrapped routes.
  * Redirects non-admins to /home.
  */
-function AdminRoute() {
+const AdminRoute = memo(function AdminRoute() {
   const { isAdmin, isLoading } = useAdminRole();
 
   if (isLoading) {
@@ -111,7 +112,7 @@ function AdminRoute() {
   }
 
   return <Outlet />;
-}
+});
 
 /**
  * OnboardingGuard - Redirects authenticated users without a completed profile
@@ -119,8 +120,8 @@ function AdminRoute() {
  *
  * @param {{ children: React.ReactNode }} props
  */
-function OnboardingGuard({ children }) {
-  const { isAuthenticated, profile } = useSupabaseAuth();
+const OnboardingGuard = memo(function OnboardingGuard({ children }) {
+  const { isAuthenticated, profile } = useAuthState();
   const location = useLocation();
 
   const onboardingExemptPaths = new Set([
@@ -145,7 +146,7 @@ function OnboardingGuard({ children }) {
   }
 
   return children;
-}
+});
 
 // ------------------------------------------------------------------
 // App content
@@ -158,7 +159,7 @@ function OnboardingGuard({ children }) {
  * and are wrapped in AppLayout. Admin routes add an additional role check.
  */
 function AppContent() {
-  const { isAuthenticated } = useSupabaseAuth();
+  const { isAuthenticated } = useAuthState();
   const location = useLocation();
 
   return (
@@ -247,10 +248,19 @@ function AppContent() {
  * the full provider stack.
  */
 export default function App() {
+  const [splashDone, setSplashDone] = useState(false);
+  const handleSplashComplete = useCallback(() => setSplashDone(true), []);
+
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <AppProviders>
+          {!splashDone && (
+            <SplashScreen
+              onComplete={handleSplashComplete}
+              isReady={true}
+            />
+          )}
           <AppContent />
         </AppProviders>
       </BrowserRouter>

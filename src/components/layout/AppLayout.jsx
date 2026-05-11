@@ -23,7 +23,7 @@ const AppLayout = memo(function AppLayout() {
   const isRadar = pathname === '/home';
 
   return (
-    <div className={cn('min-h-dvh bg-background relative overflow-hidden selection:bg-primary/30', isRadar && 'min-h-0 h-screen')}>
+    <div className={cn('min-h-dvh bg-background relative overflow-hidden selection:bg-primary/30', isRadar && 'min-h-0 h-dvh')}>
       {/* Skip to main content — keyboard accessibility */}
       <a
         href="#main-content"

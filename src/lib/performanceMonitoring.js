@@ -1,6 +1,7 @@
 import { onCLS, onFID, onLCP, onTTFB, onINP } from 'web-vitals';
 import { captureError, setSentryContext } from './sentry';
 import { trackEvent } from './analytics';
+import { logger } from './logger';
 
 /**
  * Performance monitoring utilities for Ride Radar 2.0
@@ -28,7 +29,6 @@ const THRESHOLDS = {
  */
 export function initializeWebVitals() {
   if (!import.meta.env.PROD) {
-    console.log('[Performance] Web Vitals monitoring disabled in dev mode');
     return;
   }
 
@@ -57,7 +57,7 @@ export function initializeWebVitals() {
     reportWebVital('INP', metric);
   });
 
-  console.log('[Performance] Web Vitals monitoring initialized');
+
 }
 
 /**
@@ -93,8 +93,7 @@ function reportWebVital(name, metric) {
     rating,
   });
 
-  // Log in console for debugging
-  console.log(`[Performance] ${name}: ${Math.round(value)}ms (${status})`);
+
 }
 
 /**
@@ -119,7 +118,7 @@ export function measureQueryPerformance(queryKey, startTime) {
       duration_range: getDurationRange(duration),
     });
 
-    console.warn(`[Performance] Slow query: ${queryName} took ${Math.round(duration)}ms`);
+    logger.warn(`[Performance] Slow query: ${queryName} took ${Math.round(duration)}ms`);
   }
 
   return duration;
@@ -145,7 +144,7 @@ export function measureSubscriptionConnection(channelName, startTime) {
       duration_range: getDurationRange(duration),
     });
 
-    console.warn(`[Performance] Slow subscription: ${channelName} took ${Math.round(duration)}ms`);
+    logger.warn(`[Performance] Slow subscription: ${channelName} took ${Math.round(duration)}ms`);
   }
 
   return duration;
@@ -166,7 +165,7 @@ export function measureImageLoad(imageType, startTime) {
       duration_range: getDurationRange(duration),
     });
 
-    console.warn(`[Performance] Slow image load: ${imageType} took ${Math.round(duration)}ms`);
+    logger.warn(`[Performance] Slow image load: ${imageType} took ${Math.round(duration)}ms`);
   }
 
   return duration;
@@ -194,7 +193,7 @@ export function endRouteTransition(routeName) {
       duration_range: getDurationRange(duration),
     });
 
-    console.warn(`[Performance] Slow route transition: ${routeName} took ${Math.round(duration)}ms`);
+    logger.warn(`[Performance] Slow route transition: ${routeName} took ${Math.round(duration)}ms`);
   }
 
   return duration;
@@ -222,7 +221,7 @@ export function checkMemoryUsage() {
 
   // Warn if memory usage is >80%
   if (usagePercent > 80) {
-    console.warn(
+    logger.warn(
       `[Performance] High memory usage: ${Math.round(usagePercent)}% (${Math.round(
         usedJSHeapSize / 1024 / 1024
       )}MB)`

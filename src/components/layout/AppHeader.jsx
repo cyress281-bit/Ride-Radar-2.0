@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Bell, Shield, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth';
+import { useAuthState } from '@/features/auth/hooks/use-auth';
 import RRLogo from '@/components/RRLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
@@ -25,7 +25,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { pathname } = useLocation();
   const { isAdmin } = useAdminRole();
-  const { profile } = useSupabaseAuth();
+  const { profile } = useAuthState();
   const isRadar = pathname === '/home';
 
   const avatarUrl = profile?.avatar_url;
@@ -34,7 +34,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   return (
     <header
       className={cn(
-        'z-40',
+        'z-40 pt-safe select-none',
         isOverlay
           ? 'absolute top-0 left-0 right-0 bg-black/40 backdrop-blur-xl border-b border-white/5'
           : 'sticky top-0 bg-background/80 backdrop-blur-md border-b border-primary/10'
@@ -44,7 +44,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
         {/* Left: Logo */}
         <NavLink
           to="/home"
-          className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg px-1 py-0.5"
+          className="flex items-center gap-2.5 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg px-1 py-0.5 active:scale-95 active:opacity-80 transition-all duration-150"
           aria-label="Ride Radar home"
         >
           <RRLogo size="sm" />
@@ -69,8 +69,9 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               to="/admin"
               className={({ isActive }) =>
                 cn(
-                  'p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-colors',
+                  'p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-all duration-150',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                  'active:scale-95 active:opacity-80',
                   isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 )
               }
@@ -84,8 +85,9 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             to="/notifications"
             className={({ isActive }) =>
               cn(
-                'relative p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-colors',
+                'relative p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'active:scale-95 active:opacity-80',
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               )
             }
@@ -93,15 +95,16 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
           >
             <Bell className="w-5 h-5" aria-hidden="true" />
             {/* Unread badge placeholder — wire to notification store when ready */}
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
+            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
           </NavLink>
 
           <NavLink
             to="/profile"
             className={({ isActive }) =>
               cn(
-                'p-1.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-colors',
+                'p-1.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'active:scale-95 active:opacity-80',
                 isActive ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''
               )
             }

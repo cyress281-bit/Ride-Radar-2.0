@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
-import { useBlockedIds } from '@/features/safety/hooks/use-blocks';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
+import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
 import { getConversations } from '@/features/chat/api/chat-api.js';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
@@ -14,7 +14,7 @@ import { logger } from '@/lib/logger.js';
  * and re-sorted by last_message_at descending. Blocked users are filtered out.
  */
 export function useConversations() {
-  const { user } = useSupabaseAuth();
+  const { user } = useAuthState();
   const userId = user?.id;
   const queryClient = useQueryClient();
 

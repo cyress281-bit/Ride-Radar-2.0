@@ -12,7 +12,7 @@ import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Bike, MessageCircle, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { OptimizedAvatar } from '@/components/OptimizedImage';
+import { OptimizedAvatar } from '@/components/shared/OptimizedImage';
 
 const ProfileCard = memo(function ProfileCard({
   profile,

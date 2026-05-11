@@ -5,9 +5,10 @@
  * Uses TanStack Query with a 5-minute stale time.
  */
 
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase.js';
-import { useSupabaseAuth } from './use-auth.js';
+import { useAuthState } from './use-auth.js';
 import { logger } from '@/lib/logger.js';
 
 /**
@@ -15,7 +16,7 @@ import { logger } from '@/lib/logger.js';
  * @returns {{ isAdmin: boolean, isLoading: boolean, error: Error|null, role: string|null }}
  */
 export function useAdminRole() {
-  const { user, isAuthenticated } = useSupabaseAuth();
+  const { user, isAuthenticated } = useAuthState();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin-role', user?.id],
@@ -40,10 +41,13 @@ export function useAdminRole() {
     gcTime: 10 * 60 * 1000,
   });
 
-  return {
-    isAdmin: data?.role === 'admin',
-    isLoading,
-    error,
-    role: data?.role ?? null,
-  };
+  return useMemo(
+    () => ({
+      isAdmin: data?.role === 'admin',
+      isLoading,
+      error,
+      role: data?.role ?? null,
+    }),
+    [data?.role, isLoading, error]
+  );
 }

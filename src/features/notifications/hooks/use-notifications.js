@@ -41,7 +41,7 @@ export function useNotifications(userId) {
     },
     enabled: !!userId,
     staleTime: 60_000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 
   // Real-time subscription for new notifications
@@ -112,7 +112,7 @@ export function useUnreadCount(userId) {
     },
     enabled: !!userId,
     staleTime: 30_000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 
   // Re-sync unread count on real-time events
