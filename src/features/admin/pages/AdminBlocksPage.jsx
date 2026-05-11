@@ -3,12 +3,13 @@ import { UserX } from 'lucide-react';
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
  * AdminBlocksPage - Read-only inspection of user_blocks for dispute resolution.
  */
 export default function AdminBlocksPage() {
-  const { blocks, profiles } = useAdminData();
+  const { blocks, profiles, isLoading } = useAdminData();
 
   const blocksData = blocks.data?.data || [];
   const profilesData = profiles.data?.data || [];
@@ -19,6 +20,22 @@ export default function AdminBlocksPage() {
   );
 
   const name = (id) => profileByUserId.get(id)?.display_name || id || 'Unknown rider';
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-24" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -31,7 +48,7 @@ export default function AdminBlocksPage() {
         {blocksData.map((block) => (
           <div
             key={block.id}
-            className="rounded-2xl border border-border/60 bg-card p-4"
+            className="rounded-2xl border border-border bg-surface p-4"
           >
             <div className="text-sm">
               <span className="font-bold">
@@ -49,7 +66,7 @@ export default function AdminBlocksPage() {
                 : 'No timestamp'}
             </div>
             {block.reason && (
-              <div className="mt-2 rounded-xl bg-black/25 p-3 text-sm text-muted-foreground">
+              <div className="mt-2 rounded-2xl bg-secondary/50 p-3 text-sm text-muted-foreground">
                 {block.reason}
               </div>
             )}

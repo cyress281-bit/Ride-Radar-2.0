@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Loader2, Activity, ExternalLink } from 'lucide-react';
 import { supabase } from '@/lib/supabase.js';
 import { cn } from '@/lib/utils.js';
-import RRLogo from '@/components/RRLogo';
+import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
  * Admin Health Monitor — Real-time system health dashboard.
@@ -137,84 +138,91 @@ export default function AdminHealthPage() {
   const allPass = checks.length > 0 && checks.every((c) => c.status === 'pass');
   const passCount = checks.filter((c) => c.status === 'pass').length;
 
-  return (
-    <div className="min-h-dvh p-4 pt-20">
-      <div className="mx-auto max-w-3xl space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <RRLogo size="md" />
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">System Health</h1>
-              <p className="text-sm text-muted-foreground">
-                {lastRun ? `Last checked: ${lastRun}` : 'Running checks...'}
-              </p>
-              <a
-                href={DEPLOYMENT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
-              >
-                <ExternalLink className="h-3 w-3" /> {DEPLOYMENT_URL}
-              </a>
-            </div>
-          </div>
-          <Button
-            onClick={runHealthChecks}
-            disabled={running}
-            className="rr-premium-input"
-          >
-            {running ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Activity className="mr-2 h-4 w-4" />}
-            {running ? 'Checking...' : 'Refresh'}
-          </Button>
+  if (checks.length === 0 && running) {
+    return (
+      <AdminLayout>
+        <div className="mb-4">
+          <h2 className="font-display text-xl font-bold">System Health</h2>
+          <p className="text-sm text-muted-foreground">Running checks...</p>
         </div>
-
-        {/* Overall status */}
-        <Card className={cn('rr-surface border-l-4', allPass ? 'border-l-green-500' : 'border-l-red-500')}>
-          <CardContent className="flex items-center gap-4 py-6">
-            {allPass ? (
-              <CheckCircle className="h-8 w-8 text-green-500" />
-            ) : (
-              <XCircle className="h-8 w-8 text-red-500" />
-            )}
-            <div>
-              <p className="text-lg font-semibold">
-                {allPass ? 'All Systems Operational' : 'Some Checks Failed'}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {passCount} / {checks.length} checks passing
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Individual checks */}
+        <Skeleton className="mb-4 h-32 w-full" />
         <div className="grid gap-3">
-          {checks.map((check) => (
-            <Card key={check.name} className="rr-surface">
-              <CardContent className="flex items-center justify-between py-4">
-                <div className="flex items-center gap-3">
-                  {check.status === 'pass' ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-red-500" />
-                  )}
-                  <div>
-                    <p className="font-medium">{check.name}</p>
-                    <p className="text-xs text-muted-foreground">{check.detail}</p>
-                  </div>
-                </div>
-                <span className="text-xs tabular-nums text-muted-foreground">{check.latency}</span>
-              </CardContent>
-            </Card>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
           ))}
         </div>
+      </AdminLayout>
+    );
+  }
 
-        {checks.length === 0 && running && (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        )}
+  return (
+    <AdminLayout>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-xl font-bold">System Health</h2>
+          <p className="text-sm text-muted-foreground">
+            {lastRun ? `Last checked: ${lastRun}` : 'Running checks...'}
+          </p>
+          <a
+            href={DEPLOYMENT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            <ExternalLink className="h-3 w-3" /> {DEPLOYMENT_URL}
+          </a>
+        </div>
+        <Button
+          onClick={runHealthChecks}
+          disabled={running}
+          variant="outline"
+          size="sm"
+        >
+          {running ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Activity className="mr-2 h-4 w-4" />}
+          {running ? 'Checking...' : 'Refresh'}
+        </Button>
       </div>
-    </div>
+
+      {/* Overall status */}
+      <Card className={cn('rr-surface border-l-4', allPass ? 'border-l-success' : 'border-l-destructive')}>
+        <CardContent className="flex items-center gap-4 py-6">
+          {allPass ? (
+            <CheckCircle className="h-8 w-8 text-success" />
+          ) : (
+            <XCircle className="h-8 w-8 text-destructive" />
+          )}
+          <div>
+            <p className="text-lg font-semibold">
+              {allPass ? 'All Systems Operational' : 'Some Checks Failed'}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {passCount} / {checks.length} checks passing
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Individual checks */}
+      <div className="mt-4 grid gap-3">
+        {checks.map((check) => (
+          <Card key={check.name} className="rr-surface">
+            <CardContent className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-3">
+                {check.status === 'pass' ? (
+                  <CheckCircle className="h-5 w-5 text-success" />
+                ) : (
+                  <XCircle className="h-5 w-5 text-destructive" />
+                )}
+                <div>
+                  <p className="font-medium">{check.name}</p>
+                  <p className="text-xs text-muted-foreground">{check.detail}</p>
+                </div>
+              </div>
+              <span className="text-xs tabular-nums text-muted-foreground">{check.latency}</span>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </AdminLayout>
   );
 }

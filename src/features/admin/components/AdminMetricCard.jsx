@@ -24,8 +24,8 @@ export default function AdminMetricCard({
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left backdrop-blur-md transition',
-        'hover:border-primary/30 hover:bg-white/[0.07] focus:outline-none focus:ring-2 focus:ring-primary/40',
+        'w-full rounded-2xl border border-border bg-surface p-4 text-left backdrop-blur-md transition',
+        'hover:border-primary/30 hover:bg-foreground/[0.07] focus:outline-none focus:ring-2 focus:ring-primary/40',
         onClick && 'cursor-pointer',
         className
       )}
@@ -33,7 +33,7 @@ export default function AdminMetricCard({
       <div className="flex items-center justify-between">
         {Icon && <Icon className="h-5 w-5 text-primary" />}
         {trend && (
-          <span className="text-xs font-medium text-emerald-400">{trend}</span>
+          <span className="text-xs font-medium text-success">{trend}</span>
         )}
       </div>
       <div className="mt-3 font-display text-2xl font-bold sm:text-3xl">{value}</div>

@@ -29,7 +29,7 @@ const typeConfig = {
   solo_ride: { label: 'Rider', Icon: OfficialMotorcycleIcon, text: 'text-solo', border: 'border-solo/45', bg: 'bg-solo/10', leftStripe: 'bg-solo', glow: 'shadow-[0_0_20px_hsl(var(--solo)/0.3)]' },
   iso: { label: 'ISO', Icon: Search, text: 'text-iso', border: 'border-iso/45', bg: 'bg-iso/10', leftStripe: 'bg-iso', glow: 'shadow-[0_0_20px_hsl(var(--iso)/0.3)]' },
   event: { label: 'Event', Icon: CalendarClock, text: 'text-event', border: 'border-event/45', bg: 'bg-event/10', leftStripe: 'bg-event', glow: 'shadow-[0_0_20px_hsl(var(--event)/0.3)]' },
-  rider_presence: { label: 'Rider', Icon: OfficialMotorcycleIcon, text: 'text-cyan-300', border: 'border-cyan-400/40', bg: 'bg-cyan-400/10', leftStripe: 'bg-cyan-400', glow: 'shadow-[0_0_20px_hsl(195_100%_60%/0.3)]' },
+  rider_presence: { label: 'Rider', Icon: OfficialMotorcycleIcon, text: 'text-cyan', border: 'border-cyan/40', bg: 'bg-cyan/10', leftStripe: 'bg-cyan', glow: 'shadow-[0_0_20px_hsl(var(--cyan)/0.3)]' },
 };
 
 function firstNumber(...values) {
@@ -110,7 +110,7 @@ const CenterOnUserButton = memo(function CenterOnUserButton({ userLat, userLng }
     <button
       type="button"
       onClick={() => map.setView([userLat, userLng], 15, { animate: true, duration: 0.45 })}
-      className="rr-haptic absolute bottom-3 right-3 z-[430] flex h-11 w-11 items-center justify-center rounded-full bg-black/80 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.28),0_0_24px_hsl(var(--primary)/0.18),0_18px_45px_rgba(0,0,0,0.5)] backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="rr-haptic absolute bottom-3 right-3 z-[430] flex h-11 w-11 items-center justify-center rounded-full bg-background/80 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.28),0_0_24px_hsl(var(--primary)/0.18)] rr-shadow-md backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       aria-label="Center map on my location"
     >
       <Crosshair className="h-5 w-5" aria-hidden="true" />
@@ -129,7 +129,7 @@ function formatSnapshotAge(timestamp) {
 const OfflineMapOverlay = memo(function OfflineMapOverlay({ snapshotAt, tileIssue }) {
   return (
     <div className="pointer-events-none absolute left-3 right-3 top-3 z-[440] flex justify-center">
-      <div className="max-w-[21rem] rounded-[18px] bg-black/78 px-3 py-2.5 text-left shadow-[0_0_0_1px_hsl(var(--primary)/0.18),0_18px_42px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+      <div className="max-w-[21rem] rounded-[18px] bg-background/78 px-3 py-2.5 text-left shadow-[0_0_0_1px_hsl(var(--primary)/0.18)] rr-shadow-lg backdrop-blur-xl">
         <div className="flex items-start gap-2.5">
           <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary shadow-[0_0_18px_hsl(var(--primary)/0.16)]">
             <WifiOff className="h-4 w-4" aria-hidden="true" />
@@ -168,7 +168,7 @@ const MapSummary = memo(function MapSummary({ items, userLat, userLng, variant }
   const presenceCount = items.filter((i) => i.type === 'rider_presence').length;
 
   return (
-    <div className={cn('pointer-events-none absolute left-3 top-3 z-[420] rounded-2xl border border-border/65 bg-black/72 p-3 shadow-[0_18px_50px_rgba(0,0,0,0.42)] backdrop-blur-xl', variant === 'full' ? 'right-3 sm:right-auto sm:min-w-72' : 'right-3')}>
+    <div className={cn('pointer-events-none absolute left-3 top-3 z-[420] rounded-2xl border border-border/65 bg-background/72 p-3 rr-shadow-lg backdrop-blur-xl', variant === 'full' ? 'right-3 sm:right-auto sm:min-w-72' : 'right-3')}>
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="rr-kicker text-muted-foreground">Live map</div>
@@ -221,7 +221,7 @@ const TileLoadingOverlay = memo(function TileLoadingOverlay({ variant }) {
   return (
     <div
       className={cn(
-        'pointer-events-none absolute inset-0 z-[435] flex flex-col items-center justify-center bg-black/35 backdrop-blur-[1px] transition-opacity duration-700',
+        'pointer-events-none absolute inset-0 z-[435] flex flex-col items-center justify-center bg-background/35 backdrop-blur-[1px] transition-opacity duration-700',
         variant === 'radar' ? 'rounded-none' : 'rounded-[1.1rem]'
       )}
     >
@@ -277,7 +277,7 @@ const SignalListItem = memo(function SignalListItem({ item, userLat, userLng }) 
   return (
     <Link
       to={isPresence ? `/profile/${item.user_id}` : `/broadcast/${item.id}`}
-      className={cn('group relative flex min-h-[62px] items-start gap-3 overflow-hidden rounded-2xl border bg-black/35 p-3 transition-all duration-200 hover:bg-white/[0.045] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary', config.border, config.glow, 'border-l-[3px]')}
+      className={cn('group relative flex min-h-[62px] items-start gap-3 overflow-hidden rounded-2xl border bg-background/35 p-3 transition-all duration-200 hover:bg-white/[0.045] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary', config.border, config.glow, 'border-l-[3px]')}
       role="listitem"
     >
       <div className={cn('absolute left-0 top-0 bottom-0 w-[3px]', config.leftStripe)} />
@@ -418,7 +418,7 @@ function LiveMap({
         'relative overflow-hidden',
         variant === 'radar'
           ? 'h-full w-full'
-          : 'rr-map-shell rounded-[1.35rem] border border-border/70 bg-black/35 p-3 shadow-[0_22px_70px_rgba(0,0,0,0.42),inset_0_1px_0_hsl(0_0%_100%/0.045)]',
+          : 'rr-map-shell rounded-[1.35rem] border border-border/70 bg-background/35 p-3 rr-shadow-xl shadow-[inset_0_1px_0_hsl(0_0%_100%/0.045)]',
         variant === 'full' ? 'lg:p-4' : variant !== 'radar' ? 'p-4' : '',
         className
       )}
@@ -454,7 +454,7 @@ function LiveMap({
 
           {variant !== 'radar' && items.length === 0 && (
             <div className={cn('pointer-events-none absolute inset-x-4 z-[430] flex justify-center', variant === 'radar' ? 'bottom-24' : 'bottom-4')}>
-              <div className={cn('max-w-sm rounded-2xl border border-border/65 bg-black/78 text-center shadow-[0_18px_50px_rgba(0,0,0,0.42)] backdrop-blur-xl', variant === 'radar' ? 'px-4 py-3' : 'p-4')}>
+              <div className={cn('max-w-sm rounded-2xl border border-border/65 bg-background/78 text-center rr-shadow-lg backdrop-blur-xl', variant === 'radar' ? 'px-4 py-3' : 'p-4')}>
                 <MapPin className={cn('mx-auto text-muted-foreground', variant === 'radar' ? 'mb-1 h-5 w-5' : 'mb-2 h-6 w-6')} aria-hidden="true" />
                 <h2 className={cn('font-display font-bold', variant === 'radar' ? 'text-base' : 'text-lg')}>No mapped broadcasts</h2>
                 {variant !== 'radar' && <p className="mt-1 text-xs text-muted-foreground">Active broadcasts with recognizable locations will appear here as soon as they hit the network.</p>}

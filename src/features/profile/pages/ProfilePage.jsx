@@ -6,6 +6,7 @@
  */
 
 import { useState, useMemo, memo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -17,6 +18,7 @@ import BroadcastCard from '@/components/shared/BroadcastCard';
 import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { isExpired } from '@/lib/broadcastUtils';
+import { LoadingState } from '@/components/shared/LoadingState';
 
 async function fetchMyBroadcasts(userId) {
   const { data, error } = await supabase
@@ -91,15 +93,30 @@ function ProfilePage() {
   }, [displayProfile]);
 
   if (!user) {
-    return <div className="p-10 text-center text-sm text-muted-foreground">Loading…</div>;
+    return <LoadingState variant="section" message="Loading profile..." />;
   }
 
   return (
     <div className="px-5 pt-5 pb-8">
-      {editing ? (
-        <ProfileEditForm profile={displayProfile} onDone={() => setEditing(false)} />
-      ) : (
-        <>
+      <AnimatePresence mode="wait">
+        {editing ? (
+          <motion.div
+            key="edit"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ProfileEditForm profile={displayProfile} onDone={() => setEditing(false)} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="view"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
           {/* Identity Card */}
           <div className="rr-surface-strong relative mb-4 overflow-hidden rounded-[1.45rem] p-5">
             <div className="pointer-events-none absolute right-[-10%] top-[-20%] h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
@@ -167,7 +184,7 @@ function ProfilePage() {
           {bikeLabel && (
             <div className="rr-surface mb-4 overflow-hidden rounded-2xl">
               {displayProfile.bike_photo_url && (
-                <div className="relative h-44 border-b border-border/60 bg-black/40">
+                <div className="relative h-44 border-b border-border/60 bg-background/40">
                   <OptimizedImage
                     src={displayProfile.bike_photo_url}
                     alt="Bike"
@@ -239,8 +256,9 @@ function ProfilePage() {
               ))}
             </div>
           )}
-        </>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

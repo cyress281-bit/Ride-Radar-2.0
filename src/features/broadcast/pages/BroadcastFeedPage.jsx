@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Crosshair, Plus, SlidersHorizontal, ChevronUp, Navigation } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import { useNearbyBroadcasts } from '@/features/broadcast/hooks/use-nearby-broadcasts.js';
@@ -110,10 +111,13 @@ function BroadcastFeedPage() {
   const [sortBy, setSortBy] = useState('rank');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [pullOffset, setPullOffset] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
 
   const sheetRef = useRef(null);
   const sheetStartY = useRef(0);
   const sheetCurrentY = useRef(0);
+  const sheetContentRef = useRef(null);
 
   const hasUserLocation = userLoc.lat != null && userLoc.lng != null;
   const effectiveLoc = hasUserLocation ? userLoc : US_CENTER;
@@ -264,6 +268,30 @@ function BroadcastFeedPage() {
     }
   }, []);
 
+  // Pull-to-refresh feel on sheet content
+  const handleContentTouchStart = useCallback((e) => {
+    const el = sheetContentRef.current;
+    if (!el || el.scrollTop > 0) return;
+    sheetStartY.current = e.touches[0].clientY;
+    setIsPulling(true);
+    e.stopPropagation();
+  }, []);
+
+  const handleContentTouchMove = useCallback((e) => {
+    if (!isPulling) return;
+    const delta = e.touches[0].clientY - sheetStartY.current;
+    if (delta > 0) {
+      setPullOffset(Math.min(delta * 0.4, 80));
+    }
+    e.stopPropagation();
+  }, [isPulling]);
+
+  const handleContentTouchEnd = useCallback((e) => {
+    setIsPulling(false);
+    setPullOffset(0);
+    e.stopPropagation();
+  }, []);
+
   // Prevent body scroll when bottom sheet is open
   useEffect(() => {
     if (sheetOpen) {
@@ -301,18 +329,18 @@ function BroadcastFeedPage() {
 
       {/* Top info pill */}
       <div className="absolute top-header-offset left-4 right-4 z-10 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+        <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full bg-background/60 backdrop-blur-xl border border-foreground/10 px-4 py-2 rr-shadow-md">
           <span className="h-2 w-2 rounded-full bg-primary animate-pulse-green " />
           <span className="text-xs font-bold text-foreground">
             {activeCount} {activeCount === 1 ? 'signal' : 'signals'}
           </span>
           {!hasUserLocation && (
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-l border-white/10 pl-3">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-l border-foreground/10 pl-3">
               US overview
             </span>
           )}
           {usingOfflineSnapshot && (
-            <span className="text-[10px] font-bold uppercase tracking-wider text-alert border-l border-white/10 pl-3">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-alert border-l border-foreground/10 pl-3">
               Offline
             </span>
           )}
@@ -324,7 +352,7 @@ function BroadcastFeedPage() {
         {/* Create broadcast */}
         <button
           onClick={() => navigate('/broadcast')}
-          className="rr-haptic flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.4),0_8px_24px_rgba(0,0,0,0.4)] transition-transform active:scale-90"
+          className="rr-haptic flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground rr-shadow-glow rr-shadow-sm transition-transform active:scale-90"
           aria-label="Create broadcast"
         >
           <Plus className="h-5 w-5" />
@@ -337,8 +365,8 @@ function BroadcastFeedPage() {
           className={cn(
             'rr-haptic flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-xl border transition-all active:scale-90',
             hasUserLocation
-              ? 'bg-black/60 border-white/10 text-primary shadow-[0_8px_24px_rgba(0,0,0,0.4)]'
-              : 'bg-primary text-primary-foreground border-primary shadow-[0_0_20px_hsl(var(--primary)/0.4),0_8px_24px_rgba(0,0,0,0.4)]'
+              ? 'bg-background/60 border-foreground/10 text-primary rr-shadow-sm'
+              : 'bg-primary text-primary-foreground border-primary rr-shadow-glow rr-shadow-sm'
           )}
           aria-label={hasUserLocation ? 'Center on my location' : 'Enable location'}
         >
@@ -364,7 +392,7 @@ function BroadcastFeedPage() {
       <div
         ref={sheetRef}
         className={cn(
-          'absolute left-0 right-0 z-20 bg-black/80 backdrop-blur-2xl border-t border-white/10 rounded-t-[28px] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-out min-h-[56px]',
+          'absolute left-0 right-0 z-20 bg-background/80 backdrop-blur-2xl border-t border-foreground/10 rounded-t-[28px] rr-shadow-up transition-transform duration-300 ease-out min-h-[56px]',
           sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-56px)]'
         )}
         style={{
@@ -382,7 +410,7 @@ function BroadcastFeedPage() {
           onClick={() => setSheetOpen((v) => !v)}
           className="w-full flex flex-col items-center pt-3 pb-2 min-h-[44px] active:scale-95 active:opacity-80 transition-all duration-150"
         >
-          <span className="h-1 w-10 rounded-full bg-white/20" />
+          <span className="h-1 w-10 rounded-full bg-foreground/20" />
           <div className="flex items-center gap-2 mt-2">
             <span className="text-xs font-bold text-foreground">
               {activeCount} {activeCount === 1 ? 'signal' : 'signals'} nearby
@@ -393,8 +421,32 @@ function BroadcastFeedPage() {
           </div>
         </button>
 
+        {/* Pull indicator */}
+        <AnimatePresence>
+          {pullOffset > 10 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: Math.min(pullOffset / 40, 1) }}
+              exit={{ opacity: 0 }}
+              className="flex justify-center pt-2 pb-1"
+            >
+              <RRLogo
+                size="sm"
+                className={cn('opacity-60', pullOffset > 40 && 'animate-spin')}
+                glow={false}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Sheet content */}
-        <div className={cn('overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] px-4 pb-6 pb-safe', sheetOpen ? 'max-h-[55vh]' : 'max-h-0')}>
+        <div
+          ref={sheetContentRef}
+          onTouchStart={handleContentTouchStart}
+          onTouchMove={handleContentTouchMove}
+          onTouchEnd={handleContentTouchEnd}
+          className={cn('overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] px-4 pb-6 pb-safe', sheetOpen ? 'max-h-[55vh]' : 'max-h-0')}
+        >
           {/* Filters */}
           <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 scroll-hide [-webkit-overflow-scrolling:touch]">
             {FILTER_TYPES.map((f) => (
@@ -426,7 +478,20 @@ function BroadcastFeedPage() {
           </div>
 
           {/* Broadcast list */}
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            initial="hidden"
+            animate="visible"
+            key={`${filter}-${sortBy}`}
+            variants={{
+              hidden: {},
+              visible: {
+                transition: {
+                  staggerChildren: 0.04,
+                },
+              },
+            }}
+          >
             {isLoadingBroadcasts && filteredBroadcasts.length === 0 && (
               <div className="py-12 flex flex-col items-center gap-4">
                 <RRLogo size="sm" className="opacity-40 animate-pulse" glow={false} />
@@ -436,22 +501,39 @@ function BroadcastFeedPage() {
               </div>
             )}
             {filteredBroadcasts.map((broadcast) => (
-              <BroadcastCard
+              <motion.div
                 key={broadcast.id}
-                broadcast={broadcast}
-                author={getProfile(broadcast.author_id)}
-                userLat={effectiveLoc.lat}
-                userLng={effectiveLoc.lng}
-              />
+                variants={{
+                  hidden: { opacity: 0, y: 16 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.3, ease: 'easeOut' },
+                  },
+                }}
+                className="will-change-transform transform-gpu"
+              >
+                <BroadcastCard
+                  broadcast={broadcast}
+                  author={getProfile(broadcast.author_id)}
+                  userLat={effectiveLoc.lat}
+                  userLng={effectiveLoc.lng}
+                />
+              </motion.div>
             ))}
             {filteredBroadcasts.length === 0 && !isLoadingBroadcasts && (
-              <div className="py-12 text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="py-12 text-center"
+              >
                 <RRLogo size="sm" className="mx-auto mb-4 opacity-50" glow={false} />
                 <p className="text-sm font-medium text-muted-foreground">No signals in this area.</p>
                 <p className="text-xs text-muted-foreground/60 mt-2">Tap the + button to create one.</p>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

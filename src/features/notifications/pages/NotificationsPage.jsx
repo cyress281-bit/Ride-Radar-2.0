@@ -8,9 +8,11 @@
 
 import { useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bell, Check, X, Activity } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import RRLogo from '@/components/RRLogo';
 import { Button } from '@/components/ui/button';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
@@ -123,15 +125,39 @@ function NotificationSection({ title, notifications, onMarkRead }) {
   return (
     <div className="mb-6">
       <div className="rr-kicker mb-2 px-1 text-muted-foreground">{title}</div>
-      <div className="space-y-2">
+      <motion.div
+        className="space-y-2"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: {
+            transition: {
+              staggerChildren: 0.04,
+            },
+          },
+        }}
+      >
         {notifications.map((n) => (
-          <NotificationItem
+          <motion.div
             key={n.id}
-            notification={n}
-            onMarkRead={onMarkRead}
-          />
+            variants={{
+              hidden: { opacity: 0, y: 16 },
+              visible: {
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.3, ease: 'easeOut' },
+              },
+            }}
+            className="will-change-transform transform-gpu"
+          >
+            <NotificationItem
+              notification={n}
+              onMarkRead={onMarkRead}
+            />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -362,6 +388,28 @@ export default function NotificationsPage() {
           >
             <Check className="mr-1 h-3.5 w-3.5" /> Mark all as read
           </Button>
+        </div>
+      )}
+
+      {/* Loading skeleton */}
+      {notificationsLoading && notifications.length === 0 && (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rr-surface rounded-2xl p-5 space-y-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-full" />
+              <div className="flex gap-2">
+                <Skeleton className="h-10 w-20 rounded-full" />
+                <Skeleton className="h-10 w-20 rounded-full" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

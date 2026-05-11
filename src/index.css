@@ -61,6 +61,14 @@
     --amber-foreground: 240 20% 4%;
     --amber-dim: 43 100% 50%;
 
+    /* Semantic status colors */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 4%;
+    --warning: 43 100% 50%;
+    --warning-foreground: 0 0% 4%;
+    --info: 186 100% 50%;
+    --info-foreground: 240 20% 4%;
+
     /* Pulse accent — heartbeat red/pink */
     --pulse: 345 100% 60%;
     --pulse-foreground: 0 0% 98%;
@@ -285,8 +293,7 @@
 
   /* ---------- Interaction ---------- */
   .rr-haptic {
-    @apply transition-transform duration-150 ease-out;
-    transform: translateZ(0);
+    @apply transition-transform duration-150 ease-out transform-gpu;
   }
   .rr-haptic:active {
     transform: scale(0.95);
@@ -400,6 +407,21 @@
   .h-dvh-safe {
     height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   }
+
+  /* ---------- Standardized Shadows ---------- */
+  .rr-shadow-sm { box-shadow: 0 4px 12px hsl(var(--background) / 0.25); }
+  .rr-shadow { box-shadow: 0 8px 24px hsl(var(--background) / 0.35); }
+  .rr-shadow-lg { box-shadow: 0 16px 48px hsl(var(--background) / 0.45); }
+  .rr-shadow-xl { box-shadow: 0 24px 80px hsl(var(--background) / 0.55); }
+  
+  .rr-glow-sm { box-shadow: 0 0 8px hsl(var(--primary) / 0.35); }
+  .rr-glow { box-shadow: 0 0 16px hsl(var(--primary) / 0.25); }
+  .rr-glow-lg { box-shadow: 0 0 32px hsl(var(--primary) / 0.15); }
+  .rr-glow-cyan { box-shadow: 0 0 12px hsl(var(--cyan) / 0.30); }
+  
+  .rr-rounded-card { border-radius: 1rem; }      /* 16px — standard cards */
+  .rr-rounded-shell { border-radius: 1.25rem; }  /* 20px — page shells */
+  .rr-rounded-pill { border-radius: 9999px; }
 }
 
 /* ------------------------------------------------------------------
@@ -452,6 +474,11 @@
     animation: float 4s ease-in-out infinite;
     will-change: transform;
   }
+
+  .animate-snap { animation-duration: 150ms; }
+  .animate-fluid { animation-duration: 300ms; }
+  .animate-dramatic { animation-duration: 600ms; }
+  .animate-heartbeat { animation: heartbeat 1.2s ease-in-out infinite; }
 }
 
 @keyframes pulse-green-glow {
@@ -501,6 +528,14 @@
 @keyframes rr-map-ping {
   0% { transform: scale(0.72); opacity: 0.42; }
   72%, 100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  15% { transform: scale(1.05); opacity: 1; }
+  30% { transform: scale(1); opacity: 0.9; }
+  45% { transform: scale(1.08); opacity: 1; }
+  60% { transform: scale(1); opacity: 0.8; }
 }
 
 /* ------------------------------------------------------------------
@@ -737,6 +772,18 @@
     0% { background-position: 0 0, 0 0; }
     100% { background-position: 48px 48px, 48px 48px; }
   }
+}
+
+/* ------------------------------------------------------------------
+   10b. SHADOW UTILITIES
+   ------------------------------------------------------------------ */
+@layer utilities {
+  .rr-shadow-sm { box-shadow: 0 8px 24px hsl(0 0% 0% / 0.35); }
+  .rr-shadow-md { box-shadow: 0 12px 40px hsl(0 0% 0% / 0.45); }
+  .rr-shadow-lg { box-shadow: 0 18px 55px hsl(0 0% 0% / 0.42); }
+  .rr-shadow-xl { box-shadow: 0 22px 70px hsl(0 0% 0% / 0.42); }
+  .rr-shadow-up { box-shadow: 0 -12px 40px hsl(0 0% 0% / 0.45); }
+  .rr-shadow-glow { box-shadow: 0 0 20px hsl(var(--primary) / 0.4); }
 }
 
 /* ------------------------------------------------------------------

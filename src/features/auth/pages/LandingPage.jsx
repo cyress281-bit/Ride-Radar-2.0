@@ -53,7 +53,7 @@ export default function LandingPage() {
     <div className="min-h-dvh bg-background flex flex-col overflow-hidden relative">
       {/* Live ambient background */}
       <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-30" />
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.14),transparent_32%),linear-gradient(180deg,transparent,rgba(0,0,0,0.55))]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.14),transparent_32%),linear-gradient(180deg,transparent,hsl(var(--background) / 0.55))]" />
       <div
         className="absolute top-[-10%] left-[10%] w-[600px] h-[600px] bg-primary/10 ambient-glow"
         style={{ animationDelay: '0s' }}
@@ -71,12 +71,13 @@ export default function LandingPage() {
             Ride<span className="text-primary text-glow-green">Radar</span>
           </span>
         </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={() => navigate('/login')}
           className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium"
         >
           Sign in
-        </button>
+        </Button>
       </header>
 
       {/* Hero */}

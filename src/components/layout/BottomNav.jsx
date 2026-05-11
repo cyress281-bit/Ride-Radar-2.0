@@ -31,7 +31,7 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
   return (
     <nav
       className={cn(
-        'fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur-xl select-none pointer-events-auto',
+        'fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur-xl select-none pointer-events-auto will-change-transform',
         isOverlay || isRadar
           ? 'bg-black/60 border-white/5'
           : 'bg-surface/95 border-border'

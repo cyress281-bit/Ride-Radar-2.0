@@ -9,7 +9,7 @@ const typeConfig = {
   solo_ride: { label: 'Rider', text: 'text-solo', leftStripe: 'bg-solo' },
   iso: { label: 'ISO', text: 'text-iso', leftStripe: 'bg-iso' },
   event: { label: 'Event', text: 'text-event', leftStripe: 'bg-event' },
-  rider_presence: { label: 'Rider', text: 'text-cyan-300', leftStripe: 'bg-cyan-400' },
+  rider_presence: { label: 'Rider', text: 'text-cyan', leftStripe: 'bg-cyan' },
 };
 
 /**

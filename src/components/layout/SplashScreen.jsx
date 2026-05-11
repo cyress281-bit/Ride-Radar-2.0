@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-const NEON = '#39FF14';
-const GRID = '#1a1a2e';
+const NEON = 'hsl(var(--primary))';
+const GRID = 'hsl(var(--surface))';
 const TOTAL = 3200;
 const SAFETY = 5000;
 const FADE = 400;
@@ -150,7 +150,7 @@ export default function SplashScreen({ visible, onComplete, isReady = true }) {
 
               <div
                 className="mt-6 h-20 flex flex-col items-center justify-start gap-1 font-mono text-[11px] tracking-wider"
-                style={{ color: NEON, textShadow: '0 0 8px rgba(57,255,20,0.5)' }}
+                style={{ color: NEON, textShadow: '0 0 8px hsl(var(--primary) / 0.5)' }}
               >
                 {typed.map((t, i) => (
                   <motion.div
@@ -169,7 +169,7 @@ export default function SplashScreen({ visible, onComplete, isReady = true }) {
 
               <motion.div
                 className="absolute inset-0 pointer-events-none"
-                style={{ background: 'radial-gradient(circle at center, rgba(57,255,20,0.12) 0%, transparent 60%)' }}
+                style={{ background: 'radial-gradient(circle at center, hsl(var(--primary) / 0.12) 0%, transparent 60%)' }}
                 animate={phase >= 4 ? { opacity: [0.2, 0.6, 0.2] } : { opacity: 0 }}
                 transition={{ duration: 0.35, repeat: 2 }}
               />
@@ -180,7 +180,7 @@ export default function SplashScreen({ visible, onComplete, isReady = true }) {
             onClick={finish}
             className={cn(
               'absolute top-4 right-4 z-20 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider',
-              'border border-white/10 text-white/40 hover:text-white/80 hover:border-white/30',
+              'border border-foreground/10 text-foreground/40 hover:text-foreground/80 hover:border-foreground/30',
               'bg-black/50 backdrop-blur-sm transition-colors'
             )}
             initial={{ opacity: 0 }}

@@ -41,7 +41,7 @@ export default function AdminCompliancePage() {
       <div className="mb-6 space-y-2">
         {quickLinks.map((item) => {
           const content = (
-            <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-4 transition hover:border-primary/40">
+            <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 transition hover:border-primary/40">
               <item.icon className="h-5 w-5 text-primary" />
               <span className="flex-1 text-sm font-semibold">{item.label}</span>
               <ExternalLink className="h-4 w-4 text-muted-foreground" />
@@ -64,7 +64,7 @@ export default function AdminCompliancePage() {
         })}
       </div>
 
-      <div className="rounded-2xl border border-border/60 bg-card p-4">
+      <div className="rounded-2xl border border-border bg-surface p-4">
         <div className="mb-3 flex items-center gap-2 font-bold">
           <ClipboardCheck className="h-4 w-4 text-primary" />
           Compliance Checklist
@@ -73,7 +73,7 @@ export default function AdminCompliancePage() {
           {checklist.map((item, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-3 rounded-xl border border-border/40 bg-black/20 p-3 text-sm"
+              className="flex items-center gap-3 rounded-2xl border border-border bg-secondary/50 p-3 text-sm"
             >
               <item.icon className="h-4 w-4 text-muted-foreground" />
               <span className="flex-1">{item.label}</span>

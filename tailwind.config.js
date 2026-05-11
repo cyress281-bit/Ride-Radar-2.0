@@ -34,6 +34,9 @@ module.exports = {
         solo: { DEFAULT: 'hsl(var(--solo))', foreground: 'hsl(var(--solo-foreground))' },
         iso: { DEFAULT: 'hsl(var(--iso))', foreground: 'hsl(var(--iso-foreground))' },
         event: { DEFAULT: 'hsl(var(--event))', foreground: 'hsl(var(--event-foreground))' },
+        success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
+        warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
+        info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
       },
       keyframes: {
         'accordion-down': { from: { height: '0' }, to: { height: 'var(--radix-accordion-content-height)' } },

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect, memo } from 'react';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ImageIcon } from 'lucide-react';
 
@@ -173,7 +174,7 @@ const OptimizedImage = memo(function OptimizedImage({
 
       {/* Main image */}
       {shouldLoad && !isError && (
-        <img
+        <motion.img
           ref={imgRef}
           src={src}
           alt={alt}
@@ -182,14 +183,14 @@ const OptimizedImage = memo(function OptimizedImage({
           decoding="async"
           onLoad={handleLoad}
           onError={handleError}
+          initial={{ opacity: 0, scale: 1.02 }}
+          animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 1.02 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
           className={cn(
             'w-full h-full',
             objectFitClass,
-            'transition-opacity',
-            isLoaded ? 'opacity-100' : 'opacity-0',
             className
           )}
-          style={{ transitionDuration: `${fadeInDuration}ms` }}
           width={width}
           height={height}
           {...rest}

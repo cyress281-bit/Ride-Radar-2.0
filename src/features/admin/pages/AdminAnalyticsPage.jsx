@@ -4,12 +4,13 @@ import { timeAgo } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import AdminMetricCard from '@/features/admin/components/AdminMetricCard.jsx';
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
  * AdminAnalyticsPage - Operational metrics, moderation log, and simple charts.
  */
 export default function AdminAnalyticsPage() {
-  const { users, broadcasts, conversations, reports, deletionRequests } = useAdminData();
+  const { users, broadcasts, conversations, reports, deletionRequests, isLoading } = useAdminData();
 
   const usersData = users.data?.data || [];
   const broadcastsData = broadcasts.data?.data || [];
@@ -63,6 +64,26 @@ export default function AdminAnalyticsPage() {
     return { counts, max };
   }, [broadcastsData]);
 
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <Skeleton className="mb-4 h-7 w-32" />
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
+        </div>
+        <Skeleton className="mb-6 h-40 w-full" />
+        <Skeleton className="mb-6 h-40 w-full" />
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="mb-4">
@@ -76,7 +97,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* User Growth Chart */}
-      <div className="mb-6 rounded-2xl border border-border/60 bg-card p-4">
+      <div className="mb-6 rounded-2xl border border-border bg-surface p-4">
         <div className="mb-3 flex items-center gap-2 font-bold">
           <Users className="h-4 w-4 text-primary" />
           User Growth (by week)
@@ -104,7 +125,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Broadcast Activity */}
-      <div className="mb-6 rounded-2xl border border-border/60 bg-card p-4">
+      <div className="mb-6 rounded-2xl border border-border bg-surface p-4">
         <div className="mb-3 flex items-center gap-2 font-bold">
           <Radio className="h-4 w-4 text-primary" />
           Broadcast Activity
@@ -114,7 +135,7 @@ export default function AdminAnalyticsPage() {
             {Object.entries(broadcastActivity.counts).map(([type, count]) => (
               <div key={type} className="flex items-center gap-3">
                 <span className="w-20 text-xs capitalize text-muted-foreground">{type}</span>
-                <div className="h-3 flex-1 rounded-full bg-white/5">
+                <div className="h-3 flex-1 rounded-full bg-foreground/5">
                   <div
                     className="h-3 rounded-full bg-primary/60"
                     style={{
@@ -134,7 +155,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Recent Moderation */}
-      <div className="rounded-2xl border border-border/60 bg-card p-4">
+      <div className="rounded-2xl border border-border bg-surface p-4">
         <div className="mb-3 flex items-center gap-2 font-bold">
           <Activity className="h-4 w-4 text-primary" />
           Recent Moderation Actions
@@ -143,7 +164,7 @@ export default function AdminAnalyticsPage() {
           {recentModeration.map((report) => (
             <div
               key={report.id}
-              className="rounded-xl border border-border/50 bg-black/20 p-3 text-sm"
+              className="rounded-2xl border border-border bg-secondary/50 p-3 text-sm"
             >
               <div className="font-medium capitalize">
                 {report.reason} report · {report.status}

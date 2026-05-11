@@ -7,6 +7,7 @@ import { updateUserRole } from '@/features/admin/api/admin-api.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const USER_ROLES = ['user', 'admin'];
 
@@ -16,7 +17,7 @@ const USER_ROLES = ['user', 'admin'];
 export default function AdminUsersPage() {
   const qc = useQueryClient();
   const [q, setQ] = useState('');
-  const { users, profiles } = useAdminData();
+  const { users, profiles, isLoading } = useAdminData();
 
   const usersData = users.data?.data || [];
   const profilesData = profiles.data?.data || [];
@@ -45,6 +46,23 @@ export default function AdminUsersPage() {
     });
   }, [usersData, profileById, q]);
 
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-24" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <Skeleton className="mb-4 h-10 w-full" />
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="mb-4 flex items-center justify-between">
@@ -72,7 +90,7 @@ export default function AdminUsersPage() {
           return (
             <div
               key={u.id}
-              className="flex items-center gap-3 rounded-xl border border-border/60 bg-card p-3"
+              className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
             >
               <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold">
                 {initials}
@@ -86,7 +104,7 @@ export default function AdminUsersPage() {
                   Joined {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
                 </div>
               </div>
-              <div className="flex gap-1 rounded-full border border-border/60 bg-black/25 p-1">
+              <div className="flex gap-1 rounded-full border border-border bg-secondary/50 p-1">
                 {USER_ROLES.map((role) => (
                   <Button
                     key={role}

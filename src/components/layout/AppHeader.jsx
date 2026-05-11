@@ -68,7 +68,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
         {/* Left: Logo */}
         <NavLink
           to="/home"
-          className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 active:opacity-80 transition-all duration-150"
+          className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 active:opacity-80 transition-all duration-150 will-change-transform"
           aria-label="Ride Radar home"
         >
           <RRLogo
@@ -102,7 +102,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
           {isAdmin && (
             <NavLink
               to="/admin"
-              className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 active:opacity-80"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 active:opacity-80 will-change-transform"
               aria-label="Admin panel"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
@@ -113,7 +113,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             to="/notifications"
             className={({ isActive }) =>
               cn(
-                'relative flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-all duration-150',
+                'relative flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-all duration-150 will-change-transform',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'active:scale-95 active:opacity-80',
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
@@ -134,7 +134,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             to="/profile"
             className={({ isActive }) =>
               cn(
-                'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-all duration-150',
+                'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-all duration-150 will-change-transform',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'active:scale-95 active:opacity-80',
                 isActive && 'ring-1 ring-primary/50'

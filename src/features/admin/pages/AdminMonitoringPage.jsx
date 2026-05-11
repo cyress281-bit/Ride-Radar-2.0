@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import {
-  ArrowLeft,
   TrendingUp,
   MessageSquare,
   Radio,
@@ -13,32 +11,72 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
-import RRLogo from '@/components/RRLogo';
 import { Button } from '@/components/ui/button';
 import { getTodaysStats } from '@/features/admin/api/admin-api.js';
 import { getPerformanceSummary } from '@/lib/performanceMonitoring.js';
 import { supabase } from '@/lib/supabase.js';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
 import { cn } from '@/lib/utils.js';
+import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
+import { Skeleton } from '@/components/ui/skeleton';
 
-function AdminMonitoringContent() {
+/**
+ * AdminMonitoringPage - Live system health dashboard.
+ */
+export default function AdminMonitoringPage() {
+  const { isAdmin, isLoading: roleLoading } = useAdminRole();
+
+  if (roleLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-8 w-24" />
+        </div>
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
+        </div>
+        <Skeleton className="mb-6 h-48 w-full" />
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
+        Admin access required.
+      </div>
+    );
+  }
+
+  return <MonitoringContent />;
+}
+
+function MonitoringContent() {
   const [autoRefresh, setAutoRefresh] = useState(true);
 
-  const { data: stats, refetch } = useQuery({
+  const { data: stats, refetch, isLoading: statsLoading } = useQuery({
     queryKey: ['admin', 'todays-stats'],
     queryFn: getTodaysStats,
     refetchInterval: autoRefresh ? 30000 : false,
     staleTime: 15000,
   });
 
-  const { data: perfData } = useQuery({
+  const { data: perfData, isLoading: perfLoading } = useQuery({
     queryKey: ['admin', 'performance'],
     queryFn: getPerformanceSummary,
     refetchInterval: autoRefresh ? 30000 : false,
     staleTime: 15000,
   });
 
-  const { data: activeUsersData } = useQuery({
+  const { data: activeUsersData, isLoading: activeUsersLoading } = useQuery({
     queryKey: ['admin', 'active-users'],
     queryFn: async () => {
       const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -53,38 +91,40 @@ function AdminMonitoringContent() {
     staleTime: 15000,
   });
 
+  const isLoading = statsLoading || perfLoading || activeUsersLoading;
+
   const statCards = [
     {
       label: 'Active Users',
       value: activeUsersData ?? 0,
       icon: Users,
-      color: 'text-green-400',
+      color: 'text-success',
       desc: 'Last 5 min',
     },
     {
       label: 'Broadcasts Today',
       value: stats?.data?.broadcasts || 0,
       icon: Radio,
-      color: 'text-blue-400',
+      color: 'text-info',
     },
     {
       label: 'Messages Today',
       value: stats?.data?.messages || 0,
       icon: MessageSquare,
-      color: 'text-purple-400',
+      color: 'text-primary',
     },
     {
       label: 'Connections Today',
       value: stats?.data?.connections || 0,
       icon: TrendingUp,
-      color: 'text-cyan-400',
+      color: 'text-cyan',
     },
     {
       label: 'Reports Today',
       value: stats?.data?.reports || 0,
       icon: AlertTriangle,
       color:
-        (stats?.data?.reports || 0) > 0 ? 'text-orange-400' : 'text-muted-foreground',
+        (stats?.data?.reports || 0) > 0 ? 'text-warning' : 'text-muted-foreground',
     },
   ];
 
@@ -115,27 +155,33 @@ function AdminMonitoringContent() {
     },
   ];
 
-  return (
-    <div className="mx-auto max-w-5xl px-4 py-5 sm:px-5 sm:py-6">
-      <Link
-        to="/admin"
-        className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground transition hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> Command Center
-      </Link>
-
-      <div className="mb-6 flex items-center gap-3">
-        <RRLogo size="md" />
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-            System Health
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Live metrics, performance data, and external dashboards
-          </p>
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-40" />
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-20" />
+            <Skeleton className="h-8 w-20" />
+          </div>
         </div>
-      </div>
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
+        </div>
+        <Skeleton className="mb-6 h-48 w-full" />
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
 
+  return (
+    <AdminLayout>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Clock className="h-3 w-3" />
@@ -167,7 +213,7 @@ function AdminMonitoringContent() {
         {statCards.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-2xl border border-border/60 bg-card p-4"
+            className="rounded-2xl border border-border bg-surface p-4"
           >
             <div className="mb-2 flex items-center justify-between">
               <stat.icon className={cn('h-5 w-5', stat.color)} />
@@ -185,9 +231,9 @@ function AdminMonitoringContent() {
 
       {/* Performance Metrics */}
       {perfData && (
-        <div className="mb-6 rounded-2xl border border-border/60 bg-card p-4">
+        <div className="mb-6 rounded-2xl border border-border bg-surface p-4">
           <div className="mb-3 flex items-center gap-2">
-            <Zap className="h-4 w-4 text-yellow-400" />
+            <Zap className="h-4 w-4 text-amber" />
             <h2 className="text-sm font-bold">Client Performance</h2>
           </div>
           <div className="space-y-2 text-xs">
@@ -244,7 +290,7 @@ function AdminMonitoringContent() {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-xl border border-border/60 bg-card p-4 transition hover:border-primary/35"
+              className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 transition hover:border-primary/35"
             >
               <ExternalLink className="h-4 w-4 flex-shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
@@ -257,37 +303,12 @@ function AdminMonitoringContent() {
           ))}
       </div>
 
-      <div className="rounded-2xl border border-border/50 bg-black/30 p-4 text-xs text-muted-foreground">
+      <div className="rounded-2xl border border-border bg-secondary/50 p-4 text-xs text-muted-foreground">
         <div className="mb-1 font-bold">About this dashboard</div>
         Real-time metrics are pulled from Supabase every 30 seconds. Performance
         data is measured client-side using the Web Vitals API. External
         dashboards provide detailed analytics and error tracking.
       </div>
-    </div>
+    </AdminLayout>
   );
-}
-
-/**
- * AdminMonitoringPage - Route guard wrapper for system health dashboard.
- */
-export default function AdminMonitoringPage() {
-  const { isAdmin, isLoading: roleLoading } = useAdminRole();
-
-  if (roleLoading) {
-    return (
-      <div className="flex min-h-[200px] items-center justify-center px-4 pt-6">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-secondary border-t-primary" />
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
-        Admin access required.
-      </div>
-    );
-  }
-
-  return <AdminMonitoringContent />;
 }

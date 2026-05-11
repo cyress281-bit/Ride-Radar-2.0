@@ -18,7 +18,7 @@ import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
 import { getTodaysStats } from '@/features/admin/api/admin-api.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import AdminMetricCard from '@/features/admin/components/AdminMetricCard.jsx';
-import { cn } from '@/lib/utils.js';
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
  * AdminDashboardPage - Overview page with metric cards linking to sub-pages.
@@ -43,11 +43,15 @@ export default function AdminDashboardPage() {
     refetchInterval: 30000,
   });
 
-  if (roleLoading) {
+  if (roleLoading || dataLoading) {
     return (
-      <div className="flex min-h-[200px] items-center justify-center px-4 pt-6">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-secondary border-t-primary" />
-      </div>
+      <AdminLayout>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          {Array.from({ length: 11 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
     );
   }
 
@@ -137,12 +141,7 @@ export default function AdminDashboardPage() {
 
   return (
     <AdminLayout>
-      <div
-        className={cn(
-          'grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4',
-          dataLoading && 'opacity-60'
-        )}
-      >
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
         {cards.map((card) => (
           <AdminMetricCard
             key={card.title}

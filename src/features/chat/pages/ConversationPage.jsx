@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useCallback, memo } from 'react';
+import React, { useEffect, useRef, useCallback, memo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useMessages, useMarkRead } from '@/features/chat/hooks/use-messages.js';
 import { useSendMessage } from '@/features/chat/hooks/use-send-message.js';
@@ -11,6 +12,37 @@ import { supabase } from '@/lib/supabase.js';
 import { cn } from '@/lib/utils.js';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
+
+/**
+ * Typing indicator — bouncing dots animation.
+ */
+function TypingIndicator() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 6 }}
+      transition={{ duration: 0.2 }}
+      className="flex justify-start"
+    >
+      <div className="flex items-center gap-1 px-4 py-2.5 rounded-2xl bg-secondary/70 border border-border/40 rounded-bl-md">
+        {[0, 1, 2].map((i) => (
+          <motion.span
+            key={i}
+            className="h-1.5 w-1.5 rounded-full bg-muted-foreground"
+            animate={{ y: [0, -4, 0] }}
+            transition={{
+              duration: 0.6,
+              repeat: Infinity,
+              delay: i * 0.15,
+              ease: 'easeInOut',
+            }}
+          />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
 
 /**
  * Loading skeleton for the conversation header and message list.
@@ -54,6 +86,7 @@ function ConversationPage() {
   const navigate = useNavigate();
   const { user } = useAuthState();
   const endRef = useRef(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   const { data: conversation, isLoading: isConversationLoading } = useQuery({
     queryKey: ['conversation', id],
@@ -101,6 +134,9 @@ function ConversationPage() {
   const handleSend = useCallback(
     (body) => {
       send.mutate(body);
+      // Demo: simulate typing indicator from other user after a short delay
+      setTimeout(() => setIsTyping(true), 800);
+      setTimeout(() => setIsTyping(false), 3000);
     },
     [send]
   );
@@ -135,7 +171,7 @@ function ConversationPage() {
   return (
     <div className="flex flex-col h-[calc(100dvh-3.5rem)]">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-border/60 flex items-center gap-3 bg-background/90 backdrop-blur shrink-0">
+      <div className="px-5 py-3 border-b border-border/60 flex items-center gap-3 bg-background/90 backdrop-blur shrink-0">
         <button
           type="button"
           onClick={() => navigate('/messages')}
@@ -201,6 +237,7 @@ function ConversationPage() {
               isMine={message.from_user_id === user?.id}
             />
           ))}
+          {isTyping && <TypingIndicator />}
           <div ref={endRef} />
         </div>
       )}

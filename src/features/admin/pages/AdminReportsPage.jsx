@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -15,14 +15,20 @@ import { timeAgo } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
  * AdminReportsPage - Review and moderate user-submitted safety/content reports.
  */
 export default function AdminReportsPage() {
   const qc = useQueryClient();
-  const { reports, profiles, broadcasts } = useAdminData();
-  const [actionMenuId, setActionMenuId] = useState(null);
+  const { reports, profiles, broadcasts, isLoading } = useAdminData();
 
   const reportsData = reports.data?.data || [];
   const profilesData = profiles.data?.data || [];
@@ -122,6 +128,22 @@ export default function AdminReportsPage() {
     return report.target_id;
   };
 
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-24" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-40 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="mb-4 flex items-center justify-between">
@@ -137,12 +159,11 @@ export default function AdminReportsPage() {
             report.reporter_user_id || report.reporter_profile_id
           );
           const targetUserId = report.target_user_id || report.target_profile_id;
-          const isMenuOpen = actionMenuId === report.id;
 
           return (
             <div
               key={report.id}
-              className="rounded-2xl border border-border/60 bg-card p-4"
+              className="rounded-2xl border border-border bg-surface p-4"
             >
               <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 <span className="rounded-full bg-primary/10 px-2 py-1 font-bold uppercase tracking-wider text-primary">
@@ -165,7 +186,7 @@ export default function AdminReportsPage() {
               </div>
 
               {report.details && (
-                <p className="mt-3 whitespace-pre-wrap rounded-xl bg-black/25 p-3 text-sm text-muted-foreground">
+                <p className="mt-3 whitespace-pre-wrap rounded-2xl bg-secondary/50 p-3 text-sm text-muted-foreground">
                   {report.details}
                 </p>
               )}
@@ -213,48 +234,41 @@ export default function AdminReportsPage() {
                   <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Resolved
                 </Button>
 
-                <div className="relative">
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => setActionMenuId(isMenuOpen ? null : report.id)}
-                    disabled={removeContent.isPending || makeProfilePrivate.isPending}
-                  >
-                    <Trash2 className="mr-1 h-3.5 w-3.5" />
-                    Take Action
-                    <ChevronDown className="ml-1 h-3 w-3" />
-                  </Button>
-                  {isMenuOpen && (
-                    <div className="absolute left-0 top-full z-10 mt-1 w-48 rounded-xl border border-border/60 bg-card p-1 shadow-lg">
-                      {(report.target_type === 'broadcast' ||
-                        report.target_type === 'message' ||
-                        report.target_type === 'conversation') && (
-                        <button
-                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-white/5"
-                          onClick={() => {
-                            removeContent.mutate(report);
-                            setActionMenuId(null);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                          Delete content
-                        </button>
-                      )}
-                      {targetUserId && (
-                        <button
-                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm hover:bg-white/5"
-                          onClick={() => {
-                            makeProfilePrivate.mutate(report);
-                            setActionMenuId(null);
-                          }}
-                        >
-                          <UserX className="h-4 w-4 text-orange-400" />
-                          Make profile private
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      disabled={removeContent.isPending || makeProfilePrivate.isPending}
+                    >
+                      <Trash2 className="mr-1 h-3.5 w-3.5" />
+                      Take Action
+                      <ChevronDown className="ml-1 h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    {(report.target_type === 'broadcast' ||
+                      report.target_type === 'message' ||
+                      report.target_type === 'conversation') && (
+                      <DropdownMenuItem
+                        onClick={() => removeContent.mutate(report)}
+                        className="gap-2"
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        Delete content
+                      </DropdownMenuItem>
+                    )}
+                    {targetUserId && (
+                      <DropdownMenuItem
+                        onClick={() => makeProfilePrivate.mutate(report)}
+                        className="gap-2"
+                      >
+                        <UserX className="h-4 w-4 text-warning" />
+                        Make profile private
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 {targetUserId && (
                   <Link

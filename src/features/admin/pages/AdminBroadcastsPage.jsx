@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Radio, Trash2, Search, Filter } from 'lucide-react';
-import { cn } from '@/lib/utils.js';
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { BROADCAST_META } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
@@ -9,13 +8,15 @@ import { expireBroadcast, deleteBroadcast } from '@/features/admin/api/admin-api
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
  * AdminBroadcastsPage - View and manage all broadcast posts.
  */
 export default function AdminBroadcastsPage() {
   const qc = useQueryClient();
-  const { broadcasts, profiles } = useAdminData();
+  const { broadcasts, profiles, isLoading } = useAdminData();
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
@@ -59,6 +60,35 @@ export default function AdminBroadcastsPage() {
     [broadcastsData]
   );
 
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-32" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="mb-4 space-y-2">
+          <Skeleton className="h-10 w-full" />
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-16" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-16" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="mb-4 flex items-center justify-between">
@@ -76,45 +106,31 @@ export default function AdminBroadcastsPage() {
             className="pl-9"
           />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Filter className="h-3.5 w-3.5" />
             Type
           </div>
-          {broadcastTypes.map((type) => (
-            <button
-              key={type}
-              onClick={() => setTypeFilter(type)}
-              className={cn(
-                'rounded-full px-2.5 py-1 text-xs font-medium transition',
-                typeFilter === type
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-white/5 text-muted-foreground hover:bg-white/10'
-              )}
-            >
-              {type === 'all' ? 'All' : BROADCAST_META[type]?.label || type}
-            </button>
-          ))}
+          <ToggleGroup type="single" value={typeFilter} onValueChange={(v) => v && setTypeFilter(v)}>
+            {broadcastTypes.map((type) => (
+              <ToggleGroupItem key={type} value={type} className="text-xs capitalize">
+                {type === 'all' ? 'All' : BROADCAST_META[type]?.label || type}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Filter className="h-3.5 w-3.5" />
             Status
           </div>
-          {broadcastStatuses.map((status) => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={cn(
-                'rounded-full px-2.5 py-1 text-xs font-medium transition capitalize',
-                statusFilter === status
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-white/5 text-muted-foreground hover:bg-white/10'
-              )}
-            >
-              {status === 'all' ? 'All' : status}
-            </button>
-          ))}
+          <ToggleGroup type="single" value={statusFilter} onValueChange={(v) => v && setStatusFilter(v)}>
+            {broadcastStatuses.map((status) => (
+              <ToggleGroupItem key={status} value={status} className="text-xs capitalize">
+                {status === 'all' ? 'All' : status}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         </div>
       </div>
 
@@ -124,7 +140,7 @@ export default function AdminBroadcastsPage() {
           return (
             <div
               key={b.id}
-              className="rounded-xl border border-border/60 bg-card p-3"
+              className="rounded-2xl border border-border bg-surface p-3"
             >
               <div className="mb-1 flex flex-wrap items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary">

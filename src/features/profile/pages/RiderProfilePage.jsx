@@ -23,12 +23,14 @@ import {
   Clock,
   ShieldCheck,
   Radio,
+  Lock,
 } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import BroadcastCard from '@/components/shared/BroadcastCard';
 import { isExpired } from '@/lib/broadcastUtils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 async function fetchRiderBroadcasts(userId) {
   const { data, error } = await supabase
@@ -98,7 +100,7 @@ export default function RiderProfilePage() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: riderBroadcasts = [] } = useQuery({
+  const { data: riderBroadcasts = [], isLoading: isBroadcastsLoading } = useQuery({
     queryKey: ['rider-broadcasts', userId],
     enabled: hasValidUserId && !!profile,
     queryFn: () => fetchRiderBroadcasts(userId),
@@ -295,7 +297,7 @@ export default function RiderProfilePage() {
         </>
       ) : (
         <div className="rr-surface my-6 rounded-2xl p-5 text-center text-sm text-muted-foreground">
-          <RRLogo size="sm" className="mx-auto mb-2 opacity-50" />
+          <Lock className="mx-auto mb-2 h-5 w-5 opacity-60" />
           This profile is private. Add them as a friend to see more details.
         </div>
       )}
@@ -339,7 +341,7 @@ export default function RiderProfilePage() {
       )}
 
       {/* Active broadcasts */}
-      {canSeeDetails && activeBroadcasts.length > 0 && (
+      {canSeeDetails && (
         <>
           <div className="mb-3 flex items-center justify-between px-1">
             <h2 className="rr-kicker text-muted-foreground">Active broadcasts</h2>
@@ -348,15 +350,32 @@ export default function RiderProfilePage() {
               Signal log
             </span>
           </div>
-          <div className="space-y-3">
-            {activeBroadcasts.map((b) => (
-              <BroadcastCard key={b.id} broadcast={b} author={profile} />
-            ))}
-          </div>
+          {isBroadcastsLoading ? (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div key={i} className="rr-surface rounded-2xl p-4 space-y-2">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+              ))}
+            </div>
+          ) : activeBroadcasts.length > 0 ? (
+            <div className="space-y-3">
+              {activeBroadcasts.map((b) => (
+                <BroadcastCard key={b.id} broadcast={b} author={profile} />
+              ))}
+            </div>
+          ) : (
+            <div className="rr-surface rounded-xl border border-dashed border-border/60 bg-transparent py-8 text-center text-sm text-muted-foreground">
+              <RRLogo size="sm" className="mx-auto mb-2 opacity-50" />
+              No active broadcasts
+            </div>
+          )}
         </>
       )}
 
-      <div className="mt-6 border-t border-border/60 py-4 text-center text-xs text-muted-foreground">
+      <div className="mt-6 rounded-2xl border border-border/40 bg-secondary/20 py-4 text-center text-xs text-muted-foreground">
         {isBlocked
           ? 'You have blocked this rider.'
           : 'Limited rider preview. More details visible after connecting.'}

@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Clock, Wrench, MapPin, Calendar } from 'lucide-react';
 import SignalIcon from '@/components/brand/SignalIcon';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
@@ -62,11 +63,14 @@ const BroadcastCard = memo(
           : null;
 
     const content = (
-      <div
+      <motion.div
+        whileHover={{ y: -2 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
         className={cn(
-          'relative rounded-[1.15rem] overflow-hidden transition-all duration-300 rr-scanline active:scale-[0.98] active:opacity-95',
+          'relative rounded-[1.15rem] overflow-hidden transition-all duration-300 rr-scanline active:scale-[0.98] active:opacity-95 will-change-transform',
           styles.card,
-          'hover:' + styles.leftGlow
+          'hover:' + styles.leftGlow,
+          'hover:shadow-lg'
         )}
       >
         {isAlert && <div className="absolute top-0 left-0 right-0 h-[2px] bg-alert animate-pulse-alert" />}
@@ -220,7 +224,7 @@ const BroadcastCard = memo(
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     );
 
     if (isAlert) return content;

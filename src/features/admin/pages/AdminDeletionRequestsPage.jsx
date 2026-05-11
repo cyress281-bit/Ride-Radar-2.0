@@ -2,13 +2,30 @@ import { Trash2 } from 'lucide-react';
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
  * AdminDeletionRequestsPage - Read-only view of account_deletion_requests.
  */
 export default function AdminDeletionRequestsPage() {
-  const { deletionRequests } = useAdminData();
+  const { deletionRequests, isLoading } = useAdminData();
   const requests = deletionRequests.data?.data || [];
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -21,7 +38,7 @@ export default function AdminDeletionRequestsPage() {
         {requests.map((request) => (
           <div
             key={request.id}
-            className="rounded-2xl border border-border/60 bg-card p-4"
+            className="rounded-2xl border border-border bg-surface p-4"
           >
             <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span className="rounded-full bg-primary/10 px-2 py-1 font-bold uppercase tracking-wider text-primary">
@@ -50,7 +67,7 @@ export default function AdminDeletionRequestsPage() {
                 : 'Not completed'}
             </div>
             {request.note && (
-              <div className="mt-3 whitespace-pre-wrap rounded-xl bg-black/25 p-3 text-sm text-muted-foreground">
+              <div className="mt-3 whitespace-pre-wrap rounded-2xl bg-secondary/50 p-3 text-sm text-muted-foreground">
                 {request.note}
               </div>
             )}

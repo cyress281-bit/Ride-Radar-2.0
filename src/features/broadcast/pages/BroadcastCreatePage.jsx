@@ -1,6 +1,7 @@
-import { useState, memo } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ShieldAlert, Route, Search, CalendarClock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldAlert, Route, Search, CalendarClock, CheckCircle2 } from 'lucide-react';
 import SignalIcon from '@/components/brand/SignalIcon';
 import RRLogo from '@/components/RRLogo';
 import BroadcastForm from '@/features/broadcast/components/BroadcastForm';
@@ -28,6 +29,15 @@ function BroadcastCreatePage() {
   const [searchParams] = useSearchParams();
   const urlType = searchParams.get('type');
   const [type, setType] = useState(TYPES.some((t) => t.id === urlType) ? urlType : null);
+  const [showCelebration, setShowCelebration] = useState(false);
+
+  const handlePosted = useCallback(() => {
+    setShowCelebration(true);
+    setTimeout(() => {
+      setShowCelebration(false);
+      navigate('/home');
+    }, 800);
+  }, [navigate]);
 
   if (!type) {
     return (
@@ -78,7 +88,33 @@ function BroadcastCreatePage() {
     );
   }
 
-  return <BroadcastForm type={type} onBack={() => setType(null)} onPosted={() => navigate('/home')} />;
+  return (
+    <>
+      <AnimatePresence>
+        {showCelebration && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-primary/10 backdrop-blur-sm pointer-events-none"
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="flex flex-col items-center gap-3"
+            >
+              <CheckCircle2 className="w-12 h-12 text-primary" />
+              <span className="text-sm font-bold text-primary">Signal broadcasted</span>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <BroadcastForm type={type} onBack={() => setType(null)} onPosted={handlePosted} />
+    </>
+  );
 }
 
 export default memo(BroadcastCreatePage);

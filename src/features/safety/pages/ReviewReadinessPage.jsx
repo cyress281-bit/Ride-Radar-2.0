@@ -30,7 +30,7 @@ export default function ReviewReadinessPage() {
   ];
 
   return (
-    <div className="min-h-dvh p-4 pt-20">
+    <div className="min-h-dvh px-5 pt-5 pb-8">
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="text-center">
           <RRLogo size="lg" className="mx-auto mb-4" />
@@ -42,7 +42,7 @@ export default function ReviewReadinessPage() {
 
         <div className="grid gap-4">
           {items.map((item) => (
-            <Card key={item.title} className="rr-surface">
+            <Card key={item.title} className="rr-surface hover:border-primary/30 transition-colors">
               <CardHeader className="flex flex-row items-center gap-3 pb-2">
                 <item.icon className="h-5 w-5 text-primary" />
                 <CardTitle className="text-base">{item.title}</CardTitle>

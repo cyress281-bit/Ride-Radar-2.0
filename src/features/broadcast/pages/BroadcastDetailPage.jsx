@@ -341,8 +341,8 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
           />
           {send.isError && <p className="text-xs text-destructive">{send.error?.message || 'Failed to send request'}</p>}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 rounded-full h-11 border-primary/20">Cancel</Button>
-            <Button onClick={() => send.mutate()} disabled={send.isPending} className="flex-1 rounded-full h-11 glow-green-sm">
+            <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 rounded-full h-11 border-primary/20 rr-haptic">Cancel</Button>
+            <Button onClick={() => send.mutate()} disabled={send.isPending} className="flex-1 rounded-full h-11 glow-green-sm rr-haptic">
               {send.isPending ? 'Sending...' : 'Send request'}
             </Button>
           </div>

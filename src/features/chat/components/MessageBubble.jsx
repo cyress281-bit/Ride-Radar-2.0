@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { motion } from 'framer-motion';
 import { cn, timeAgo } from '@/lib/utils.js';
 
 /**
@@ -13,7 +14,12 @@ import { cn, timeAgo } from '@/lib/utils.js';
  */
 const MessageBubble = memo(function MessageBubble({ message, isMine }) {
   return (
-    <div className={cn('flex', isMine ? 'justify-end' : 'justify-start')}>
+    <motion.div
+      initial={{ opacity: 0, y: 10, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className={cn('flex will-change-transform transform-gpu', isMine ? 'justify-end' : 'justify-start')}
+    >
       <div className="max-w-[80%]">
         <div
           className={cn(
@@ -34,7 +40,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
           {timeAgo(message.created_at)}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 });
 

@@ -292,7 +292,7 @@ export default function OnboardingPage() {
   return (
     <div className="rr-carbon-bg min-h-dvh relative overflow-hidden flex flex-col items-center justify-center px-5 py-8">
       <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-20" />
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.12),transparent_30%),linear-gradient(180deg,transparent,rgba(0,0,0,0.58))]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.12),transparent_30%),linear-gradient(180deg,transparent,hsl(var(--background) / 0.58))]" />
 
       <div className="relative z-10 w-full max-w-md rounded-[1.7rem] rr-premium-shell px-6 py-8">
         {/* Logo & Header */}

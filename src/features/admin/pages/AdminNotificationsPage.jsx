@@ -72,7 +72,7 @@ export default function AdminNotificationsPage() {
         </Button>
 
         {broadcast.isSuccess && (
-          <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-400">
+          <div className="flex items-center gap-2 rounded-xl border border-success/20 bg-success/10 p-3 text-sm text-success">
             <Check className="h-4 w-4" />
             <div>
               <p className="font-medium">Announcement sent successfully.</p>
