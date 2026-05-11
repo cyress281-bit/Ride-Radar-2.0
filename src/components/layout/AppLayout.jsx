@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import AppHeader from './AppHeader';
 import BottomNav from './BottomNav';
+import OfflineBanner from '@/components/OfflineBanner';
 
 /**
  * AppLayout — Main application shell.
@@ -24,6 +25,9 @@ const AppLayout = memo(function AppLayout() {
 
   return (
     <div className={cn('min-h-dvh bg-background relative overflow-hidden selection:bg-primary/30', isRadar && 'min-h-0 h-dvh')}>
+      {/* Offline status banner */}
+      <OfflineBanner />
+
       {/* Skip to main content — keyboard accessibility */}
       <a
         href="#main-content"

@@ -352,8 +352,6 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
   );
 });
 
-export default memo(BroadcastDetailPage);
-
 const BroadcastActions = memo(function BroadcastActions({ broadcast, user, myRSVP, rsvpCounts, myRequests, id }) {
   const qc = useQueryClient();
 
@@ -376,3 +374,6 @@ const BroadcastActions = memo(function BroadcastActions({ broadcast, user, myRSV
     </div>
   );
 });
+
+export default memo(BroadcastDetailPage);
+

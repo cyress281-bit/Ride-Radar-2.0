@@ -67,8 +67,6 @@ const SettingsSection = memo(function SettingsSection({ title, icon: Icon, child
   );
 });
 
-export default memo(SettingsPage);
-
 /**
  * Toggle row within a settings section.
  */
@@ -451,3 +449,6 @@ function SettingsPage() {
     </div>
   );
 }
+
+export default memo(SettingsPage);
+

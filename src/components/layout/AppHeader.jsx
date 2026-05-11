@@ -4,6 +4,7 @@ import { Bell, Shield, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
+import { useUnreadCount } from '@/features/notifications/hooks/use-notifications';
 import RRLogo from '@/components/RRLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
@@ -25,7 +26,8 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { pathname } = useLocation();
   const { isAdmin } = useAdminRole();
-  const { profile } = useAuthState();
+  const { user, profile } = useAuthState();
+  const { data: unreadCount = 0 } = useUnreadCount(user?.id);
   const isRadar = pathname === '/home';
 
   const avatarUrl = profile?.avatar_url;
@@ -94,8 +96,12 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5" aria-hidden="true" />
-            {/* Unread badge placeholder — wire to notification store when ready */}
-            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]" />
+            {unreadCount > 0 && (
+              <span
+                className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary))]"
+                aria-hidden="true"
+              />
+            )}
           </NavLink>
 
           <NavLink

@@ -43,8 +43,6 @@ function ConversationSkeleton() {
   );
 }
 
-export default memo(ConversationPage);
-
 /**
  * Single chat thread page.
  *
@@ -216,3 +214,6 @@ function ConversationPage() {
     </div>
   );
 }
+
+export default memo(ConversationPage);
+

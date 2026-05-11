@@ -13,11 +13,9 @@ initializeAnalytics();
 initializeWebVitals();
 
 // Register service worker for PWA
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch((err) => {
-    // eslint-disable-next-line no-console
-    console.error('Service worker registration failed:', err);
-  });
-}
+import { registerServiceWorker, setupInstallPrompt } from './lib/registerSW';
+
+setupInstallPrompt();
+registerServiceWorker();
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
