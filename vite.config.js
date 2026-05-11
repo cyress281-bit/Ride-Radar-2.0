@@ -22,7 +22,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       cleanupOutdatedCaches: true,
-      includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png', 'motorcycle-icon.svg'],
+      includeAssets: ['favicon-32.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'maskable-icon-512.png', 'motorcycle-icon.svg'],
       manifest: {
         name: 'Ride Radar',
         short_name: 'Ride Radar',
@@ -39,13 +39,19 @@ export default defineConfig({
             src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
           },
           {
             src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/maskable-icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ],
         shortcuts: [

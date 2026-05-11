@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { cn } from '@/lib/utils';
+import { RIDE_RADAR_LOGO_URL } from '@/components/splash/logoAsset';
 
 /**
  * @typedef {object} PageLoaderProps
@@ -8,9 +9,9 @@ import { cn } from '@/lib/utils';
  */
 
 /**
- * PageLoader — Suspense fallback with animated EKG heartbeat.
+ * PageLoader — Suspense fallback with brand logo pulse.
  *
- * Shows a centered glassmorphism card with an EKG line animation
+ * Shows a centered glassmorphism card with the Ride Radar logo
  * and pulsing dots. Used as the default fallback for React.lazy()
  * routes wrapped in `<Suspense>`.
  *
@@ -34,41 +35,15 @@ const PageLoader = memo(function PageLoader({
           'rr-surface'
         )}
       >
-        {/* EKG heartbeat animation */}
-        <div className="relative h-14 w-40 flex items-center justify-center">
-          <svg
-            viewBox="0 0 200 60"
-            className="w-full h-full overflow-visible"
-            aria-hidden="true"
-          >
-            <defs>
-              <filter id="ekgGlow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="2" result="blur" />
-                <feColorMatrix
-                  in="blur"
-                  type="matrix"
-                  values="0 0 0 0 0.22 0 0 0 0 1 0 0 0 0 0.08 0 0 0 0.7 0"
-                />
-                <feMerge>
-                  <feMergeNode />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-            <path
-              d="M0 30 H40 L50 30 L55 12 L65 48 L72 30 L80 30 L85 30 L95 30 L100 8 L110 52 L118 30 L128 30 L140 30 L150 30 L155 18 L162 42 L168 30 L200 30"
-              fill="none"
-              stroke="hsl(var(--primary))"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              filter="url(#ekgGlow)"
-              className="animate-ekg"
-              style={{ opacity: 0.85 }}
-            />
-          </svg>
-          {/* Pulse dot */}
-          <span className="absolute h-2 w-2 rounded-full bg-primary shadow-[0_0_12px_hsl(var(--primary))] animate-pulse" />
+        {/* Brand logo with pulse glow */}
+        <div className="relative flex items-center justify-center">
+          <span className="absolute h-20 w-20 rounded-full bg-primary/10 animate-ping" style={{ animationDuration: '2.4s' }} />
+          <img
+            src={RIDE_RADAR_LOGO_URL}
+            alt="Ride Radar"
+            className="relative h-16 w-auto object-contain drop-shadow-[0_0_16px_hsl(var(--primary)/0.45)] animate-pulse"
+            style={{ animationDuration: '2s' }}
+          />
         </div>
 
         {/* Message + pulsing dots */}

@@ -8,10 +8,10 @@ const REDUCED_MOTION_MS = 700;
 const READY_GRACE_MS = 6000;
 
 /**
- * SplashScreen — Boot animation with EKG heartbeat and progress bar.
+ * SplashScreen — Boot animation with brand logo and EKG pulse.
  *
  * Displays a full-screen HUD-style boot sequence:
- * - Centered logo with heartbeat / EKG line animation
+ * - Centered logo with neon pulse glow animation
  * - Progress bar indicating load status
  * - HUD details: "Initializing...", version number, system status
  * - Skip button for users with reduced-motion preference
@@ -115,76 +115,34 @@ export default function SplashScreen({ onComplete, isReady = true }) {
 
           {/* Central content */}
           <div className="relative z-10 flex flex-col items-center gap-8 px-6">
-            {/* Logo + EKG container */}
-            <div className="relative w-[72vw] max-w-[360px] aspect-square">
-              <svg
-                viewBox="0 0 1024 1024"
-                className="absolute inset-0 h-full w-full overflow-visible"
-                aria-hidden="true"
-              >
-                <defs>
-                  <filter id="splashNeonGlow" x="-70%" y="-70%" width="240%" height="240%">
-                    <feGaussianBlur stdDeviation="4.5" result="blur" />
-                    <feColorMatrix
-                      in="blur"
-                      type="matrix"
-                      values="0 0 0 0 0.45 0 0 0 0 1 0 0 0 0 0.08 0 0 0 0.85 0"
-                    />
-                    <feMerge>
-                      <feMergeNode />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
+            {/* Logo with neon glow pulse */}
+            <div className="relative w-[72vw] max-w-[360px] aspect-square flex items-center justify-center">
+              {/* Ambient glow ring */}
+              {!reduceMotion && (
+                <motion.div
+                  className="absolute inset-0 rounded-full bg-primary/5"
+                  animate={{ scale: [1, 1.08, 1], opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                />
+              )}
 
-                {/* EKG heartbeat line */}
-                {!reduceMotion && (
-                  <motion.path
-                    d="M102 534 H226 L248 498 L292 574 L344 348 L408 684 L458 470 L480 534 H650"
-                    fill="none"
-                    stroke="#7CFF22"
-                    strokeWidth="15"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    filter="url(#splashNeonGlow)"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: [0, 1, 1, 0] }}
-                    transition={{
-                      pathLength: {
-                        delay: 0.2,
-                        type: 'spring',
-                        stiffness: 72,
-                        damping: 18,
-                        mass: 0.85,
-                      },
-                      opacity: {
-                        duration: 2.55,
-                        times: [0, 0.1, 0.82, 1],
-                        ease: [0.22, 1, 0.36, 1],
-                      },
-                    }}
-                  />
-                )}
-              </svg>
-
-              {/* Logo image */}
               <motion.img
                 src={RIDE_RADAR_LOGO_URL}
                 alt="Ride Radar"
-                className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_0_18px_rgba(57,255,20,0.28)] will-change-transform"
+                className="relative h-full w-full object-contain drop-shadow-[0_0_28px_rgba(57,255,20,0.35)] will-change-transform"
                 loading="eager"
                 decoding="async"
-                initial={reduceMotion ? false : { opacity: 0, scale: 0.965, y: 8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
+                initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={
                   reduceMotion
                     ? { duration: 0.2 }
                     : {
-                        delay: 2.4,
+                        delay: 0.3,
                         type: 'spring',
-                        stiffness: 170,
-                        damping: 22,
-                        mass: 0.72,
+                        stiffness: 140,
+                        damping: 20,
+                        mass: 0.8,
                       }
                 }
               />

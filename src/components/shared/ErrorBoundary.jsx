@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { captureError } from '@/lib/sentry';
 import { AlertTriangle } from 'lucide-react';
+import { RIDE_RADAR_LOGO_URL } from '@/components/splash/logoAsset';
 
 /**
  * ErrorBoundary — Class-based React error boundary.
@@ -63,6 +64,13 @@ export class ErrorBoundary extends Component {
               'border border-primary/15'
             )}
           >
+            {/* Brand logo */}
+            <img
+              src={RIDE_RADAR_LOGO_URL}
+              alt="Ride Radar"
+              className="mx-auto h-12 w-auto object-contain mb-5 drop-shadow-[0_0_12px_hsl(var(--primary)/0.35)]"
+            />
+
             {/* Alert icon with glow */}
             <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 shadow-[0_0_24px_hsl(var(--primary)/0.18)]">
               <AlertTriangle

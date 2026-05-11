@@ -14,6 +14,7 @@ import { getSafeAuthRedirectFromSearch } from '@/lib/auth-redirect.js';
 import { preloadCoreRoutes } from '@/lib/routePreload.js';
 import { logger } from '@/lib/logger.js';
 import { getAuthErrorFromLocation } from '@/lib/auth-redirect';
+import { RIDE_RADAR_LOGO_URL } from '@/components/splash/logoAsset';
 
 export default function LoginPage() {
   const { isAuthenticated, isLoading } = useSupabaseAuth();
@@ -36,11 +37,22 @@ export default function LoginPage() {
     navigate(redirectPath, { replace: true });
   };
 
-  // Show global loading spinner while auth state is initializing
+  // Show brand loading state while auth state is initializing
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="h-8 w-8 rounded-full border border-primary/50 shadow-[0_0_18px_hsl(var(--primary)/0.22)]" />
+        <div className="flex flex-col items-center gap-4">
+          <img
+            src={RIDE_RADAR_LOGO_URL}
+            alt="Ride Radar"
+            className="h-14 w-auto object-contain drop-shadow-[0_0_16px_hsl(var(--primary)/0.4)] animate-pulse"
+          />
+          <div className="flex items-center gap-1.5">
+            <span className="h-1 w-1 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '0ms' }} />
+            <span className="h-1 w-1 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '150ms' }} />
+            <span className="h-1 w-1 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '300ms' }} />
+          </div>
+        </div>
       </div>
     );
   }
