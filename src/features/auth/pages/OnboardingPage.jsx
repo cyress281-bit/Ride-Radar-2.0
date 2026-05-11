@@ -290,9 +290,9 @@ export default function OnboardingPage() {
   const modelSuggestions = getModelSuggestions(watchBikeMake);
 
   return (
-    <div className="rr-carbon-bg min-h-screen relative overflow-hidden flex flex-col items-center justify-center px-5 py-8">
+    <div className="rr-carbon-bg min-h-dvh relative overflow-hidden flex flex-col items-center justify-center px-5 py-8">
       <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-20" />
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,rgba(57,255,20,0.12),transparent_30%),linear-gradient(180deg,transparent,rgba(0,0,0,0.58))]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.12),transparent_30%),linear-gradient(180deg,transparent,rgba(0,0,0,0.58))]" />
 
       <div className="relative z-10 w-full max-w-md rounded-[1.7rem] rr-premium-shell px-6 py-8">
         {/* Logo & Header */}
@@ -366,7 +366,7 @@ export default function OnboardingPage() {
                       alt=""
                     />
                   ) : (
-                    <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-primary/25 bg-[rgba(57,255,20,0.06)] font-display text-2xl font-bold text-primary">
+                    <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-primary/25 bg-primary/[0.06] font-display text-2xl font-bold text-primary">
                       {watchDisplayName?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
@@ -385,7 +385,7 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => setAvatarLocal(null)}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-border/80 text-muted-foreground hover:text-destructive hover:border-destructive/50 transition"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-border/80 text-muted-foreground hover:text-destructive hover:border-destructive/50 transition"
                     aria-label="Remove avatar"
                   >
                     <X className="w-4 h-4" />

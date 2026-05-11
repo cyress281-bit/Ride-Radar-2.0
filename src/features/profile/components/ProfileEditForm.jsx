@@ -216,7 +216,7 @@ export default function ProfileEditForm({ profile, onDone }) {
                   alt=""
                 />
               ) : (
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-primary/25 bg-[rgba(57,255,20,0.06)] font-display text-2xl font-bold text-primary">
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-primary/25 bg-primary/[0.06] font-display text-2xl font-bold text-primary">
                   {form.watch('display_name')?.[0] || '?'}
                 </div>
               )}

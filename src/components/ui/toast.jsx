@@ -64,7 +64,7 @@ const ToastClose = React.forwardRef(({ className, ...props }, ref) => (
   <button
     ref={ref}
     className={cn(
-      "absolute right-2 top-2 rounded-full p-1.5 text-foreground/50 opacity-0 transition-all hover:text-primary hover:bg-primary/[0.1] focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-destructive/70 group-[.destructive]:hover:text-destructive group-[.destructive]:hover:bg-destructive/10 group-[.destructive]:focus:ring-destructive",
+      "absolute right-2 top-2 rounded-full p-2.5 min-h-[44px] min-w-[44px] text-foreground/50 opacity-0 transition-all hover:text-primary hover:bg-primary/[0.1] focus:opacity-100 focus:outline-none focus:ring-2 group-hover:opacity-100 group-[.destructive]:text-destructive/70 group-[.destructive]:hover:text-destructive group-[.destructive]:hover:bg-destructive/10 group-[.destructive]:focus:ring-destructive flex items-center justify-center",
       className
     )}
     toast-close=""

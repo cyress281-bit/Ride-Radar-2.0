@@ -40,7 +40,7 @@ const AlertPriorityStatus = memo(function AlertPriorityStatus({ count }) {
         </span>
         <div className="min-w-0">
           <div className={cn(
-            'text-[9px] font-bold uppercase tracking-[0.13em]',
+            'text-[10px] font-bold uppercase tracking-[0.13em]',
             hasAlerts ? 'text-alert/75' : 'opacity-75'
           )}>
             Safety Status

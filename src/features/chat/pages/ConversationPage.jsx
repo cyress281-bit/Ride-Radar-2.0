@@ -129,7 +129,7 @@ export default function ConversationPage() {
         <button
           type="button"
           onClick={() => navigate('/messages')}
-          className="p-1.5 hover:bg-secondary/60 rounded-full border border-border/30 transition-colors"
+          className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-secondary/60 rounded-full border border-border/30 transition-colors flex items-center justify-center"
           aria-label="Back"
         >
           <ArrowLeft className="w-5 h-5" />

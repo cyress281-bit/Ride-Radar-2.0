@@ -218,7 +218,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin' }) {
                 setShowForgot(false);
               }}
               className={cn(
-                'rr-haptic min-h-10 rounded-full text-sm font-bold transition',
+                'rr-haptic min-h-11 rounded-full text-sm font-bold transition',
                 mode === 'signin'
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
@@ -236,7 +236,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin' }) {
                 setShowForgot(false);
               }}
               className={cn(
-                'rr-haptic min-h-10 rounded-full text-sm font-bold transition',
+                'rr-haptic min-h-11 rounded-full text-sm font-bold transition',
                 mode === 'signup'
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
@@ -292,7 +292,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin' }) {
               <button
                 type="button"
                 onClick={() => setShowForgot((s) => !s)}
-                className="text-xs font-medium text-primary hover:underline"
+                className="text-xs font-medium text-primary hover:underline min-h-[44px] px-2"
               >
                 Forgot password?
               </button>

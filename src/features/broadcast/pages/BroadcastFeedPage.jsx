@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Crosshair, Plus, SlidersHorizontal, ChevronUp, Navigation } from 'lucide-react';
+import RRLogo from '@/components/RRLogo';
 import { useNearbyBroadcasts } from '@/features/broadcast/hooks/use-nearby-broadcasts.js';
 import { useLiveMapPresence } from '@/features/map/hooks/use-live-map.js';
 import { useBlockedIds } from '@/features/safety/hooks/use-blocks';
@@ -281,7 +282,7 @@ export default function BroadcastFeedPage() {
       {/* Top info pill */}
       <div className="absolute top-16 left-4 right-4 z-10 flex justify-center pointer-events-none">
         <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
-          <span className="h-2 w-2 rounded-full bg-primary animate-pulse-green shadow-[0_0_8px_hsl(var(--primary))]" />
+          <span className="h-2 w-2 rounded-full bg-primary animate-pulse-green " />
           <span className="text-xs font-bold text-foreground">
             {activeCount} {activeCount === 1 ? 'signal' : 'signals'}
           </span>
@@ -299,7 +300,7 @@ export default function BroadcastFeedPage() {
       </div>
 
       {/* Floating action buttons */}
-      <div className="absolute bottom-28 right-4 z-10 flex flex-col gap-3">
+      <div className="absolute bottom-44 right-4 z-[30] flex flex-col gap-3">
         {/* Create broadcast */}
         <button
           onClick={() => navigate('/broadcast')}
@@ -343,10 +344,15 @@ export default function BroadcastFeedPage() {
       <div
         ref={sheetRef}
         className={cn(
-          'absolute left-0 right-0 z-20 bg-black/80 backdrop-blur-2xl border-t border-white/10 rounded-t-[28px] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-out',
-          sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-110px)]'
+          'absolute left-0 right-0 z-20 bg-black/80 backdrop-blur-2xl border-t border-white/10 rounded-t-[28px] shadow-[0_-12px_40px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-out min-h-[56px]',
+          sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-56px)]'
         )}
-        style={{ top: 'auto', bottom: 0, maxHeight: '70vh' }}
+        style={{
+          bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+          maxHeight: sheetOpen
+            ? 'calc(100svh - 80px - env(safe-area-inset-bottom, 0px))'
+            : '70vh',
+        }}
         onTouchStart={handleSheetTouchStart}
         onTouchMove={handleSheetTouchMove}
         onTouchEnd={handleSheetTouchEnd}
@@ -354,7 +360,7 @@ export default function BroadcastFeedPage() {
         {/* Sheet handle */}
         <button
           onClick={() => setSheetOpen((v) => !v)}
-          className="w-full flex flex-col items-center pt-3 pb-2"
+          className="w-full flex flex-col items-center pt-3 pb-2 min-h-[44px]"
         >
           <span className="h-1 w-10 rounded-full bg-white/20" />
           <div className="flex items-center gap-2 mt-2">
@@ -368,7 +374,7 @@ export default function BroadcastFeedPage() {
         </button>
 
         {/* Sheet content */}
-        <div className={cn('overflow-y-auto px-4 pb-6', sheetOpen ? 'max-h-[55vh]' : 'max-h-0')}>
+        <div className={cn('overflow-y-auto overscroll-contain px-4 pb-6 pb-safe', sheetOpen ? 'max-h-[55vh]' : 'max-h-0')}>
           {/* Filters */}
           <div className="flex items-center gap-2 overflow-x-auto pb-3 pt-1 scroll-hide">
             {FILTER_TYPES.map((f) => (
@@ -376,7 +382,7 @@ export default function BroadcastFeedPage() {
                 key={f.id}
                 onClick={() => setFilter(f.id)}
                 className={cn(
-                  'shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition',
+                  'shrink-0 rounded-full px-4 py-2 min-h-[40px] text-xs font-bold transition',
                   filter === f.id
                     ? 'bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]'
                     : 'bg-white/5 text-muted-foreground hover:bg-white/10'
@@ -412,6 +418,7 @@ export default function BroadcastFeedPage() {
             ))}
             {filteredBroadcasts.length === 0 && !isLoadingBroadcasts && (
               <div className="py-8 text-center">
+                <RRLogo size="sm" className="mx-auto mb-3 opacity-60" />
                 <p className="text-sm text-muted-foreground">No signals in this area.</p>
                 <p className="text-xs text-muted-foreground/60 mt-1">Tap the + button to create one.</p>
               </div>

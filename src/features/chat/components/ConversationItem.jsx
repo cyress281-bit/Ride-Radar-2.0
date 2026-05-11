@@ -25,7 +25,7 @@ const ConversationItem = memo(function ConversationItem({
       onClick={onClick}
       className={cn(
         'w-full flex items-center gap-3 p-3 rounded-2xl border transition-all duration-200 text-left',
-        'bg-card hover:bg-accent hover:border-primary/25 hover:-translate-y-0.5',
+        'bg-card hover:bg-primary/10 hover:border-primary/25 hover:-translate-y-0.5',
         'shadow-sm hover:shadow-md'
       )}
     >

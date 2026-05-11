@@ -20,6 +20,7 @@ import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
 import { deleteAccount } from '@/features/settings/api/settings-api.js';
 import { trackAccountDeleted } from '@/lib/analytics.js';
 import { logger } from '@/lib/logger.js';
+import RRLogo from '@/components/RRLogo';
 
 export default function AccountDeletionPage() {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ export default function AccountDeletionPage() {
   }, [canDelete, signOut, navigate]);
 
   return (
-    <div className="min-h-screen bg-background px-5 py-6 text-foreground">
+    <div className="min-h-dvh bg-background px-5 py-6 text-foreground">
       <div className="mx-auto max-w-2xl">
         <Link
           to="/settings"
@@ -81,7 +82,10 @@ export default function AccountDeletionPage() {
             <div className="rr-chip mb-3 text-destructive">
               <ShieldCheck className="h-3.5 w-3.5" /> Account safety
             </div>
-            <h1 className="rr-heading mb-2 text-3xl">Delete Account</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <RRLogo size="md" />
+              <h1 className="rr-heading text-3xl">Delete Account</h1>
+            </div>
             <p className="text-sm text-muted-foreground">
               Permanently remove your Ride Radar data. This action cannot be undone.
             </p>

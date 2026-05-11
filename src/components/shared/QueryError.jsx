@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { WifiOff, ServerCrash, RotateCcw } from 'lucide-react';
+import RRLogo from '@/components/RRLogo';
 
 /**
  * @typedef {object} QueryErrorProps
@@ -48,6 +49,9 @@ const QueryError = memo(function QueryError({ error, onRetry, className }) {
           isNetworkError ? 'border-destructive/20' : 'border-primary/15'
         )}
       >
+        {/* Brand logo */}
+        <RRLogo size="md" className="mx-auto mb-4" />
+
         {/* Icon */}
         <div
           className={cn(

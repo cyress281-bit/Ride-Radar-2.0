@@ -131,7 +131,7 @@ const BroadcastCard = memo(
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className={cn('text-[10px] font-bold uppercase tracking-widest', styles.labelColor)}>
+                <span className={cn('text-[11px] font-bold uppercase tracking-widest', styles.labelColor)}>
                   {meta.label}
                   {isoSubLabel && ` · ${isoSubLabel}`}
                 </span>

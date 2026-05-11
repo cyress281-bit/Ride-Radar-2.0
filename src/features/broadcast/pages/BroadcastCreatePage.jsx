@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ShieldAlert, Route, Search, CalendarClock } from 'lucide-react';
 import SignalIcon from '@/components/brand/SignalIcon';
+import RRLogo from '@/components/RRLogo';
 import BroadcastForm from '@/features/broadcast/components/BroadcastForm';
 import { cn } from '@/lib/utils.js';
 
@@ -36,7 +37,10 @@ export default function BroadcastCreatePage() {
           <div className="rr-chip mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Signal console
           </div>
-          <h1 className="rr-heading text-4xl mb-1">Broadcast</h1>
+          <div className="flex items-center gap-3 mb-1">
+            <RRLogo size="md" />
+            <h1 className="rr-heading text-4xl">Broadcast</h1>
+          </div>
           <p className="text-sm text-muted-foreground">Choose the kind of signal you want to send.</p>
           <div className="mt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
             <span className="h-px flex-1 bg-gradient-to-r from-primary/50 to-border/40" />

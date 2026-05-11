@@ -4,7 +4,7 @@ import { RIDE_RADAR_LOGO_URL } from '@/components/splash/logoAsset';
 
 export default function FinalLogoResolve() {
   const reduceMotion = useReducedMotion();
-  const baseClassName = 'absolute inset-0 h-full w-full object-contain drop-shadow-[0_0_18px_rgba(57,255,20,0.28)] will-change-transform';
+  const baseClassName = 'absolute inset-0 h-full w-full object-contain drop-shadow-[0_0_18px_hsl(var(--primary)/0.28)] will-change-transform';
 
   if (reduceMotion) {
     return (

@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { useSupabaseAuth } from '@/features/auth/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Settings, LogOut, Edit2, Radio, Bike, ShieldCheck, Users } from 'lucide-react';
+import RRLogo from '@/components/RRLogo';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
 import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
 import OptimizedImage from '@/components/OptimizedImage';
@@ -139,7 +140,7 @@ export default function ProfilePage() {
               </div>
               <button
                 onClick={() => setEditing(true)}
-                className="rr-haptic rounded-full border border-border/50 bg-secondary/50 p-2.5 text-muted-foreground shadow-sm transition-all hover:bg-secondary hover:text-foreground"
+                className="rr-haptic rounded-full border border-border/50 bg-secondary/50 p-2.5 min-h-[44px] min-w-[44px] text-muted-foreground shadow-sm transition-all hover:bg-secondary hover:text-foreground flex items-center justify-center"
               >
                 <Edit2 className="h-4 w-4" />
               </button>
@@ -205,7 +206,7 @@ export default function ProfilePage() {
             </Link>
             <Button
               variant="outline"
-              className="h-11 rounded-full border-primary/20 transition-all hover:border-primary/40 hover:bg-primary/5"
+              className="h-11 w-11 rounded-full border-primary/20 transition-all hover:border-primary/40 hover:bg-primary/5 flex items-center justify-center"
               onClick={() => signOut()}
             >
               <LogOut className="h-4 w-4" />
@@ -227,7 +228,7 @@ export default function ProfilePage() {
             </div>
           ) : active.length === 0 ? (
             <div className="rr-surface rounded-xl border border-dashed border-border/60 bg-transparent py-8 text-center text-sm text-muted-foreground">
-              <Radio className="mx-auto mb-2 h-5 w-5 text-muted-foreground/50" />
+              <RRLogo size="sm" className="mx-auto mb-2 opacity-50" />
               No active broadcasts
             </div>
           ) : (
@@ -247,7 +248,7 @@ const RiderMetric = memo(function RiderMetric({ icon: Icon, label, value }) {
   return (
     <div className="relative min-w-0 overflow-hidden rounded-2xl border border-border/60 bg-black/30 p-3 backdrop-blur-sm">
       <div className="absolute right-2 top-2 h-1.5 w-1.5 animate-pulse-green rounded-full bg-primary/60" />
-      <div className="mb-2 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
         <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
           <Icon className="h-3.5 w-3.5 drop-shadow-[0_0_4px_currentColor]" />
         </span>

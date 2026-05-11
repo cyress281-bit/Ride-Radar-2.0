@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, Shield, Lock, Eye, Trash2 } from 'lucide-react';
+import RRLogo from '@/components/RRLogo';
 
 /**
  * Review Readiness Page — Data Safety Summary for app store compliance.
@@ -29,9 +30,10 @@ export default function ReviewReadinessPage() {
   ];
 
   return (
-    <div className="min-h-screen p-4 pt-20">
+    <div className="min-h-dvh p-4 pt-20">
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="text-center">
+          <RRLogo size="lg" className="mx-auto mb-4" />
           <h1 className="text-2xl font-bold tracking-tight">Data Safety Summary</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Ride Radar is committed to protecting rider privacy and data security.

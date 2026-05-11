@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bell, Check, X, Activity } from 'lucide-react';
+import RRLogo from '@/components/RRLogo';
 import { Button } from '@/components/ui/button';
 import { useSupabaseAuth } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
@@ -87,7 +88,7 @@ function ConnectionRequestCard({ request, fromProfile, onAccept, onDecline, isAc
       </div>
 
       {request.message && (
-        <p className="mb-3 pl-13 text-sm text-muted-foreground">
+        <p className="mb-3 pl-[52px] text-sm text-muted-foreground">
           &ldquo;{request.message}&rdquo;
         </p>
       )}
@@ -97,7 +98,7 @@ function ConnectionRequestCard({ request, fromProfile, onAccept, onDecline, isAc
           size="sm"
           onClick={() => onAccept(request)}
           disabled={isAccepting}
-          className="glow-green-sm rounded-full"
+          className="glow-green-sm rounded-full min-h-[44px]"
         >
           <Check className="mr-1 h-3.5 w-3.5" /> Accept
         </Button>
@@ -372,7 +373,10 @@ export default function NotificationsPage() {
           <div className="relative z-10 mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 shadow-[0_0_22px_hsl(var(--primary)/0.16)]">
             <Bell className="h-7 w-7 text-primary drop-shadow-[0_0_5px_currentColor]" />
           </div>
-          <div className="rr-kicker relative z-10 mb-2">All caught up</div>
+          <div className="relative z-10 flex items-center justify-center gap-2 mb-2">
+            <RRLogo size="sm" className="opacity-70" />
+            <div className="rr-kicker">All caught up</div>
+          </div>
           <h3 className="relative z-10 mb-2 font-display text-xl font-bold">Channel clear</h3>
           <p className="relative z-10 mx-auto max-w-xs text-sm text-muted-foreground">
             You&apos;ll see requests and updates here.

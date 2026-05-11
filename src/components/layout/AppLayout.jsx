@@ -23,7 +23,7 @@ const AppLayout = memo(function AppLayout() {
   const isRadar = pathname === '/home';
 
   return (
-    <div className={cn('min-h-screen bg-background relative overflow-hidden selection:bg-primary/30', isRadar && 'min-h-0 h-screen')}>
+    <div className={cn('min-h-dvh bg-background relative overflow-hidden selection:bg-primary/30', isRadar && 'min-h-0 h-screen')}>
       {/* Skip to main content — keyboard accessibility */}
       <a
         href="#main-content"
@@ -63,7 +63,7 @@ const AppLayout = memo(function AppLayout() {
         className={cn(
           isRadar
             ? 'fixed inset-0 z-0'
-            : 'relative z-10 mx-auto max-w-2xl pb-24'
+            : 'relative z-10 mx-auto max-w-2xl pb-24 pb-safe'
         )}
         role="main"
       >

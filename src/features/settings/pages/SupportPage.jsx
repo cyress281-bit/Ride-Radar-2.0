@@ -6,6 +6,7 @@
 
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, HelpCircle, MessageSquare } from 'lucide-react';
+import RRLogo from '@/components/RRLogo';
 import { SUPPORT_EMAIL } from '@/lib/constants.js';
 
 const FAQS = [
@@ -29,7 +30,7 @@ const FAQS = [
 
 export default function SupportPage() {
   return (
-    <div className="min-h-screen bg-background px-5 py-6 text-foreground">
+    <div className="min-h-dvh bg-background px-5 py-6 text-foreground">
       <div className="mx-auto max-w-2xl">
         <Link
           to="/settings"
@@ -40,7 +41,10 @@ export default function SupportPage() {
 
         <div className="rr-surface-strong rounded-2xl p-5">
           <div className="rr-kicker mb-2">Help & Support</div>
-          <h1 className="rr-heading mb-3 text-3xl">Support</h1>
+          <div className="flex items-center gap-3 mb-3">
+            <RRLogo size="md" />
+            <h1 className="rr-heading text-3xl">Support</h1>
+          </div>
           <p className="text-sm text-muted-foreground">
             Need help? Reach out or browse the frequently asked questions below.
           </p>

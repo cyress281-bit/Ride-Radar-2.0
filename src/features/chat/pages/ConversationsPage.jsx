@@ -6,6 +6,7 @@ import { useConversations } from '@/features/chat/hooks/use-conversations.js';
 import ConversationList from '@/features/chat/components/ConversationList.jsx';
 import { MessageCircle, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
+import RRLogo from '@/components/RRLogo';
 
 /**
  * Conversations list page.
@@ -47,7 +48,10 @@ export default function ConversationsPage() {
           <div className="relative z-10 w-16 h-16 rounded-2xl bg-primary/10 mx-auto flex items-center justify-center mb-5 border border-primary/30">
             <MessageCircle className="w-7 h-7 text-primary" />
           </div>
-          <h3 className="font-bold text-xl mb-2 relative z-10">No open comms</h3>
+          <div className="relative z-10 flex items-center justify-center gap-2 mb-2">
+            <RRLogo size="sm" className="opacity-70" />
+            <h3 className="font-bold text-xl">No open comms</h3>
+          </div>
           <p className="text-sm text-muted-foreground max-w-xs mx-auto relative z-10">
             Start a conversation with another rider to see it here.
           </p>
@@ -66,7 +70,7 @@ export default function ConversationsPage() {
         type="button"
         onClick={() => navigate('/messages/new')}
         className={cn(
-          'fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full',
+          'fixed bottom-28 right-6 z-50 h-14 w-14 rounded-full',
           'bg-primary text-primary-foreground shadow-lg',
           'flex items-center justify-center',
           'transition-transform duration-200 hover:scale-105 active:scale-95',

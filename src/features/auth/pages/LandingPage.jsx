@@ -50,7 +50,7 @@ export default function LandingPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col overflow-hidden relative">
+    <div className="min-h-dvh bg-background flex flex-col overflow-hidden relative">
       {/* Live ambient background */}
       <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-30" />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.14),transparent_32%),linear-gradient(180deg,transparent,rgba(0,0,0,0.55))]" />

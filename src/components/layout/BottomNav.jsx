@@ -81,7 +81,7 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
 
                 <span
                   className={cn(
-                    'text-[9px] tracking-[0.12em] font-bold uppercase transition-colors duration-200',
+                    'text-[10px] tracking-[0.12em] font-bold uppercase transition-colors duration-200',
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   )}
                 >

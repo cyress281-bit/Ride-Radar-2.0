@@ -58,7 +58,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
+    <div className="min-h-dvh bg-background flex items-center justify-center px-4 py-8">
       {/* Background effects */}
       <div className="absolute inset-0 radar-grid pointer-events-none opacity-20" />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.14),transparent_32%)]" />

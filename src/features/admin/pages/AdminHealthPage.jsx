@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Loader2, Activity, ExternalLink } from 'lucide-react';
 import { supabase } from '@/lib/supabase.js';
 import { cn } from '@/lib/utils.js';
+import RRLogo from '@/components/RRLogo';
 
 /**
  * Admin Health Monitor — Real-time system health dashboard.
@@ -137,22 +138,25 @@ export default function AdminHealthPage() {
   const passCount = checks.filter((c) => c.status === 'pass').length;
 
   return (
-    <div className="min-h-screen p-4 pt-20">
+    <div className="min-h-dvh p-4 pt-20">
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">System Health</h1>
-            <p className="text-sm text-muted-foreground">
-              {lastRun ? `Last checked: ${lastRun}` : 'Running checks...'}
-            </p>
-            <a
-              href={DEPLOYMENT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
-            >
-              <ExternalLink className="h-3 w-3" /> {DEPLOYMENT_URL}
-            </a>
+          <div className="flex items-center gap-3">
+            <RRLogo size="md" />
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">System Health</h1>
+              <p className="text-sm text-muted-foreground">
+                {lastRun ? `Last checked: ${lastRun}` : 'Running checks...'}
+              </p>
+              <a
+                href={DEPLOYMENT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+              >
+                <ExternalLink className="h-3 w-3" /> {DEPLOYMENT_URL}
+              </a>
+            </div>
           </div>
           <Button
             onClick={runHealthChecks}

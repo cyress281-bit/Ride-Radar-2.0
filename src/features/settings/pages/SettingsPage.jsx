@@ -24,6 +24,7 @@ import {
   Eye,
   AlertCircle,
 } from 'lucide-react';
+import RRLogo from '@/components/RRLogo';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import {
@@ -266,7 +267,7 @@ export default function SettingsPage() {
       {/* Back link */}
       <Link
         to="/profile"
-        className="rr-haptic mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="rr-haptic mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
       >
         <ArrowLeft className="h-4 w-4" /> Profile
       </Link>
@@ -279,8 +280,11 @@ export default function SettingsPage() {
           <div className="rr-chip mb-3">
             <ShieldCheck className="h-3.5 w-3.5" /> Safety hub
           </div>
-          <h1 className="rr-heading text-4xl">Settings</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <div className="flex items-center gap-3 mb-2">
+            <RRLogo size="md" />
+            <h1 className="rr-heading text-4xl">Settings</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">
             Privacy, safety, notifications, and account controls.
           </p>
         </div>

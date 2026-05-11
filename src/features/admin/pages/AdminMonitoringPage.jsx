@@ -13,6 +13,7 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
+import RRLogo from '@/components/RRLogo';
 import { Button } from '@/components/ui/button';
 import { getTodaysStats } from '@/features/admin/api/admin-api.js';
 import { getPerformanceSummary } from '@/lib/performanceMonitoring.js';
@@ -124,13 +125,16 @@ function AdminMonitoringContent() {
         <ArrowLeft className="h-4 w-4" /> Command Center
       </Link>
 
-      <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-          System Health
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Live metrics, performance data, and external dashboards
-        </p>
+      <div className="mb-6 flex items-center gap-3">
+        <RRLogo size="md" />
+        <div>
+          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+            System Health
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Live metrics, performance data, and external dashboards
+          </p>
+        </div>
       </div>
 
       <div className="mb-4 flex items-center justify-between">

@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   Radio,
 } from 'lucide-react';
+import RRLogo from '@/components/RRLogo';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/OptimizedImage';
 import BroadcastCard from '@/components/broadcast/BroadcastCard';
@@ -152,7 +153,7 @@ export default function RiderProfilePage() {
       <div className="px-5 pt-5">
         <button
           onClick={() => navigate(-1)}
-          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
@@ -162,7 +163,12 @@ export default function RiderProfilePage() {
   }
 
   if (isProfileLoading) {
-    return <div className="p-10 text-center text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center text-sm text-muted-foreground">
+        <RRLogo size="md" className="mb-4 animate-pulse" />
+        Loading rider profile…
+      </div>
+    );
   }
 
   if (isProfileError || !profile) {
@@ -170,12 +176,13 @@ export default function RiderProfilePage() {
       <div className="px-5 pt-5">
         <button
           onClick={() => navigate(-1)}
-          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
-        <div className="p-10 text-center text-sm text-muted-foreground">
-          Rider profile not found or private.
+        <div className="rr-surface rounded-2xl p-10 text-center">
+          <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
+          <p className="text-sm text-muted-foreground">Rider profile not found or private.</p>
         </div>
       </div>
     );
@@ -186,7 +193,7 @@ export default function RiderProfilePage() {
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="rr-haptic mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="rr-haptic mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
       >
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
@@ -288,7 +295,7 @@ export default function RiderProfilePage() {
         </>
       ) : (
         <div className="rr-surface my-6 rounded-2xl p-5 text-center text-sm text-muted-foreground">
-          <ShieldCheck className="mx-auto mb-2 h-6 w-6 text-muted-foreground/50" />
+          <RRLogo size="sm" className="mx-auto mb-2 opacity-50" />
           This profile is private. Add them as a friend to see more details.
         </div>
       )}
@@ -362,7 +369,7 @@ function RiderMetric({ icon: Icon, label, value }) {
   return (
     <div className="relative min-w-0 overflow-hidden rounded-2xl border border-border/60 bg-black/30 p-3 backdrop-blur-sm">
       <div className="absolute right-2 top-2 h-1.5 w-1.5 animate-pulse-green rounded-full bg-primary/60" />
-      <div className="mb-2 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
         <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
           <Icon className="h-3.5 w-3.5 drop-shadow-[0_0_4px_currentColor]" />
         </span>

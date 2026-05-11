@@ -184,7 +184,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
   return (
     <div className="px-5 pt-5 pb-8">
-      <button onClick={onBack} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+      <button onClick={onBack} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
         <ArrowLeft className="w-4 h-4" /> All types
       </button>
 
@@ -302,14 +302,14 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <label className="rr-haptic flex h-10 cursor-pointer items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-xs font-bold text-primary transition hover:bg-primary/15">
+                      <label className="rr-haptic flex h-11 min-h-[44px] cursor-pointer items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-xs font-bold text-primary transition hover:bg-primary/15">
                         <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                         {uploading ? 'Preparing...' : 'Replace'}
                       </label>
                       <button
                         type="button"
                         onClick={() => setEventImage(null)}
-                        className="rr-haptic h-10 rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive"
+                        className="rr-haptic h-11 min-h-[44px] rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive"
                       >
                         Remove
                       </button>

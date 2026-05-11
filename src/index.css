@@ -22,8 +22,8 @@
     --background: 0 0% 3%;
     --foreground: 0 0% 98%;
 
-    /* Primary — electric lime green */
-    --primary: 95 100% 50%;
+    /* Primary — electric lime green #beff00 */
+    --primary: 75 100% 50%;
     --primary-foreground: 0 0% 3%;
 
     /* Secondary & muted */
@@ -35,7 +35,7 @@
     /* Borders & inputs */
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 95 100% 50%;
+    --ring: 75 100% 50%;
     --radius: 0.75rem;
 
     /* Extended semantic surfaces */
@@ -43,8 +43,8 @@
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
-    --accent: 95 100% 50%;
-    --accent-foreground: 0 0% 3%;
+    --accent: 75 60% 12%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
 
@@ -71,7 +71,7 @@
   html,
   body,
   #root {
-    height: 100%;
+    min-height: 100dvh;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
@@ -165,6 +165,44 @@
     -webkit-backdrop-filter: blur(20px) saturate(180%);
   }
 
+  .rr-glass-border {
+    border: 1px solid hsl(var(--primary) / 0.12);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.04);
+  }
+
+  .rr-carbon-bg {
+    background:
+      radial-gradient(circle at 20% 0%, hsl(var(--primary) / 0.06), transparent 40%),
+      linear-gradient(180deg, hsl(var(--background)), hsl(0 0% 2%));
+  }
+
+  .rr-premium-shell {
+    background:
+      linear-gradient(145deg, hsl(var(--card) / 0.95), hsl(0 0% 4% / 0.96)),
+      hsl(0 0% 4% / 0.85);
+    border: 1px solid hsl(var(--primary) / 0.12);
+    box-shadow:
+      0 24px 64px hsl(0 0% 0% / 0.5),
+      inset 0 1px 0 hsl(0 0% 100% / 0.06);
+    backdrop-filter: blur(24px) saturate(170%);
+    -webkit-backdrop-filter: blur(24px) saturate(170%);
+  }
+
+  /* ---------- Headings ---------- */
+  .rr-heading {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 0.94;
+  }
+
+  .rr-aggressive-heading {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 0.92;
+  }
+
   /* ---------- Inputs ---------- */
   .rr-premium-input {
     @apply rounded-lg px-4 py-2.5 outline-none;
@@ -186,6 +224,7 @@
       0 0 0 2px hsl(var(--primary)),
       0 0 20px hsl(var(--primary) / 0.3);
     animation: rr-neon-focus-pulse 1.8s ease-in-out infinite;
+    will-change: box-shadow;
   }
 
   /* ---------- Interaction ---------- */
@@ -206,7 +245,20 @@
   }
 
   .rr-kicker {
-    @apply text-[10px] font-bold uppercase tracking-[0.22em] text-primary;
+    @apply text-[11px] font-bold uppercase tracking-[0.18em] text-primary;
+  }
+
+  .rr-premium-label {
+    @apply text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground;
+  }
+
+  /* ---------- Avatar ---------- */
+  .rr-avatar-ring {
+    position: relative;
+    padding: 3px;
+    border-radius: 9999px;
+    background: linear-gradient(145deg, hsl(var(--primary) / 0.35), hsl(var(--primary) / 0.08));
+    box-shadow: 0 0 16px hsl(var(--primary) / 0.15);
   }
 
   /* ---------- Effects ---------- */
@@ -229,10 +281,14 @@
   }
 
   .text-gradient-green {
-    background: linear-gradient(135deg, hsl(95 100% 60%), hsl(95 100% 40%));
+    background: linear-gradient(135deg, hsl(75 100% 60%), hsl(75 100% 40%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .text-glow-green {
+    text-shadow: 0 0 18px hsl(var(--primary) / 0.55), 0 0 40px hsl(var(--primary) / 0.22);
   }
 
   .glow-green {
@@ -241,9 +297,36 @@
       0 0 28px 0 hsl(var(--primary) / 0.18);
   }
 
+  .glow-green-sm {
+    box-shadow:
+      0 0 8px 0 hsl(var(--primary) / 0.35),
+      0 0 18px 0 hsl(var(--primary) / 0.12);
+  }
+
+  /* ---------- Scroll hide ---------- */
+  .scroll-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scroll-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ---------- Overscroll ---------- */
+  .overscroll-contain {
+    overscroll-behavior: contain;
+  }
+
   /* ---------- Safe Area ---------- */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .px-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
 }
 
@@ -252,41 +335,61 @@
    ------------------------------------------------------------------ */
 @layer utilities {
   .animate-pulse-green {
-    animation: pulse-green 2s ease-in-out infinite;
+    position: relative;
   }
+  .animate-pulse-green::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: inherit;
+    box-shadow: 0 0 18px 4px hsl(var(--primary) / 0.7);
+    opacity: 0;
+    animation: pulse-green-glow 2s ease-in-out infinite;
+    will-change: opacity;
+    pointer-events: none;
+  }
+
   .animate-pulse-alert {
-    animation: pulse-alert 1.8s ease-in-out infinite;
+    position: relative;
   }
+  .animate-pulse-alert::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    box-shadow: 0 0 18px 4px hsl(var(--alert) / 0.7);
+    opacity: 0;
+    animation: pulse-alert-glow 1.8s ease-in-out infinite;
+    will-change: opacity;
+    pointer-events: none;
+  }
+
   .animate-radar {
     animation: radar-sweep 3s linear infinite;
+    will-change: transform;
   }
   .animate-ekg {
     animation: ekg 2s ease-in-out infinite;
+    will-change: stroke-dashoffset;
   }
   .animate-shimmer {
     animation: shimmer 2.5s ease-in-out infinite;
+    will-change: background-position;
   }
   .animate-float {
     animation: float 4s ease-in-out infinite;
+    will-change: transform;
   }
 }
 
-@keyframes pulse-green {
-  0%, 100% {
-    box-shadow: 0 0 8px 0 hsl(var(--primary) / 0.4);
-  }
-  50% {
-    box-shadow: 0 0 18px 4px hsl(var(--primary) / 0.7);
-  }
+@keyframes pulse-green-glow {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
 }
 
-@keyframes pulse-alert {
-  0%, 100% {
-    box-shadow: 0 0 8px 0 hsl(var(--alert) / 0.4);
-  }
-  50% {
-    box-shadow: 0 0 18px 4px hsl(var(--alert) / 0.7);
-  }
+@keyframes pulse-alert-glow {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
 }
 
 @keyframes radar-sweep {
@@ -410,6 +513,7 @@
     border: 1px solid currentColor;
     opacity: 0.34;
     animation: rr-map-ping 2.4s ease-out infinite;
+    will-change: transform, opacity;
   }
 
   .rr-map-marker span {
@@ -483,8 +587,8 @@
     scroll-behavior: auto !important;
   }
 
-  .animate-pulse-green,
-  .animate-pulse-alert,
+  .animate-pulse-green::after,
+  .animate-pulse-alert::after,
   .animate-radar,
   .animate-ekg,
   .animate-shimmer,
@@ -512,5 +616,59 @@
     height: 100vh !important;
     width: 100vw !important;
     page-break-inside: avoid;
+  }
+}
+
+/* ------------------------------------------------------------------
+   10. RADAR GRID BACKGROUNDS
+   ------------------------------------------------------------------ */
+@layer utilities {
+  .radar-grid {
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .radar-grid-animated {
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    animation: radar-grid-drift 24s linear infinite;
+    will-change: background-position;
+  }
+
+  @keyframes radar-grid-drift {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 48px 48px, 48px 48px; }
+  }
+}
+
+/* ------------------------------------------------------------------
+   11. SHIMMER BUTTON
+   ------------------------------------------------------------------ */
+@layer utilities {
+  .rr-shimmer-button {
+    position: relative;
+    overflow: hidden;
+  }
+  .rr-shimmer-button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      hsl(var(--primary) / 0.12) 45%,
+      hsl(var(--primary) / 0.22) 50%,
+      hsl(var(--primary) / 0.12) 55%,
+      transparent 60%
+    );
+    background-size: 250% 100%;
+    animation: shimmer 2.8s ease-in-out infinite;
+    will-change: background-position;
+    pointer-events: none;
+    mix-blend-mode: screen;
   }
 }

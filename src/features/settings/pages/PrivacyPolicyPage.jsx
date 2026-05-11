@@ -6,13 +6,14 @@
 
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import RRLogo from '@/components/RRLogo';
 import { SUPPORT_EMAIL } from '@/lib/constants.js';
 
 const LAST_UPDATED = 'May 9, 2026';
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-background px-5 py-6 text-foreground">
+    <div className="min-h-dvh bg-background px-5 py-6 text-foreground">
       <div className="mx-auto max-w-2xl">
         <Link
           to="/settings"
@@ -23,7 +24,10 @@ export default function PrivacyPolicyPage() {
 
         <div className="rr-surface-strong rounded-2xl p-5">
           <div className="rr-kicker mb-2">Ride Radar Privacy Policy</div>
-          <h1 className="rr-heading mb-3 text-3xl">Privacy Policy</h1>
+          <div className="flex items-center gap-3 mb-3">
+            <RRLogo size="md" />
+            <h1 className="rr-heading text-3xl">Privacy Policy</h1>
+          </div>
           <p className="text-sm text-muted-foreground">
             Ride Radar collects and stores account, profile, content, and app usage information
             needed to operate the app.

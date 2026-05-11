@@ -50,7 +50,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
   );
 
   return (
-    <div className="p-3 border-t border-border/60 bg-background/90 backdrop-blur">
+    <div className="p-3 pb-safe border-t border-border/60 bg-background/90 backdrop-blur">
       <div className="flex gap-2 items-end">
         <div className="relative flex-1">
           <textarea
@@ -84,7 +84,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
           onClick={handleSend}
           disabled={!canSend}
           className={cn(
-            'shrink-0 h-10 w-10 rounded-full flex items-center justify-center',
+            'shrink-0 h-11 w-11 rounded-full flex items-center justify-center',
             'bg-primary text-primary-foreground transition-all duration-200',
             'hover:bg-primary/90 active:scale-95',
             'disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100'

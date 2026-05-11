@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, memo } from 'react';
 import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check } from 'lucide-react';
+import RRLogo from '@/components/RRLogo';
 import AlertPhotoGrid from '@/features/broadcast/components/AlertPhotoGrid';
 import { BROADCAST_META, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils.js';
@@ -96,23 +97,36 @@ export default function BroadcastDetailPage() {
   if (!hasValidBroadcastId) {
     return (
       <div className="px-5 pt-5">
-        <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+        <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="p-10 text-center text-sm text-muted-foreground">Invalid broadcast link.</div>
+        <div className="rr-surface rounded-2xl p-10 text-center">
+          <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
+          <p className="text-sm text-muted-foreground">Invalid broadcast link.</p>
+        </div>
       </div>
     );
   }
 
-  if (isBroadcastLoading) return <div className="p-10 text-center text-sm text-muted-foreground">Loading...</div>;
+  if (isBroadcastLoading) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center text-sm text-muted-foreground">
+        <RRLogo size="md" className="mb-4 animate-pulse" />
+        Loading broadcast…
+      </div>
+    );
+  }
 
   if (isBroadcastError) {
     return (
       <div className="px-5 pt-5">
-        <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+        <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="p-10 text-center text-sm text-muted-foreground">Unable to load this broadcast.</div>
+        <div className="rr-surface rounded-2xl p-10 text-center">
+          <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
+          <p className="text-sm text-muted-foreground">Unable to load this broadcast.</p>
+        </div>
       </div>
     );
   }
@@ -120,10 +134,13 @@ export default function BroadcastDetailPage() {
   if (!broadcast) {
     return (
       <div className="px-5 pt-5">
-        <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+        <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="p-10 text-center text-sm text-muted-foreground">Broadcast not found.</div>
+        <div className="rr-surface rounded-2xl p-10 text-center">
+          <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
+          <p className="text-sm text-muted-foreground">Broadcast not found.</p>
+        </div>
       </div>
     );
   }
@@ -148,7 +165,7 @@ export default function BroadcastDetailPage() {
 
   return (
     <div className="px-5 pt-5 pb-8">
-      <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
+      <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
         <ArrowLeft className="w-4 h-4" /> Back
       </button>
 
