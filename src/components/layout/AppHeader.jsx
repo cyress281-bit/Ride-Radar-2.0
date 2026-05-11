@@ -8,20 +8,21 @@ import RRLogo from '@/components/RRLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 /**
- * AppHeader — Sticky glassmorphism header bar.
+ * AppHeader — Glassmorphism header bar.
  *
  * Layout:
  * - Left: RRLogo (links to /home)
  * - Center: "Ride Radar" title (hidden on mobile, visible on tablet+)
  * - Right: Admin shield (conditional), Notifications bell with badge, Avatar thumbnail
  *
- * Styling:
- * - Glassmorphism: bg-background/80 backdrop-blur-md border-b border-primary/10
- * - Height: h-14
+ * Modes:
+ * - Sticky: normal page scroll (default)
+ * - Overlay: floats above full-screen content (radar map), transparent bg
  *
+ * @param {boolean} [isOverlay=false]
  * @returns {JSX.Element}
  */
-const AppHeader = memo(function AppHeader() {
+const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { pathname } = useLocation();
   const { isAdmin } = useAdminRole();
   const { profile } = useSupabaseAuth();
@@ -31,7 +32,14 @@ const AppHeader = memo(function AppHeader() {
   const displayName = profile?.display_name || profile?.username || 'Rider';
 
   return (
-    <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-primary/10">
+    <header
+      className={cn(
+        'z-40',
+        isOverlay
+          ? 'absolute top-0 left-0 right-0 bg-black/40 backdrop-blur-xl border-b border-white/5'
+          : 'sticky top-0 bg-background/80 backdrop-blur-md border-b border-primary/10'
+      )}
+    >
       <div className={cn('mx-auto px-4 h-14 flex items-center justify-between', isRadar ? 'max-w-[1180px]' : 'max-w-2xl')}>
         {/* Left: Logo */}
         <NavLink
@@ -46,11 +54,13 @@ const AppHeader = memo(function AppHeader() {
         </NavLink>
 
         {/* Center: App title (hidden on mobile) */}
-        <div className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2">
-          <span className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground/60">
-            Ride Radar
-          </span>
-        </div>
+        {!isOverlay && (
+          <div className="hidden md:flex items-center justify-center absolute left-1/2 -translate-x-1/2">
+            <span className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground/60">
+              Ride Radar
+            </span>
+          </div>
+        )}
 
         {/* Right: Actions */}
         <div className="flex items-center gap-1" role="group" aria-label="Header actions">

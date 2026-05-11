@@ -365,7 +365,14 @@ export default function LiveMap({
 
   return (
     <section
-      className={cn('rr-map-shell relative overflow-hidden rounded-[1.35rem] border border-border/70 bg-black/35 p-3 shadow-[0_22px_70px_rgba(0,0,0,0.42),inset_0_1px_0_hsl(0_0%_100%/0.045)]', variant === 'full' ? 'lg:p-4' : variant === 'radar' ? 'p-0' : 'p-4', className)}
+      className={cn(
+        'relative overflow-hidden',
+        variant === 'radar'
+          ? 'h-full w-full'
+          : 'rr-map-shell rounded-[1.35rem] border border-border/70 bg-black/35 p-3 shadow-[0_22px_70px_rgba(0,0,0,0.42),inset_0_1px_0_hsl(0_0%_100%/0.045)]',
+        variant === 'full' ? 'lg:p-4' : variant !== 'radar' ? 'p-4' : '',
+        className
+      )}
       aria-label="Live map of active rider broadcasts"
     >
       {variant !== 'full' && variant !== 'radar' && (

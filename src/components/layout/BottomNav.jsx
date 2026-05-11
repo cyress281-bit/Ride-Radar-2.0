@@ -20,9 +20,10 @@ const TABS = [
  * - Fixed to bottom with iOS safe-area inset support (pb-safe)
  * - Glassmorphism surface with rounded corners
  *
+ * @param {boolean} [isOverlay=false] — When true, uses more transparent bg for overlay mode
  * @returns {JSX.Element}
  */
-const BottomNav = memo(function BottomNav() {
+const BottomNav = memo(function BottomNav({ isOverlay = false }) {
   const { pathname } = useLocation();
   const isRadar = pathname === '/home';
 
@@ -35,8 +36,9 @@ const BottomNav = memo(function BottomNav() {
         <div
           className={cn(
             'pointer-events-auto flex items-center gap-1 rounded-2xl px-3 py-2',
-            'bg-background/90 backdrop-blur-lg',
-            'border border-primary/20',
+            isOverlay
+              ? 'bg-black/60 backdrop-blur-xl border border-white/10'
+              : 'bg-background/90 backdrop-blur-lg border border-primary/20',
             'shadow-[0_12px_40px_rgba(0,0,0,0.65)]'
           )}
           role="tablist"
