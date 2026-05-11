@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Users, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
+import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
 import { updateUserRole } from '@/features/admin/api/admin-api.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,34 @@ const USER_ROLES = ['user', 'admin'];
  * AdminUsersPage - Manage user accounts and role assignments.
  */
 export default function AdminUsersPage() {
+  const { isAdmin, isLoading: roleLoading } = useAdminRole();
+  if (roleLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-24" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <Skeleton className="mb-4 h-10 w-full" />
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
+  if (!isAdmin) {
+    return (
+      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
+        Admin access required.
+      </div>
+    );
+  }
+  return <AdminUsersContent />;
+}
+
+function AdminUsersContent() {
   const qc = useQueryClient();
   const [q, setQ] = useState('');
   const { users, profiles, isLoading } = useAdminData();

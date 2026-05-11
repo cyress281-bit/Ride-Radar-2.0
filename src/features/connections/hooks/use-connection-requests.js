@@ -2,8 +2,11 @@
  * @fileoverview TanStack Query hooks for connection requests.
  */
 
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
+import { supabase } from '@/lib/supabase.js';
+import { toast } from '@/components/ui/use-toast';
 import {
   getConnectionRequests,
   getSentRequests,
@@ -25,7 +28,9 @@ export const connectionRequestKeys = {
  */
 export function useConnectionRequests() {
   const { user } = useAuthState();
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: connectionRequestKeys.incoming(user?.id),
     queryFn: async () => {
       const { data, error } = await getConnectionRequests(user.id);
@@ -35,6 +40,31 @@ export function useConnectionRequests() {
     enabled: !!user?.id,
     staleTime: 30_000,
   });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`connection-requests-incoming-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'connection_requests',
+          filter: `to_user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: connectionRequestKeys.incoming(user.id) });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
+  return query;
 }
 
 /**
@@ -43,7 +73,9 @@ export function useConnectionRequests() {
  */
 export function useSentRequests() {
   const { user } = useAuthState();
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: connectionRequestKeys.sent(user?.id),
     queryFn: async () => {
       const { data, error } = await getSentRequests(user.id);
@@ -53,6 +85,31 @@ export function useSentRequests() {
     enabled: !!user?.id,
     staleTime: 30_000,
   });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`connection-requests-sent-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'connection_requests',
+          filter: `from_user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: connectionRequestKeys.sent(user.id) });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
+  return query;
 }
 
 /**
@@ -69,6 +126,14 @@ export function useSendConnectionRequest() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: connectionRequestKeys.all });
+      toast({ title: 'Connection request sent' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to send request',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 }
@@ -90,6 +155,14 @@ export function useAcceptConnectionRequest() {
       queryClient.invalidateQueries({ queryKey: connectionRequestKeys.all });
       queryClient.invalidateQueries({ queryKey: ['friendships'] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      toast({ title: 'Connection accepted' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to accept request',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 }
@@ -108,6 +181,14 @@ export function useDeclineConnectionRequest() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: connectionRequestKeys.all });
+      toast({ title: 'Connection declined' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to decline request',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 }

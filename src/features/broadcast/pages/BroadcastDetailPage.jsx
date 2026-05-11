@@ -5,7 +5,7 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, memo, useCallback } from 'react';
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2 } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import AlertPhotoGrid from '@/components/shared/AlertPhotoGrid';
 import { BROADCAST_META, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
@@ -14,6 +14,7 @@ import { getProfileById } from '@/features/profile/api/profile-api.js';
 import { isValidUuid } from '@/lib/utils.js';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
+import { toast } from '@/components/ui/use-toast';
 
 /**
  * Single broadcast detail page.
@@ -165,9 +166,25 @@ function BroadcastDetailPage() {
 
   return (
     <div className="px-5 pt-5 pb-8">
-      <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
-        <ArrowLeft className="w-4 h-4" /> Back
-      </button>
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <button
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(window.location.href);
+              toast({ title: 'Link copied', description: 'Broadcast link copied to clipboard.' });
+            } catch {
+              toast({ title: 'Copy failed', description: 'Unable to copy link.', variant: 'destructive' });
+            }
+          }}
+          className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
+          aria-label="Copy broadcast link"
+        >
+          <Share2 className="w-4 h-4" /> Share
+        </button>
+      </div>
 
       <div className={cn('rounded-[1.45rem] border p-5 relative overflow-hidden rr-surface', typeAccentClass)}>
         <div className={cn('absolute top-0 left-0 right-0 h-1', typeTopBorder)} />
@@ -195,7 +212,7 @@ function BroadcastDetailPage() {
           </div>
         )}
 
-        {isAlert && <AlertPhotoGrid images={broadcast.alert_photos || broadcast.alert_image_urls} variant="detail" />}
+        {isAlert && <AlertPhotoGrid images={(broadcast.alert_photos || broadcast.alert_image_urls) || []} variant="detail" />}
 
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground mt-4">
           {(broadcast.type === 'event' || isAlert) && broadcast.exact_location_text && (
@@ -223,7 +240,7 @@ function BroadcastDetailPage() {
           >
             {author.avatar ? (
               <div className="rr-avatar-ring shrink-0" style={{ padding: '3px' }}>
-                <img src={author.avatar} className="w-10 h-10 rounded-full object-cover border border-primary/30" alt="" />
+                <img src={author.avatar} className="w-10 h-10 rounded-full object-cover border border-primary/30" alt={author.display_name || 'Rider'} />
               </div>
             ) : (
               <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-semibold text-sm border border-border/50">

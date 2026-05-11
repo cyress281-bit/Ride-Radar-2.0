@@ -32,14 +32,29 @@ export class ErrorBoundary extends Component {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, errorInfo) {
-    console.error('[ErrorBoundary] Caught error:', error, errorInfo);
-    this.setState({ errorInfo });
+  componentDidUpdate(prevProps) {
+    if (
+      this.state.hasError &&
+      this.props.resetKey !== undefined &&
+      prevProps.resetKey !== this.props.resetKey
+    ) {
+      this.setState({ hasError: false, error: null, errorInfo: null });
+    }
+  }
 
-    captureError(error, {
-      errorBoundary: 'ErrorBoundary',
-      componentStack: errorInfo.componentStack,
-    });
+  componentDidCatch(error, errorInfo) {
+    try {
+      console.error('[ErrorBoundary] Caught error:', error, errorInfo);
+      this.setState({ errorInfo });
+
+      captureError(error, {
+        errorBoundary: 'ErrorBoundary',
+        componentStack: errorInfo.componentStack,
+      });
+    } catch (boundaryError) {
+      // Prevent infinite error loops if Sentry or setState itself throws
+      console.error('[ErrorBoundary] Failed to process error:', boundaryError);
+    }
   }
 
   handleReload = () => {
@@ -48,6 +63,10 @@ export class ErrorBoundary extends Component {
 
   handleGoHome = () => {
     window.location.href = '/';
+  };
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: null, errorInfo: null });
   };
 
   render() {
@@ -111,6 +130,13 @@ export class ErrorBoundary extends Component {
                 className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary font-bold tracking-wide"
               >
                 Go Home
+              </Button>
+              <Button
+                onClick={this.handleReset}
+                variant="ghost"
+                className="text-muted-foreground hover:text-foreground font-bold tracking-wide"
+              >
+                Try Again
               </Button>
             </div>
           </div>

@@ -67,38 +67,40 @@ function getCenter(items, userLat, userLng) {
   return [lat, lng];
 }
 
-const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, variant, disabled, focusUserLocation }) {
+const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, variant, disabled, focusUserLocation, fitKey }) {
   const map = useMap();
-  const boundsKey = useMemo(
-    () => items.map((item) => `${item.id}:${item.lat.toFixed(4)},${item.lng.toFixed(4)}`).join('|'),
-    [items]
-  );
+  const hasFittedRef = useRef(false);
 
   useEffect(() => {
     if (disabled) return;
-    window.requestAnimationFrame(() => map.invalidateSize());
+    const rafId = window.requestAnimationFrame(() => map.invalidateSize());
 
     if (focusUserLocation && isValidCoordinate(userLat, userLng)) {
       map.setView([userLat, userLng], 15, { animate: false });
-      return;
+      return () => window.cancelAnimationFrame(rafId);
     }
     if (items.length === 0) {
       map.setView(getCenter(items, userLat, userLng), variant === 'full' ? 4 : 12);
-      return;
+      return () => window.cancelAnimationFrame(rafId);
     }
     if (items.length === 1) {
       map.setView([items[0].lat, items[0].lng], variant === 'full' ? 12 : 10);
-      return;
+      return () => window.cancelAnimationFrame(rafId);
     }
-    map.fitBounds(
-      items.map((item) => [item.lat, item.lng]),
-      {
-        paddingTopLeft: variant === 'full' ? [34, 34] : [24, 24],
-        paddingBottomRight: variant === 'full' ? [34, 34] : [24, 24],
-        maxZoom: variant === 'full' ? 12 : 13,
-      }
-    );
-  }, [boundsKey, disabled, focusUserLocation, items, map, userLat, userLng, variant]);
+    // Only auto-fit when fitKey changes or on first meaningful load to prevent jumping
+    if (fitKey || !hasFittedRef.current) {
+      map.fitBounds(
+        items.map((item) => [item.lat, item.lng]),
+        {
+          paddingTopLeft: variant === 'full' ? [34, 34] : [24, 24],
+          paddingBottomRight: variant === 'full' ? [34, 34] : [24, 24],
+          maxZoom: variant === 'full' ? 12 : 13,
+        }
+      );
+      hasFittedRef.current = true;
+    }
+    return () => window.cancelAnimationFrame(rafId);
+  }, [fitKey, disabled, focusUserLocation, items.length, map, userLat, userLng, variant]);
 
   return null;
 });
@@ -336,6 +338,9 @@ function LiveMap({
   const [tilesLoading, setTilesLoading] = useState(true);
   const [hasLoadedAnyTile, setHasLoadedAnyTile] = useState(false);
 
+  const getProfileRef = useRef(getProfile);
+  getProfileRef.current = getProfile;
+
   const broadcastItems = useMemo(() => {
     return broadcasts
       .map((broadcast) => {
@@ -345,12 +350,12 @@ function LiveMap({
         return {
           ...broadcast,
           ...point,
-          author: getProfile && broadcast.author_id ? getProfile(broadcast.author_id) : null,
+          author: getProfileRef.current && broadcast.author_id ? getProfileRef.current(broadcast.author_id) : null,
         };
       })
       .filter(Boolean)
       .slice(0, variant === 'full' || variant === 'radar' ? 250 : 75);
-  }, [broadcasts, getProfile, variant]);
+  }, [broadcasts, variant]);
 
   const livePresenceItems = useMemo(() => {
     return presenceMarkers
@@ -485,7 +490,7 @@ function LiveMap({
               updateWhenZooming={false}
               eventHandlers={tileEventHandlers}
             />
-            <FitMapToItems items={items} userLat={userLat} userLng={userLng} variant={variant} disabled={variant === 'radar' && autoFitDisabled} focusUserLocation={focusUserLocation} />
+            <FitMapToItems items={items} userLat={userLat} userLng={userLng} variant={variant} disabled={variant === 'radar' && autoFitDisabled} focusUserLocation={focusUserLocation} fitKey={fitKey} />
             {showSelfLocation && hasUserLocation && (
               <Marker position={[userLat, userLng]} icon={getSelfMarkerIcon()}>
                 <Popup>

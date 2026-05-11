@@ -47,6 +47,52 @@ export async function sendConnectionRequest({ from_user_id, to_user_id }) {
   if (!isValidUuid(from_user_id) || !isValidUuid(to_user_id)) {
     return { data: null, error: new Error('Invalid user IDs') };
   }
+  if (from_user_id === to_user_id) {
+    return { data: null, error: new Error('Cannot send a connection request to yourself') };
+  }
+
+  // Prevent duplicate pending requests
+  const { data: existingRequest, error: existingError } = await supabase
+    .from('connection_requests')
+    .select('id')
+    .eq('from_user_id', from_user_id)
+    .eq('to_user_id', to_user_id)
+    .eq('status', 'pending')
+    .maybeSingle();
+
+  if (existingError) return { data: null, error: existingError };
+  if (existingRequest) {
+    return { data: null, error: new Error('A pending request to this user already exists') };
+  }
+
+  // Prevent requests to existing friends
+  const { data: existingFriendship, error: friendshipError } = await supabase
+    .from('friendships')
+    .select('id')
+    .eq('status', 'active')
+    .or(
+      `and(user_a_id.eq.${from_user_id},user_b_id.eq.${to_user_id}),and(user_a_id.eq.${to_user_id},user_b_id.eq.${from_user_id})`
+    )
+    .maybeSingle();
+
+  if (friendshipError) return { data: null, error: friendshipError };
+  if (existingFriendship) {
+    return { data: null, error: new Error('You are already friends with this user') };
+  }
+
+  // Prevent requests if either user has blocked the other
+  const { data: existingBlock, error: blockError } = await supabase
+    .from('user_blocks')
+    .select('id')
+    .or(
+      `and(blocker_user_id.eq.${from_user_id},blocked_user_id.eq.${to_user_id}),and(blocker_user_id.eq.${to_user_id},blocked_user_id.eq.${from_user_id})`
+    )
+    .maybeSingle();
+
+  if (blockError) return { data: null, error: blockError };
+  if (existingBlock) {
+    return { data: null, error: new Error('Unable to send request') };
+  }
 
   const { data, error } = await supabase
     .from('connection_requests')

@@ -1,9 +1,11 @@
 import React, { useMemo, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useProfileBatch } from '@/hooks/use-profile-batch.js';
 import { useConversations } from '@/features/chat/hooks/use-conversations.js';
 import ConversationList from '@/features/chat/components/ConversationList.jsx';
+import { supabase } from '@/lib/supabase.js';
 import { MessageCircle, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import RRLogo from '@/components/RRLogo';
@@ -19,6 +21,34 @@ function ConversationsPage() {
   const navigate = useNavigate();
 
   const { data: conversations = [], isLoading, isError, error } = useConversations();
+
+  const { data: readNotifications = [] } = useQuery({
+    queryKey: ['conversation-notifications', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from('conversation_notifications')
+        .select('conversation_id, read_at')
+        .eq('user_id', user.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+    staleTime: 30_000,
+  });
+
+  const unreadMap = useMemo(() => {
+    const map = new Map();
+    const readMap = new Map(readNotifications.map((n) => [n.conversation_id, n.read_at]));
+    for (const conv of conversations) {
+      const readAt = readMap.get(conv.id);
+      const lastMessageAt = conv.last_message_at;
+      if (lastMessageAt && (!readAt || new Date(readAt) < new Date(lastMessageAt))) {
+        map.set(conv.id, 1);
+      }
+    }
+    return map;
+  }, [conversations, readNotifications]);
 
   const otherIds = useMemo(
     () =>
@@ -64,6 +94,7 @@ function ConversationsPage() {
           conversations={conversations}
           profiles={profiles}
           currentUserId={user?.id}
+          unreadMap={unreadMap}
         />
       )}
 

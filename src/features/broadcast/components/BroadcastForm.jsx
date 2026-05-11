@@ -15,6 +15,7 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useCreateBroadcast } from '@/features/broadcast/hooks/use-create-broadcast.js';
 import { prepareLocalImage } from '@/lib/image-utils.js';
 import { toast } from '@/components/ui/use-toast';
+import { logger } from '@/lib/logger.js';
 
 const TYPES = [
   { id: 'solo_ride', label: 'Solo Ride', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
@@ -63,7 +64,10 @@ const eventSchema = baseSchema.extend({
   exactLocationText: z.string().min(1, 'Location is required'),
   eventDate: z.string().min(1, 'Start time is required'),
   eventEndTime: z.string().min(1, 'End time is required'),
-});
+}).refine((data) => {
+  if (!data.eventDate || !data.eventEndTime) return true;
+  return new Date(data.eventEndTime) > new Date(data.eventDate);
+}, { message: 'End time must be after start time', path: ['eventEndTime'] });
 
 const alertSchema = baseSchema.extend({
   exactLocationText: z.string().min(1, 'Approximate area is required'),
@@ -74,7 +78,12 @@ const isoSchema = z.object({
   lookingTo: z.enum(['join_crew', 'start_crew']).optional(),
   title: z.string().max(120).optional(),
   body: z.string().max(500).optional(),
-});
+}).refine((data) => {
+  if (data.isoSubtype === 'mechanic') {
+    return data.title && data.title.trim().length >= 3;
+  }
+  return true;
+}, { message: 'Title is required for mechanic requests', path: ['title'] });
 
 /**
  * Two-step broadcast creation form.
@@ -95,12 +104,25 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const [alertImages, setAlertImages] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [geoError, setGeoError] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
 
   useEffect(() => {
     if (navigator.geolocation && (type === 'solo_ride' || type === 'iso')) {
+      setIsLocating(true);
+      setGeoError(false);
       navigator.geolocation.getCurrentPosition(
-        (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => {}
+        (pos) => {
+          setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          setGeoError(false);
+          setIsLocating(false);
+        },
+        (err) => {
+          setGeoError(true);
+          setIsLocating(false);
+          logger.warn('[BroadcastForm] Geolocation error:', err?.message);
+        },
+        { maximumAge: 60000, timeout: 10000, enableHighAccuracy: false }
       );
     }
   }, [type]);
@@ -114,6 +136,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     formState: { errors },
     watch,
     setValue,
+    reset,
   } = useForm({
     resolver: zodResolver(schema),
     mode: 'onChange',
@@ -171,15 +194,23 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           title: `${typeMeta.label} broadcasted`,
           description: 'Your signal is now live on the radar.',
         });
+        reset();
+        setEventImage(null);
+        setAlertImages([]);
+        setUploadError('');
         onPosted();
       },
     });
   };
 
   const canPost =
+    !uploading &&
+    !uploadError &&
+    !isLocating &&
     (type !== 'iso' || isoSubtype === 'mechanic' || watch('lookingTo')) &&
     (type !== 'event' || (exactLocationTextValue && eventDateValue && eventEndTimeValue)) &&
-    (type !== 'alert' || exactLocationTextValue);
+    (type !== 'alert' || exactLocationTextValue) &&
+    ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
 
   return (
     <div className="px-5 pt-5 pb-8">
@@ -352,6 +383,11 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         )}
 
         {post.isError && <p className="text-sm text-destructive">{post.error?.message || 'Failed to create broadcast'}</p>}
+        {geoError && (
+          <p className="text-sm text-alert">
+            Location access is required for this signal type. Enable location or try again.
+          </p>
+        )}
         <Button
           type="submit"
           disabled={!canPost || post.isPending || !user}

@@ -54,7 +54,10 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50) {
   const queryClient = useQueryClient();
   const invalidateTimerRef = useRef(null);
   const hasCoordinates = lat != null && lng != null;
-  const nearbyQueryKey = ['broadcasts', 'nearby', lat, lng, radiusMiles];
+  // Round coordinates to avoid cache fragmentation from GPS jitter
+  const roundedLat = lat != null ? Math.round(lat * 1000) / 1000 : null;
+  const roundedLng = lng != null ? Math.round(lng * 1000) / 1000 : null;
+  const nearbyQueryKey = ['broadcasts', 'nearby', roundedLat, roundedLng, radiusMiles];
 
   const query = useQuery({
     queryKey: nearbyQueryKey,

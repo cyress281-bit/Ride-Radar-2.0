@@ -4,6 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
+import { toast } from '@/components/ui/use-toast';
 import {
   getBlocks,
   createBlock,
@@ -62,16 +63,43 @@ export function useIsBlocked(userId) {
  */
 export function useCreateBlock() {
   const queryClient = useQueryClient();
+  const { user } = useAuthState();
   return useMutation({
     mutationFn: async (blockData) => {
       const { data, error } = await createBlock(blockData);
       if (error) throw error;
       return data;
     },
+    onMutate: async (blockData) => {
+      await queryClient.cancelQueries({ queryKey: blockKeys.all });
+      const previousBlocks = queryClient.getQueryData(blockKeys.list(user?.id));
+      queryClient.setQueryData(blockKeys.list(user?.id), (old = []) => [
+        ...(old || []),
+        {
+          id: `optimistic-${Date.now()}`,
+          blocker_user_id: user?.id,
+          blocked_user_id: blockData.blocked_user_id,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+      return { previousBlocks };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: blockKeys.all });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       queryClient.invalidateQueries({ queryKey: ['broadcasts'] });
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      toast({ title: 'User blocked' });
+    },
+    onError: (error, _variables, context) => {
+      if (context?.previousBlocks) {
+        queryClient.setQueryData(blockKeys.list(user?.id), context.previousBlocks);
+      }
+      toast({
+        title: 'Failed to block user',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 }
@@ -92,6 +120,15 @@ export function useRemoveBlock() {
       queryClient.invalidateQueries({ queryKey: blockKeys.all });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       queryClient.invalidateQueries({ queryKey: ['broadcasts'] });
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      toast({ title: 'User unblocked' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to unblock user',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 }

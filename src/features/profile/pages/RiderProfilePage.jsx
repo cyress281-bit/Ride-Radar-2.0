@@ -49,6 +49,7 @@ export default function RiderProfilePage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { user } = useAuthState();
+  const [avatarError, setAvatarError] = useState(false);
 
   const hasValidUserId = isValidUuid(userId);
   const isMeRoute = user?.id === userId;
@@ -97,7 +98,7 @@ export default function RiderProfilePage() {
       if (error) throw error;
       return data;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30_000,
   });
 
   const { data: riderBroadcasts = [], isLoading: isBroadcastsLoading } = useQuery({
@@ -207,7 +208,7 @@ export default function RiderProfilePage() {
         <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
         <div className="relative z-10 flex items-start gap-4">
-          {canSeeDetails && profile.avatar_url ? (
+          {canSeeDetails && profile.avatar_url && !avatarError ? (
             <div className="rr-avatar-ring shrink-0">
               <OptimizedImage
                 src={profile.avatar_url}
@@ -219,6 +220,7 @@ export default function RiderProfilePage() {
                 fetchPriority="high"
                 fadeInDuration={200}
                 showSkeleton
+                onError={() => setAvatarError(true)}
               />
             </div>
           ) : (

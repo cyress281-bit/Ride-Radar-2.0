@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useCreateReport } from '@/features/safety/hooks/use-reports.js';
+import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -42,6 +43,13 @@ export default function ReportForm({ targetType, targetId, targetUserId, onSucce
 
   const handleSubmit = () => {
     if (isSelf || !user) return;
+    if (!reason) {
+      toast({
+        title: 'Please select a reason',
+        variant: 'destructive',
+      });
+      return;
+    }
     createReport.mutate(
       {
         reporter_user_id: user.id,
@@ -59,6 +67,24 @@ export default function ReportForm({ targetType, targetId, targetUserId, onSucce
       }
     );
   };
+
+  // Auto-close modal after showing success state briefly
+  useEffect(() => {
+    if (createReport.isSuccess) {
+      const timer = setTimeout(() => {
+        onSuccess?.();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [createReport.isSuccess, onSuccess]);
+
+  // Reset mutation state when target changes so the form works for multiple reports
+  useEffect(() => {
+    if (createReport.isSuccess || createReport.isError) {
+      createReport.reset();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetType, targetId, targetUserId]);
 
   if (!user) {
     return (

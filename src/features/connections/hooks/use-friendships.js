@@ -2,10 +2,13 @@
  * @fileoverview TanStack Query hooks for friendships.
  */
 
+import { useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
+import { supabase } from '@/lib/supabase.js';
+import { toast } from '@/components/ui/use-toast';
 import { getFriendships, removeFriendship } from '@/features/connections/api/connections-api.js';
+import { connectionRequestKeys } from '@/features/connections/hooks/use-connection-requests.js';
 
 /** Query key factory for friendships. */
 export const friendshipKeys = {
@@ -20,7 +23,9 @@ export const friendshipKeys = {
  */
 export function useFriendships() {
   const { user } = useAuthState();
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: friendshipKeys.list(user?.id),
     queryFn: async () => {
       const { data, error } = await getFriendships(user.id);
@@ -30,6 +35,44 @@ export function useFriendships() {
     enabled: !!user?.id,
     staleTime: 60_000,
   });
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`friendships-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'friendships',
+          filter: `user_a_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: friendshipKeys.all });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'friendships',
+          filter: `user_b_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: friendshipKeys.all });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
+  return query;
 }
 
 /**
@@ -77,6 +120,16 @@ export function useRemoveFriendship() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendshipKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({ queryKey: connectionRequestKeys.all });
+      toast({ title: 'Friend removed' });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to remove friend',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 }

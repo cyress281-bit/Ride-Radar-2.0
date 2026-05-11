@@ -5,7 +5,7 @@
  * Uploads images via `@/lib/image-utils.js` and upserts the profile row.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,6 +57,7 @@ const currentYear = new Date().getFullYear();
 const onboardingSchema = z.object({
   display_name: z
     .string()
+    .trim()
     .min(1, 'Display name is required')
     .min(2, 'Display name must be at least 2 characters')
     .max(50, 'Display name must be 50 characters or less'),
@@ -83,11 +84,18 @@ const onboardingSchema = z.object({
 // ------------------------------------------------------------------
 
 export default function OnboardingPage() {
-  const { user } = useAuthState();
+  const { user, profile, isLoading } = useAuthState();
   const { refreshProfile } = useAuthActions();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const redirectPath = '/home';
+
+  // Redirect already-onboarded users away from this page
+  useEffect(() => {
+    if (!isLoading && profile) {
+      navigate(redirectPath, { replace: true });
+    }
+  }, [isLoading, profile, navigate]);
 
   const [avatarLocal, setAvatarLocal] = useState(null);
   const [bikePhotoLocal, setBikePhotoLocal] = useState(null);
@@ -252,9 +260,31 @@ export default function OnboardingPage() {
     saveProfile.mutate(values);
   };
 
-  const handleSkip = () => {
-    navigate(redirectPath, { replace: true });
-  };
+  const handleSkip = useCallback(async () => {
+    if (!user?.id) return;
+    setUploadError('');
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert(
+          {
+            user_id: user.id,
+            display_name:
+              user?.user_metadata?.full_name ||
+              user?.email?.split('@')[0] ||
+              'Rider',
+            is_public: true,
+          },
+          { onConflict: 'user_id' }
+        );
+      if (error) throw error;
+      await refreshProfile();
+      navigate(redirectPath, { replace: true });
+    } catch (err) {
+      logger.error('[Onboarding] Skip failed:', err);
+      setUploadError('Failed to skip onboarding. Please try again.');
+    }
+  }, [user, refreshProfile, navigate]);
 
   // ------------------------------------------------------------------
   // Progress

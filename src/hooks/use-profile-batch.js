@@ -34,7 +34,8 @@ export function useProfileBatch(userIds) {
 
   const results = useQueries({
     queries: chunks.map((chunk) => ({
-      queryKey: ['profile-batch', chunk],
+      // Serialize chunk to a stable string key to avoid reference-based cache misses
+      queryKey: ['profile-batch', chunk.join(',')],
       queryFn: async () => {
         const { data, error } = await listProfilesByIds(chunk);
         if (error) throw error;

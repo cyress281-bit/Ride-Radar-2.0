@@ -10,10 +10,11 @@ import {
   useDeclineConnectionRequest,
 } from '@/features/connections/hooks/use-connection-requests.js';
 import { useIsFriend } from '@/features/connections/hooks/use-friendships.js';
+import { useIsBlocked } from '@/features/safety/hooks/use-blocks.js';
 import { getOrCreateConversation } from '@/lib/conversationUtils.js';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils.js';
-import { UserPlus, Clock, MessageCircle, Check, X, Loader2 } from 'lucide-react';
+import { UserPlus, Clock, MessageCircle, Check, X, Loader2, Shield } from 'lucide-react';
 
 /**
  * Smart connection button that shows the current relationship state
@@ -34,6 +35,7 @@ export default function ConnectionButton({ targetUserId, profile: _profile, clas
   const { data: incomingRequests = [], isLoading: incomingLoading } = useConnectionRequests();
   const { data: sentRequests = [], isLoading: sentLoading } = useSentRequests();
   const { isFriend, isLoading: friendLoading } = useIsFriend(targetUserId);
+  const { data: isBlocked = false, isLoading: blockedLoading } = useIsBlocked(targetUserId);
 
   const incomingRequest = useMemo(
     () => incomingRequests.find((r) => r.from_user_id === targetUserId),
@@ -92,12 +94,27 @@ export default function ConnectionButton({ targetUserId, profile: _profile, clas
     incomingLoading ||
     sentLoading ||
     friendLoading ||
+    blockedLoading ||
     sendRequest.isPending ||
     acceptRequest.isPending ||
     declineRequest.isPending ||
     openMessage.isPending;
 
   if (!user || isMe) return null;
+
+  if (isBlocked) {
+    return (
+      <Button
+        size="sm"
+        variant="outline"
+        disabled
+        className={cn('rounded-full', className)}
+      >
+        <Shield className="w-3.5 h-3.5 mr-1" />
+        Blocked
+      </Button>
+    );
+  }
 
   // Request received — show accept/decline
   if (incomingRequest) {

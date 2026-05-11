@@ -47,7 +47,7 @@ const schema = z.object({
   bike_make: z.string().max(50).optional().or(z.literal('')),
   bike_model: z.string().max(50).optional().or(z.literal('')),
   bike_year: z
-    .union([z.number().int().min(1900).max(currentYear + 1), z.literal(''), z.literal(null)])
+    .union([z.coerce.number().int().min(1900).max(currentYear + 1), z.literal(''), z.literal(null)])
     .optional(),
   avatar_url: z.string().optional().or(z.literal('')),
   bike_photo_url: z.string().optional().or(z.literal('')),
@@ -126,43 +126,73 @@ export default function ProfileEditForm({ profile, onDone }) {
     async (values) => {
       if (!user?.id) return;
 
-      // Upload local images first
-      const [avatar_url, bike_photo_url] = await Promise.all([
-        uploadImageIfNeeded(values.avatar_url),
-        uploadImageIfNeeded(values.bike_photo_url),
-      ]);
+      // Block submit if username check is in progress or unavailable
+      if (checkingUsername) return;
+      if (shouldCheckUsername && usernameAvailable === false) {
+        form.setError('username', { type: 'manual', message: 'Username is already taken' });
+        return;
+      }
 
-      const updates = {
-        display_name: values.display_name.trim() || user.email,
-        username: values.username?.trim() || null,
-        bio: values.bio?.trim() || null,
-        bike_make: values.bike_make?.trim() || null,
-        bike_model: values.bike_model?.trim() || null,
-        bike_year: normalizeBikeYear(values.bike_year),
-        avatar_url,
-        bike_photo_url,
-      };
-
-      // Optimistic update
-      const previous = qc.getQueryData(['profile', user.id]);
-      qc.setQueryData(['profile', user.id], (old) => (old ? { ...old, ...updates } : old));
-
+      setIsUploading(true);
       try {
-        await updateMutation.mutateAsync({ userId: user.id, updates });
-        await refreshProfile();
-        qc.invalidateQueries({ queryKey: ['myBroadcasts'] });
-        onDone();
-      } catch {
-        // Rollback on error
-        qc.setQueryData(['profile', user.id], previous);
+        // Upload local images first
+        const [avatar_url, bike_photo_url] = await Promise.all([
+          uploadImageIfNeeded(values.avatar_url),
+          uploadImageIfNeeded(values.bike_photo_url),
+        ]);
+
+        if (isLocalImage(avatar_url) || isLocalImage(bike_photo_url)) {
+          throw new Error('Image upload failed. Please try again.');
+        }
+
+        const updates = {
+          display_name: values.display_name.trim() || user.email,
+          username: values.username?.trim() || null,
+          bio: values.bio?.trim() || null,
+          bike_make: values.bike_make?.trim() || null,
+          bike_model: values.bike_model?.trim() || null,
+          bike_year: normalizeBikeYear(values.bike_year),
+          avatar_url,
+          bike_photo_url,
+        };
+
+        // Optimistic update
+        const previous = qc.getQueryData(['profile', user.id]);
+        qc.setQueryData(['profile', user.id], (old) => (old ? { ...old, ...updates } : old));
+
+        try {
+          await updateMutation.mutateAsync({ userId: user.id, updates });
+          await refreshProfile();
+          qc.invalidateQueries({ queryKey: ['myBroadcasts'] });
+          onDone();
+        } catch {
+          // Rollback on error
+          qc.setQueryData(['profile', user.id], previous);
+        }
+      } finally {
+        setIsUploading(false);
       }
     },
-    [user, updateMutation, qc, refreshProfile, onDone]
+    [user, checkingUsername, shouldCheckUsername, usernameAvailable, form, updateMutation, qc, refreshProfile, onDone]
   );
+
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      form.setError('avatar_url', { message: 'Invalid file type. Use JPEG, PNG, WebP, or GIF.' });
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      form.setError('avatar_url', { message: 'Image must be under 5MB.' });
+      return;
+    }
+
     try {
       const local = await prepareLocalImage(file, 'avatar');
       form.setValue('avatar_url', local, { shouldDirty: true });
@@ -190,7 +220,10 @@ export default function ProfileEditForm({ profile, onDone }) {
               type="button"
               variant="ghost"
               size="icon"
-              onClick={onDone}
+              onClick={() => {
+                form.reset(defaultValues);
+                onDone();
+              }}
               className="rounded-full border border-border/50"
             >
               <X className="h-4 w-4" />
@@ -198,7 +231,7 @@ export default function ProfileEditForm({ profile, onDone }) {
             <Button
               type="submit"
               size="icon"
-              disabled={updateMutation.isPending}
+              disabled={updateMutation.isPending || isUploading || checkingUsername || (shouldCheckUsername && usernameAvailable === false)}
               className="rounded-full glow-green-sm"
             >
               <Check className="h-4 w-4" />

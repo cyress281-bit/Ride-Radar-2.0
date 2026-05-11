@@ -87,8 +87,13 @@ function ConversationPage() {
   const { user } = useAuthState();
   const endRef = useRef(null);
   const [isTyping, setIsTyping] = useState(false);
+  const lastMarkedLengthRef = useRef(0);
 
-  const { data: conversation, isLoading: isConversationLoading } = useQuery({
+  const {
+    data: conversation,
+    isLoading: isConversationLoading,
+    error: conversationError,
+  } = useQuery({
     queryKey: ['conversation', id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -107,12 +112,16 @@ function ConversationPage() {
   const send = useSendMessage(id);
   const { mutate: markRead } = useMarkRead(id);
 
-  // Mark as read when messages load
+  // Mark as read when viewing conversation and when new messages arrive from others
   useEffect(() => {
-    if (messages.length > 0 && id) {
+    if (!id || messages.length === 0) return;
+    const lastMessage = messages[messages.length - 1];
+    const hasNewMessages = messages.length > lastMarkedLengthRef.current;
+    if (hasNewMessages && lastMessage && lastMessage.from_user_id !== user?.id) {
       markRead();
     }
-  }, [messages.length, id, markRead]);
+    lastMarkedLengthRef.current = messages.length;
+  }, [messages, id, user?.id, markRead]);
 
   const otherId = conversation?.participant_ids?.find((p) => p !== user?.id);
 
@@ -133,6 +142,7 @@ function ConversationPage() {
 
   const handleSend = useCallback(
     (body) => {
+      if (send.isPending) return;
       send.mutate(body);
       // Demo: simulate typing indicator from other user after a short delay
       setTimeout(() => setIsTyping(true), 800);
@@ -151,14 +161,16 @@ function ConversationPage() {
     [user?.id]
   );
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom on new messages or typing indicator
   const prevCountRef = useRef(messages.length);
   useEffect(() => {
-    if (messages.length > prevCountRef.current) {
-      endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > prevCountRef.current || isTyping) {
+      requestAnimationFrame(() => {
+        endRef.current?.scrollIntoView({ behavior: 'smooth' });
+      });
     }
     prevCountRef.current = messages.length;
-  }, [messages.length]);
+  }, [messages.length, isTyping]);
 
   const shouldVirtualize = messages.length >= VIRTUALIZATION_THRESHOLD;
 
@@ -166,6 +178,24 @@ function ConversationPage() {
 
   if (isLoading) {
     return <ConversationSkeleton />;
+  }
+
+  if (conversationError || !conversation) {
+    return (
+      <div className="flex flex-col h-[calc(100dvh-3.5rem)] items-center justify-center px-6 text-center">
+        <h2 className="text-lg font-semibold mb-2">Conversation not found</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          {conversationError?.message || 'This conversation may have been deleted or you do not have access.'}
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate('/messages')}
+          className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          Back to messages
+        </button>
+      </div>
+    );
   }
 
   return (

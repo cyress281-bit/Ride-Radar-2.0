@@ -19,7 +19,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
 
   const length = text.length;
   const isOverLimit = length > MAX_MESSAGE_LENGTH;
-  const canSend = !isSending && !isOverLimit && length > 0 && !disabled;
+  const canSend = !isSending && !isOverLimit && text.trim().length > 0 && !disabled;
 
   // Auto-resize textarea
   useEffect(() => {
@@ -31,17 +31,17 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
 
   const handleSend = useCallback(() => {
     const trimmed = text.trim();
-    if (!trimmed || isOverLimit || disabled) return;
+    if (!trimmed || isOverLimit || disabled || isSending) return;
     onSend(trimmed);
     setText('');
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [text, isOverLimit, disabled, onSend]);
+  }, [text, isOverLimit, disabled, isSending, onSend]);
 
   const handleKeyDown = useCallback(
     (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      if (e.key === 'Enter' && !e.shiftKey && !e.repeat && !e.isComposing) {
         e.preventDefault();
         handleSend();
       }

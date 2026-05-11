@@ -9,11 +9,7 @@ import { logger } from '@/lib/logger.js';
 
 /** @type {object} Default settings for new users. */
 const DEFAULT_SETTINGS = {
-  notify_on_connection: true,
-  notify_on_message: true,
-  notify_on_rsvp: true,
-  notify_on_alert: true,
-  show_location: true,
+  notifications_enabled: true,
   live_map_visible: false,
   live_map_location_precision: 'approximate',
   analytics_enabled: true,
@@ -79,7 +75,7 @@ export async function updateSettings(userId, updates) {
     .update(updates)
     .eq('user_id', userId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     logger.error('[updateSettings] Error:', error);

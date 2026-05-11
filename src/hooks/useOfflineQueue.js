@@ -28,6 +28,7 @@ export function useOfflineQueue(options = {}) {
   const queueRef = useRef(queue);
   const processorRef = useRef(processor);
   const wasOnlineRef = useRef(false);
+  const isProcessingRef = useRef(false);
 
   useEffect(() => {
     queueRef.current = queue;
@@ -100,6 +101,11 @@ export function useOfflineQueue(options = {}) {
         };
       }
 
+      if (isProcessingRef.current) {
+        logger.debug('[useOfflineQueue] Already processing, skipping duplicate run');
+        return { processed: 0, failed: 0, skipped: queueRef.current.length };
+      }
+
       const currentQueue = queueRef.current;
       if (currentQueue.length === 0) {
         return { processed: 0, failed: 0, skipped: 0 };
@@ -113,24 +119,29 @@ export function useOfflineQueue(options = {}) {
         return { processed: 0, failed: 0, skipped: currentQueue.length };
       }
 
+      isProcessingRef.current = true;
       const remaining = [];
       let processed = 0;
 
-      for (const entry of currentQueue) {
-        try {
-          await fn(entry.payload);
-          processed++;
-        } catch (error) {
-          logger.warn(
-            '[useOfflineQueue] Item failed, keeping for retry:',
-            error
-          );
-          remaining.push(entry);
+      try {
+        for (const entry of currentQueue) {
+          try {
+            await fn(entry.payload);
+            processed++;
+          } catch (error) {
+            logger.warn(
+              '[useOfflineQueue] Item failed, keeping for retry:',
+              error
+            );
+            remaining.push(entry);
+          }
         }
-      }
 
-      setQueue(remaining);
-      return { processed, failed: remaining.length, skipped: 0 };
+        setQueue(remaining);
+        return { processed, failed: remaining.length, skipped: 0 };
+      } finally {
+        isProcessingRef.current = false;
+      }
     },
     [isOnline]
   );

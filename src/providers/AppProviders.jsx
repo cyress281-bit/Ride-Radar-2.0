@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '../lib/query-client';
 import { AuthProvider } from '../features/auth/components/AuthProvider';
@@ -14,7 +14,7 @@ import { Toaster } from 'sonner';
  *
  * @param {{ children: React.ReactNode }} props
  */
-export function AppProviders({ children }) {
+export const AppProviders = memo(function AppProviders({ children }) {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <AuthProvider>
@@ -23,4 +23,4 @@ export function AppProviders({ children }) {
       </AuthProvider>
     </QueryClientProvider>
   );
-}
+});

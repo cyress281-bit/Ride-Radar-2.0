@@ -159,8 +159,20 @@ export function useCreateBroadcast() {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: broadcastKeys.all });
+      queryClient.invalidateQueries({ queryKey: broadcastKeys.lists() });
+      if (data?.id) {
+        queryClient.invalidateQueries({ queryKey: broadcastKeys.detail(data.id) });
+      }
+    },
+    onError: (error) => {
+      logger.error('[useCreateBroadcast] Mutation failed:', error);
+      toast({
+        title: 'Failed to create broadcast',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 }

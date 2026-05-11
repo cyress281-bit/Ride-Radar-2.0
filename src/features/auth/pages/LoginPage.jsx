@@ -5,9 +5,9 @@
  * and redirect handling after successful authentication.
  */
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuthState } from '@/features/auth/hooks/use-auth.js';
+import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth.js';
 import LoginForm from '@/features/auth/components/LoginForm.jsx';
 import RRLogo from '@/components/RRLogo';
 import { getSafeAuthRedirectFromSearch } from '@/lib/auth-redirect.js';
@@ -15,19 +15,32 @@ import { preloadCoreRoutes } from '@/lib/routePreload.js';
 import { logger } from '@/lib/logger.js';
 import { getAuthErrorFromLocation } from '@/lib/auth-redirect';
 import { RIDE_RADAR_LOGO_URL } from '@/components/splash/logoAsset';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
-  const { isLoading } = useAuthState();
+  const { isLoading, authEvent } = useAuthState();
+  const { updatePassword } = useAuthActions();
   const navigate = useNavigate();
   const location = useLocation();
   const redirectPath = getSafeAuthRedirectFromSearch(location.search);
 
+  const [oauthError, setOauthError] = useState(null);
+  const [recoveryPassword, setRecoveryPassword] = useState('');
+  const [recoveryError, setRecoveryError] = useState('');
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+
+  const isRecovery = authEvent === 'PASSWORD_RECOVERY';
+
   // Handle OAuth error params in URL
   useEffect(() => {
-    const oauthError = getAuthErrorFromLocation(location.search, location.hash);
-    if (!oauthError) return;
+    const err = getAuthErrorFromLocation(location.search, location.hash);
+    if (!err) return;
 
-    logger.warn('[LoginPage] OAuth error:', oauthError);
+    logger.warn('[LoginPage] OAuth error:', err);
+    setOauthError(err.message);
     navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`, { replace: true });
   }, [location.hash, location.search, navigate, redirectPath]);
 
@@ -35,6 +48,24 @@ export default function LoginPage() {
     preloadCoreRoutes();
     navigate(redirectPath, { replace: true });
   }, [navigate, redirectPath]);
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    if (recoveryPassword.length < 6) {
+      setRecoveryError('Password must be at least 6 characters.');
+      return;
+    }
+    setRecoveryLoading(true);
+    setRecoveryError('');
+    try {
+      await updatePassword(recoveryPassword);
+      navigate(redirectPath, { replace: true });
+    } catch (err) {
+      setRecoveryError(err.message || 'Failed to update password. Please try again.');
+    } finally {
+      setRecoveryLoading(false);
+    }
+  };
 
   // Show brand loading state while auth state is initializing
   if (isLoading) {
@@ -71,22 +102,60 @@ export default function LoginPage() {
               Ride<span className="text-primary">Radar</span>
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Sign in to your rider network
+              {isRecovery ? 'Set a new password for your account' : 'Sign in to your rider network'}
             </p>
           </div>
 
-          <LoginForm onSuccess={handleSuccess} />
+          {isRecovery ? (
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              {recoveryError && (
+                <div
+                  role="alert"
+                  className="flex items-start gap-2 rounded-2xl bg-destructive/10 p-4 text-sm font-medium text-destructive shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055)]"
+                >
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  {recoveryError}
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="recovery-password">New password</Label>
+                <Input
+                  id="recovery-password"
+                  type="password"
+                  placeholder="Enter a secure password"
+                  autoComplete="new-password"
+                  value={recoveryPassword}
+                  onChange={(e) => setRecoveryPassword(e.target.value)}
+                  disabled={recoveryLoading}
+                />
+              </div>
+              <Button type="submit" disabled={recoveryLoading} className="h-12 w-full rounded-xl font-semibold">
+                {recoveryLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Updating...
+                  </span>
+                ) : (
+                  'Update password'
+                )}
+              </Button>
+            </form>
+          ) : (
+            <LoginForm onSuccess={handleSuccess} defaultError={oauthError || ''} />
+          )}
 
           {/* Link to landing */}
-          <p className="mt-6 text-center text-xs text-muted-foreground">
-            New to Ride Radar?{' '}
-            <button
-              onClick={() => navigate('/landing')}
-              className="font-medium text-primary hover:underline"
-            >
-              Learn more
-            </button>
-          </p>
+          {!isRecovery && (
+            <p className="mt-6 text-center text-xs text-muted-foreground">
+              New to Ride Radar?{' '}
+              <button
+                onClick={() => navigate('/landing')}
+                className="font-medium text-primary hover:underline"
+              >
+                Learn more
+              </button>
+            </p>
+          )}
         </div>
       </div>
     </div>

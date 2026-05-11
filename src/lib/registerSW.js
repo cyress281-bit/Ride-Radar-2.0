@@ -20,12 +20,15 @@ export async function registerServiceWorker() {
         scope: '/',
       });
 
-
-
       // Check for updates every hour
-      setInterval(() => {
+      const updateInterval = setInterval(() => {
         registration.update();
       }, 60 * 60 * 1000);
+
+      // Cleanup interval when page unloads to avoid leaked timers in tests/long sessions
+      window.addEventListener('beforeunload', () => {
+        clearInterval(updateInterval);
+      });
 
       // Listen for updates
       registration.addEventListener('updatefound', () => {

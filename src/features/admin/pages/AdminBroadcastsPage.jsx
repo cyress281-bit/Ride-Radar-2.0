@@ -4,6 +4,7 @@ import { Radio, Trash2, Search, Filter } from 'lucide-react';
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { BROADCAST_META } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
+import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
 import { expireBroadcast, deleteBroadcast } from '@/features/admin/api/admin-api.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,46 @@ import { Skeleton } from '@/components/ui/skeleton';
  * AdminBroadcastsPage - View and manage all broadcast posts.
  */
 export default function AdminBroadcastsPage() {
+  const { isAdmin, isLoading: roleLoading } = useAdminRole();
+  if (roleLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-32" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="mb-4 space-y-2">
+          <Skeleton className="h-10 w-full" />
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-16" />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-16" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
+  if (!isAdmin) {
+    return (
+      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
+        Admin access required.
+      </div>
+    );
+  }
+  return <AdminBroadcastsContent />;
+}
+
+function AdminBroadcastsContent() {
   const qc = useQueryClient();
   const { broadcasts, profiles, isLoading } = useAdminData();
   const [typeFilter, setTypeFilter] = useState('all');
@@ -31,12 +72,36 @@ export default function AdminBroadcastsPage() {
 
   const expire = useMutation({
     mutationFn: expireBroadcast,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] }),
+    onMutate: (id) => {
+      const queryKey = ['admin', 'broadcasts'];
+      const previous = qc.getQueryData(queryKey);
+      qc.setQueryData(queryKey, (old) => {
+        if (!old?.data) return old;
+        return { ...old, data: old.data.map((b) => (b.id === id ? { ...b, status: 'expired' } : b)) };
+      });
+      return { previous, queryKey };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] }),
   });
 
   const remove = useMutation({
     mutationFn: deleteBroadcast,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] }),
+    onMutate: (id) => {
+      const queryKey = ['admin', 'broadcasts'];
+      const previous = qc.getQueryData(queryKey);
+      qc.setQueryData(queryKey, (old) => {
+        if (!old?.data) return old;
+        return { ...old, data: old.data.filter((b) => b.id !== id) };
+      });
+      return { previous, queryKey };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] }),
   });
 
   const filtered = useMemo(() => {

@@ -8,6 +8,7 @@ import {
   Navigate,
   Outlet,
   useLocation,
+  useParams,
 } from 'react-router-dom';
 import { AppProviders } from './providers/AppProviders';
 import AppLayout from './components/layout/AppLayout';
@@ -17,6 +18,7 @@ import { useAuthState } from './features/auth/hooks/use-auth';
 import { useAdminRole } from './features/auth/hooks/use-admin-role';
 import { getSafeAuthRedirectFromSearch } from './lib/auth-redirect';
 import SplashScreen from './components/layout/SplashScreen';
+import { isValidUuid } from './lib/utils';
 
 // ------------------------------------------------------------------
 // Eagerly loaded (shell components needed immediately)
@@ -123,7 +125,7 @@ const AdminRoute = memo(function AdminRoute() {
  * @param {{ children: React.ReactNode }} props
  */
 const OnboardingGuard = memo(function OnboardingGuard({ children }) {
-  const { isAuthenticated, profile } = useAuthState();
+  const { isAuthenticated, profile, isLoading } = useAuthState();
   const location = useLocation();
 
   const onboardingExemptPaths = new Set([
@@ -136,18 +138,70 @@ const OnboardingGuard = memo(function OnboardingGuard({ children }) {
     '/onboarding',
   ]);
 
-  if (
-    isAuthenticated &&
-    !profile &&
-    location.pathname !== '/onboarding' &&
-    !onboardingExemptPaths.has(location.pathname)
-  ) {
+  const isExempt =
+    onboardingExemptPaths.has(location.pathname) ||
+    location.pathname.startsWith('/profile/');
+
+  // Don't redirect while profile is still loading; otherwise a cross-tab
+  // sign-in or profile refresh that temporarily clears profile would loop.
+  if (isLoading) {
+    return children;
+  }
+
+  if (isAuthenticated && !profile && !isExempt) {
     return (
       <Navigate to="/onboarding" replace state={{ from: location.pathname }} />
     );
   }
 
   return children;
+});
+
+// ------------------------------------------------------------------
+// Scroll restoration
+// ------------------------------------------------------------------
+
+const ScrollToTop = memo(function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+  return null;
+});
+
+// ------------------------------------------------------------------
+// Route param validation
+// ------------------------------------------------------------------
+
+function ValidateUUIDParam({ param, children }) {
+  const params = useParams();
+  const value = params[param];
+  if (value && !isValidUuid(value)) {
+    return <Navigate to="/home" replace />;
+  }
+  return children;
+}
+
+// ------------------------------------------------------------------
+// 404 fallback
+// ------------------------------------------------------------------
+
+const NotFoundPage = memo(function NotFoundPage() {
+  const { isAuthenticated } = useAuthState();
+  return <Navigate to={isAuthenticated ? '/home' : '/landing'} replace />;
+});
+
+// ------------------------------------------------------------------
+// Error boundary wrapper that resets on navigation
+// ------------------------------------------------------------------
+
+const ErrorBoundaryWithReset = memo(function ErrorBoundaryWithReset({ children }) {
+  const location = useLocation();
+  return (
+    <ErrorBoundary resetKey={location.pathname + location.search}>
+      {children}
+    </ErrorBoundary>
+  );
 });
 
 // ------------------------------------------------------------------
@@ -160,19 +214,20 @@ const OnboardingGuard = memo(function OnboardingGuard({ children }) {
  * Public routes are unguarded. Protected routes require authentication
  * and are wrapped in AppLayout. Admin routes add an additional role check.
  */
-function AppContent() {
-  const { isAuthenticated } = useAuthState();
+const AppContent = memo(function AppContent() {
+  const { isAuthenticated, isLoading } = useAuthState();
   const location = useLocation();
 
   return (
     <Suspense fallback={<PageLoader />}>
+      <ScrollToTop />
       <Routes>
         {/* Public routes */}
         <Route path="/landing" element={<LandingPage />} />
         <Route
           path="/login"
           element={
-            isAuthenticated ? (
+            !isLoading && isAuthenticated ? (
               <Navigate to={getSafeAuthRedirectFromSearch(location.search)} replace />
             ) : (
               <LoginPage />
@@ -205,13 +260,13 @@ function AppContent() {
         >
           <Route path="/home" element={<BroadcastFeedPage />} />
           <Route path="/broadcast" element={<BroadcastCreatePage />} />
-          <Route path="/broadcast/:id" element={<BroadcastDetailPage />} />
+          <Route path="/broadcast/:id" element={<ValidateUUIDParam param="id"><BroadcastDetailPage /></ValidateUUIDParam>} />
           <Route path="/messages" element={<ConversationsPage />} />
-          <Route path="/messages/:id" element={<ConversationPage />} />
+          <Route path="/messages/:id" element={<ValidateUUIDParam param="id"><ConversationPage /></ValidateUUIDParam>} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/profile/:userId" element={<RiderProfilePage />} />
+          <Route path="/profile/:userId" element={<ValidateUUIDParam param="userId"><RiderProfilePage /></ValidateUUIDParam>} />
           <Route path="/review-readiness" element={<ReviewReadinessPage />} />
           <Route path="/live-map" element={<Navigate to="/home" replace />} />
 
@@ -233,11 +288,11 @@ function AppContent() {
 
         {/* Default redirects */}
         <Route path="/" element={<Navigate to="/home" replace />} />
-        <Route path="*" element={<Navigate to="/home" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
   );
-}
+});
 
 // ------------------------------------------------------------------
 // Root export
@@ -260,8 +315,8 @@ export default function App() {
   }, []);
 
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
+    <BrowserRouter>
+      <ErrorBoundaryWithReset>
         <AppProviders>
           <div
             className={cn(
@@ -277,7 +332,7 @@ export default function App() {
             isReady={true}
           />
         </AppProviders>
-      </BrowserRouter>
-    </ErrorBoundary>
+      </ErrorBoundaryWithReset>
+    </BrowserRouter>
   );
 }

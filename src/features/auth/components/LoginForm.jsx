@@ -5,7 +5,7 @@
  * Supports sign-in / sign-up modes, Google OAuth, and password reset.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -20,7 +20,7 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
-import { Mail, AlertCircle } from 'lucide-react';
+import { Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { resetPassword } from '@/features/auth/api/auth-api.js';
 
@@ -64,14 +64,19 @@ function getFriendlyErrorMessage(error) {
  *   defaultMode?: 'signin' | 'signup',
  * }} props
  */
-export default function LoginForm({ onSuccess, defaultMode = 'signin' }) {
+export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultError = '' }) {
   const { signIn, signUp, signInWithProvider } = useAuthActions();
   const [mode, setMode] = useState(defaultMode);
   const [loading, setLoading] = useState(false);
   const [providerLoading, setProviderLoading] = useState('');
-  const [formError, setFormError] = useState('');
+  const [formError, setFormError] = useState(defaultError);
+
+  useEffect(() => {
+    if (defaultError) setFormError(defaultError);
+  }, [defaultError]);
   const [notice, setNotice] = useState('');
   const [showForgot, setShowForgot] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberDevice, setRememberDevice] = useState(
     () => localStorage.getItem('rr_remember_device') !== 'false'
   );
@@ -87,11 +92,12 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin' }) {
     setLoading(true);
 
     try {
+      const options = { rememberDevice };
       if (mode === 'signin') {
-        await signIn(values.email, values.password);
+        await signIn(values.email, values.password, options);
         onSuccess?.();
       } else {
-        const data = await signUp(values.email, values.password);
+        const data = await signUp(values.email, values.password, options);
         if (data?.session) {
           onSuccess?.();
         } else {
@@ -273,13 +279,25 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin' }) {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Enter a secure password"
-                    autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-                    disabled={loading}
-                    {...field}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Enter a secure password"
+                      autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                      disabled={loading}
+                      className="pr-10"
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

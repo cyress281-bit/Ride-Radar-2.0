@@ -75,7 +75,7 @@ export async function clearPresence(userId) {
     .delete()
     .eq('user_id', userId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) logger.error('[clearPresence] Error:', error);
   return { data, error };

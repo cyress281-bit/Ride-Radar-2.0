@@ -235,7 +235,9 @@ export const OptimizedAvatar = memo(function OptimizedAvatar({
   fallbackInitial,
   ...rest
 }) {
-  if (!src && fallbackInitial) {
+  const [hasError, setHasError] = useState(false);
+
+  if (!src || hasError) {
     return (
       <div
         className={cn(
@@ -244,7 +246,7 @@ export const OptimizedAvatar = memo(function OptimizedAvatar({
         )}
         style={{ width: size, height: size, fontSize: size * 0.4 }}
       >
-        {fallbackInitial}
+        {fallbackInitial || '?'}
       </div>
     );
   }
@@ -260,6 +262,7 @@ export const OptimizedAvatar = memo(function OptimizedAvatar({
       className="rounded-full"
       style={{ width: size, height: size }}
       fadeInDuration={200}
+      onError={() => setHasError(true)}
       {...rest}
     />
   );

@@ -118,7 +118,7 @@ export async function geocodeAddress(address) {
     url.searchParams.set('addressdetails', '0');
     url.searchParams.set('q', query);
 
-    const contactEmail = import.meta.env.VITE_SUPPORT_EMAIL || SUPPORT_EMAIL || null;
+    const contactEmail = import.meta.env.VITE_SUPPORT_EMAIL || null;
 
     const response = await fetch(url.toString(), {
       signal: controller.signal,

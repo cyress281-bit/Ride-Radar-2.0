@@ -13,6 +13,7 @@ import {
   markAllAsRead,
   deleteNotification,
 } from '@/features/notifications/api/notifications-api.js';
+import { toast } from '@/components/ui/use-toast';
 
 /**
  * Query key factory for notifications.
@@ -81,6 +82,21 @@ export function useNotifications(userId) {
             old.map((n) =>
               n.id === payload.new.id ? normalizeNotification(payload.new) : n
             )
+          );
+          qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          qc.setQueryData(notificationKeys.list(userId), (old = []) =>
+            old.filter((n) => n.id !== payload.old.id)
           );
           qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
         }
@@ -196,19 +212,25 @@ export function useMarkAllAsRead() {
       return data;
     },
     onMutate: async (userId) => {
-      const queryKey = notificationKeys.list(userId);
-      await qc.cancelQueries({ queryKey });
-      const previous = qc.getQueryData(queryKey);
+      const listKey = notificationKeys.list(userId);
+      const unreadKey = notificationKeys.unread(userId);
+      await qc.cancelQueries({ queryKey: listKey });
+      const previousList = qc.getQueryData(listKey);
+      const previousUnread = qc.getQueryData(unreadKey);
 
-      qc.setQueryData(queryKey, (old = []) =>
+      qc.setQueryData(listKey, (old = []) =>
         old.map((n) => ({ ...n, is_read: true, isRead: true }))
       );
+      qc.setQueryData(unreadKey, () => 0);
 
-      return { previous, queryKey };
+      return { previousList, previousUnread, listKey, unreadKey };
     },
     onError: (_error, _userId, context) => {
-      if (context?.previous) {
-        qc.setQueryData(context.queryKey, context.previous);
+      if (context?.previousList) {
+        qc.setQueryData(context.listKey, context.previousList);
+      }
+      if (context?.previousUnread !== undefined) {
+        qc.setQueryData(context.unreadKey, context.previousUnread);
       }
     },
     onSettled: (_data, _error, userId) => {
@@ -232,6 +254,13 @@ export function useDeleteNotification() {
     },
     onSuccess: (_data, _notificationId) => {
       qc.invalidateQueries({ queryKey: notificationKeys.all });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to delete notification',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 }

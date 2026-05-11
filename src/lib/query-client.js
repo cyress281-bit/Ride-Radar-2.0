@@ -10,6 +10,15 @@ import { QueryClient } from '@tanstack/react-query';
  * - Offline-first network mode
  * - 1 retry for network errors only when online
  */
+function isRetryableError(error) {
+  // Retry network errors and 5xx server errors; don't retry 4xx client errors
+  if (!error) return true;
+  const status = error?.status || error?.statusCode || error?.code;
+  if (typeof status === 'number' && status >= 400 && status < 500) return false;
+  if (error?.message?.includes('NetworkError') || error?.message?.includes('Failed to fetch')) return true;
+  return true;
+}
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -18,15 +27,17 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       networkMode: 'offlineFirst',
       retry: (failureCount, error) => {
-        if (!navigator.onLine) return false;
-        // Retry once for network errors
+        if (typeof navigator !== 'undefined' && !navigator.onLine) return false;
+        if (!isRetryableError(error)) return false;
+        // Retry once for retryable errors
         return failureCount < 1;
       },
     },
     mutations: {
       networkMode: 'offlineFirst',
       retry: (failureCount, error) => {
-        if (!navigator.onLine) return false;
+        if (typeof navigator !== 'undefined' && !navigator.onLine) return false;
+        if (!isRetryableError(error)) return false;
         return failureCount < 1;
       },
     },

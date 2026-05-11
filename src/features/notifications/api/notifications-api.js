@@ -63,7 +63,7 @@ export async function markAsRead(notificationId) {
     .update({ is_read: true })
     .eq('id', notificationId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) logger.error('[markAsRead] Error:', error);
   return { data, error };
@@ -99,7 +99,7 @@ export async function deleteNotification(notificationId) {
     .delete()
     .eq('id', notificationId)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) logger.error('[deleteNotification] Error:', error);
   return { data, error };

@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Bell, Check, AlertCircle } from 'lucide-react';
 import { sendAnnouncement } from '@/features/admin/api/admin-api.js';
+import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
  * AdminNotificationsPage - Send global announcements to all platform users.
@@ -14,6 +16,32 @@ import { Label } from '@/components/ui/label';
  * Tries Edge Function first, falls back to batch insert (500 rows at a time).
  */
 export default function AdminNotificationsPage() {
+  const { isAdmin, isLoading: roleLoading } = useAdminRole();
+  if (roleLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-32" />
+        </div>
+        <div className="mx-auto max-w-xl space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-11 w-full" />
+        </div>
+      </AdminLayout>
+    );
+  }
+  if (!isAdmin) {
+    return (
+      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
+        Admin access required.
+      </div>
+    );
+  }
+  return <AdminNotificationsContent />;
+}
+
+function AdminNotificationsContent() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
 

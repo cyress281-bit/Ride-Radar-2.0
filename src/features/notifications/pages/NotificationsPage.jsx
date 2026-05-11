@@ -325,11 +325,16 @@ export default function NotificationsPage() {
     [declineConn]
   );
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
-  const hasAnything = pendingRequests.length + notifications.length > 0;
+  const visibleNotifications = useMemo(() => {
+    const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
+    return notifications.filter((n) => new Date(n.created_at).getTime() > cutoff);
+  }, [notifications]);
 
-  const { today, yesterday, earlier } = groupNotificationsByDate(notifications);
-  const shouldVirtualize = notifications.length >= VIRTUALIZATION_THRESHOLD;
+  const unreadCount = visibleNotifications.filter((n) => !(n.is_read || n.isRead)).length;
+  const hasAnything = pendingRequests.length + visibleNotifications.length > 0;
+
+  const { today, yesterday, earlier } = groupNotificationsByDate(visibleNotifications);
+  const shouldVirtualize = visibleNotifications.length >= VIRTUALIZATION_THRESHOLD;
 
   if (notificationsError) {
     return (
@@ -452,7 +457,7 @@ export default function NotificationsPage() {
       )}
 
       {/* Notifications by date */}
-      {notifications.length > 0 && !shouldVirtualize && (
+      {visibleNotifications.length > 0 && !shouldVirtualize && (
         <>
           {today.length > 0 && (
             <NotificationSection title="Today" notifications={today} onMarkRead={handleMarkRead} />
@@ -466,10 +471,10 @@ export default function NotificationsPage() {
         </>
       )}
 
-      {notifications.length > 0 && shouldVirtualize && (
+      {visibleNotifications.length > 0 && shouldVirtualize && (
         <div className="mb-6">
           <div className="rr-kicker mb-2 px-1 text-muted-foreground">Activity</div>
-          <VirtualNotificationList notifications={notifications} onMarkRead={handleMarkRead} />
+          <VirtualNotificationList notifications={visibleNotifications} onMarkRead={handleMarkRead} />
         </div>
       )}
     </div>

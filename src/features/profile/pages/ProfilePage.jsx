@@ -47,6 +47,7 @@ function ProfilePage() {
   const { user, profile } = useAuthState();
   const { signOut } = useAuthActions();
   const [editing, setEditing] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   const {
     data: myBroadcasts = [],
@@ -124,7 +125,7 @@ function ProfilePage() {
             <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
             <div className="relative z-10 flex items-start gap-4">
-              {displayProfile?.avatar_url ? (
+              {displayProfile?.avatar_url && !avatarError ? (
                 <div className="rr-avatar-ring shrink-0">
                   <OptimizedImage
                     src={displayProfile.avatar_url}
@@ -136,6 +137,7 @@ function ProfilePage() {
                     fetchPriority="high"
                     fadeInDuration={200}
                     showSkeleton
+                    onError={() => setAvatarError(true)}
                   />
                 </div>
               ) : (

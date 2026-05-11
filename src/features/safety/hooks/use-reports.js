@@ -4,6 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
+import { toast } from '@/components/ui/use-toast';
 import { getReports, createReport } from '@/features/safety/api/safety-api.js';
 
 /** Query key factory for reports. */
@@ -44,6 +45,17 @@ export function useCreateReport() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: reportKeys.all });
+      toast({
+        title: 'Report submitted',
+        description: 'Thank you for helping keep the community safe.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to submit report',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 }

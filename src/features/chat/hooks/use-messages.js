@@ -16,6 +16,7 @@ export function useMessages(conversationId) {
   const queryClient = useQueryClient();
   const { user } = useAuthState();
   const seenIdsRef = useRef(new Set());
+  const channelIdRef = useRef(`msg-${Math.random().toString(36).slice(2)}`);
 
   const query = useQuery({
     queryKey: ['messages', conversationId],
@@ -41,7 +42,7 @@ export function useMessages(conversationId) {
     if (!conversationId || !user?.id) return;
 
     const channel = supabase
-      .channel(`messages-${conversationId}`)
+      .channel(`messages-${conversationId}-${channelIdRef.current}`)
       .on(
         'postgres_changes',
         {
@@ -65,9 +66,27 @@ export function useMessages(conversationId) {
             if (old.some((m) => m.id === newMessage.id)) return old;
             return [...old, newMessage];
           });
+
+          // Also update conversation list so it reflects the new message
+          queryClient.setQueryData(['conversations', user?.id], (old = []) => {
+            const updated = old.map((c) =>
+              c.id === conversationId
+                ? { ...c, last_message_at: newMessage.created_at }
+                : c
+            );
+            return updated.sort(
+              (a, b) =>
+                new Date(b.last_message_at || 0).getTime() -
+                new Date(a.last_message_at || 0).getTime()
+            );
+          });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          logger.error('[useMessages] Realtime subscription error:', err);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

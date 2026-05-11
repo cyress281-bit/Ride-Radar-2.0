@@ -1,7 +1,15 @@
 import { useMemo } from 'react';
 import { Activity, Users, Radio, ShieldAlert, Trash2, MessageCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
+import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
+import {
+  getUserCount,
+  getActiveBroadcastCount,
+  getPendingReportCount,
+  getActiveConversationCount,
+} from '@/features/admin/api/admin-api.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import AdminMetricCard from '@/features/admin/components/AdminMetricCard.jsx';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,7 +18,63 @@ import { Skeleton } from '@/components/ui/skeleton';
  * AdminAnalyticsPage - Operational metrics, moderation log, and simple charts.
  */
 export default function AdminAnalyticsPage() {
+  const { isAdmin, isLoading: roleLoading } = useAdminRole();
+  if (roleLoading) {
+    return (
+      <AdminLayout>
+        <Skeleton className="mb-4 h-7 w-32" />
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
+        </div>
+        <Skeleton className="mb-6 h-40 w-full" />
+        <Skeleton className="mb-6 h-40 w-full" />
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
+  if (!isAdmin) {
+    return (
+      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
+        Admin access required.
+      </div>
+    );
+  }
+  return <AdminAnalyticsContent />;
+}
+
+function AdminAnalyticsContent() {
   const { users, broadcasts, conversations, reports, deletionRequests, isLoading } = useAdminData();
+
+  const { data: userCountData } = useQuery({
+    queryKey: ['admin', 'user-count'],
+    queryFn: getUserCount,
+    staleTime: 30000,
+    refetchInterval: 30000,
+  });
+  const { data: activeBroadcastCountData } = useQuery({
+    queryKey: ['admin', 'active-broadcast-count'],
+    queryFn: getActiveBroadcastCount,
+    staleTime: 30000,
+    refetchInterval: 30000,
+  });
+  const { data: pendingReportCountData } = useQuery({
+    queryKey: ['admin', 'pending-report-count'],
+    queryFn: getPendingReportCount,
+    staleTime: 30000,
+    refetchInterval: 30000,
+  });
+  const { data: activeConversationCountData } = useQuery({
+    queryKey: ['admin', 'active-conversation-count'],
+    queryFn: getActiveConversationCount,
+    staleTime: 30000,
+    refetchInterval: 30000,
+  });
 
   const usersData = users.data?.data || [];
   const broadcastsData = broadcasts.data?.data || [];
@@ -21,30 +85,28 @@ export default function AdminAnalyticsPage() {
   const recentModeration = reportsData.slice(0, 8);
 
   const metrics = [
-    { title: 'Total Users', value: usersData.length, icon: Users },
+    { title: 'Total Users', value: userCountData?.data ?? usersData.length, icon: Users },
     {
       title: 'Active Broadcasts',
-      value: broadcastsData.filter((b) => b.status === 'active').length,
+      value: activeBroadcastCountData?.data ?? broadcastsData.filter((b) => b.status === 'active').length,
       icon: Radio,
     },
     {
       title: 'Active Conversations',
-      value: conversationsData.filter((c) => c.status === 'active').length,
+      value: activeConversationCountData?.data ?? conversationsData.filter((c) => c.status === 'active').length,
       icon: MessageCircle,
     },
-    { title: 'Total Reports', value: reportsData.length, icon: ShieldAlert },
+    { title: 'Pending Reports', value: pendingReportCountData?.data ?? reportsData.filter((r) => r.status !== 'closed').length, icon: ShieldAlert },
     { title: 'Deletion Requests', value: deletionsData.length, icon: Trash2 },
   ];
 
-  // Simple user growth chart by signup week
+  // Simple user growth chart by signup month
   const growthData = useMemo(() => {
     const buckets = {};
     usersData.forEach((u) => {
       const d = u.created_at ? new Date(u.created_at) : null;
       if (!d) return;
-      const key = `${d.getFullYear()}-W${String(
-        Math.floor((d.getDate() - 1) / 7) + 1
-      ).padStart(2, '0')}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       buckets[key] = (buckets[key] || 0) + 1;
     });
     const sorted = Object.entries(buckets)
@@ -100,7 +162,7 @@ export default function AdminAnalyticsPage() {
       <div className="mb-6 rounded-2xl border border-border bg-surface p-4">
         <div className="mb-3 flex items-center gap-2 font-bold">
           <Users className="h-4 w-4 text-primary" />
-          User Growth (by week)
+          User Growth (by month)
         </div>
         {growthData.sorted.length > 0 ? (
           <div className="flex items-end gap-2 overflow-x-auto pb-2">

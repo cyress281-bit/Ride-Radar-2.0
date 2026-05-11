@@ -251,8 +251,9 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     queryClient,
   ]);
 
+  const now = new Date();
   return {
-    markers: presenceQuery.data || [],
+    markers: (presenceQuery.data || []).filter((m) => !m.expires_at || new Date(m.expires_at) > now),
     myPresence: myPresenceQuery.data || null,
     settings: settingsQuery.data || null,
     isLiveMapVisible: settingsQuery.data?.live_map_visible === true,

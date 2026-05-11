@@ -5,7 +5,7 @@
  * Automatically queues messages sent while offline and syncs when reconnected.
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef, useEffect } from 'react';
 import { useOfflineQueue } from './useOfflineQueue.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { sendMessage } from '@/features/chat/api/chat-api.js';
@@ -20,6 +20,14 @@ const MESSAGE_STORAGE_KEY = 'rr-message-queue';
  */
 export function useMessageQueue(conversationId) {
   const { user } = useAuthState();
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const {
     addToQueue,
@@ -68,13 +76,14 @@ export function useMessageQueue(conversationId) {
         body: body.trim(),
       };
 
-      if (!navigator.onLine) {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
         addToQueue(payload);
         return { queued: true, sent: false };
       }
 
       // Online: send immediately, but queue on failure for retry
       sendMessage(payload).catch((error) => {
+        if (!isMountedRef.current) return;
         logger.warn('[useMessageQueue] Send failed, queuing for retry:', error);
         addToQueue(payload);
       });

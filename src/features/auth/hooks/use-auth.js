@@ -55,9 +55,13 @@ export function useAuthProvider() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authEvent, setAuthEvent] = useState(null);
   const profileLoadSeq = useRef(0);
+  const profileTimeoutRef = useRef(null);
 
   const isMountedRef = useRef(true);
+  const userRef = useRef(user);
+  userRef.current = user;
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -71,10 +75,10 @@ export function useAuthProvider() {
       return (
         isMountedRef.current &&
         profileLoadSeq.current === seq &&
-        (!expectedUserId || user?.id === expectedUserId)
+        (!expectedUserId || userRef.current?.id === expectedUserId)
       );
     },
-    [user?.id]
+    []
   );
 
   // Race-safe timeout wrapper
@@ -219,8 +223,13 @@ export function useAuthProvider() {
         profileLoadSeq.current = seq;
         setProfile(null);
         setIsLoading(true);
+        // Clear any previous deferred load to avoid stale runs
+        if (profileTimeoutRef.current) {
+          clearTimeout(profileTimeoutRef.current);
+        }
         // Defer to avoid blocking the auth callback
-        window.setTimeout(() => {
+        profileTimeoutRef.current = window.setTimeout(() => {
+          profileTimeoutRef.current = null;
           if (isMountedRef.current) {
             void loadUserProfile(authUser.id, session, seq);
           }
@@ -242,18 +251,20 @@ export function useAuthProvider() {
         return;
       }
 
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data?.user) {
-        logger.warn('[AuthProvider] Cached session invalid; clearing state', error);
-        await supabase.auth.signOut({ scope: 'local' });
-        profileLoadSeq.current += 1;
-        setUser(null);
-        setProfile(null);
-        setIsLoading(false);
-        return;
-      }
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error || !data?.user) {
+          logger.warn('[AuthProvider] Cached session invalid; clearing state', error);
+          await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+          handleSession(null);
+          return;
+        }
 
-      handleSession({ ...session, user: data.user });
+        handleSession({ ...session, user: data.user });
+      } catch (err) {
+        logger.error('[AuthProvider] Error validating session:', err);
+        handleSession(null);
+      }
     },
     [handleSession]
   );
@@ -279,6 +290,14 @@ export function useAuthProvider() {
 
     const subscription = onAuthStateChange((_event, session) => {
       logger.debug('[AuthProvider] Auth event:', _event);
+      setAuthEvent(_event);
+
+      if (_event === 'TOKEN_REFRESHED') {
+        // Only update the user object; don't trigger a full profile reload
+        setUser(session?.user ?? null);
+        return;
+      }
+
       handleSession(session);
     });
 
@@ -295,8 +314,8 @@ export function useAuthProvider() {
   // ------------------------------------------------------------------
 
   const signIn = useCallback(
-    async (email, password) => {
-      const { data, error } = await signInWithEmail(email, password);
+    async (email, password, options = {}) => {
+      const { data, error } = await signInWithEmail(email, password, options);
       if (error) throw error;
       return data;
     },
@@ -304,8 +323,8 @@ export function useAuthProvider() {
   );
 
   const signUp = useCallback(
-    async (email, password) => {
-      const { data, error } = await signUpWithEmail(email, password);
+    async (email, password, options = {}) => {
+      const { data, error } = await signUpWithEmail(email, password, options);
       if (error) throw error;
       return data;
     },
@@ -313,9 +332,9 @@ export function useAuthProvider() {
   );
 
   const signInWithProvider = useCallback(
-    async (provider) => {
+    async (provider, options = {}) => {
       const { data, error } = await signInWithOAuth(provider, {
-        redirectTo: `${window.location.origin}/login`,
+        redirectTo: options.redirectTo || `${window.location.origin}/login`,
       });
       if (error) throw error;
       return data;
@@ -326,9 +345,16 @@ export function useAuthProvider() {
   const signOutUser = useCallback(async () => {
     logger.debug('[AuthProvider] Signing out');
     const { error } = await apiSignOut();
+    // Optimistically clear local state so UI updates immediately even if the
+    // network request fails or onAuthStateChange fires late.
+    profileLoadSeq.current += 1;
+    setUser(null);
+    setProfile(null);
+    setIsLoading(false);
+    setAuthEvent(null);
+    // Purge all cached queries to prevent stale auth-dependent data from leaking
+    queryClient.clear();
     if (error) throw error;
-    // Clear cached queries that depend on auth
-    queryClient.removeQueries({ queryKey: ['admin-role'] });
   }, []);
 
   const updateUserPassword = useCallback(async (newPassword) => {
@@ -343,6 +369,8 @@ export function useAuthProvider() {
       const seq = profileLoadSeq.current + 1;
       profileLoadSeq.current = seq;
       await loadUserProfile(user.id, session, seq);
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
     }
   }, [user?.id, loadUserProfile]);
 
@@ -356,8 +384,9 @@ export function useAuthProvider() {
       profile,
       isAuthenticated,
       isLoading,
+      authEvent,
     }),
-    [user, profile, isAuthenticated, isLoading]
+    [user, profile, isAuthenticated, isLoading, authEvent]
   );
 
   const actions = useMemo(

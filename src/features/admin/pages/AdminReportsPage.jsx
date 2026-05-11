@@ -13,6 +13,7 @@ import {
 import { supabase } from '@/lib/supabase.js';
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
+import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +28,33 @@ import { Skeleton } from '@/components/ui/skeleton';
  * AdminReportsPage - Review and moderate user-submitted safety/content reports.
  */
 export default function AdminReportsPage() {
+  const { isAdmin, isLoading: roleLoading } = useAdminRole();
+  if (roleLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-24" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-40 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
+  if (!isAdmin) {
+    return (
+      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
+        Admin access required.
+      </div>
+    );
+  }
+  return <AdminReportsContent />;
+}
+
+function AdminReportsContent() {
   const qc = useQueryClient();
   const { reports, profiles, broadcasts, isLoading } = useAdminData();
 
@@ -51,7 +79,19 @@ export default function AdminReportsPage() {
         .eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'reports'] }),
+    onMutate: ({ id, status }) => {
+      const queryKey = ['admin', 'reports'];
+      const previous = qc.getQueryData(queryKey);
+      qc.setQueryData(queryKey, (old) => {
+        if (!old?.data) return old;
+        return { ...old, data: old.data.map((r) => (r.id === id ? { ...r, status } : r)) };
+      });
+      return { previous, queryKey };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['admin', 'reports'] }),
   });
 
   const removeContent = useMutation({
@@ -86,6 +126,30 @@ export default function AdminReportsPage() {
 
       return { targetType, targetId };
     },
+    onMutate: (report) => {
+      const queryKey = ['admin', 'reports'];
+      const previous = qc.getQueryData(queryKey);
+      const actionNote = 'content removed/archived';
+      qc.setQueryData(queryKey, (old) => {
+        if (!old?.data) return old;
+        return {
+          ...old,
+          data: old.data.map((r) =>
+            r.id === report.id
+              ? {
+                  ...r,
+                  status: 'closed',
+                  details: `${r.details || ''}\nAdmin action taken: ${actionNote}`.trim(),
+                }
+              : r
+          ),
+        };
+      });
+      return { previous, queryKey };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'reports'] });
       qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] });
@@ -109,6 +173,29 @@ export default function AdminReportsPage() {
         .from('reports')
         .update({ status: 'closed', details: updatedDetails })
         .eq('id', report.id);
+    },
+    onMutate: (report) => {
+      const queryKey = ['admin', 'reports'];
+      const previous = qc.getQueryData(queryKey);
+      qc.setQueryData(queryKey, (old) => {
+        if (!old?.data) return old;
+        return {
+          ...old,
+          data: old.data.map((r) =>
+            r.id === report.id
+              ? {
+                  ...r,
+                  status: 'closed',
+                  details: `${r.details || ''}\nAdmin action taken: profile made private`.trim(),
+                }
+              : r
+          ),
+        };
+      });
+      return { previous, queryKey };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'reports'] });

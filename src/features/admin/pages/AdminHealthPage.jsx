@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Loader2, Activity, ExternalLink } from 'lucide-react';
 import { supabase } from '@/lib/supabase.js';
 import { cn } from '@/lib/utils.js';
+import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -13,6 +14,34 @@ import { Skeleton } from '@/components/ui/skeleton';
 const DEPLOYMENT_URL = 'https://www.rideradarapp.com';
 
 export default function AdminHealthPage() {
+  const { isAdmin, isLoading: roleLoading } = useAdminRole();
+  if (roleLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4">
+          <h2 className="font-display text-xl font-bold">System Health</h2>
+          <p className="text-sm text-muted-foreground">Running checks...</p>
+        </div>
+        <Skeleton className="mb-4 h-32 w-full" />
+        <div className="grid gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
+  if (!isAdmin) {
+    return (
+      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
+        Admin access required.
+      </div>
+    );
+  }
+  return <AdminHealthContent />;
+}
+
+function AdminHealthContent() {
   const [checks, setChecks] = useState([]);
   const [running, setRunning] = useState(false);
   const [lastRun, setLastRun] = useState(null);

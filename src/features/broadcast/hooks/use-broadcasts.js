@@ -36,6 +36,7 @@ export function useBroadcasts(filters = {}) {
       if (error) throw error;
       return data || [];
     },
+    select: (data) => data.filter((b) => !b.expires_at || new Date(b.expires_at) > new Date()),
     staleTime: 60_000,
     refetchOnWindowFocus: false,
   });

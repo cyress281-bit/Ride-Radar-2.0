@@ -200,6 +200,17 @@ export function isLocalImage(value) {
 }
 
 /**
+ * Revoke a local image preview URL to free memory.
+ * Call this when the preview is no longer needed (e.g., on unmount or after upload).
+ * @param {{ previewUrl?: string }|null} localImage
+ */
+export function revokeLocalImage(localImage) {
+  if (localImage?.previewUrl) {
+    URL.revokeObjectURL(localImage.previewUrl);
+  }
+}
+
+/**
  * Upload a local image if needed, otherwise return the URL as-is.
  * @param {string|object} value — URL string or local image object
  * @param {string} bucket — Supabase storage bucket

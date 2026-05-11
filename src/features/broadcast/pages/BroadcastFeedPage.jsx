@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Crosshair, Plus, SlidersHorizontal, ChevronUp, Navigation } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
@@ -14,6 +15,7 @@ import BroadcastCard from '@/components/shared/BroadcastCard';
 import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
 import { logger } from '@/lib/logger';
 import { cn } from '@/lib/utils.js';
+import { preloadTilesAround } from '@/lib/tileCache.js';
 
 const RADAR_LOCATION_CACHE_KEY = 'rr:last-radar-location';
 const RADAR_OFFLINE_SNAPSHOT_KEY = 'rr:radar-offline-snapshot';
@@ -101,6 +103,7 @@ function getAuthorId(broadcast) {
  */
 function BroadcastFeedPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuthState();
   const isOnline = useOnlineStatus();
 
@@ -141,7 +144,12 @@ function BroadcastFeedPage() {
   );
 
   const visibleBroadcasts = useMemo(
-    () => sourceBroadcasts.filter((b) => !blockedIds.has(getAuthorId(b))),
+    () =>
+      sourceBroadcasts.filter((b) => {
+        if (blockedIds.has(getAuthorId(b))) return false;
+        if (b.expires_at && new Date(b.expires_at) <= new Date()) return false;
+        return true;
+      }),
     [sourceBroadcasts, blockedIds]
   );
 
@@ -287,10 +295,13 @@ function BroadcastFeedPage() {
   }, [isPulling]);
 
   const handleContentTouchEnd = useCallback((e) => {
+    if (pullOffset > 40) {
+      queryClient.invalidateQueries({ queryKey: ['broadcasts', 'nearby'] });
+    }
     setIsPulling(false);
     setPullOffset(0);
     e.stopPropagation();
-  }, []);
+  }, [pullOffset, queryClient]);
 
   // Prevent body scroll when bottom sheet is open
   useEffect(() => {

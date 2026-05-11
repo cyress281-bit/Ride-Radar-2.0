@@ -56,9 +56,10 @@ function getNotificationHref(notification) {
 
   if (!type || !id) return null;
 
-  if (type === 'conversation') return `/messages/${id}`;
-  if (type === 'broadcast') return `/broadcast/${id}`;
-  if (type === 'user_profile') return `/profile/${id}`;
+  if (type === 'conversation' || type === 'message' || type === 'new_message') return `/messages/${id}`;
+  if (type === 'broadcast' || type === 'event' || type === 'rsvp') return `/broadcast/${id}`;
+  if (type === 'user_profile' || type === 'user' || type === 'connection_request' || type === 'friend_request') return `/profile/${id}`;
+  if (type === 'alert') return `/home`;
 
   return null;
 }

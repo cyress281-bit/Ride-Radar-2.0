@@ -20,6 +20,7 @@ import { useAuthActions } from '@/features/auth/hooks/use-auth.js';
 import { deleteAccount } from '@/features/settings/api/settings-api.js';
 import { trackAccountDeleted } from '@/lib/analytics.js';
 import { logger } from '@/lib/logger.js';
+import { queryClient } from '@/lib/query-client.js';
 import RRLogo from '@/components/RRLogo';
 
 export default function AccountDeletionPage() {
@@ -48,6 +49,7 @@ export default function AccountDeletionPage() {
 
       trackAccountDeleted();
       setSuccess(true);
+      queryClient.clear();
 
       // Sign out and redirect after a short delay
       setTimeout(async () => {

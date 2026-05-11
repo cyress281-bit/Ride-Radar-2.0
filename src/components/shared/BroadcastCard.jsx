@@ -48,12 +48,15 @@ const BroadcastCard = memo(
     const isProminentSolo = prominentSoloAvatar && broadcast.type === 'solo_ride';
     const styles = typeStyles[broadcast.type] || typeStyles.solo_ride;
 
-    const distance =
+    const rawDistance =
       (broadcast.type === 'solo_ride' || broadcast.type === 'iso') &&
       userLat != null &&
-      broadcast.frozen_lat != null
-        ? formatDistance(haversineMiles(userLat, userLng, broadcast.frozen_lat, broadcast.frozen_lng))
+      userLng != null &&
+      broadcast.frozen_lat != null &&
+      broadcast.frozen_lng != null
+        ? haversineMiles(userLat, userLng, broadcast.frozen_lat, broadcast.frozen_lng)
         : null;
+    const distance = Number.isFinite(rawDistance) && rawDistance >= 0 ? formatDistance(rawDistance) : null;
 
     const isoSubLabel =
       broadcast.iso_subtype === 'mechanic'
@@ -161,7 +164,7 @@ const BroadcastCard = memo(
                 </div>
               )}
 
-              <div className="mt-3" onClick={(e) => e.preventDefault()}>
+              <div className="mt-3" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                 <SafetyActions targetType="broadcast" targetId={broadcast.id} targetProfileId={broadcast.author_id} compact />
               </div>
 
@@ -172,7 +175,7 @@ const BroadcastCard = memo(
                       <div className="relative">
                         <OptimizedImage
                           src={author.avatar_url}
-                          alt=""
+                          alt={author.display_name || 'Rider'}
                           containerClassName="w-4 h-4 rounded-full"
                           className="rounded-full"
                           objectFit="cover"
@@ -204,9 +207,9 @@ const BroadcastCard = memo(
                   </span>
                 )}
                 {(broadcast.type === 'event' || isAlert) && broadcast.exact_location_text && (
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-3 h-3 opacity-60" />
-                    {broadcast.exact_location_text}
+                  <span className="inline-flex items-center gap-1 max-w-full break-words">
+                    <MapPin className="w-3 h-3 opacity-60 shrink-0" />
+                    <span className="truncate">{broadcast.exact_location_text}</span>
                   </span>
                 )}
                 {broadcast.type === 'event' && broadcast.event_date && (
@@ -227,7 +230,6 @@ const BroadcastCard = memo(
       </motion.div>
     );
 
-    if (isAlert) return content;
     return (
       <Link to={`/broadcast/${broadcast.id}`} className="group block">
         {content}

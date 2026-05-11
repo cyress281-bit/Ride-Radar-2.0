@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { UserX } from 'lucide-react';
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
+import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -9,6 +10,33 @@ import { Skeleton } from '@/components/ui/skeleton';
  * AdminBlocksPage - Read-only inspection of user_blocks for dispute resolution.
  */
 export default function AdminBlocksPage() {
+  const { isAdmin, isLoading: roleLoading } = useAdminRole();
+  if (roleLoading) {
+    return (
+      <AdminLayout>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-7 w-24" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full" />
+          ))}
+        </div>
+      </AdminLayout>
+    );
+  }
+  if (!isAdmin) {
+    return (
+      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
+        Admin access required.
+      </div>
+    );
+  }
+  return <AdminBlocksContent />;
+}
+
+function AdminBlocksContent() {
   const { blocks, profiles, isLoading } = useAdminData();
 
   const blocksData = blocks.data?.data || [];

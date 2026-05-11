@@ -159,12 +159,7 @@ function SettingsPage() {
         {
           onSuccess: () => {
             // Track notification toggles
-            const notificationKeys = [
-              'notify_on_connection',
-              'notify_on_message',
-              'notify_on_rsvp',
-              'notify_on_alert',
-            ];
+            const notificationKeys = ['notifications_enabled'];
             if (notificationKeys.includes(key)) {
               trackNotificationToggle(key, value);
             }
@@ -298,19 +293,10 @@ function SettingsPage() {
         <ToggleRow
           label="Push notifications"
           description="Receive push notifications on your device"
-          checked={settings?.notify_on_connection !== false}
-          onChange={(v) => handleToggle('notify_on_connection', v)}
+          checked={settings?.notifications_enabled !== false}
+          onChange={(v) => handleToggle('notifications_enabled', v)}
           disabled={isSaving}
         />
-        <div className="border-t border-border/40">
-          <ToggleRow
-            label="Email notifications"
-            description="Receive email updates for important activity"
-            checked={settings?.notify_on_message !== false}
-            onChange={(v) => handleToggle('notify_on_message', v)}
-            disabled={isSaving}
-          />
-        </div>
       </SettingsSection>
 
       {/* Live Map */}

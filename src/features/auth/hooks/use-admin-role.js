@@ -27,7 +27,7 @@ export function useAdminRole() {
         .from('users')
         .select('role')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (queryError) {
         logger.error('[useAdminRole] Error fetching user role:', queryError);

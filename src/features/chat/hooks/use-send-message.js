@@ -64,13 +64,18 @@ export function useSendMessage(conversationId) {
         optimisticMessage,
       ]);
 
-      queryClient.setQueryData(['conversations', user?.id], (old = []) =>
-        old.map((conv) =>
+      queryClient.setQueryData(['conversations', user?.id], (old = []) => {
+        const updated = old.map((conv) =>
           conv.id === conversationId
             ? { ...conv, last_message_at: new Date().toISOString() }
             : conv
-        )
-      );
+        );
+        return updated.sort(
+          (a, b) =>
+            new Date(b.last_message_at || 0).getTime() -
+            new Date(a.last_message_at || 0).getTime()
+        );
+      });
 
       return { previousMessages, optimisticMessage };
     },
@@ -85,6 +90,19 @@ export function useSendMessage(conversationId) {
       queryClient.setQueryData(['conversation', conversationId], (old) =>
         old ? { ...old, last_message_at: serverMessage.created_at } : old
       );
+
+      queryClient.setQueryData(['conversations', user?.id], (old = []) => {
+        const updated = old.map((conv) =>
+          conv.id === conversationId
+            ? { ...conv, last_message_at: serverMessage.created_at }
+            : conv
+        );
+        return updated.sort(
+          (a, b) =>
+            new Date(b.last_message_at || 0).getTime() -
+            new Date(a.last_message_at || 0).getTime()
+        );
+      });
     },
 
     onError: (error, _messageBody, context) => {
@@ -92,6 +110,7 @@ export function useSendMessage(conversationId) {
         queryClient.setQueryData(['messages', conversationId], context.previousMessages);
       }
       queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] });
 
       toast({
         title: 'Failed to send message',

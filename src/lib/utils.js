@@ -29,7 +29,10 @@ export function formatDistance(miles) {
  */
 export function timeAgo(dateString) {
   if (!dateString) return 'just now';
-  const diffMs = Date.now() - new Date(dateString).getTime();
+  const date = new Date(dateString);
+  const timestamp = date.getTime();
+  if (!Number.isFinite(timestamp)) return 'just now';
+  const diffMs = Date.now() - timestamp;
   const diffSec = Math.max(0, Math.floor(diffMs / 1000));
 
   if (diffSec < 60) return 'just now';
@@ -45,7 +48,10 @@ export function timeAgo(dateString) {
  */
 export function timeUntilExpiry(dateString) {
   if (!dateString) return 'expired';
-  const diffMs = new Date(dateString).getTime() - Date.now();
+  const date = new Date(dateString);
+  const timestamp = date.getTime();
+  if (!Number.isFinite(timestamp)) return 'expired';
+  const diffMs = timestamp - Date.now();
   if (diffMs <= 0) return 'Expired';
 
   const diffSec = Math.floor(diffMs / 1000);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
@@ -17,6 +17,7 @@ export function useConversations() {
   const { user } = useAuthState();
   const userId = user?.id;
   const queryClient = useQueryClient();
+  const channelIdRef = useRef(`conv-${Math.random().toString(36).slice(2)}`);
 
   const { blockedIds } = useBlockedIds();
 
@@ -44,7 +45,7 @@ export function useConversations() {
     logger.debug('[useConversations] Setting up real-time subscription');
 
     const channel = supabase
-      .channel('conversations-realtime')
+      .channel(`conversations-realtime-${userId}-${channelIdRef.current}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'conversations' },
@@ -77,7 +78,11 @@ export function useConversations() {
           });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          logger.error('[useConversations] Realtime subscription error:', err);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

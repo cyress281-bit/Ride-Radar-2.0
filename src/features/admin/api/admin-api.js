@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase.js';
+import { logger } from '@/lib/logger.js';
 
 /**
  * @typedef {Object} ApiResult
@@ -110,6 +111,58 @@ export async function getConversations() {
   return { data: data || [], error };
 }
 
+async function assertAdmin() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  const { data, error } = await supabase.from('users').select('role').eq('id', user.id).single();
+  if (error || data?.role !== 'admin') throw new Error('Admin access required');
+}
+
+/**
+ * Fetch total user count.
+ * @returns {Promise<ApiResult>}
+ */
+export async function getUserCount() {
+  const { count, error } = await supabase.from('users').select('*', { count: 'exact', head: true });
+  return { data: count ?? 0, error };
+}
+
+/**
+ * Fetch active broadcast count.
+ * @returns {Promise<ApiResult>}
+ */
+export async function getActiveBroadcastCount() {
+  const { count, error } = await supabase
+    .from('broadcasts')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active');
+  return { data: count ?? 0, error };
+}
+
+/**
+ * Fetch pending (non-closed) report count.
+ * @returns {Promise<ApiResult>}
+ */
+export async function getPendingReportCount() {
+  const { count, error } = await supabase
+    .from('reports')
+    .select('*', { count: 'exact', head: true })
+    .neq('status', 'closed');
+  return { data: count ?? 0, error };
+}
+
+/**
+ * Fetch active conversation count.
+ * @returns {Promise<ApiResult>}
+ */
+export async function getActiveConversationCount() {
+  const { count, error } = await supabase
+    .from('conversations')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active');
+  return { data: count ?? 0, error };
+}
+
 /**
  * Get counts for today: broadcasts, messages, reports, connections.
  * @returns {Promise<ApiResult>}
@@ -150,12 +203,14 @@ export async function getTodaysStats() {
  * @returns {Promise<ApiResult>}
  */
 export async function updateReportStatus(id, status) {
+  await assertAdmin();
+  logger.info(`[admin] Updating report ${id} status to ${status}`);
   const { data, error } = await supabase
     .from('reports')
     .update({ status })
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
   return { data, error };
 }
 
@@ -166,12 +221,14 @@ export async function updateReportStatus(id, status) {
  * @returns {Promise<ApiResult>}
  */
 export async function updateUserRole(id, role) {
+  await assertAdmin();
+  logger.info(`[admin] Updating user ${id} role to ${role}`);
   const { data, error } = await supabase
     .from('users')
     .update({ role })
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
   return { data, error };
 }
 
@@ -181,12 +238,14 @@ export async function updateUserRole(id, role) {
  * @returns {Promise<ApiResult>}
  */
 export async function expireBroadcast(id) {
+  await assertAdmin();
+  logger.info(`[admin] Expiring broadcast ${id}`);
   const { data, error } = await supabase
     .from('broadcasts')
     .update({ status: 'expired' })
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
   return { data, error };
 }
 
@@ -196,12 +255,14 @@ export async function expireBroadcast(id) {
  * @returns {Promise<ApiResult>}
  */
 export async function deleteBroadcast(id) {
+  await assertAdmin();
+  logger.info(`[admin] Deleting broadcast ${id}`);
   const { data, error } = await supabase
     .from('broadcasts')
     .delete()
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
   return { data, error };
 }
 
@@ -213,6 +274,8 @@ export async function deleteBroadcast(id) {
  * @returns {Promise<ApiResult>}
  */
 export async function sendAnnouncement(title, body) {
+  await assertAdmin();
+  logger.info(`[admin] Sending announcement: ${title}`);
   // Try Edge Function first
   try {
     const { error: fnError } = await supabase.functions.invoke('send-announcement', {

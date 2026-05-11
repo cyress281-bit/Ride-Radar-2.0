@@ -15,18 +15,28 @@ export const preloadProfile = () => import('@/features/profile/pages/ProfilePage
  * Uses requestIdleCallback to avoid blocking the main thread.
  */
 export function preloadCoreRoutes() {
+  let timeoutId = null;
+
   const load = () => {
     preloadHome();
-    setTimeout(() => {
+    timeoutId = setTimeout(() => {
       preloadMessages();
       preloadBroadcast();
       preloadProfile();
     }, 1000);
   };
 
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(load);
-  } else {
-    setTimeout(load, 100);
-  }
+  const handle = 'requestIdleCallback' in window
+    ? requestIdleCallback(load)
+    : setTimeout(load, 100);
+
+  // Return cleanup for callers that need it (e.g., React effects)
+  return () => {
+    if ('cancelIdleCallback' in window) {
+      cancelIdleCallback(handle);
+    } else {
+      clearTimeout(handle);
+    }
+    if (timeoutId) clearTimeout(timeoutId);
+  };
 }

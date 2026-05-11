@@ -10,6 +10,8 @@ import {
   Lock,
   UserCog,
 } from 'lucide-react';
+import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
+import { Skeleton } from '@/components/ui/skeleton';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 
 const quickLinks = [
@@ -32,6 +34,26 @@ const checklist = [
  * AdminCompliancePage - Quick links to compliance resources and checklist.
  */
 export default function AdminCompliancePage() {
+  const { isAdmin, isLoading: roleLoading } = useAdminRole();
+  if (roleLoading) {
+    return (
+      <AdminLayout>
+        <Skeleton className="mb-4 h-7 w-32" />
+        <div className="mb-6 space-y-2">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </div>
+        <Skeleton className="h-48 w-full" />
+      </AdminLayout>
+    );
+  }
+  if (!isAdmin) {
+    return (
+      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
+        Admin access required.
+      </div>
+    );
+  }
   return (
     <AdminLayout>
       <div className="mb-4">

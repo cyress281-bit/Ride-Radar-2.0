@@ -18,4 +18,19 @@ import { registerServiceWorker, setupInstallPrompt } from './lib/registerSW';
 setupInstallPrompt();
 registerServiceWorker();
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+// Catch async errors that error boundaries cannot capture
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[Unhandled Rejection]', event.reason);
+  // Sentry will auto-capture in production via its default integration
+});
+
+window.addEventListener('error', (event) => {
+  console.error('[Global Error]', event.error);
+});
+
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  console.error('[main.jsx] Root element not found. Unable to mount React app.');
+} else {
+  ReactDOM.createRoot(rootElement).render(<App />);
+}
