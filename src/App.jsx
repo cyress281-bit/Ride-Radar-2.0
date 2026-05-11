@@ -1,4 +1,6 @@
-import React, { lazy, Suspense, useState, useCallback, memo } from 'react';
+import React, { lazy, Suspense, useState, useCallback, memo, useEffect } from 'react';
+
+import { cn } from './lib/utils';
 import {
   BrowserRouter,
   Routes,
@@ -251,17 +253,29 @@ export default function App() {
   const [splashDone, setSplashDone] = useState(false);
   const handleSplashComplete = useCallback(() => setSplashDone(true), []);
 
+  // Hard safety timeout — splash can NEVER block the UI for more than 8s
+  useEffect(() => {
+    const t = setTimeout(() => setSplashDone(true), 8000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <AppProviders>
-          {!splashDone && (
-            <SplashScreen
-              onComplete={handleSplashComplete}
-              isReady={true}
-            />
-          )}
-          <AppContent />
+          <div
+            className={cn(
+              'transition-opacity duration-700 ease-out',
+              splashDone ? 'opacity-100' : 'opacity-0'
+            )}
+          >
+            <AppContent />
+          </div>
+          <SplashScreen
+            visible={!splashDone}
+            onComplete={handleSplashComplete}
+            isReady={true}
+          />
         </AppProviders>
       </BrowserRouter>
     </ErrorBoundary>
