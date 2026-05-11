@@ -56,8 +56,6 @@ function cacheRadarLocation(location) {
   );
 }
 
-export default memo(BroadcastFeedPage);
-
 function readRadarOfflineSnapshot() {
   try {
     const raw = window.localStorage.getItem(RADAR_OFFLINE_SNAPSHOT_KEY);
@@ -459,3 +457,5 @@ function BroadcastFeedPage() {
     </div>
   );
 }
+
+export default memo(BroadcastFeedPage);
