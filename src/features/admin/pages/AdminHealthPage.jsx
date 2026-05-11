@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, Loader2, Activity } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, Activity, ExternalLink } from 'lucide-react';
 import { supabase } from '@/lib/supabase.js';
 import { cn } from '@/lib/utils.js';
 
 /**
  * Admin Health Monitor — Real-time system health dashboard.
  */
+const DEPLOYMENT_URL = 'https://ride-radar-2-0-ivvt8tbb9-cyress281-bits-projects.vercel.app';
+
 export default function AdminHealthPage() {
   const [checks, setChecks] = useState([]);
   const [running, setRunning] = useState(false);
@@ -105,6 +107,21 @@ export default function AdminHealthPage() {
       results.push({ name: 'Storage', status: 'fail', detail: err.message });
     }
 
+    // 6. Vercel Deployment
+    try {
+      const start = performance.now();
+      const res = await fetch(`${DEPLOYMENT_URL}/home`, { method: 'HEAD', mode: 'no-cors' });
+      const ms = Math.round(performance.now() - start);
+      results.push({
+        name: 'Vercel Deployment',
+        status: 'pass',
+        latency: `${ms}ms`,
+        detail: 'Deployment reachable',
+      });
+    } catch (err) {
+      results.push({ name: 'Vercel Deployment', status: 'fail', detail: err.message });
+    }
+
     setChecks(results);
     setLastRun(new Date().toLocaleTimeString());
     setRunning(false);
@@ -128,6 +145,14 @@ export default function AdminHealthPage() {
             <p className="text-sm text-muted-foreground">
               {lastRun ? `Last checked: ${lastRun}` : 'Running checks...'}
             </p>
+            <a
+              href={DEPLOYMENT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+            >
+              <ExternalLink className="h-3 w-3" /> {DEPLOYMENT_URL}
+            </a>
           </div>
           <Button
             onClick={runHealthChecks}

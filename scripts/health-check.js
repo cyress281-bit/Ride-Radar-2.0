@@ -15,6 +15,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://iygtbcserdmvhhjicyyp.supabase.co';
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || '';
+const DEPLOYMENT_URL = process.env.DEPLOYMENT_URL || 'https://ride-radar-2-0-ivvt8tbb9-cyress281-bits-projects.vercel.app';
 
 if (!SUPABASE_ANON_KEY) {
   console.error('❌ VITE_SUPABASE_ANON_KEY not set. Pass it as an env var.');
@@ -42,7 +43,15 @@ async function check(name, fn) {
 
 async function run() {
   console.log('\n🏍️  Ride Radar Health Check\n');
-  console.log(`Project: ${SUPABASE_URL}\n`);
+  console.log(`Supabase: ${SUPABASE_URL}`);
+  console.log(`Deployment: ${DEPLOYMENT_URL}\n`);
+
+  // 0. Deployment URL reachable
+  await check('Vercel deployment reachable', async () => {
+    const res = await fetch(`${DEPLOYMENT_URL}/home`, { method: 'HEAD' });
+    if (res.status >= 500) throw new Error(`HTTP ${res.status}`);
+    return `HTTP ${res.status}`;
+  });
 
   // 1. Auth connectivity
   await check('Supabase Auth reachable', async () => {
