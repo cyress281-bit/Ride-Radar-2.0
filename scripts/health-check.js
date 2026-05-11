@@ -15,7 +15,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://iygtbcserdmvhhjicyyp.supabase.co';
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || '';
-const DEPLOYMENT_URL = process.env.DEPLOYMENT_URL || 'https://ride-radar-2-0-ivvt8tbb9-cyress281-bits-projects.vercel.app';
+const DEPLOYMENT_URL = process.env.DEPLOYMENT_URL || 'https://www.rideradarapp.com';
 
 if (!SUPABASE_ANON_KEY) {
   console.error('❌ VITE_SUPABASE_ANON_KEY not set. Pass it as an env var.');

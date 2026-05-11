@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils.js';
 /**
  * Admin Health Monitor — Real-time system health dashboard.
  */
-const DEPLOYMENT_URL = 'https://ride-radar-2-0-ivvt8tbb9-cyress281-bits-projects.vercel.app';
+const DEPLOYMENT_URL = 'https://www.rideradarapp.com';
 
 export default function AdminHealthPage() {
   const [checks, setChecks] = useState([]);
