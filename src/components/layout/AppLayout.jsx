@@ -78,10 +78,7 @@ const AppLayout = memo(function AppLayout() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            transition={{
-              enter: { duration: 0.3, ease: 'easeOut' },
-              exit: { duration: 0.2, ease: 'easeIn' },
-            }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="will-change-transform transform-gpu"
           >
             <Outlet />
