@@ -57,6 +57,7 @@ const AdminDeletionRequestsPage = lazy(() => import('./features/admin/pages/Admi
 const AdminAnalyticsPage = lazy(() => import('./features/admin/pages/AdminAnalyticsPage'));
 const AdminCompliancePage = lazy(() => import('./features/admin/pages/AdminCompliancePage'));
 const AdminMonitoringPage = lazy(() => import('./features/admin/pages/AdminMonitoringPage'));
+const AdminHealthPage = lazy(() => import('./features/admin/pages/AdminHealthPage'));
 
 // ------------------------------------------------------------------
 // Route guards
@@ -223,6 +224,7 @@ function AppContent() {
             <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
             <Route path="/admin/compliance" element={<AdminCompliancePage />} />
             <Route path="/admin/monitoring" element={<AdminMonitoringPage />} />
+            <Route path="/admin/health" element={<AdminHealthPage />} />
           </Route>
         </Route>
 
