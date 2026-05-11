@@ -18,44 +18,62 @@
    ------------------------------------------------------------------ */
 @layer base {
   :root {
-    /* Surfaces */
-    --background: 0 0% 3%;
+    /* Surfaces — deep charcoal, not pure black */
+    --background: 240 20% 4%;
     --foreground: 0 0% 98%;
+    --surface: 240 18% 8%;
+    --surface-elevated: 240 16% 11%;
 
-    /* Primary — electric lime green #beff00 */
-    --primary: 75 100% 50%;
-    --primary-foreground: 0 0% 3%;
+    /* Primary — electric lime green #39FF14 */
+    --primary: 110 100% 54%;
+    --primary-foreground: 240 20% 4%;
+    --primary-dim: 110 100% 54%;
 
     /* Secondary & muted */
-    --secondary: 0 0% 12%;
+    --secondary: 240 12% 14%;
     --secondary-foreground: 0 0% 85%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 240 10% 18%;
+    --muted-foreground: 240 5% 55%;
 
     /* Borders & inputs */
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 75 100% 50%;
+    --border: 240 10% 20%;
+    --input: 240 10% 18%;
+    --ring: 110 100% 54%;
     --radius: 0.75rem;
 
     /* Extended semantic surfaces */
-    --card: 0 0% 6%;
+    --card: 240 16% 6%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 8%;
+    --popover: 240 14% 9%;
     --popover-foreground: 0 0% 98%;
-    --accent: 75 60% 12%;
+    --accent: 240 60% 12%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 75% 55%;
+    --destructive: 340 80% 58%;
     --destructive-foreground: 0 0% 98%;
 
+    /* Radar accent — electric cyan */
+    --cyan: 186 100% 50%;
+    --cyan-foreground: 240 20% 4%;
+    --cyan-dim: 186 100% 50%;
+
+    /* Event accent — warm amber */
+    --amber: 43 100% 50%;
+    --amber-foreground: 240 20% 4%;
+    --amber-dim: 43 100% 50%;
+
+    /* Pulse accent — heartbeat red/pink */
+    --pulse: 345 100% 60%;
+    --pulse-foreground: 0 0% 98%;
+    --pulse-dim: 345 100% 60%;
+
     /* Broadcast type colors */
-    --alert: 0 84% 60%;
+    --alert: 345 100% 60%;
     --alert-foreground: 0 0% 98%;
     --solo: 142 71% 45%;
     --solo-foreground: 0 0% 4%;
     --iso: 217 91% 60%;
     --iso-foreground: 0 0% 98%;
-    --event: 38 92% 50%;
+    --event: 43 100% 50%;
     --event-foreground: 0 0% 4%;
 
     /* Typography */
