@@ -18,41 +18,53 @@ const TYPES = [
 
 const TYPE_STYLE_MAP = {
   solo: {
-    hover: 'hover:border-solo/40 hover:bg-solo/5',
-    glow: 'bg-solo',
-    border: 'border-solo/25',
-    text: 'text-solo',
-    bg: 'bg-solo/10',
-    borderLeft: 'border-l-solo/40 hover:border-l-solo',
+    hover: 'hover:border-primary/60 hover:bg-primary/[0.06]',
+    glow: 'bg-primary',
+    border: 'border-primary/30',
+    text: 'text-primary',
+    bg: 'bg-primary/10',
+    borderLeft: 'border-l-primary/60 hover:border-l-primary',
+    neonText: 'rr-neon-green',
+    glowClass: 'glow-kawasaki-sm',
+    ringHover: 'group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.35)]',
   },
   iso: {
-    hover: 'hover:border-iso/40 hover:bg-iso/5',
-    glow: 'bg-iso',
-    border: 'border-iso/25',
-    text: 'text-iso',
-    bg: 'bg-iso/10',
-    borderLeft: 'border-l-iso/40 hover:border-l-iso',
+    hover: 'hover:border-brand-radar/60 hover:bg-brand-radar/[0.06]',
+    glow: 'bg-brand-radar',
+    border: 'border-brand-radar/30',
+    text: 'text-brand-radar',
+    bg: 'bg-brand-radar/10',
+    borderLeft: 'border-l-brand-radar/60 hover:border-l-brand-radar',
+    neonText: 'rr-neon-blue',
+    glowClass: 'glow-yamaha',
+    ringHover: 'group-hover:shadow-[0_0_20px_hsl(var(--brand-radar)/0.35)]',
   },
   event: {
-    hover: 'hover:border-event/40 hover:bg-event/5',
-    glow: 'bg-event',
-    border: 'border-event/25',
-    text: 'text-event',
-    bg: 'bg-event/10',
-    borderLeft: 'border-l-event/40 hover:border-l-event',
+    hover: 'hover:border-brand-amber/60 hover:bg-brand-amber/[0.06]',
+    glow: 'bg-brand-amber',
+    border: 'border-brand-amber/30',
+    text: 'text-brand-amber',
+    bg: 'bg-brand-amber/10',
+    borderLeft: 'border-l-brand-amber/60 hover:border-l-brand-amber',
+    neonText: '',
+    glowClass: 'glow-ducati',
+    ringHover: 'group-hover:shadow-[0_0_20px_hsl(var(--brand-amber)/0.35)]',
   },
   alert: {
-    hover: 'hover:border-alert/40 hover:bg-alert/5',
-    glow: 'bg-alert',
-    border: 'border-alert/25',
-    text: 'text-alert',
-    bg: 'bg-alert/10',
-    borderLeft: 'border-l-alert/40 hover:border-l-alert',
+    hover: 'hover:border-brand-emergency/60 hover:bg-brand-emergency/[0.06]',
+    glow: 'bg-brand-emergency',
+    border: 'border-brand-emergency/30',
+    text: 'text-brand-emergency',
+    bg: 'bg-brand-emergency/10',
+    borderLeft: 'border-l-brand-emergency/60 hover:border-l-brand-emergency',
+    neonText: 'rr-neon-red',
+    glowClass: 'glow-honda',
+    ringHover: 'group-hover:shadow-[0_0_20px_hsl(var(--brand-emergency)/0.35)]',
   },
 };
 
 /**
- * Broadcast creation page.
+ * Broadcast creation page — Electric Neon Dashboard Mode Selector.
  */
 function BroadcastCreatePage() {
   const navigate = useNavigate();
@@ -71,47 +83,89 @@ function BroadcastCreatePage() {
 
   if (!type) {
     return (
-      <div className="px-5 pt-5 pb-8">
-        <div className="mb-4 rr-surface-strong rounded-[20px] p-5 relative overflow-hidden">
-          <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full border border-primary/15" />
-          <div className="rr-chip mb-3">
+      <div className="px-5 pt-5 pb-8 min-h-dvh-safe bg-background">
+        {/* Header — glassmorphism hero */}
+        <div className="mb-8 backdrop-blur-xl bg-surface/80 border border-white/[0.06] rounded-[24px] p-6 relative overflow-hidden">
+          {/* Ambient glows */}
+          <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/[0.06] blur-3xl" />
+          <div className="absolute -left-10 -bottom-10 h-32 w-32 rounded-full bg-brand-radar/[0.05] blur-3xl" />
+
+          <div className="rr-chip mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Signal console
           </div>
-          <HStack gap={3} align="center" className="mb-1">
+          <HStack gap={3} align="center" className="mb-2">
             <RRLogo size="md" />
-            <Text as="h1" variant="h1" className="rr-heading">Broadcast</Text>
+            <Text as="h1" variant="h1" className="rr-heading text-2xl sm:text-3xl">Broadcast</Text>
           </HStack>
-          <Text variant="bodySm" color="muted">Choose the kind of signal you want to send.</Text>
-          <div className="mt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-            <span className="h-px flex-1 bg-gradient-to-r from-primary/50 to-border/40" />
-            Broadcast types
+          <Text variant="bodySm" color="muted" className="max-w-[280px]">
+            Choose the kind of signal you want to send.
+          </Text>
+          <div className="mt-5 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            <span className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
+            Select mode
+            <span className="h-px flex-1 bg-gradient-to-l from-primary/40 to-transparent" />
           </div>
         </div>
-        <VStack gap={3}>
-          {TYPES.map((t) => {
+
+        {/* Type selector cards — dashboard mode style */}
+        <VStack gap={4}>
+          {TYPES.map((t, index) => {
             const styles = TYPE_STYLE_MAP[t.color];
             return (
-              <button
+              <motion.button
                 key={t.id}
                 onClick={() => setType(t.id)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.07, duration: 0.4, ease: 'easeOut' }}
                 className={cn(
-                  'w-full text-left p-5 rounded-[20px] rr-surface transition-all duration-300 group relative overflow-hidden hover:-translate-y-0.5 pressable border-l-[3px]',
+                  'w-full text-left p-5 rounded-[22px] transition-all duration-300 group relative overflow-hidden hover:-translate-y-0.5 pressable border-l-[3px] bg-surface-elevated/70',
                   styles.hover,
                   styles.borderLeft
                 )}
+                style={{
+                  border: '1px solid hsl(var(--border) / 0.4)',
+                  borderLeftWidth: '3px',
+                }}
               >
-                <div className={cn('absolute top-0 right-0 w-32 h-32 opacity-[0.06] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-125', styles.glow)} />
+                {/* Ambient color glow */}
+                <div className={cn(
+                  'absolute top-0 right-0 w-52 h-52 opacity-[0.06] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-all duration-500 group-hover:opacity-[0.14] group-hover:scale-125',
+                  styles.glow
+                )} />
+
+                {/* Bottom neon indicator line */}
+                <div className={cn(
+                  'absolute bottom-0 left-0 h-[2px] w-0 group-hover:w-full transition-all duration-500 rounded-full',
+                  styles.glow
+                )} />
+
                 <HStack gap={4} align="center" className="relative z-10">
-                  <div className={cn('h-14 w-14 rounded-2xl flex items-center justify-center border shrink-0', styles.border, styles.bg)}>
-                    <SignalIcon type={t.id} size="lg" className="transition-transform duration-300 group-hover:scale-105" />
+                  {/* Icon container with neon ring */}
+                  <div className={cn(
+                    'h-14 w-14 rounded-2xl flex items-center justify-center border shrink-0 transition-all duration-300 group-hover:scale-105',
+                    styles.border,
+                    styles.bg,
+                    styles.ringHover
+                  )}>
+                    <SignalIcon type={t.id} size="lg" className="transition-transform duration-300 group-hover:scale-110" />
                   </div>
+
                   <VStack gap={0.5} flex>
-                    <Text variant="h3">{t.label}</Text>
+                    <Text variant="h3" className={cn('text-base font-bold transition-colors duration-200', styles.text, styles.neonText)}>
+                      {t.label}
+                    </Text>
                     <Text variant="bodySm" color="muted" className="font-medium">{t.desc}</Text>
                   </VStack>
-                  <div className={cn('h-2 w-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity', styles.glow)} />
+
+                  {/* Selection indicator dot with glow */}
+                  <div className={cn(
+                    'h-2.5 w-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300',
+                    styles.glow,
+                    styles.glowClass
+                  )} />
                 </HStack>
-              </button>
+              </motion.button>
             );
           })}
         </VStack>
@@ -137,8 +191,8 @@ function BroadcastCreatePage() {
               transition={{ duration: 0.3, ease: 'easeOut' }}
               className="flex flex-col items-center gap-3"
             >
-              <CheckCircle2 className="w-12 h-12 text-primary" />
-              <span className="text-sm font-bold text-primary">Signal broadcasted</span>
+              <CheckCircle2 className="w-12 h-12 text-primary animate-glow-pulse" />
+              <span className="text-sm font-bold text-primary rr-neon-green">Signal broadcasted</span>
             </motion.div>
           </motion.div>
         )}
