@@ -2,10 +2,10 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 /* ================================================================
-   RIDE RADAR 2.0 — GLOBAL DESIGN SYSTEM
+   RIDE RADAR 2.0 — ELECTRIC NEON DESIGN SYSTEM
    Tailwind CSS 3.4 + tailwindcss-animate
-   Dark-only | Premium Motorcycle OEM Aesthetic
-   Yamaha Blue · Kawasaki Green · Honda Red · Ducati Gold
+   Dark-only | Radar/EKG Aesthetic | Motorcycle Culture
+   Neon Green · Emergency Red · Radar Blue · Amber Gold
    ================================================================ */
 
 /* ------------------------------------------------------------------
@@ -21,79 +21,85 @@
 @layer base {
   :root {
     /* ============================================================
-       BRAND IDENTITY TOKENS
-       Kawasaki Green · Yamaha Blue · Honda Red · Ducati Gold
+       ELECTRIC NEON PALETTE
+       Neon Green · Emergency Red · Radar Blue · Amber Gold
        ============================================================ */
-    --brand-kawasaki: 88 100% 37%;
-    --brand-yamaha: 197 100% 47%;
-    --brand-honda: 356 95% 45%;
-    --brand-ducati: 44 100% 50%;
+    --brand-neon: 107 100% 54%;
+    --brand-emergency: 0 100% 59%;
+    --brand-radar: 191 100% 50%;
+    --brand-amber: 43 100% 50%;
 
-    /* Surfaces — warm charcoal, premium depth */
-    --background: 240 6% 5%;
-    --foreground: 0 0% 98%;
-    --surface: 240 5% 10%;
-    --surface-elevated: 240 4% 14%;
+    /* Backward-compatible brand aliases */
+    --brand-kawasaki: 107 100% 54%;
+    --brand-yamaha: 191 100% 50%;
+    --brand-honda: 0 100% 59%;
+    --brand-ducati: 43 100% 50%;
 
-    /* Primary — Kawasaki Green (#6BBF00) */
-    --primary: 88 100% 37%;
-    --primary-foreground: 240 6% 5%;
-    --primary-dim: 88 100% 37%;
+    /* Surfaces — deep space black, elevated charcoal */
+    --background: 240 20% 2%;
+    --foreground: 0 0% 100%;
+    --surface: 240 14% 6%;
+    --surface-elevated: 240 14% 9%;
+
+    /* Primary — Electric Neon Green (#39FF14) */
+    --primary: 107 100% 54%;
+    --primary-foreground: 240 20% 2%;
+    --primary-dim: 107 100% 54%;
 
     /* Secondary & muted */
-    --secondary: 240 4% 14%;
+    --secondary: 240 14% 9%;
     --secondary-foreground: 0 0% 85%;
-    --muted: 240 4% 18%;
-    --muted-foreground: 240 4% 55%;
+    --muted: 240 10% 14%;
+    --muted-foreground: 0 0% 55%;
 
     /* Borders & inputs */
-    --border: 240 4% 16%;
-    --input: 240 4% 18%;
-    --ring: 88 100% 37%;
+    --border: 240 8% 12%;
+    --input: 240 14% 10%;
+    --ring: 107 100% 54%;
     --radius: 0.75rem;
 
     /* Extended semantic surfaces */
-    --card: 240 5% 8%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 4% 12%;
-    --popover-foreground: 0 0% 98%;
-    --accent: 240 30% 12%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 356 95% 45%;
-    --destructive-foreground: 0 0% 98%;
+    --card: 240 14% 6%;
+    --card-foreground: 0 0% 100%;
+    --popover: 240 14% 8%;
+    --popover-foreground: 0 0% 100%;
+    --accent: 240 14% 12%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 100% 59%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Yamaha Blue — info, ISO, tech elements (#00AEEF) */
-    --cyan: 197 100% 47%;
-    --cyan-foreground: 220 25% 4%;
-    --cyan-dim: 197 100% 47%;
+    /* Radar Blue — info, ISO, tech elements (#00D4FF) */
+    --cyan: 191 100% 50%;
+    --cyan-foreground: 240 20% 2%;
+    --cyan-dim: 191 100% 50%;
 
-    /* Ducati Gold — events, premium, highlights (#FFB800) */
-    --amber: 44 100% 50%;
-    --amber-foreground: 220 25% 4%;
-    --amber-dim: 44 100% 50%;
+    /* Amber/Gold — events, premium, highlights (#FFB800) */
+    --amber: 43 100% 50%;
+    --amber-foreground: 240 20% 2%;
+    --amber-dim: 43 100% 50%;
 
     /* Semantic status colors */
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 4%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 4%;
-    --info: 197 100% 47%;
-    --info-foreground: 220 25% 4%;
+    --success: 107 100% 54%;
+    --success-foreground: 240 20% 2%;
+    --warning: 43 100% 50%;
+    --warning-foreground: 240 20% 2%;
+    --info: 191 100% 50%;
+    --info-foreground: 240 20% 2%;
 
-    /* Honda Red — alerts, danger, pulse (#E30613) */
-    --pulse: 356 95% 45%;
-    --pulse-foreground: 0 0% 96%;
-    --pulse-dim: 356 95% 45%;
+    /* Emergency Red — alerts, danger, pulse (#FF2D2D) */
+    --pulse: 0 100% 59%;
+    --pulse-foreground: 0 0% 100%;
+    --pulse-dim: 0 100% 59%;
 
     /* Broadcast type colors */
-    --alert: 356 95% 45%;
-    --alert-foreground: 0 0% 96%;
-    --solo: 88 100% 37%;
-    --solo-foreground: 0 0% 4%;
-    --iso: 197 100% 47%;
-    --iso-foreground: 0 0% 96%;
-    --event: 44 100% 50%;
-    --event-foreground: 0 0% 4%;
+    --alert: 0 100% 59%;
+    --alert-foreground: 0 0% 100%;
+    --solo: 107 100% 54%;
+    --solo-foreground: 240 20% 2%;
+    --iso: 191 100% 50%;
+    --iso-foreground: 0 0% 100%;
+    --event: 43 100% 50%;
+    --event-foreground: 240 20% 2%;
 
     /* Typography */
     --font-sans: Inter, system-ui, sans-serif;
@@ -172,7 +178,7 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Scrollbar — thin, dark, green thumb on hover */
+  /* Scrollbar — thin, dark, neon green thumb on hover */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -212,8 +218,8 @@
   .rr-surface {
     @apply rounded-[var(--radius)];
     background:
-      linear-gradient(145deg, hsl(var(--card) / 0.9), hsl(0 0% 4% / 0.94)),
-      hsl(0 0% 4% / 0.78);
+      linear-gradient(145deg, hsl(var(--card) / 0.9), hsl(240 20% 2% / 0.94)),
+      hsl(240 20% 2% / 0.78);
     border: 1px solid hsl(var(--primary) / 0.11);
     box-shadow:
       0 16px 48px hsl(0 0% 0% / 0.42),
@@ -226,7 +232,7 @@
     @apply rounded-[var(--radius)];
     background:
       radial-gradient(circle at 12% 0%, hsl(var(--primary) / 0.09), transparent 34%),
-      linear-gradient(145deg, hsl(120 6% 7% / 0.98), hsl(0 0% 3% / 0.98));
+      linear-gradient(145deg, hsl(240 14% 7% / 0.98), hsl(240 20% 2% / 0.98));
     border: 1px solid hsl(var(--primary) / 0.14);
     box-shadow:
       0 22px 70px hsl(0 0% 0% / 0.5),
@@ -251,16 +257,26 @@
     box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.04);
   }
 
+  .rr-glass {
+    background: hsl(var(--surface) / 0.65);
+    border: 1px solid hsl(var(--primary) / 0.1);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.04),
+      0 18px 48px hsl(0 0% 0% / 0.35);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+  }
+
   .rr-carbon-bg {
     background:
       radial-gradient(circle at 20% 0%, hsl(var(--primary) / 0.06), transparent 40%),
-      linear-gradient(180deg, hsl(var(--background)), hsl(0 0% 2%));
+      linear-gradient(180deg, hsl(var(--background)), hsl(240 20% 1%));
   }
 
   .rr-premium-shell {
     background:
-      linear-gradient(145deg, hsl(var(--card) / 0.95), hsl(0 0% 4% / 0.96)),
-      hsl(0 0% 4% / 0.85);
+      linear-gradient(145deg, hsl(var(--card) / 0.95), hsl(240 20% 2% / 0.96)),
+      hsl(240 20% 2% / 0.85);
     border: 1px solid hsl(var(--primary) / 0.12);
     box-shadow:
       0 24px 64px hsl(0 0% 0% / 0.5),
@@ -332,6 +348,28 @@
     @apply text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground;
   }
 
+  /* ---------- Neon Glow Text ---------- */
+  .rr-neon-green {
+    text-shadow:
+      0 0 8px hsl(var(--primary) / 0.8),
+      0 0 24px hsl(var(--primary) / 0.5),
+      0 0 48px hsl(var(--primary) / 0.25);
+  }
+
+  .rr-neon-red {
+    text-shadow:
+      0 0 8px hsl(var(--destructive) / 0.8),
+      0 0 24px hsl(var(--destructive) / 0.5),
+      0 0 48px hsl(var(--destructive) / 0.25);
+  }
+
+  .rr-neon-blue {
+    text-shadow:
+      0 0 8px hsl(var(--cyan) / 0.8),
+      0 0 24px hsl(var(--cyan) / 0.5),
+      0 0 48px hsl(var(--cyan) / 0.25);
+  }
+
   /* ---------- Avatar ---------- */
   .rr-avatar-ring {
     position: relative;
@@ -361,7 +399,7 @@
   }
 
   .text-gradient-brand {
-    background: linear-gradient(135deg, hsl(88 100% 45%), hsl(88 100% 30%));
+    background: linear-gradient(135deg, hsl(107 100% 60%), hsl(107 100% 40%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -456,12 +494,12 @@
   .rr-shadow { box-shadow: 0 8px 24px hsl(var(--background) / 0.35); }
   .rr-shadow-lg { box-shadow: 0 16px 48px hsl(var(--background) / 0.45); }
   .rr-shadow-xl { box-shadow: 0 24px 80px hsl(var(--background) / 0.55); }
-  
+
   .rr-glow-sm { box-shadow: 0 0 8px hsl(var(--primary) / 0.35); }
   .rr-glow { box-shadow: 0 0 16px hsl(var(--primary) / 0.25); }
   .rr-glow-lg { box-shadow: 0 0 32px hsl(var(--primary) / 0.15); }
   .rr-glow-cyan { box-shadow: 0 0 12px hsl(var(--cyan) / 0.30); }
-  
+
   .rr-rounded-card { border-radius: 1rem; }      /* 16px — standard cards */
   .rr-rounded-shell { border-radius: 1.25rem; }  /* 20px — page shells */
   .rr-rounded-pill { border-radius: 9999px; }
@@ -509,6 +547,16 @@
     animation: ekg 2s ease-in-out infinite;
     will-change: stroke-dashoffset;
   }
+  .animate-ekg-pulse {
+    animation: ekg-pulse 2.4s ease-in-out infinite;
+    will-change: opacity, transform;
+  }
+  .animate-neon-flicker {
+    animation: neon-flicker 3s infinite alternate;
+  }
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
   .animate-shimmer {
     animation: shimmer 2.5s ease-in-out infinite;
     will-change: background-position;
@@ -543,6 +591,36 @@
   0% { stroke-dashoffset: 1000; opacity: 0.6; }
   50% { opacity: 1; }
   100% { stroke-dashoffset: 0; opacity: 0.6; }
+}
+
+@keyframes ekg-pulse {
+  0%, 100% { opacity: 0.4; transform: scaleY(0.85); }
+  25% { opacity: 1; transform: scaleY(1.05); }
+  50% { opacity: 0.6; transform: scaleY(0.95); }
+  75% { opacity: 1; transform: scaleY(1.08); }
+}
+
+@keyframes neon-flicker {
+  0%, 18%, 22%, 25%, 53%, 57%, 100% {
+    opacity: 1;
+    text-shadow:
+      0 0 8px hsl(var(--primary) / 0.8),
+      0 0 24px hsl(var(--primary) / 0.5),
+      0 0 48px hsl(var(--primary) / 0.25);
+  }
+  20%, 24%, 55% {
+    opacity: 0.6;
+    text-shadow: none;
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 12px hsl(var(--primary) / 0.4), 0 0 28px hsl(var(--primary) / 0.15);
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.6), 0 0 40px hsl(var(--primary) / 0.25);
+  }
 }
 
 @keyframes shimmer {
@@ -604,8 +682,8 @@
   .leaflet-popup-content-wrapper {
     background:
       radial-gradient(circle at 18% 0%, hsl(var(--primary) / 0.08), transparent 42%),
-      hsl(0 0% 5% / 0.98) !important;
-    border: 1px solid hsl(var(--border) / 0.8) !important;
+      hsl(240 20% 2% / 0.98) !important;
+    border: 1px solid hsl(var(--border)) !important;
     border-radius: var(--radius) !important;
     color: hsl(var(--foreground)) !important;
     box-shadow: 0 20px 60px hsl(0 0% 0% / 0.5) !important;
@@ -626,7 +704,7 @@
 
   .leaflet-control-zoom {
     overflow: hidden;
-    border: 1px solid hsl(var(--border) / 0.72) !important;
+    border: 1px solid hsl(var(--border)) !important;
     border-radius: 0.85rem !important;
     background: hsl(0 0% 0% / 0.7) !important;
     box-shadow: 0 14px 34px hsl(0 0% 0% / 0.38) !important;
@@ -763,6 +841,9 @@
   .animate-pulse-alert::after,
   .animate-radar,
   .animate-ekg,
+  .animate-ekg-pulse,
+  .animate-neon-flicker,
+  .animate-glow-pulse,
   .animate-shimmer,
   .animate-float,
   .rr-map-marker::before,
@@ -828,7 +909,7 @@
   .rr-shadow-up { box-shadow: 0 -12px 40px hsl(0 0% 0% / 0.45); }
   .rr-shadow-glow { box-shadow: 0 0 20px hsl(var(--primary) / 0.4); }
 
-  /* Message bubble entrance animation (replaces per-message Framer Motion) */
+  /* Message bubble entrance animation */
   .animate-message-in {
     animation: messageIn 0.2s ease-out both;
   }
@@ -837,7 +918,7 @@
     to   { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  /* Notification section stagger entrance (replaces Framer Motion) */
+  /* Notification section stagger entrance */
   .animate-notification-in {
     animation: notificationIn 0.3s ease-out both;
   }
@@ -875,14 +956,13 @@
   }
 }
 
-
 /* ================================================================
    VELOCITY DESIGN SYSTEM — NEW UTILITIES
    Depth shadows, gradient accents, card surfaces
    ================================================================ */
 
 @layer utilities {
-  /* ---------- Depth Shadows (replace glows) ---------- */
+  /* ---------- Depth Shadows ---------- */
   .shadow-depth-1 { box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2); }
   .shadow-depth-2 { box-shadow: 0 4px 6px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15); }
   .shadow-depth-3 { box-shadow: 0 10px 15px rgba(0,0,0,0.3), 0 4px 6px rgba(0,0,0,0.15); }
@@ -893,29 +973,29 @@
   .shadow-inner-highlight { box-shadow: inset 0 1px 0 rgba(255,255,255,0.04); }
 
   /* ---------- Gradient Accents ---------- */
-  .gradient-primary { background: linear-gradient(135deg, hsl(88 100% 37%), hsl(88 100% 28%)); }
-  .gradient-yamaha { background: linear-gradient(135deg, hsl(197 100% 47%), hsl(197 100% 35%)); }
-  .gradient-honda { background: linear-gradient(135deg, hsl(356 95% 45%), hsl(356 95% 35%)); }
-  .gradient-ducati { background: linear-gradient(135deg, hsl(44 100% 50%), hsl(44 100% 40%)); }
-  .gradient-hero { background: linear-gradient(180deg, transparent 0%, hsl(240 6% 5%) 100%); }
-  .gradient-surface { background: linear-gradient(180deg, hsl(240 5% 10%) 0%, hsl(240 6% 5%) 100%); }
+  .gradient-primary { background: linear-gradient(135deg, hsl(107 100% 54%), hsl(107 100% 40%)); }
+  .gradient-radar { background: linear-gradient(135deg, hsl(191 100% 50%), hsl(191 100% 38%)); }
+  .gradient-emergency { background: linear-gradient(135deg, hsl(0 100% 59%), hsl(0 100% 45%)); }
+  .gradient-amber { background: linear-gradient(135deg, hsl(43 100% 50%), hsl(43 100% 40%)); }
+  .gradient-hero { background: linear-gradient(180deg, transparent 0%, hsl(240 20% 2%) 100%); }
+  .gradient-surface { background: linear-gradient(180deg, hsl(240 14% 6%) 0%, hsl(240 20% 2%) 100%); }
 
   /* ---------- Card Surfaces ---------- */
   .surface-card {
-    background: hsl(240 5% 10%);
-    border: 1px solid hsl(240 4% 16%);
+    background: hsl(240 14% 6%);
+    border: 1px solid hsl(240 8% 12%);
     border-radius: 1.25rem;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03);
   }
   .surface-card-elevated {
-    background: hsl(240 4% 14%);
-    border: 1px solid hsl(240 4% 18%);
+    background: hsl(240 14% 9%);
+    border: 1px solid hsl(240 10% 14%);
     border-radius: 1.25rem;
     box-shadow: 0 10px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
   }
   .surface-card-pressed {
-    background: hsl(240 4% 12%);
-    border: 1px solid hsl(240 4% 16%);
+    background: hsl(240 10% 10%);
+    border: 1px solid hsl(240 8% 12%);
     border-radius: 1.25rem;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
   }

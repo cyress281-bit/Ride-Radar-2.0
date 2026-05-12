@@ -37,7 +37,12 @@ module.exports = {
         success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
         warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
         info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
-        /* Brand identity colors */
+        /* New electric brand identity colors */
+        'brand-neon': { DEFAULT: 'hsl(var(--brand-neon))', foreground: 'hsl(var(--primary-foreground))' },
+        'brand-emergency': { DEFAULT: 'hsl(var(--brand-emergency))', foreground: 'hsl(var(--destructive-foreground))' },
+        'brand-radar': { DEFAULT: 'hsl(var(--brand-radar))', foreground: 'hsl(var(--cyan-foreground))' },
+        'brand-amber': { DEFAULT: 'hsl(var(--brand-amber))', foreground: 'hsl(var(--amber-foreground))' },
+        /* Legacy brand aliases (backward compatible) */
         'brand-kawasaki': { DEFAULT: 'hsl(var(--brand-kawasaki))', foreground: 'hsl(var(--primary-foreground))' },
         'brand-yamaha': { DEFAULT: 'hsl(var(--brand-yamaha))', foreground: 'hsl(var(--primary-foreground))' },
         'brand-honda': { DEFAULT: 'hsl(var(--brand-honda))', foreground: 'hsl(var(--primary-foreground))' },
@@ -50,6 +55,21 @@ module.exports = {
         'fade-up': { from: { opacity: '0', transform: 'translateY(12px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
         'slide-in-right': { from: { opacity: '0', transform: 'translateX(20px)' }, to: { opacity: '1', transform: 'translateX(0)' } },
         'scale-in': { from: { opacity: '0', transform: 'scale(0.95)' }, to: { opacity: '1', transform: 'scale(1)' } },
+        'radar-sweep': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } },
+        'ekg-pulse': {
+          '0%, 100%': { opacity: '0.4', transform: 'scaleY(0.85)' },
+          '25%': { opacity: '1', transform: 'scaleY(1.05)' },
+          '50%': { opacity: '0.6', transform: 'scaleY(0.95)' },
+          '75%': { opacity: '1', transform: 'scaleY(1.08)' },
+        },
+        'neon-flicker': {
+          '0%, 18%, 22%, 25%, 53%, 57%, 100%': { opacity: '1' },
+          '20%, 24%, 55%': { opacity: '0.6' },
+        },
+        'glow-pulse': {
+          '0%, 100%': { boxShadow: '0 0 12px hsl(var(--primary) / 0.4), 0 0 28px hsl(var(--primary) / 0.15)' },
+          '50%': { boxShadow: '0 0 20px hsl(var(--primary) / 0.6), 0 0 40px hsl(var(--primary) / 0.25)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -58,6 +78,10 @@ module.exports = {
         'fade-up': 'fade-up 300ms ease-out',
         'slide-in-right': 'slide-in-right 250ms ease-out',
         'scale-in': 'scale-in 200ms ease-out',
+        'radar-sweep': 'radar-sweep 3s linear infinite',
+        'ekg-pulse': 'ekg-pulse 2.4s ease-in-out infinite',
+        'neon-flicker': 'neon-flicker 3s infinite alternate',
+        'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
       },
     },
   },
@@ -66,6 +90,10 @@ module.exports = {
     'bg-solo', 'text-solo-foreground', 'border-solo',
     'bg-iso', 'text-iso-foreground', 'border-iso',
     'bg-event', 'text-event-foreground', 'border-event',
+    'bg-brand-neon', 'text-brand-neon',
+    'bg-brand-emergency', 'text-brand-emergency',
+    'bg-brand-radar', 'text-brand-radar',
+    'bg-brand-amber', 'text-brand-amber',
   ],
   plugins: [require("tailwindcss-animate")],
 }

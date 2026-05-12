@@ -6,11 +6,11 @@ import { haversineMiles } from '@/lib/broadcastUtils';
 import { AspectRatio } from '@/components/ui/primitives/AspectRatio';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
-import { Avatar } from './Avatar';
+import { Avatar } from '@/components/ui/primitives/Avatar';
 import { Badge } from './Badge';
 
 /**
- * Media-rich broadcast card for Ride Radar 2.0.
+ * Media-rich broadcast card for Ride Radar 2.0 — Electric Neon edition.
  *
  * @param {object} props
  * @param {object} [props.broadcast] - Broadcast data object
