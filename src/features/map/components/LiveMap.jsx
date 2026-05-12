@@ -131,13 +131,13 @@ function formatSnapshotAge(timestamp) {
 const OfflineMapOverlay = memo(function OfflineMapOverlay({ snapshotAt, tileIssue }) {
   return (
     <div className="pointer-events-none absolute left-3 right-3 top-3 z-[440] flex justify-center">
-      <div className="max-w-[21rem] rounded-[18px] bg-background/78 px-3 py-2.5 text-left shadow-[0_0_0_1px_hsl(var(--primary)/0.18)] rr-shadow-lg backdrop-blur-xl">
+      <div className="max-w-[21rem] rounded-[18px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] px-3 py-2.5 text-left shadow-[0_0_20px_hsl(var(--brand-radar)/0.15)]">
         <div className="flex items-start gap-2.5">
-          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary shadow-[0_0_18px_hsl(var(--primary)/0.16)]">
+          <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-radar/10 text-brand-radar shadow-[0_0_18px_hsl(var(--brand-radar)/0.16)]">
             <WifiOff className="h-4 w-4" aria-hidden="true" />
           </span>
           <span className="min-w-0">
-            <span className="block text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary">
+            <span className="block text-[10px] font-extrabold uppercase tracking-[0.16em] text-brand-radar">
               {tileIssue ? 'Map unavailable' : 'Offline radar'}
             </span>
             <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
@@ -170,7 +170,7 @@ const MapSummary = memo(function MapSummary({ items, userLat, userLng, variant }
   const presenceCount = items.filter((i) => i.type === 'rider_presence').length;
 
   return (
-    <div className={cn('pointer-events-none absolute left-3 top-3 z-[420] rounded-2xl border border-border/65 bg-background/72 p-3 rr-shadow-lg backdrop-blur-xl', variant === 'full' ? 'right-3 sm:right-auto sm:min-w-72' : 'right-3')}>
+    <div className={cn('pointer-events-none absolute left-3 top-3 z-[420] rounded-2xl border border-white/[0.06] bg-surface/80 p-3 rr-shadow-lg backdrop-blur-xl', variant === 'full' ? 'right-3 sm:right-auto sm:min-w-72' : 'right-3')}>
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="rr-kicker text-muted-foreground">Live map</div>
@@ -203,6 +203,7 @@ const LoadingState = memo(function LoadingState({ variant }) {
           <div className="relative mb-4 flex h-12 w-12 items-center justify-center">
             <div className="absolute inset-0 rounded-full border border-primary/20" />
             <div className="absolute inset-0 animate-radar rounded-full border-t-2 border-primary/60" />
+            <div className="absolute inset-0 rounded-full shadow-[0_0_20px_hsl(var(--primary)/0.4)] animate-glow-pulse" />
             <div className="h-2 w-2 rounded-full bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.8)]" />
           </div>
           <p className="text-sm font-semibold text-foreground">Initializing radar...</p>
@@ -231,6 +232,7 @@ const TileLoadingOverlay = memo(function TileLoadingOverlay({ variant }) {
         <div className="relative flex h-10 w-10 items-center justify-center">
           <div className="absolute inset-0 rounded-full border border-primary/20" />
           <div className="absolute inset-0 animate-spin rounded-full border-t-2 border-primary/70" />
+          <div className="absolute inset-0 rounded-full shadow-[0_0_16px_hsl(var(--primary)/0.35)] animate-glow-pulse" />
           <div className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.8)]" />
         </div>
         <span className="text-xs font-semibold text-foreground">Loading map tiles…</span>
@@ -447,7 +449,8 @@ function LiveMap({
         >
           {variant === 'radar' && (
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[435] h-[2px] overflow-hidden">
-              <div className="h-full w-full animate-ekg bg-primary/40 shadow-[0_0_12px_hsl(var(--primary)/0.5)]" />
+              <div className="h-full w-full animate-ekg bg-primary/40 shadow-[0_0_16px_hsl(var(--primary)/0.6)]" />
+              <div className="absolute inset-0 animate-ekg bg-primary/20 shadow-[0_0_24px_hsl(var(--primary)/0.5)] blur-[1px]" />
             </div>
           )}
 
