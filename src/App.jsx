@@ -1,6 +1,4 @@
-import React, { lazy, Suspense, useState, useCallback, memo, useEffect } from 'react';
-
-import { cn } from './lib/utils';
+import React, { lazy, Suspense, memo } from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -17,7 +15,6 @@ import PageLoader from './components/shared/PageLoader';
 import { useAuthState } from './features/auth/hooks/use-auth';
 import { useAdminRole } from './features/auth/hooks/use-admin-role';
 import { getSafeAuthRedirectFromSearch } from './lib/auth-redirect';
-import SplashScreen from './components/layout/SplashScreen';
 import { isValidUuid } from './lib/utils';
 
 // ------------------------------------------------------------------
@@ -328,32 +325,11 @@ const AppContent = memo(function AppContent() {
  * the full provider stack.
  */
 export default function App() {
-  const [splashDone, setSplashDone] = useState(false);
-  const handleSplashComplete = useCallback(() => setSplashDone(true), []);
-
-  // Hard safety timeout — splash can NEVER block the UI for more than 8s
-  useEffect(() => {
-    const t = setTimeout(() => setSplashDone(true), 8000);
-    return () => clearTimeout(t);
-  }, []);
-
   return (
     <BrowserRouter>
       <ErrorBoundaryWithReset>
         <AppProviders>
-          <div
-            className={cn(
-              'transition-opacity duration-700 ease-out',
-              splashDone ? 'opacity-100' : 'opacity-0'
-            )}
-          >
-            <AppContent />
-          </div>
-          <SplashScreen
-            visible={!splashDone}
-            onComplete={handleSplashComplete}
-            isReady={true}
-          />
+          <AppContent />
         </AppProviders>
       </ErrorBoundaryWithReset>
     </BrowserRouter>
