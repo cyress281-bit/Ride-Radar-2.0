@@ -184,15 +184,15 @@ export default function RiderProfilePage() {
       </button>
 
       {/* Profile Header Card */}
-      <div className="relative overflow-hidden surface-card">
-        <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/[0.04] blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-brand-radar/[0.04] blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-2xl backdrop-blur-xl bg-surface/80 border border-white/[0.06] shadow-[0_8px_32px_hsl(var(--primary)/0.04)]">
+        <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-brand-radar/[0.06] blur-3xl pointer-events-none" />
 
-        <div className="relative p-5">
+        <div className="relative p-6">
           <VStack align="center" gap={3}>
             {/* Avatar with gradient ring */}
             <div className="relative">
-              <div className="rr-avatar-ring">
+              <div className="rr-avatar-ring animate-glow-pulse">
                 {canSeeDetails && profile.avatar_url && !avatarError ? (
                   <OptimizedImage
                     src={profile.avatar_url}
@@ -308,8 +308,8 @@ export default function RiderProfilePage() {
 
       {/* Private notice */}
       {!canSeeDetails && (
-        <div className="surface-card p-6 text-center border border-brand-amber/20">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-brand-amber/10 border border-brand-amber/20">
+        <div className="surface-card p-6 text-center border border-brand-amber/20 rounded-xl">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-brand-amber/10 border border-brand-amber/20 shadow-[0_0_16px_hsl(var(--brand-amber)/0.12)]">
             <Lock className="h-7 w-7 text-brand-amber" />
           </div>
           <Text variant="bodySm" className="font-semibold text-brand-amber mb-1">Private Profile</Text>
@@ -323,13 +323,13 @@ export default function RiderProfilePage() {
       {canSeeDetails && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full grid grid-cols-3 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
-            <TabsTrigger value="broadcasts" className="gap-1.5 data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
+            <TabsTrigger value="broadcasts" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
               <Radio className="w-3.5 h-3.5" /> Broadcasts
             </TabsTrigger>
-            <TabsTrigger value="about" className="gap-1.5 data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
+            <TabsTrigger value="about" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
               <User className="w-3.5 h-3.5" /> About
             </TabsTrigger>
-            <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/15 data-[state=active]:text-primary">
+            <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
               <Grid3X3 className="w-3.5 h-3.5" /> Media
             </TabsTrigger>
           </TabsList>
@@ -353,7 +353,7 @@ export default function RiderProfilePage() {
           <TabsContent value="about" className="mt-4">
             <VStack gap={3} className="stagger-children">
               {bikeLabel && (
-                <div className="surface-card p-4 border-l-2 border-l-primary">
+                <div className="surface-card p-4 border-l-2 border-l-primary rounded-r-xl">
                   <HStack align="center" gap={3}>
                     <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.12)]">
                       <Bike className="h-5 w-5 text-primary" />
@@ -367,7 +367,7 @@ export default function RiderProfilePage() {
               )}
 
               {profile?.location && (
-                <div className="surface-card p-4 border-l-2 border-l-brand-radar">
+                <div className="surface-card p-4 border-l-2 border-l-brand-radar rounded-r-xl">
                   <HStack align="center" gap={3}>
                     <div className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-radar/20 bg-brand-radar/10 shadow-[0_0_12px_hsl(var(--brand-radar)/0.12)]">
                       <MapPin className="h-5 w-5 text-brand-radar" />
@@ -381,7 +381,7 @@ export default function RiderProfilePage() {
               )}
 
               {joinDate && (
-                <div className="surface-card p-4 border-l-2 border-l-brand-amber">
+                <div className="surface-card p-4 border-l-2 border-l-brand-amber rounded-r-xl">
                   <HStack align="center" gap={3}>
                     <div className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-amber/20 bg-brand-amber/10 shadow-[0_0_12px_hsl(var(--brand-amber)/0.12)]">
                       <Calendar className="h-5 w-5 text-brand-amber" />
@@ -395,7 +395,7 @@ export default function RiderProfilePage() {
               )}
 
               {profile?.bio && (
-                <div className="surface-card p-4">
+                <div className="surface-card p-4 border-l-2 border-l-white/[0.08] rounded-r-xl">
                   <Text variant="bodySm" color="muted" className="leading-relaxed text-pretty">
                     {profile.bio}
                   </Text>
@@ -407,7 +407,7 @@ export default function RiderProfilePage() {
           <TabsContent value="media" className="mt-4">
             {profile?.bike_photo_url ? (
               <div className="grid grid-cols-2 gap-3">
-                <div className="surface-card overflow-hidden aspect-square group relative">
+                <div className="surface-card overflow-hidden aspect-square group relative rounded-xl">
                   <OptimizedImage
                     src={profile.bike_photo_url}
                     alt="Bike"
@@ -432,7 +432,7 @@ export default function RiderProfilePage() {
 
       {/* Safety Actions */}
       {!isMeRoute && (
-        <div className="surface-card p-4">
+        <div className="surface-card p-4 rounded-xl border border-white/[0.06]">
           <SafetyActions targetType="user" targetId={profile.user_id} targetProfileId={profile.user_id} />
         </div>
       )}
