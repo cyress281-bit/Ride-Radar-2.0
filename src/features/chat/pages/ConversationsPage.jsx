@@ -18,7 +18,8 @@ import { ErrorState } from '@/components/shared/ErrorState';
  * Conversations list page.
  *
  * Displays all active chat threads with real-time updates.
- * Modern design: search bar, pull-to-refresh, empty state CTA.
+ * Electric neon design: search bar with glassmorphism, neon accents,
+ * animated conversation list, glowing FAB.
  */
 function ConversationsPage() {
   const { user } = useAuthState();
@@ -84,18 +85,30 @@ function ConversationsPage() {
     setTimeout(() => setIsRefreshing(false), 600);
   }, [refetch]);
 
+  const hasUnread = unreadMap.size > 0;
+
   return (
     <VStack gap={4} className="px-4 pt-4 pb-8 max-w-2xl mx-auto min-h-dvh">
       {/* Header */}
       <HStack justify="between" align="center" className="px-1">
-        <Text as="h1" variant="h1" color="default">Messages</Text>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Text as="h1" variant="h1" color="default" className="rr-aggressive-heading">
+              Messages
+            </Text>
+            {hasUnread && (
+              <span className="absolute -top-1 -right-3 h-2.5 w-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary)_/_0.8)]" />
+            )}
+          </div>
+        </div>
         <button
           type="button"
           onClick={handleRefresh}
           disabled={isRefreshing || isLoading}
           className={cn(
-            'p-2.5 rounded-full border border-border/40 bg-surface transition-all',
-            'hover:bg-surface-elevated active:scale-95 disabled:opacity-50'
+            'p-2.5 rounded-full border border-white/[0.06] bg-surface/80 backdrop-blur-xl transition-all',
+            'hover:bg-surface-elevated hover:border-primary/20 active:scale-95 disabled:opacity-50',
+            'shadow-depth-1'
           )}
           aria-label="Refresh"
         >
@@ -104,7 +117,7 @@ function ConversationsPage() {
       </HStack>
 
       {/* Search */}
-      <div className="relative">
+      <div className="relative animate-fade-up" style={{ animationDelay: '50ms' }}>
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
         <input
           type="text"
@@ -112,11 +125,25 @@ function ConversationsPage() {
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search conversations..."
           className={cn(
-            'w-full rounded-full border border-border/40 bg-surface-elevated/60 pl-10 pr-4 py-3 text-sm text-foreground',
-            'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:border-primary/40',
-            'transition-colors'
+            'w-full rounded-full border border-white/[0.06] bg-surface/60 backdrop-blur-xl pl-10 pr-4 py-3 text-sm text-foreground',
+            'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/30',
+            'transition-all duration-200 shadow-depth-1',
+            'hover:bg-surface/80 hover:border-white/[0.08]'
           )}
         />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <span className="sr-only">Clear search</span>
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="m15 9-6 6M9 9l6 6" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Content */}
@@ -129,7 +156,7 @@ function ConversationsPage() {
           onRetry={refetch}
         />
       ) : filteredConversations.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center animate-fade-up">
           {searchQuery.trim() ? (
             <EmptyState
               icon={Search}
@@ -148,12 +175,14 @@ function ConversationsPage() {
           )}
         </div>
       ) : (
-        <ConversationList
-          conversations={filteredConversations}
-          profiles={profiles}
-          currentUserId={user?.id}
-          unreadMap={unreadMap}
-        />
+        <div className="animate-fade-up" style={{ animationDelay: '100ms' }}>
+          <ConversationList
+            conversations={filteredConversations}
+            profiles={profiles}
+            currentUserId={user?.id}
+            unreadMap={unreadMap}
+          />
+        </div>
       )}
 
       {/* New message FAB */}
@@ -162,9 +191,10 @@ function ConversationsPage() {
         onClick={() => navigate('/messages/new')}
         className={cn(
           'fixed bottom-28 right-5 z-50 h-14 w-14 rounded-full',
-          'bg-brand-kawasaki text-primary-foreground shadow-depth-4',
+          'bg-primary text-primary-foreground',
           'flex items-center justify-center pressable',
-          'border border-brand-kawasaki/20 glow-kawasaki-sm'
+          'border border-primary/20 shadow-depth-4',
+          'animate-glow-pulse hover:animate-none'
         )}
         aria-label="New message"
       >

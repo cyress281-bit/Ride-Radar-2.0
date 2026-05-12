@@ -7,12 +7,12 @@ import { Check, CheckCheck, Smile, Image as ImageIcon } from 'lucide-react';
 /**
  * Single message bubble.
  *
- * Modern design:
- * - Own messages: Kawasaki Green bubble, rounded-2xl, right-aligned
- * - Other messages: surface-elevated bubble, rounded-2xl, left-aligned
- * - Timestamps below
- * - Read receipts (placeholder)
- * - Reactions placeholder
+ * Electric neon design:
+ * - Own messages: dark surface with neon green border/accent, right-aligned
+ * - Other messages: surface-elevated bubble, left-aligned
+ * - Timestamps with mono font
+ * - Read receipts (neon green when read)
+ * - Reactions support
  * - Image support placeholder
  *
  * @param {Object} props
@@ -36,33 +36,38 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
         <div
           onClick={() => setShowReactions((s) => !s)}
           className={cn(
-            'relative px-4 py-2.5 text-sm leading-relaxed border cursor-pointer select-text',
-            'transition-colors duration-150',
+            'relative px-4 py-2.5 text-sm leading-relaxed cursor-pointer select-text',
+            'transition-all duration-200',
             isMine
-              ? 'bg-brand-kawasaki text-primary-foreground border-brand-kawasaki/30 rounded-2xl rounded-br-sm shadow-depth-1'
-              : 'bg-surface-elevated text-foreground border-border/30 rounded-2xl rounded-bl-sm shadow-depth-1'
+              ? 'bg-surface-elevated text-foreground border border-primary/25 rounded-2xl rounded-br-sm shadow-[0_2px_12px_rgba(57,255,20,0.08)]'
+              : 'bg-surface text-foreground border border-white/[0.06] rounded-2xl rounded-bl-sm shadow-depth-1'
           )}
         >
+          {/* Neon accent line for own messages */}
+          {isMine && (
+            <span className="absolute left-0 top-3 bottom-3 w-[2px] rounded-full bg-primary/60" />
+          )}
+
           {/* Image placeholder */}
           {message.has_image && (
             <div className="mb-2 rounded-xl overflow-hidden bg-black/20 border border-white/5">
-              <div className="flex items-center justify-center h-32 gap-2 text-foreground/50">
+              <div className="flex items-center justify-center h-32 gap-2 text-muted-foreground">
                 <ImageIcon className="w-5 h-5" />
-                <Text variant="caption" color={isMine ? 'white' : 'muted'}>Image</Text>
+                <Text variant="caption" color={isMine ? 'default' : 'muted'}>Image</Text>
               </div>
             </div>
           )}
 
-          {message.body}
+          <span className={cn(isMine && 'pl-1')}>{message.body}</span>
         </div>
 
         {/* Meta row: timestamp + read receipts */}
-        <HStack align="center" gap={1} className="mt-1 px-1">
-          <Text variant="micro" color="muted">
+        <HStack align="center" gap={1.5} className="mt-1 px-1">
+          <Text variant="micro" color="muted" className="font-mono-data tracking-wide">
             {timeAgo(message.created_at)}
           </Text>
           {isMine && (
-            <span className="text-muted-foreground/60">
+            <span className={cn('transition-colors duration-300', isRead ? 'text-primary' : 'text-muted-foreground/50')}>
               {isRead ? (
                 <CheckCheck className="w-3 h-3" />
               ) : (
@@ -72,7 +77,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
           )}
         </HStack>
 
-        {/* Reactions placeholder */}
+        {/* Reactions */}
         {showReactions && (
           <HStack gap={1} className="mt-1 animate-scale-in">
             {['👍', '❤️', '🔥', '😂', '😮'].map((emoji) => (
