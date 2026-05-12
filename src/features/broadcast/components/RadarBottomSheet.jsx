@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { SlidersHorizontal, ChevronUp } from 'lucide-react';
+import { SlidersHorizontal, ChevronUp, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import RRLogo from '@/components/RRLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -16,15 +16,23 @@ const FILTER_TYPES = [
 ];
 
 const FILTER_STYLES = {
-  all:    { active: 'bg-primary text-primary-foreground glow-kawasaki-sm' },
-  alert:  { active: 'bg-alert text-alert-foreground glow-honda' },
-  solo_ride: { active: 'bg-solo text-solo-foreground glow-kawasaki-sm' },
-  iso:    { active: 'bg-iso text-iso-foreground glow-yamaha' },
-  event:  { active: 'bg-event text-event-foreground glow-ducati' },
+  all:    { active: 'bg-primary text-primary-foreground glow-kawasaki-sm', inactive: 'hover:bg-primary/10 hover:text-primary hover:border-primary/20' },
+  alert:  { active: 'bg-destructive text-destructive-foreground glow-honda', inactive: 'hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20' },
+  solo_ride: { active: 'bg-primary text-primary-foreground glow-kawasaki-sm', inactive: 'hover:bg-primary/10 hover:text-primary hover:border-primary/20' },
+  iso:    { active: 'bg-cyan text-cyan-foreground glow-yamaha', inactive: 'hover:bg-cyan/10 hover:text-cyan hover:border-cyan/20' },
+  event:  { active: 'bg-amber text-amber-foreground glow-ducati', inactive: 'hover:bg-amber/10 hover:text-amber hover:border-amber/20' },
+};
+
+const STORY_RING_STYLES = {
+  alert: 'from-destructive/70 to-destructive/20 shadow-[0_0_10px_hsl(var(--destructive)/0.3)]',
+  solo_ride: 'from-primary/70 to-primary/20 shadow-[0_0_10px_hsl(var(--primary)/0.3)]',
+  iso: 'from-cyan/70 to-cyan/20 shadow-[0_0_10px_hsl(var(--cyan)/0.3)]',
+  event: 'from-amber/70 to-amber/20 shadow-[0_0_10px_hsl(var(--amber)/0.3)]',
 };
 
 /**
  * Draggable bottom sheet containing stories, filters, sort, and the broadcast list.
+ * Electric Neon Edition.
  *
  * @param {Object} props
  */
@@ -72,7 +80,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
     <div
       ref={sheetRef}
       className={cn(
-        'absolute left-0 right-0 z-20 bg-surface/85 backdrop-blur-[28px] border-t border-border/30 rounded-t-[24px] transition-transform duration-300 ease-out min-h-[56px]',
+        'absolute left-0 right-0 z-20 bg-surface/90 backdrop-blur-[32px] border-t border-white/[0.06] rounded-t-[24px] transition-transform duration-300 ease-out min-h-[56px]',
         sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-56px)]'
       )}
       style={{
@@ -88,9 +96,10 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
         onClick={() => setSheetOpen((v) => !v)}
         className="w-full flex flex-col items-center pt-3 pb-2 min-h-[44px] active:scale-[0.96] active:opacity-80 transition-all duration-150"
       >
-        <span className="h-1 w-10 rounded-full bg-muted-foreground/30" />
+        <span className="h-1 w-10 rounded-full bg-white/20" />
         <HStack gap={2} align="center" className="mt-2">
-          <Text variant="micro" className="text-foreground">
+          <Radio className="w-3 h-3 text-primary animate-glow-pulse" />
+          <Text variant="micro" className="text-foreground font-semibold">
             {activeCount} {activeCount === 1 ? 'signal' : 'signals'} nearby
           </Text>
           <ChevronUp
@@ -118,7 +127,10 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
         {/* Stories / Highlights */}
         {stories.length > 0 && (
           <div className="mb-4 -mx-4 px-4">
-            <Text variant="micro" color="muted" className="mb-2">Active riders</Text>
+            <HStack gap={2} align="center" className="mb-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-green" />
+              <Text variant="micro" color="muted" className="font-semibold uppercase tracking-wider">Active riders</Text>
+            </HStack>
             <div className="flex gap-3 overflow-x-auto scroll-hide pb-1">
               {stories.map((story) => (
                 <button
@@ -126,18 +138,15 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
                   className="shrink-0 flex flex-col items-center gap-1.5 active:scale-[0.96] transition-transform"
                 >
                   <div className={cn(
-                    'relative p-[2px] rounded-full',
-                    story.type === 'alert' && 'bg-gradient-to-br from-alert/60 to-alert/20',
-                    story.type === 'solo_ride' && 'bg-gradient-to-br from-solo/60 to-solo/20',
-                    story.type === 'iso' && 'bg-gradient-to-br from-iso/60 to-iso/20',
-                    story.type === 'event' && 'bg-gradient-to-br from-event/60 to-event/20',
+                    'relative p-[2.5px] rounded-full bg-gradient-to-br',
+                    STORY_RING_STYLES[story.type] || STORY_RING_STYLES.solo_ride
                   )}>
                     <Avatar className="h-12 w-12 border-2 border-background">
                       <AvatarImage src={story.avatar} alt={story.name} />
                       <AvatarFallback>{story.name[0]}</AvatarFallback>
                     </Avatar>
                   </div>
-                  <Text variant="caption" color="muted" className="max-w-[64px] truncate">
+                  <Text variant="caption" color="muted" className="max-w-[64px] truncate font-medium">
                     {story.name}
                   </Text>
                 </button>
@@ -156,23 +165,23 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
                 onClick={() => setFilter(f.id)}
                 disabled={isPending}
                 className={cn(
-                  'shrink-0 rounded-full px-4 py-2 min-h-[44px] text-xs font-bold transition-all duration-150 active:scale-[0.96] active:opacity-80 disabled:opacity-50 border border-transparent',
+                  'shrink-0 rounded-full px-4 py-2 min-h-[44px] text-xs font-bold transition-all duration-150 active:scale-[0.96] active:opacity-80 disabled:opacity-50 border',
                   filter === f.id
                     ? fStyle.active
-                    : 'bg-white/5 text-muted-foreground hover:bg-white/10'
+                    : cn('bg-white/5 text-muted-foreground border-transparent', fStyle.inactive)
                 )}
               >
                 {f.label}
               </button>
             );
           })}
-          <div className="ml-auto flex items-center gap-1 min-h-[44px] px-2">
+          <div className="ml-auto flex items-center gap-1 min-h-[44px] px-2 rounded-full border border-white/[0.06] bg-white/[0.03]">
             <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               disabled={isPending}
-              className="bg-transparent text-xs font-bold text-muted-foreground outline-none py-2 px-1 disabled:opacity-50"
+              className="bg-transparent text-xs font-bold text-muted-foreground outline-none py-2 px-1 disabled:opacity-50 cursor-pointer"
             >
               <option value="rank">Rank</option>
               <option value="distance">Distance</option>

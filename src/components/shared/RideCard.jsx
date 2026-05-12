@@ -64,6 +64,14 @@ export const RideCard = memo(
 
     const isVideo = mediaUrl && /\.(mp4|webm|mov)(\?.*)?$/i.test(mediaUrl);
 
+    // Type-specific neon glow for cards
+    const typeGlowClass = {
+      solo_ride: 'hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)] hover:border-primary/20',
+      iso: 'hover:shadow-[0_0_20px_hsl(var(--cyan)/0.12)] hover:border-cyan/20',
+      event: 'hover:shadow-[0_0_20px_hsl(var(--amber)/0.12)] hover:border-amber/20',
+      alert: 'hover:shadow-[0_0_20px_hsl(var(--destructive)/0.15)] hover:border-destructive/20',
+    }[broadcast.type] || '';
+
     const cardContent = (
       <>
         <AspectRatio ratio={16 / 9}>
@@ -85,7 +93,7 @@ export const RideCard = memo(
               />
             )
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-muted to-background" />
+            <div className="absolute inset-0 bg-gradient-to-br from-surface-elevated to-background" />
           )}
 
           {/* Gradient overlay */}
@@ -98,7 +106,7 @@ export const RideCard = memo(
 
           {/* Title & body overlaid */}
           <div className="absolute bottom-0 left-0 right-0 p-4">
-            <Text as="h3" variant="h3" color="white" className="line-clamp-2 drop-shadow-md">
+            <Text as="h3" variant="h3" color="white" className="line-clamp-2 drop-shadow-lg font-bold">
               {broadcast.title}
             </Text>
             {broadcast.body && (
@@ -126,12 +134,12 @@ export const RideCard = memo(
               <HStack align="center" gap={2}>
                 {distance && (
                   <HStack align="center" gap={1} className="text-muted-foreground">
-                    <MapPin className="w-3 h-3" />
+                    <MapPin className="w-3 h-3 text-primary" />
                     <Text variant="micro" color="muted">{distance}</Text>
                   </HStack>
                 )}
                 <HStack align="center" gap={1} className="text-muted-foreground">
-                  <Clock className="w-3 h-3" />
+                  <Clock className="w-3 h-3 text-primary" />
                   <Text variant="micro" color="muted">{timeAgo(broadcast.created_at)}</Text>
                 </HStack>
               </HStack>
@@ -142,7 +150,8 @@ export const RideCard = memo(
     );
 
     const className = cn(
-      'group relative w-full overflow-hidden surface-card pressable animate-fade-up',
+      'group relative w-full overflow-hidden surface-card pressable animate-fade-up transition-all duration-300',
+      typeGlowClass,
       'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
       'bg-transparent border-0 p-0 text-left block'
     );

@@ -2,21 +2,22 @@
  * Privacy Policy page for Ride Radar 2.0.
  *
  * Static content explaining data collection, usage, and user rights.
- * Clean readable layout with section cards.
+ * Electric Neon Green redesign with neon accents on headers.
  */
 
 import { Link } from 'react-router-dom';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { ArrowLeft, FileText, Shield, Eye, Database, UserX, Mail } from 'lucide-react';
 import { SUPPORT_EMAIL } from '@/lib/constants.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
+import { cn } from '@/lib/utils.js';
 
 const LAST_UPDATED = 'May 9, 2026';
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-dvh bg-background px-4 py-6 text-foreground">
-      <VStack gap={5} className="mx-auto max-w-2xl">
+      <VStack gap={5} className="mx-auto max-w-2xl animate-fade-up">
         <Link
           to="/settings"
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground pressable self-start"
@@ -25,14 +26,15 @@ export default function PrivacyPolicyPage() {
         </Link>
 
         {/* Header */}
-        <div className="surface-card p-6 relative overflow-hidden">
+        <div className="relative overflow-hidden surface-card">
           <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-primary/15" />
+          <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-primary/[0.04] blur-2xl pointer-events-none" />
           <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-          <VStack gap={2} className="relative z-10">
-            <Text variant="micro" color="primary">Ride Radar Privacy Policy</Text>
+          <VStack gap={2} className="relative z-10 p-6">
+            <Text variant="micro" className="text-primary font-bold uppercase tracking-wider">Ride Radar Privacy Policy</Text>
             <HStack align="center" gap={3}>
-              <FileText className="h-8 w-8 text-primary" />
-              <Text as="h1" variant="h2" color="default">Privacy Policy</Text>
+              <FileText className="h-8 w-8 text-primary rr-neon-green" />
+              <Text as="h1" variant="h2" color="default" className="rr-neon-green">Privacy Policy</Text>
             </HStack>
             <Text variant="bodySm" color="muted">
               Ride Radar collects and stores account, profile, content, and app usage information
@@ -43,8 +45,8 @@ export default function PrivacyPolicyPage() {
         </div>
 
         {/* Sections */}
-        <VStack gap={3}>
-          <PolicySection title="Information we may collect">
+        <VStack gap={3} className="stagger-children">
+          <PolicySection title="Information we may collect" icon={Database} accent="green">
             <ul className="list-disc space-y-2 pl-5">
               <Text as="li" variant="caption" color="muted">
                 Account information such as email and name from login providers
@@ -66,7 +68,7 @@ export default function PrivacyPolicyPage() {
             </ul>
           </PolicySection>
 
-          <PolicySection title="How we use information">
+          <PolicySection title="How we use information" icon={Eye} accent="radar">
             <ul className="list-disc space-y-2 pl-5">
               <Text as="li" variant="caption" color="muted">To provide account access and profile features</Text>
               <Text as="li" variant="caption" color="muted">To power broadcasts, events, alerts, messaging, and rider discovery</Text>
@@ -75,7 +77,7 @@ export default function PrivacyPolicyPage() {
             </ul>
           </PolicySection>
 
-          <PolicySection title="Public vs private information">
+          <PolicySection title="Public vs private information" icon={Shield} accent="amber">
             <ul className="list-disc space-y-2 pl-5">
               <Text as="li" variant="caption" color="muted">
                 Display name, avatar, bike details, and certain broadcast content may be visible to
@@ -87,14 +89,14 @@ export default function PrivacyPolicyPage() {
             </ul>
           </PolicySection>
 
-          <PolicySection title="Account deletion">
+          <PolicySection title="Account deletion" icon={UserX} accent="emergency">
             <Text variant="caption" color="muted">
               Users can request deletion from inside the app or through the public account deletion
               page. Data is permanently removed and cannot be recovered.
             </Text>
           </PolicySection>
 
-          <PolicySection title="Support">
+          <PolicySection title="Support" icon={Mail} accent="green">
             <Text variant="caption" color="muted">
               For privacy or support questions, contact:
               <br />
@@ -112,10 +114,31 @@ export default function PrivacyPolicyPage() {
   );
 }
 
-function PolicySection({ title, children }) {
+function PolicySection({ title, children, icon: Icon, accent = 'green' }) {
+  const accentStyles = {
+    green: 'border-l-primary',
+    radar: 'border-l-brand-radar',
+    amber: 'border-l-brand-amber',
+    emergency: 'border-l-brand-emergency',
+  };
+
+  const iconStyles = {
+    green: 'bg-primary/10 text-primary border-primary/20',
+    radar: 'bg-brand-radar/10 text-brand-radar border-brand-radar/20',
+    amber: 'bg-brand-amber/10 text-brand-amber border-brand-amber/20',
+    emergency: 'bg-brand-emergency/10 text-brand-emergency border-brand-emergency/20',
+  };
+
   return (
-    <section className="surface-card p-5">
-      <Text variant="h3" color="default" className="mb-3">{title}</Text>
+    <section className={cn('surface-card p-5 border-l-2', accentStyles[accent])}>
+      <HStack align="center" gap={2} className="mb-3">
+        {Icon && (
+          <div className={cn('flex h-8 w-8 items-center justify-center rounded-full border', iconStyles[accent])}>
+            <Icon className="h-4 w-4" />
+          </div>
+        )}
+        <Text variant="h3" color="default">{title}</Text>
+      </HStack>
       <div className="leading-relaxed">{children}</div>
     </section>
   );

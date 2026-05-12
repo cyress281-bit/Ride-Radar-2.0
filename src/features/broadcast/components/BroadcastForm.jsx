@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin } from 'lucide-react';
+import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin, Users } from 'lucide-react';
 import AlertPhotoUploader from './AlertPhotoUploader';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { Text } from '@/components/ui/primitives/Text';
@@ -28,32 +28,40 @@ const TYPES = [
 
 const TYPE_STYLE_MAP = {
   solo: {
-    hover: 'hover:border-solo/40 hover:bg-solo/5',
-    glow: 'bg-solo',
-    border: 'border-solo/25',
-    text: 'text-solo',
-    bg: 'bg-solo/10',
+    hover: 'hover:border-primary/40 hover:bg-primary/5',
+    glow: 'bg-primary',
+    border: 'border-primary/25',
+    text: 'text-primary',
+    bg: 'bg-primary/10',
+    neonClass: 'rr-neon-green',
+    glowClass: 'glow-kawasaki-sm',
   },
   iso: {
-    hover: 'hover:border-iso/40 hover:bg-iso/5',
-    glow: 'bg-iso',
-    border: 'border-iso/25',
-    text: 'text-iso',
-    bg: 'bg-iso/10',
+    hover: 'hover:border-cyan/40 hover:bg-cyan/5',
+    glow: 'bg-cyan',
+    border: 'border-cyan/25',
+    text: 'text-cyan',
+    bg: 'bg-cyan/10',
+    neonClass: 'rr-neon-blue',
+    glowClass: 'glow-yamaha',
   },
   event: {
-    hover: 'hover:border-event/40 hover:bg-event/5',
-    glow: 'bg-event',
-    border: 'border-event/25',
-    text: 'text-event',
-    bg: 'bg-event/10',
+    hover: 'hover:border-amber/40 hover:bg-amber/5',
+    glow: 'bg-amber',
+    border: 'border-amber/25',
+    text: 'text-amber',
+    bg: 'bg-amber/10',
+    neonClass: '',
+    glowClass: 'glow-ducati',
   },
   alert: {
-    hover: 'hover:border-alert/40 hover:bg-alert/5',
-    glow: 'bg-alert',
-    border: 'border-alert/25',
-    text: 'text-alert',
-    bg: 'bg-alert/10',
+    hover: 'hover:border-destructive/40 hover:bg-destructive/5',
+    glow: 'bg-destructive',
+    border: 'border-destructive/25',
+    text: 'text-destructive',
+    bg: 'bg-destructive/10',
+    neonClass: 'rr-neon-red',
+    glowClass: 'glow-honda',
   },
 };
 
@@ -88,7 +96,7 @@ const isoSchema = z.object({
 }, { message: 'Title is required for mechanic requests', path: ['title'] });
 
 /**
- * Two-step broadcast creation form.
+ * Two-step broadcast creation form — Electric Neon Edition.
  *
  * @param {object} props
  * @param {string} props.type
@@ -215,25 +223,28 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
 
   return (
-    <div className="px-5 pt-5 pb-8">
-      <button onClick={onBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
+    <div className="px-5 pt-5 pb-8 min-h-dvh-safe bg-background">
+      <button onClick={onBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1 transition-colors">
         <ArrowLeft className="w-4 h-4" /> All types
       </button>
 
       {/* Type header */}
       <HStack gap={4} align="center" className="mb-5 rr-surface-strong p-5 rounded-[20px] relative overflow-hidden border-l-[3px] border-l-primary/40">
         <div className={cn('absolute top-0 right-0 w-40 h-40 opacity-[0.07] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2', typeStyles.glow)} />
+        <div className={cn('absolute -left-8 -bottom-8 h-24 w-24 rounded-full opacity-[0.04] blur-2xl', typeStyles.glow)} />
         <div className={cn('h-14 w-14 rounded-2xl flex items-center justify-center border shrink-0 relative z-10', typeStyles.border, typeStyles.bg)}>
           <SignalIcon type={type} size="lg" />
         </div>
         <VStack gap={0.5} className="relative z-10">
-          <Text as="h1" variant="h2">{typeMeta.label}</Text>
+          <Text as="h1" variant="h2" className={cn('rr-heading', typeStyles.text)}>{typeMeta.label}</Text>
           <Text variant="caption" color="muted" className="font-medium mt-0.5">{typeMeta.desc}</Text>
         </VStack>
       </HStack>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 surface-card p-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rr-surface p-5 relative overflow-hidden">
+        <div className={cn('absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-[0.03] blur-3xl', typeStyles.glow)} />
+
         {/* ISO subtype selector */}
         {type === 'iso' && (
           <VStack gap={2}>
@@ -250,8 +261,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                   className={cn(
                     'flex items-center gap-2 rounded-xl border p-3 text-sm font-bold transition-all active:scale-[0.96]',
                     isoSubtype === opt.value
-                      ? 'border-iso/40 bg-iso/10 text-iso'
-                      : 'border-border bg-surface text-muted-foreground hover:text-foreground'
+                      ? 'border-cyan/40 bg-cyan/10 text-cyan glow-yamaha'
+                      : 'border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-white/[0.02]'
                   )}
                 >
                   <opt.icon className="w-4 h-4" />
@@ -366,7 +377,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                       <button
                         type="button"
                         onClick={() => setEventImage(null)}
-                        className="pressable h-11 min-h-[44px] rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive"
+                        className="pressable h-11 min-h-[44px] rounded-full border border-border/80 bg-surface-elevated/50 text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive"
                       >
                         Remove
                       </button>
@@ -414,7 +425,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {/* Errors */}
         {post.isError && <p className="text-sm text-destructive">{post.error?.message || 'Failed to create broadcast'}</p>}
         {geoError && (
-          <p className="text-sm text-alert">
+          <p className="text-sm text-destructive">
             Location access is required for this signal type. Enable location or try again.
           </p>
         )}
@@ -424,10 +435,14 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           type="submit"
           disabled={!canPost || post.isPending || !user}
           className={cn(
-            'w-full h-14 rounded-full mt-2 text-base font-bold pressable transition-colors',
+            'w-full h-14 rounded-full mt-2 text-base font-bold pressable transition-all duration-200',
             type === 'alert'
-              ? 'bg-alert hover:bg-alert/90 text-alert-foreground glow-honda'
-              : 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
+              ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground glow-honda'
+              : type === 'event'
+                ? 'bg-amber hover:bg-amber/90 text-amber-foreground glow-ducati'
+                : type === 'iso'
+                  ? 'bg-cyan hover:bg-cyan/90 text-cyan-foreground glow-yamaha'
+                  : 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
           )}
         >
           {post.isPending ? 'Broadcasting...' : `Publish ${typeMeta.label}`}

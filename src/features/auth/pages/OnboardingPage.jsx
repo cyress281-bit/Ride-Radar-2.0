@@ -323,19 +323,19 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-dvh bg-background relative overflow-hidden flex flex-col items-center justify-center px-5 py-8">
-      <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-20" />
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.12),transparent_30%),linear-gradient(180deg,transparent,hsl(var(--background) / 0.58))]" />
-      <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-cyan/8 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-primary/6 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-[0.08]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_30%),linear-gradient(180deg,transparent,hsl(var(--background) / 0.58))]" />
+      <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-brand-radar/[0.04] rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-primary/[0.05] rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-md surface-card px-6 py-8">
+      <div className="relative z-10 w-full max-w-md rr-glass rounded-[1.25rem] px-6 py-8 border border-primary/10 animate-fade-up">
         {/* Logo & Header */}
         <HStack gap={2.5} align="center" className="mb-6">
-          <span className="rr-led-logo">
+          <span className="rr-avatar-ring">
             <RRLogo size="md" />
           </span>
           <Text as="span" variant="h3" className="uppercase tracking-[0.04em]">
-            Ride<span className="text-primary text-glow-green">Radar</span>
+            Ride<span className="text-primary rr-neon-green">Radar</span>
           </Text>
         </HStack>
 
@@ -353,7 +353,7 @@ export default function OnboardingPage() {
         <VStack gap={2} className="mb-6">
           <HStack justify="between" align="center">
             <Text variant="micro" color="muted">Profile completion</Text>
-            <Text variant="micro" color="primary">{progressPercent}%</Text>
+            <Text variant="micro" color="primary" className="font-mono-data">{progressPercent}%</Text>
           </HStack>
           <div className="h-1.5 rounded-full bg-muted overflow-hidden">
             <div
@@ -363,7 +363,7 @@ export default function OnboardingPage() {
           </div>
           {/* Progress dots */}
           <HStack gap={2} className="mt-2 flex-wrap">
-            {steps.map((step, idx) => (
+            {steps.map((step) => (
               <HStack
                 key={step.id}
                 gap={1.5}
@@ -386,7 +386,7 @@ export default function OnboardingPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Avatar */}
-            <div className="surface-card p-4">
+            <div className="rr-glass rounded-xl p-4 border border-primary/10">
               <Label className="mb-3 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Profile picture
               </Label>
@@ -418,7 +418,7 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => setAvatarLocal(null)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50 transition active:scale-[0.96]"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-brand-emergency hover:border-brand-emergency/50 transition active:scale-[0.96]"
                     aria-label="Remove avatar"
                   >
                     <X className="w-4 h-4" />
@@ -428,7 +428,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Display Name */}
-            <div className="surface-card p-4">
+            <div className="rr-glass rounded-xl p-4 border border-primary/10">
               <FormField
                 control={form.control}
                 name="display_name"
@@ -442,7 +442,7 @@ export default function OnboardingPage() {
                         placeholder="How riders see you"
                         autoComplete="nickname"
                         aria-required="true"
-                        className="h-12 bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className="h-12 bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         {...field}
                       />
                     </FormControl>
@@ -458,7 +458,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Username */}
-            <div className="surface-card p-4">
+            <div className="rr-glass rounded-xl p-4 border border-primary/10">
               <FormField
                 control={form.control}
                 name="username"
@@ -471,7 +471,7 @@ export default function OnboardingPage() {
                       <Input
                         placeholder="rider_handle"
                         autoComplete="off"
-                        className="h-12 bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className="h-12 bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         {...field}
                         onBlur={async () => {
                           await checkUsernameUnique(field.value);
@@ -486,7 +486,7 @@ export default function OnboardingPage() {
                       <p className="text-[11px] text-muted-foreground mt-1">Checking availability...</p>
                     )}
                     {usernameError && (
-                      <p className="text-[11px] text-destructive mt-1">{usernameError}</p>
+                      <p className="text-[11px] text-brand-emergency mt-1">{usernameError}</p>
                     )}
                   </FormItem>
                 )}
@@ -494,7 +494,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bio */}
-            <div className="surface-card p-4">
+            <div className="rr-glass rounded-xl p-4 border border-primary/10">
               <FormField
                 control={form.control}
                 name="bio"
@@ -508,7 +508,7 @@ export default function OnboardingPage() {
                         placeholder="Your riding style, local area, and what kind of rides you like."
                         maxLength={220}
                         rows={3}
-                        className="bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all resize-none"
+                        className="bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all resize-none"
                         {...field}
                       />
                     </FormControl>
@@ -522,7 +522,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Year & Make */}
-            <div className="surface-card p-4 grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2">
+            <div className="rr-glass rounded-xl p-4 grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2 border border-primary/10">
               <FormField
                 control={form.control}
                 name="bike_year"
@@ -538,7 +538,7 @@ export default function OnboardingPage() {
                         min={1900}
                         max={currentYear + 1}
                         placeholder="2024"
-                        className="h-12 bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className="h-12 bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         {...field}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -562,7 +562,7 @@ export default function OnboardingPage() {
                       <Input
                         placeholder="Yamaha"
                         list="onboarding-bike-make-options"
-                        className="h-12 bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className="h-12 bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         {...field}
                       />
                     </FormControl>
@@ -578,7 +578,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Model */}
-            <div className="surface-card p-4">
+            <div className="rr-glass rounded-xl p-4 border border-primary/10">
               <FormField
                 control={form.control}
                 name="bike_model"
@@ -591,7 +591,7 @@ export default function OnboardingPage() {
                       <Input
                         placeholder="MT-09"
                         list="onboarding-bike-model-options"
-                        className="h-12 bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className="h-12 bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         {...field}
                       />
                     </FormControl>
@@ -612,7 +612,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Photo */}
-            <div className="surface-card p-4">
+            <div className="rr-glass rounded-xl p-4 border border-primary/10">
               <Label className="mb-3 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Bike photo
               </Label>
@@ -644,7 +644,7 @@ export default function OnboardingPage() {
                       type="button"
                       variant="outline"
                       onClick={() => setBikePhotoLocal(null)}
-                      className="h-11 rounded-full border-border text-xs text-muted-foreground hover:border-destructive/50 hover:text-destructive active:scale-[0.96]"
+                      className="h-11 rounded-full border-border text-xs text-muted-foreground hover:border-brand-emergency/50 hover:text-brand-emergency active:scale-[0.96]"
                     >
                       <X className="h-3.5 w-3.5 mr-1" /> Remove
                     </Button>
@@ -686,7 +686,7 @@ export default function OnboardingPage() {
             {(uploadError || saveProfile.isError) && (
               <div
                 role="alert"
-                className="flex items-start gap-2 rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive"
+                className="flex items-start gap-2 rounded-xl border border-brand-emergency/25 bg-brand-emergency/5 p-3 text-sm text-brand-emergency"
               >
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 {uploadError || saveProfile.error?.message || 'Failed to create profile'}
@@ -697,7 +697,7 @@ export default function OnboardingPage() {
             <Button
               type="submit"
               disabled={saveProfile.isPending}
-              className="h-12 w-full rounded-full bg-primary text-primary-foreground text-base font-semibold hover:bg-primary/90 active:scale-[0.96] transition-all duration-150 glow-green"
+              className="h-12 w-full rounded-full bg-primary text-primary-foreground text-base font-semibold hover:bg-primary/90 active:scale-[0.96] transition-all duration-150 animate-glow-pulse"
             >
               {saveProfile.isPending ? 'Creating profile...' : 'Join the network'}
             </Button>

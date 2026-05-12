@@ -8,7 +8,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Check, Activity } from 'lucide-react';
+import { Check, Activity, Radio } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import RRLogo from '@/components/RRLogo';
 import { Button } from '@/components/ui/button';
@@ -61,19 +61,19 @@ function VirtualNotificationList({ notifications, onMarkRead }) {
 
 function NotificationHeader({ unreadCount }) {
   return (
-    <div className="relative mb-5 overflow-hidden rounded-[20px] border border-[hsl(220_12%_16%)] bg-[hsl(220_20%_7%)] p-5">
-      <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-[#6BBF00]/10" />
-      <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-[#6BBF00]/20 to-transparent" />
+    <div className="relative mb-5 overflow-hidden rounded-[20px] border border-primary/10 bg-surface/80 backdrop-blur-xl p-5">
+      <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-primary/10" />
+      <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       <div className="relative z-10">
-        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[hsl(220_12%_16%)] bg-[hsl(220_25%_4%)] px-2.5 py-1 text-[11px] font-medium text-[hsl(220_8%_52%)]">
-          <Activity className="h-3.5 w-3.5 text-[#6BBF00]" /> Activity feed
+        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+          <Activity className="h-3.5 w-3.5 text-primary" /> Activity feed
         </div>
-        <h1 className="mb-1 text-4xl font-bold tracking-tight text-[hsl(0_0%_96%)]">Notifications</h1>
-        <p className="text-sm text-[hsl(220_8%_52%)]">
+        <h1 className="mb-1 text-4xl font-bold tracking-tight text-foreground rr-heading">Notifications</h1>
+        <p className="text-sm text-muted-foreground">
           {unreadCount > 0 ? (
             <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#6BBF00]" />
-              {unreadCount} unread
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.8)]" />
+              <span className="text-primary font-medium">{unreadCount} unread</span>
             </span>
           ) : (
             'Requests and updates'
@@ -88,18 +88,18 @@ function NotificationSkeleton() {
   return (
     <div className="space-y-3">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="rounded-[20px] border border-[hsl(220_12%_16%)] bg-[hsl(220_20%_7%)] p-5 space-y-3">
+        <div key={i} className="rounded-[20px] border border-primary/10 bg-surface/60 p-5 space-y-3 backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <Skeleton className="h-10 w-10 rounded-full bg-[hsl(220_12%_16%)]" />
+            <Skeleton className="h-10 w-10 rounded-full bg-muted" />
             <div className="space-y-2">
-              <Skeleton className="h-4 w-32 bg-[hsl(220_12%_16%)]" />
-              <Skeleton className="h-3 w-20 bg-[hsl(220_12%_16%)]" />
+              <Skeleton className="h-4 w-32 bg-muted" />
+              <Skeleton className="h-3 w-20 bg-muted" />
             </div>
           </div>
-          <Skeleton className="h-8 w-full bg-[hsl(220_12%_16%)]" />
+          <Skeleton className="h-8 w-full bg-muted" />
           <div className="flex gap-2">
-            <Skeleton className="h-10 w-20 rounded-full bg-[hsl(220_12%_16%)]" />
-            <Skeleton className="h-10 w-20 rounded-full bg-[hsl(220_12%_16%)]" />
+            <Skeleton className="h-10 w-20 rounded-full bg-muted" />
+            <Skeleton className="h-10 w-20 rounded-full bg-muted" />
           </div>
         </div>
       ))}
@@ -109,18 +109,18 @@ function NotificationSkeleton() {
 
 function NotificationEmptyState() {
   return (
-    <div className="relative mt-4 overflow-hidden rounded-[20px] border border-dashed border-[#6BBF00]/20 bg-[hsl(220_20%_7%)]/60 py-20 text-center">
-      <div className="pointer-events-none absolute top-1/2 left-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6BBF00]/5 blur-3xl" />
-      <div className="absolute top-16 right-10 left-10 h-px bg-gradient-to-r from-transparent via-[#6BBF00]/20 to-transparent" />
-      <div className="relative z-10 mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#6BBF00]/20 bg-[#6BBF00]/10">
-        <Bell className="h-7 w-7 text-[#6BBF00]" />
+    <div className="relative mt-4 overflow-hidden rounded-[20px] border border-dashed border-primary/20 bg-surface/60 py-20 text-center backdrop-blur-sm">
+      <div className="pointer-events-none absolute top-1/2 left-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/5 blur-3xl" />
+      <div className="absolute top-16 right-10 left-10 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      <div className="relative z-10 mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
+        <Radio className="h-7 w-7 text-primary" />
       </div>
       <div className="relative z-10 flex items-center justify-center gap-2 mb-2">
         <RRLogo size="sm" className="opacity-70" />
-        <div className="text-[11px] font-medium uppercase tracking-wider text-[hsl(220_8%_52%)]">All caught up</div>
+        <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">All caught up</div>
       </div>
-      <h3 className="relative z-10 mb-2 text-xl font-bold text-[hsl(0_0%_96%)]">Channel clear</h3>
-      <p className="relative z-10 mx-auto max-w-xs text-sm text-[hsl(220_8%_52%)]">
+      <h3 className="relative z-10 mb-2 text-xl font-bold text-foreground">Channel clear</h3>
+      <p className="relative z-10 mx-auto max-w-xs text-sm text-muted-foreground">
         You&apos;ll see requests and updates here.
       </p>
     </div>
@@ -130,10 +130,10 @@ function NotificationEmptyState() {
 function ErrorState() {
   return (
     <div className="px-5 pt-5 pb-8">
-      <div className="rounded-[20px] border border-[hsl(220_12%_16%)] bg-[hsl(220_20%_7%)] p-6 text-center">
-        <h2 className="mb-2 text-xl font-bold text-[#E30613]">Notifications unavailable</h2>
-        <p className="mb-4 text-sm text-[hsl(220_8%_52%)]">Unable to load notifications. Please try again.</p>
-        <Button onClick={() => window.location.reload()} variant="outline" className="rounded-full border-[hsl(220_12%_16%)] bg-[hsl(220_25%_4%)] text-[hsl(0_0%_96%)] hover:bg-[hsl(220_20%_7%)] hover:text-[hsl(0_0%_96%)]">
+      <div className="rounded-[20px] border border-primary/10 bg-surface/80 p-6 text-center backdrop-blur-xl">
+        <h2 className="mb-2 text-xl font-bold text-brand-emergency">Notifications unavailable</h2>
+        <p className="mb-4 text-sm text-muted-foreground">Unable to load notifications. Please try again.</p>
+        <Button onClick={() => window.location.reload()} variant="outline" className="rounded-full border-primary/20 bg-background text-foreground hover:bg-surface hover:text-foreground">
           Retry
         </Button>
       </div>
@@ -206,7 +206,7 @@ export default function NotificationsPage() {
 
       {unreadCount > 0 && (
         <div className="mb-4 flex justify-end">
-          <Button variant="ghost" size="sm" onClick={handleMarkAllRead} className="rounded-full text-xs text-[hsl(220_8%_52%)] hover:bg-[hsl(220_20%_7%)] hover:text-[hsl(0_0%_96%)]">
+          <Button variant="ghost" size="sm" onClick={handleMarkAllRead} className="rounded-full text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors">
             <Check className="mr-1 h-3.5 w-3.5" /> Mark all as read
           </Button>
         </div>
@@ -218,7 +218,7 @@ export default function NotificationsPage() {
 
       {pendingRequests.length > 0 && (
         <div className="mb-6">
-          <div className="mb-2 px-1 text-[11px] font-medium uppercase tracking-wider text-[hsl(220_8%_52%)]">Connection requests</div>
+          <div className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wider text-primary">Connection requests</div>
           <div className="space-y-3">
             {pendingRequests.map((r) => (
               <ConnectionRequestCard
@@ -250,7 +250,7 @@ export default function NotificationsPage() {
 
       {visibleNotifications.length > 0 && shouldVirtualize && (
         <div className="mb-6">
-          <div className="mb-2 px-1 text-[11px] font-medium uppercase tracking-wider text-[hsl(220_8%_52%)]">Activity</div>
+          <div className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wider text-primary">Activity</div>
           <VirtualNotificationList notifications={visibleNotifications} onMarkRead={handleMarkRead} />
         </div>
       )}

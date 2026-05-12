@@ -9,6 +9,7 @@ import { Radio } from 'lucide-react';
 
 /**
  * Virtualized list of broadcasts for the radar bottom sheet.
+ * Electric Neon Edition.
  *
  * @param {Object} props
  * @param {Array<object>} props.broadcasts
@@ -49,7 +50,7 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
   if (isLoading && broadcasts.length === 0) {
     return (
       <LoadingState
-        variant="section"
+        variant="spinner"
         message="Scanning area…"
         className="py-12"
       />

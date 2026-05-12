@@ -1,5 +1,5 @@
 /**
- * Inline profile edit form.
+ * Inline profile edit form — Electric Neon Green redesign.
  *
  * Uses react-hook-form + zod for validation.
  * Performs optimistic updates via TanStack Query.
@@ -24,7 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Check, X, Loader2, AlertCircle } from 'lucide-react';
+import { Check, X, Loader2, AlertCircle, Camera, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MOTORCYCLE_MAKES, getModelSuggestions } from '@/lib/motorcycleCatalog';
 import BikePhotoUploader from './BikePhotoUploader';
@@ -208,12 +208,12 @@ export default function ProfileEditForm({ profile, onDone }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 animate-fade-up">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <div className="rr-kicker mb-1">Identity config</div>
-            <h1 className="font-display text-2xl font-bold tracking-tight">Edit profile</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight rr-neon-green">Edit profile</h1>
           </div>
           <div className="flex gap-2">
             <Button
@@ -224,7 +224,7 @@ export default function ProfileEditForm({ profile, onDone }) {
                 form.reset(defaultValues);
                 onDone();
               }}
-              className="rounded-full border border-border/50"
+              className="rounded-full border border-white/[0.08] hover:bg-white/[0.04] hover:text-foreground"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -232,9 +232,9 @@ export default function ProfileEditForm({ profile, onDone }) {
               type="submit"
               size="icon"
               disabled={updateMutation.isPending || isUploading || checkingUsername || (shouldCheckUsername && usernameAvailable === false)}
-              className="rounded-full glow-green-sm"
+              className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_16px_hsl(var(--primary)/0.4)] animate-glow-pulse"
             >
-              <Check className="h-4 w-4" />
+              <Save className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -242,19 +242,24 @@ export default function ProfileEditForm({ profile, onDone }) {
         {/* Avatar Upload */}
         <div className="rr-glass-panel p-4">
           <div className="flex items-center gap-4">
-            <span className="rr-avatar-ring shrink-0">
-              {avatarPreview ? (
-                <img
-                  src={avatarPreview}
-                  className="relative h-16 w-16 rounded-full border border-primary/30 object-cover"
-                  alt=""
-                />
-              ) : (
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-primary/25 bg-primary/[0.06] font-display text-2xl font-bold text-primary">
-                  {form.watch('display_name')?.[0] || '?'}
-                </div>
-              )}
-            </span>
+            <div className="relative shrink-0">
+              <div className="rr-avatar-ring">
+                {avatarPreview ? (
+                  <img
+                    src={avatarPreview}
+                    className="relative h-16 w-16 rounded-full border border-primary/30 object-cover"
+                    alt=""
+                  />
+                ) : (
+                  <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-primary/25 bg-primary/[0.08] font-display text-2xl font-bold text-primary">
+                    {form.watch('display_name')?.[0] || '?'}
+                  </div>
+                )}
+              </div>
+              <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary border-2 border-background">
+                <Camera className="h-3 w-3 text-primary-foreground" />
+              </div>
+            </div>
             <label className="rr-shimmer-button flex min-w-0 flex-1 cursor-pointer justify-center rounded-full border border-primary/25 bg-primary/10 px-4 py-2.5 text-center text-sm font-bold text-primary transition-colors hover:bg-primary/15 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/80">
               <input
                 type="file"
@@ -265,7 +270,12 @@ export default function ProfileEditForm({ profile, onDone }) {
               Change avatar
             </label>
           </div>
-          <FormMessage>{form.formState.errors.avatar_url?.message}</FormMessage>
+          {form.formState.errors.avatar_url?.message && (
+            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-brand-emergency">
+              <AlertCircle className="h-3 w-3" />
+              {form.formState.errors.avatar_url.message}
+            </div>
+          )}
         </div>
 
         {/* Form Fields */}
@@ -275,7 +285,7 @@ export default function ProfileEditForm({ profile, onDone }) {
             name="display_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="rr-kicker text-muted-foreground">Display name</FormLabel>
+                <FormLabel className="rr-kicker">Display name</FormLabel>
                 <FormControl>
                   <Input {...field} className="rr-premium-input rounded-xl" />
                 </FormControl>
@@ -289,13 +299,13 @@ export default function ProfileEditForm({ profile, onDone }) {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="rr-kicker text-muted-foreground">Username</FormLabel>
+                <FormLabel className="rr-kicker">Username</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     className={cn(
                       'rr-premium-input rounded-xl',
-                      usernameAvailable === false && 'border-destructive focus-visible:ring-destructive'
+                      usernameAvailable === false && 'border-brand-emergency focus-visible:ring-brand-emergency'
                     )}
                     placeholder="unique_handle"
                   />
@@ -307,7 +317,7 @@ export default function ProfileEditForm({ profile, onDone }) {
                     </span>
                   )}
                   {!checkingUsername && shouldCheckUsername && usernameAvailable === false && (
-                    <span className="flex items-center gap-1 text-[11px] text-destructive">
+                    <span className="flex items-center gap-1 text-[11px] text-brand-emergency">
                       <AlertCircle className="h-3 w-3" /> Taken
                     </span>
                   )}
@@ -328,7 +338,7 @@ export default function ProfileEditForm({ profile, onDone }) {
               name="bike_year"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="rr-kicker text-muted-foreground">Year</FormLabel>
+                  <FormLabel className="rr-kicker">Year</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -349,7 +359,7 @@ export default function ProfileEditForm({ profile, onDone }) {
               name="bike_make"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="rr-kicker text-muted-foreground">Bike make</FormLabel>
+                  <FormLabel className="rr-kicker">Bike make</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -373,7 +383,7 @@ export default function ProfileEditForm({ profile, onDone }) {
             name="bike_model"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="rr-kicker text-muted-foreground">Bike model</FormLabel>
+                <FormLabel className="rr-kicker">Bike model</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -396,7 +406,7 @@ export default function ProfileEditForm({ profile, onDone }) {
             name="bike_photo_url"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="rr-kicker text-muted-foreground">Bike photo</FormLabel>
+                <FormLabel className="rr-kicker">Bike photo</FormLabel>
                 <FormControl>
                   <BikePhotoUploader
                     image={field.value}
@@ -413,7 +423,7 @@ export default function ProfileEditForm({ profile, onDone }) {
             name="bio"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="rr-kicker text-muted-foreground">Bio</FormLabel>
+                <FormLabel className="rr-kicker">Bio</FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
@@ -428,8 +438,30 @@ export default function ProfileEditForm({ profile, onDone }) {
           />
         </div>
 
+        {/* Save Button */}
+        <Button
+          type="submit"
+          disabled={updateMutation.isPending || isUploading || checkingUsername || (shouldCheckUsername && usernameAvailable === false)}
+          className={cn(
+            'w-full rounded-full bg-primary text-primary-foreground font-bold',
+            'hover:bg-primary/90 transition-all active:scale-[0.98]',
+            'shadow-[0_4px_20px_hsl(var(--primary)/0.35)]'
+          )}
+        >
+          {updateMutation.isPending || isUploading ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Save className="h-4 w-4" /> Save Changes
+            </span>
+          )}
+        </Button>
+
         {updateMutation.isError && (
-          <div className="rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm text-destructive">
+          <div className="rounded-xl border border-brand-emergency/25 bg-brand-emergency/5 p-3 text-sm text-brand-emergency flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {updateMutation.error?.message || 'Failed to save profile'}
           </div>
         )}

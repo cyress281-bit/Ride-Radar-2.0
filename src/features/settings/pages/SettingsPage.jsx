@@ -1,8 +1,8 @@
 /**
- * Settings hub page for Ride Radar 2.0.
+ * Settings hub page for Ride Radar 2.0 — Electric Neon Green redesign.
  *
  * Sections: Profile, Account, Preferences, App, Support, Danger.
- * Each toggle saves immediately. Grouped sections as cards.
+ * Each toggle saves immediately. Grouped sections as glassmorphism cards.
  */
 
 import { useCallback, useEffect, memo } from 'react';
@@ -73,19 +73,19 @@ const SettingsRow = memo(function SettingsRow({
       className={cn(
         'w-full flex items-center gap-3.5 px-4 py-3.5 text-left transition-colors',
         'hover:bg-white/[0.02] active:bg-white/[0.04]',
-        danger && 'hover:bg-destructive/5',
+        danger && 'hover:bg-brand-emergency/5',
         onClick && 'cursor-pointer',
         disabled && 'opacity-50 cursor-not-allowed'
       )}
     >
       <div className={cn(
         'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
-        danger ? 'bg-destructive/10' : 'bg-primary/10'
+        danger ? 'bg-brand-emergency/10' : 'bg-primary/10'
       )}>
-        <Icon className={cn('h-5 w-5', danger ? 'text-destructive' : 'text-primary')} />
+        <Icon className={cn('h-5 w-5', danger ? 'text-brand-emergency' : 'text-primary')} />
       </div>
       <VStack flex className="min-w-0">
-        <Text variant="bodySm" className={cn('font-semibold', danger && 'text-destructive')}>
+        <Text variant="bodySm" className={cn('font-semibold', danger && 'text-brand-emergency')}>
           {label}
         </Text>
         {desc && (
@@ -93,39 +93,46 @@ const SettingsRow = memo(function SettingsRow({
         )}
       </VStack>
       {toggle !== undefined && (
-        <Switch checked={toggle} onCheckedChange={onToggle} disabled={disabled} />
+        <Switch
+          checked={toggle}
+          onCheckedChange={onToggle}
+          disabled={disabled}
+          className="data-[state=checked]:bg-primary data-[state=checked]:shadow-[0_0_12px_hsl(var(--primary)/0.4)]"
+        />
       )}
       {value && toggle === undefined && (
         <Text variant="caption" color="muted" className="shrink-0">{value}</Text>
       )}
       {onClick && toggle === undefined && (
-        <ChevronRight className={cn('h-4 w-4 shrink-0', danger ? 'text-destructive/50' : 'text-muted-foreground')} />
+        <ChevronRight className={cn('h-4 w-4 shrink-0', danger ? 'text-brand-emergency/50' : 'text-muted-foreground')} />
       )}
     </button>
   );
 });
 
 /**
- * Section card wrapper.
+ * Section card wrapper with glassmorphism.
  */
 const SettingsSection = memo(function SettingsSection({ title, icon: Icon, children, error, danger }) {
   return (
     <div className={cn(
       'overflow-hidden surface-card',
-      danger && 'border-destructive/20'
+      danger && 'border-brand-emergency/20'
     )}>
       <HStack align="center" gap={2} className={cn(
         'px-4 py-3 border-b',
-        danger ? 'border-destructive/10' : 'border-border/40'
+        danger ? 'border-brand-emergency/10' : 'border-border/40'
       )}>
-        {Icon && <Icon className={cn('h-4 w-4', danger ? 'text-destructive' : 'text-primary')} />}
-        <Text variant="micro" color={danger ? 'destructive' : 'muted'}>{title}</Text>
+        {Icon && <Icon className={cn('h-4 w-4', danger ? 'text-brand-emergency' : 'text-primary')} />}
+        <Text variant="micro" className={cn('font-bold uppercase tracking-wider', danger ? 'text-brand-emergency' : 'text-muted-foreground')}>
+          {title}
+        </Text>
       </HStack>
       <VStack>{children}</VStack>
       {error && (
         <HStack align="center" gap={2} className="border-t border-border/40 px-4 py-3">
-          <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
-          <Text variant="caption" color="destructive">{error}</Text>
+          <AlertCircle className="h-4 w-4 shrink-0 text-brand-emergency" />
+          <Text variant="caption" className="text-brand-emergency">{error}</Text>
         </HStack>
       )}
     </div>
@@ -251,8 +258,8 @@ function SettingsPage() {
           <button
             onClick={handleSignOut}
             className={cn(
-              'px-5 py-2.5 rounded-full border border-destructive/30 text-destructive text-sm font-semibold',
-              'hover:bg-destructive/10 transition-colors pressable'
+              'px-5 py-2.5 rounded-full border border-brand-emergency/30 text-brand-emergency text-sm font-semibold',
+              'hover:bg-brand-emergency/10 transition-colors pressable'
             )}
           >
             Log out
@@ -263,7 +270,7 @@ function SettingsPage() {
   }
 
   return (
-    <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8">
+    <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
       {/* Back link */}
       <Link
         to="/profile"
@@ -346,10 +353,10 @@ function SettingsPage() {
                 value={normalizePrecision(settings?.live_map_location_precision)}
                 onValueChange={handlePrecisionChange}
               >
-                <SelectTrigger className="w-36 rounded-xl border-border/60 bg-black/25">
+                <SelectTrigger className="w-36 rounded-xl border-border/60 bg-black/25 focus:ring-primary/40">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="border-border/60 bg-surface-elevated">
                   <SelectItem value="approximate">Approximate</SelectItem>
                   <SelectItem value="precise">Precise</SelectItem>
                 </SelectContent>
@@ -376,7 +383,7 @@ function SettingsPage() {
             onClick={handleInstallApp}
             className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left hover:bg-white/[0.02] transition-colors"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.1)]">
               <Download className="h-5 w-5 text-primary" />
             </div>
             <VStack flex>
@@ -388,7 +395,7 @@ function SettingsPage() {
         )}
         {isInstalled && (
           <div className="flex items-center gap-3 px-4 py-3.5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.1)]">
               <Check className="h-5 w-5 text-primary" />
             </div>
             <VStack flex>
@@ -431,19 +438,19 @@ function SettingsPage() {
         <Link to="/account-deletion" className="block">
           <SettingsRow icon={Trash2} label="Delete Account" desc="Permanently delete Ride Radar app data" danger />
         </Link>
-        <div className="border-t border-destructive/10">
+        <div className="border-t border-brand-emergency/10">
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left hover:bg-destructive/5 transition-colors"
+            className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left hover:bg-brand-emergency/5 transition-colors"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
-              <LogOut className="h-5 w-5 text-destructive" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-emergency/10">
+              <LogOut className="h-5 w-5 text-brand-emergency" />
             </div>
             <VStack flex>
-              <Text variant="bodySm" className="font-semibold text-destructive">Log out</Text>
-              <Text variant="caption" className="text-destructive/70">Sign out of your account</Text>
+              <Text variant="bodySm" className="font-semibold text-brand-emergency">Log out</Text>
+              <Text variant="caption" className="text-brand-emergency/70">Sign out of your account</Text>
             </VStack>
-            <ChevronRight className="h-4 w-4 shrink-0 text-destructive/50" />
+            <ChevronRight className="h-4 w-4 shrink-0 text-brand-emergency/50" />
           </button>
         </div>
       </SettingsSection>
