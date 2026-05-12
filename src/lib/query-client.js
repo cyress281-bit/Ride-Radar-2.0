@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
+import { supabase } from './supabase.js';
 
 /**
  * Shared TanStack Query client for Ride Radar 2.0.
@@ -59,8 +60,6 @@ export function prefetchBroadcastDetail(qc, broadcastId) {
   qc.prefetchQuery({
     queryKey: ['broadcast', broadcastId],
     queryFn: async () => {
-      const { supabase } = await import('./supabase.js');
-      if (!supabase) throw new Error('Supabase not available');
       const { data, error } = await supabase
         .from('broadcasts')
         .select('*')
@@ -82,8 +81,6 @@ export function prefetchHomeData(qc) {
   qc.prefetchQuery({
     queryKey: ['broadcasts', 'active'],
     queryFn: async () => {
-      const { supabase } = await import('./supabase.js');
-      if (!supabase) throw new Error('Supabase not available');
       const { data, error } = await supabase
         .from('broadcasts')
         .select('*')
@@ -99,8 +96,6 @@ export function prefetchHomeData(qc) {
   qc.prefetchQuery({
     queryKey: ['riders', 'nearby', 'count'],
     queryFn: async () => {
-      const { supabase } = await import('./supabase.js');
-      if (!supabase) return 0;
       const { count, error } = await supabase
         .from('user_presence')
         .select('*', { count: 'exact', head: true });
@@ -124,8 +119,6 @@ export function prefetchConversationMessages(qc, conversationId) {
   qc.prefetchQuery({
     queryKey: ['messages', conversationId],
     queryFn: async () => {
-      const { supabase } = await import('./supabase.js');
-      if (!supabase) throw new Error('Supabase not available');
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -151,8 +144,6 @@ export function prefetchRiderProfile(qc, userId) {
   qc.prefetchQuery({
     queryKey: ['profile', userId],
     queryFn: async () => {
-      const { supabase } = await import('./supabase.js');
-      if (!supabase) return null;
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')

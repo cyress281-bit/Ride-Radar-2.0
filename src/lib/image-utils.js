@@ -139,8 +139,8 @@ export async function prepareLocalImage(file, kind = 'event') {
  * @param {string} path - Target path inside the bucket
  * @returns {Promise<string>} Public URL of the uploaded file
  */
-export async function uploadImage(file, bucket, path) {
-  validateFile(file, 'event');
+export async function uploadImage(file, bucket, path, kind = 'event') {
+  validateFile(file, kind);
 
   const { blob, format } = await convertImage(file, 1600, 0.82);
   const ext = format === 'webp' ? 'webp' : 'jpg';

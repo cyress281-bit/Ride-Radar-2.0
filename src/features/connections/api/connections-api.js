@@ -204,6 +204,27 @@ export async function getFriendships(userId) {
 }
 
 /**
+ * Check if an active friendship exists between two users.
+ * @param {string} userAId
+ * @param {string} userBId
+ * @returns {Promise<{data: object|null, error: Error|null}>}
+ */
+export async function getFriendshipBetween(userAId, userBId) {
+  if (!isValidUuid(userAId) || !isValidUuid(userBId)) {
+    return { data: null, error: new Error('Invalid userId') };
+  }
+
+  const { data, error } = await supabase
+    .from('friendships')
+    .select('*')
+    .eq('status', 'active')
+    .or(`and(user_a_id.eq.${userAId},user_b_id.eq.${userBId}),and(user_a_id.eq.${userBId},user_b_id.eq.${userAId})`)
+    .maybeSingle();
+
+  return { data, error };
+}
+
+/**
  * Remove a friendship by ID.
  * @param {string} friendshipId
  * @returns {Promise<{data: null, error: Error|null}>}

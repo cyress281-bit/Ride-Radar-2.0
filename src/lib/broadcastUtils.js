@@ -76,31 +76,34 @@ export function timeUntilExpiry(iso) {
 }
 
 export function rankBroadcasts(broadcasts, userLat, userLng) {
-  return [...broadcasts].sort((a, b) => {
+  // Precompute distances once per item to avoid O(n log n) haversine calls during sort
+  const shouldComputeDistance = userLat != null && userLng != null;
+  const withDistances = broadcasts.map((b) => ({
+    ...b,
+    _distance:
+      shouldComputeDistance && (b.type === 'solo_ride' || b.type === 'iso')
+        ? haversineMiles(userLat, userLng, b.frozen_lat || b.frozenLat, b.frozen_lng || b.frozenLng) ?? 999
+        : 999,
+  }));
+
+  return withDistances.sort((a, b) => {
     const rankA = BROADCAST_META[a.type]?.rank ?? 99;
     const rankB = BROADCAST_META[b.type]?.rank ?? 99;
     if (rankA !== rankB) return rankA - rankB;
 
     // Events rank by upcoming eventDate
     if (a.type === 'event' && b.type === 'event') {
-      // CRITICAL FIX: Use snake_case field from Supabase
       const eA = new Date(a.event_date || a.eventDate || Number.MAX_SAFE_INTEGER).getTime();
       const eB = new Date(b.event_date || b.eventDate || Number.MAX_SAFE_INTEGER).getTime();
       if (eA !== eB) return eA - eB;
     }
 
     // Within type: recency first
-    // CRITICAL FIX: Supabase returns created_at (not created_date)
     const tA = new Date(a.created_at || a.created_date || 0).getTime();
     const tB = new Date(b.created_at || b.created_date || 0).getTime();
     if (tB !== tA) return tB - tA;
+
     // Distance secondary for solo/iso
-    if ((a.type === 'solo_ride' || a.type === 'iso') && userLat != null && userLng != null) {
-      // CRITICAL FIX: Use snake_case fields from Supabase
-      const dA = haversineMiles(userLat, userLng, a.frozen_lat || a.frozenLat, a.frozen_lng || a.frozenLng) ?? 999;
-      const dB = haversineMiles(userLat, userLng, b.frozen_lat || b.frozenLat, b.frozen_lng || b.frozenLng) ?? 999;
-      return dA - dB;
-    }
-    return 0;
+    return a._distance - b._distance;
   });
 }

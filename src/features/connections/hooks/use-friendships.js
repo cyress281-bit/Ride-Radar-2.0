@@ -2,7 +2,7 @@
  * @fileoverview TanStack Query hooks for friendships.
  */
 
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
@@ -82,10 +82,10 @@ export function useFriendships() {
  */
 export function useIsFriend(userId) {
   const { user } = useAuthState();
-  const { data: friendships = [], isLoading } = useQuery({
-    queryKey: friendshipKeys.detail(user?.id, userId),
+  const { data: friendship, isLoading } = useQuery({
+    queryKey: [...friendshipKeys.detail(user?.id, userId), 'between'],
     queryFn: async () => {
-      const { data, error } = await getFriendships(user.id);
+      const { data, error } = await getFriendshipBetween(user.id, userId);
       if (error) throw error;
       return data;
     },
@@ -93,17 +93,7 @@ export function useIsFriend(userId) {
     staleTime: 60_000,
   });
 
-  const isFriend = useMemo(
-    () =>
-      friendships.some(
-        (f) =>
-          (f.user_a_id === user?.id && f.user_b_id === userId) ||
-          (f.user_a_id === userId && f.user_b_id === user?.id)
-      ),
-    [friendships, user?.id, userId]
-  );
-
-  return { isFriend, isLoading };
+  return { isFriend: !!friendship, isLoading };
 }
 
 /**

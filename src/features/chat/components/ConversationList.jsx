@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import VirtualList from '@/components/shared/VirtualList.jsx';
 import ConversationItem from './ConversationItem.jsx';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
@@ -72,36 +71,17 @@ export default function ConversationList({
 
   if (!shouldVirtualize) {
     return (
-      <motion.div
-        className="space-y-2"
-        initial="hidden"
-        animate="visible"
-        variants={{
-          hidden: {},
-          visible: {
-            transition: {
-              staggerChildren: 0.04,
-            },
-          },
-        }}
-      >
-        {conversations.map((conversation) => (
-          <motion.div
+      <div className="space-y-2">
+        {conversations.map((conversation, index) => (
+          <div
             key={conversation.id}
-            variants={{
-              hidden: { opacity: 0, y: 16 },
-              visible: {
-                opacity: 1,
-                y: 0,
-                transition: { duration: 0.3, ease: 'easeOut' },
-              },
-            }}
-            className="will-change-transform transform-gpu"
+            className="will-change-transform transform-gpu animate-notification-in"
+            style={{ animationDelay: `${index * 40}ms` }}
           >
             {renderItem(conversation)}
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
     );
   }
 

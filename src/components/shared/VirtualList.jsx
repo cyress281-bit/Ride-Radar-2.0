@@ -41,14 +41,15 @@ const VirtualList = memo(function VirtualList({
   innerClassName,
   itemClassName,
   getItemKey,
+  scrollElementRef,
 }) {
-  const parentRef = useRef(null);
+  const internalRef = useRef(null);
 
   const resolvedEstimateSize = estimateSizeProp ?? itemHeight ?? 60;
 
   const virtualizer = useVirtualizer({
     count: items.length,
-    getScrollElement: () => parentRef.current,
+    getScrollElement: () => (scrollElementRef ? scrollElementRef.current : internalRef.current),
     estimateSize: () => resolvedEstimateSize + gap,
     overscan,
     getItemKey: getItemKey || ((index) => items[index]?.id ?? index),
@@ -58,42 +59,50 @@ const VirtualList = memo(function VirtualList({
 
   // Auto-scroll to bottom for chat-like UIs
   useEffect(() => {
-    if (scrollToBottom && parentRef.current) {
-      const el = parentRef.current;
+    const el = scrollElementRef ? scrollElementRef.current : internalRef.current;
+    if (scrollToBottom && el) {
       // Only scroll if user is already near bottom (within 150px)
       const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
       if (isNearBottom || items.length <= overscan + 2) {
         virtualizer.scrollToIndex(items.length - 1, { align: 'end', behavior: 'auto' });
       }
     }
-  }, [items.length, scrollToBottom, overscan, virtualizer]);
+  }, [items.length, scrollToBottom, overscan, virtualizer, scrollElementRef]);
+
+  const innerContent = (
+    <div
+      className={cn('relative w-full', innerClassName)}
+      style={{ height: `${virtualizer.getTotalSize()}px` }}
+    >
+      {virtualItems.map((virtualRow) => (
+        <div
+          key={virtualRow.key}
+          data-index={virtualRow.index}
+          ref={virtualizer.measureElement}
+          className={cn('absolute left-0 w-full', itemClassName)}
+          style={{
+            top: 0,
+            transform: `translateY(${virtualRow.start}px)`,
+            paddingBottom: gap ? `${gap}px` : undefined,
+          }}
+        >
+          {renderItem(items[virtualRow.index], virtualRow.index, virtualRow)}
+        </div>
+      ))}
+    </div>
+  );
+
+  if (scrollElementRef) {
+    return innerContent;
+  }
 
   return (
     <div
-      ref={parentRef}
+      ref={internalRef}
       className={cn('overflow-auto', className)}
       style={{ contain: 'strict', height: height || undefined }}
     >
-      <div
-        className={cn('relative w-full', innerClassName)}
-        style={{ height: `${virtualizer.getTotalSize()}px` }}
-      >
-        {virtualItems.map((virtualRow) => (
-          <div
-            key={virtualRow.key}
-            data-index={virtualRow.index}
-            ref={virtualizer.measureElement}
-            className={cn('absolute left-0 w-full', itemClassName)}
-            style={{
-              top: 0,
-              transform: `translateY(${virtualRow.start}px)`,
-              paddingBottom: gap ? `${gap}px` : undefined,
-            }}
-          >
-            {renderItem(items[virtualRow.index], virtualRow.index, virtualRow)}
-          </div>
-        ))}
-      </div>
+      {innerContent}
     </div>
   );
 });
