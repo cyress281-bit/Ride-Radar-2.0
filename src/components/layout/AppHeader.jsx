@@ -23,6 +23,17 @@ const ROUTE_TITLES = {
   '/broadcast': 'Broadcast',
 };
 
+/** Map routes to their brand accent color for visual variety */
+const ROUTE_BRANDS = {
+  '/home': 'kawasaki',
+  '/profile': 'ducati',
+  '/notifications': 'honda',
+  '/messages': 'yamaha',
+  '/settings': 'ducati',
+  '/broadcast': 'kawasaki',
+  '/admin': 'honda',
+};
+
 function getPageTitle(pathname) {
   if (ROUTE_TITLES[pathname] !== undefined) return ROUTE_TITLES[pathname];
   if (pathname === '/') return '';
@@ -30,16 +41,30 @@ function getPageTitle(pathname) {
   return segment ? segment.charAt(0).toUpperCase() + segment.slice(1) : '';
 }
 
+function getRouteBrand(pathname) {
+  if (ROUTE_BRANDS[pathname]) return ROUTE_BRANDS[pathname];
+  const segment = pathname.split('/')[1];
+  const segmentMap = {
+    home: 'kawasaki',
+    profile: 'ducati',
+    messages: 'yamaha',
+    notifications: 'honda',
+    broadcast: 'kawasaki',
+    settings: 'ducati',
+    admin: 'honda',
+  };
+  return segmentMap[segment] || 'kawasaki';
+}
+
 /**
- * AppHeader — Scroll-aware minimal header.
+ * AppHeader — Multi-brand scroll-aware header.
  *
  * Design:
+ * - Route-specific brand colors for accents (not just green everywhere)
  * - Transparent at top, gains bg-background/80 backdrop-blur on scroll
  * - Left: Back button (when not on home) OR Logo (on home)
- * - Center: Page title (bold, not uppercase micro label)
+ * - Center: Page title in route brand color
  * - Right: Notifications bell + Avatar
- * - Height: 56px
- * - Keeps existing admin dot, unread badge logic
  */
 const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { pathname } = useLocation();
@@ -51,6 +76,14 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const isHome = pathname === '/home';
   const isTransparent = isOverlay || isRadar;
   const pageTitle = getPageTitle(pathname);
+  const brand = getRouteBrand(pathname);
+
+  const brandTextClass = {
+    kawasaki: 'text-brand-kawasaki',
+    yamaha: 'text-brand-yamaha',
+    honda: 'text-brand-honda',
+    ducati: 'text-brand-ducati',
+  }[brand];
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -63,7 +96,6 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
 
   const avatarUrl = profile?.avatar_url;
   const displayName = profile?.display_name || profile?.username || 'Rider';
-
   const showBackButton = !isHome;
 
   return (
@@ -88,9 +120,9 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             onClick={() => navigate(-1)}
             className={cn(
               'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
-              'text-foreground hover:text-primary',
+              'text-foreground hover:text-brand-kawasaki',
               'transition-all duration-150',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
               'pressable'
             )}
             aria-label="Go back"
@@ -102,7 +134,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             to="/home"
             className={cn(
               'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
               'pressable'
             )}
             aria-label="Ride Radar home"
@@ -130,7 +162,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               <Text
                 variant="h3"
                 color="default"
-                className="text-base font-bold"
+                className={cn('text-base font-bold', brandTextClass)}
               >
                 {pageTitle}
               </Text>
@@ -146,13 +178,13 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               className={cn(
                 'flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full',
                 'transition-all duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'pressable'
               )}
               aria-label="Admin panel"
             >
               <span
-                className="h-1.5 w-1.5 rounded-full bg-primary"
+                className="h-1.5 w-1.5 rounded-full bg-brand-kawasaki"
                 aria-hidden="true"
               />
             </NavLink>
@@ -164,10 +196,10 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               cn(
                 'relative flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full',
                 'transition-all duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'pressable',
                 isActive
-                  ? 'text-primary bg-primary/10'
+                  ? 'text-brand-honda bg-brand-honda/10'
                   : 'text-muted-foreground hover:text-foreground'
               )
             }
@@ -188,9 +220,9 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               cn(
                 'flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full',
                 'transition-all duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'pressable',
-                isActive && 'ring-1 ring-primary/40'
+                isActive && 'ring-1 ring-brand-ducati/40'
               )
             }
             aria-label="My profile"

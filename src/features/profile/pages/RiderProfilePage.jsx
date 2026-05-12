@@ -203,13 +203,13 @@ export default function RiderProfilePage() {
                   onError={() => setAvatarError(true)}
                 />
               ) : (
-                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 font-display text-3xl font-bold text-primary-foreground">
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-brand-kawasaki via-brand-yamaha to-brand-ducati font-display text-3xl font-bold text-white">
                   {canSeeDetails ? profile.display_name?.[0]?.toUpperCase() || '?' : '?'}
                 </div>
               )}
             </div>
             {canSeeDetails && (
-              <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-background bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
+              <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-background bg-brand-kawasaki shadow-[0_0_8px_hsl(var(--brand-kawasaki)/0.6)]" />
             )}
           </div>
 
@@ -239,12 +239,12 @@ export default function RiderProfilePage() {
             </HStack>
           )}
 
-          {/* Stats Row */}
+          {/* Stats Row — multi-brand */}
           {canSeeDetails && (
             <HStack gap={2} className="w-full mt-1">
-              <StatPill icon={Radio} label="Broadcasts" value={activeBroadcasts.length} isLoading={isBroadcastsLoading} />
-              <StatPill icon={Bike} label="Bike" value={bikeLabel || 'Not set'} />
-              <StatPill icon={ShieldCheck} label="Status" value={profile.is_public === false ? 'Private' : 'Public'} />
+              <StatPill icon={Radio} label="Broadcasts" value={activeBroadcasts.length} isLoading={isBroadcastsLoading} brand="kawasaki" />
+              <StatPill icon={Bike} label="Bike" value={bikeLabel || 'Not set'} brand="yamaha" />
+              <StatPill icon={ShieldCheck} label="Status" value={profile.is_public === false ? 'Private' : 'Public'} brand="ducati" />
             </HStack>
           )}
 
@@ -257,8 +257,8 @@ export default function RiderProfilePage() {
                   disabled={openFriendChat.isPending}
                   className={cn(
                     'flex-1 flex items-center justify-center gap-2 rounded-full',
-                    'bg-brand-kawasaki text-primary-foreground px-5 py-2.5 text-sm font-bold',
-                    'transition-all hover:bg-brand-kawasaki/90 pressable glow-kawasaki-sm',
+                    'bg-brand-kawasaki text-background px-5 py-2.5 text-sm font-bold',
+                    'transition-all hover:bg-brand-kawasaki/90 pressable',
                     'disabled:opacity-50'
                   )}
                 >
@@ -282,8 +282,8 @@ export default function RiderProfilePage() {
                   disabled={sendFriendReq.isPending}
                   className={cn(
                     'flex-1 flex items-center justify-center gap-2 rounded-full',
-                    'bg-brand-kawasaki text-primary-foreground px-5 py-2.5 text-sm font-bold',
-                    'transition-all hover:bg-brand-kawasaki/90 pressable glow-kawasaki-sm',
+                    'bg-brand-yamaha text-background px-5 py-2.5 text-sm font-bold',
+                    'transition-all hover:bg-brand-yamaha/90 pressable',
                     'disabled:opacity-50'
                   )}
                 >
@@ -341,11 +341,11 @@ export default function RiderProfilePage() {
               {bikeLabel && (
                 <div className="surface-card p-4">
                   <HStack align="center" gap={3}>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-                      <Bike className="h-5 w-5 text-primary" />
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-kawasaki/20 bg-brand-kawasaki/10">
+                      <Bike className="h-5 w-5 text-brand-kawasaki" />
                     </div>
                     <VStack gap={0.5}>
-                      <Text variant="micro" color="primary">Machine</Text>
+                      <Text variant="micro" className="text-brand-kawasaki">Machine</Text>
                       <Text variant="bodySm" className="font-semibold">{bikeLabel}</Text>
                     </VStack>
                   </HStack>
@@ -422,15 +422,23 @@ export default function RiderProfilePage() {
   );
 }
 
-function StatPill({ icon: Icon, label, value, isLoading }) {
+const RBRAND_STYLES = {
+  kawasaki: { border: 'border-brand-kawasaki/20', bg: 'bg-brand-kawasaki/10', text: 'text-brand-kawasaki' },
+  yamaha:   { border: 'border-brand-yamaha/20',   bg: 'bg-brand-yamaha/10',   text: 'text-brand-yamaha' },
+  honda:    { border: 'border-brand-honda/20',    bg: 'bg-brand-honda/10',    text: 'text-brand-honda' },
+  ducati:   { border: 'border-brand-ducati/20',   bg: 'bg-brand-ducati/10',   text: 'text-brand-ducati' },
+};
+
+function StatPill({ icon: Icon, label, value, isLoading, brand = 'kawasaki' }) {
+  const style = RBRAND_STYLES[brand];
   return (
     <div className="flex-1 surface-card p-3 text-center">
       <div className="flex items-center justify-center mb-1.5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-          <Icon className="h-3.5 w-3.5 text-primary" />
+        <div className={cn('flex h-7 w-7 items-center justify-center rounded-full border', style.border, style.bg)}>
+          <Icon className={cn('h-3.5 w-3.5', style.text)} />
         </div>
       </div>
-      <Text variant="bodySm" className="font-bold truncate">
+      <Text variant="bodySm" className={cn('font-bold truncate', style.text)}>
         {isLoading ? '—' : value}
       </Text>
       <Text variant="micro" color="muted">{label}</Text>

@@ -127,13 +127,13 @@ function ProfilePage() {
                   onError={() => setAvatarError(true)}
                 />
               ) : (
-                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 font-display text-3xl font-bold text-primary-foreground">
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-brand-kawasaki via-brand-yamaha to-brand-ducati font-display text-3xl font-bold text-white">
                   {displayProfile?.display_name?.[0]?.toUpperCase() || '?'}
                 </div>
               )}
             </div>
             {/* Online indicator */}
-            <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-background bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
+            <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-background bg-brand-kawasaki shadow-[0_0_8px_hsl(var(--brand-kawasaki)/0.6)]" />
           </div>
 
           {/* Name & Username */}
@@ -153,35 +153,40 @@ function ProfilePage() {
             </Text>
           )}
 
-          {/* Stats Row */}
+          {/* Stats Row — multi-brand colored */}
           <HStack gap={2} className="w-full mt-1">
             <StatPill
               icon={Radio}
               label="Broadcasts"
               value={active.length}
               isLoading={broadcastsLoading}
+              brand="kawasaki"
             />
             <StatPill
               icon={Users}
               label="Pack"
               value={connectionsCount}
               isLoading={connectionsLoading}
+              brand="yamaha"
             />
             <StatPill
               icon={ShieldCheck}
               label="Status"
               value={displayProfile?.is_public === false ? 'Private' : 'Public'}
+              brand="ducati"
             />
           </HStack>
 
           {/* Action Buttons */}
+          {/* Action Buttons — multi-brand accents */}
           <HStack gap={3} className="w-full mt-1">
             <button
               onClick={() => setEditing(true)}
               className={cn(
-                'flex-1 flex items-center justify-center gap-2 rounded-full border border-border/60',
-                'bg-surface px-5 py-2.5 text-sm font-semibold text-foreground',
-                'transition-all hover:bg-surface-elevated hover:border-primary/25 active:scale-95'
+                'flex-1 flex items-center justify-center gap-2 rounded-full',
+                'bg-brand-kawasaki px-5 py-2.5 text-sm font-semibold text-background',
+                'transition-all hover:bg-brand-kawasaki/90 active:scale-95',
+                'shadow-[0_4px_20px_hsl(var(--brand-kawasaki)/0.3)]'
               )}
             >
               <Edit2 className="h-4 w-4" />
@@ -190,9 +195,9 @@ function ProfilePage() {
             <Link to="/settings" className="shrink-0">
               <button
                 className={cn(
-                  'h-11 w-11 rounded-full border border-border/60 bg-surface',
-                  'flex items-center justify-center text-muted-foreground',
-                  'transition-all hover:bg-surface-elevated hover:text-foreground active:scale-95'
+                  'h-11 w-11 rounded-full border border-brand-yamaha/30 bg-brand-yamaha/10',
+                  'flex items-center justify-center text-brand-yamaha',
+                  'transition-all hover:bg-brand-yamaha/20 active:scale-95'
                 )}
               >
                 <Settings className="h-4 w-4" />
@@ -201,9 +206,9 @@ function ProfilePage() {
             <button
               onClick={() => signOut()}
               className={cn(
-                'h-11 w-11 rounded-full border border-destructive/30 bg-destructive/5',
-                'flex items-center justify-center text-destructive',
-                'transition-all hover:bg-destructive/10 active:scale-95'
+                'h-11 w-11 rounded-full border border-brand-honda/30 bg-brand-honda/10',
+                'flex items-center justify-center text-brand-honda',
+                'transition-all hover:bg-brand-honda/20 active:scale-95'
               )}
             >
               <LogOut className="h-4 w-4" />
@@ -337,15 +342,23 @@ function ProfilePage() {
   );
 }
 
-const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading }) {
+const BRAND_STYLES = {
+  kawasaki: { border: 'border-brand-kawasaki/20', bg: 'bg-brand-kawasaki/10', text: 'text-brand-kawasaki' },
+  yamaha:   { border: 'border-brand-yamaha/20',   bg: 'bg-brand-yamaha/10',   text: 'text-brand-yamaha' },
+  honda:    { border: 'border-brand-honda/20',    bg: 'bg-brand-honda/10',    text: 'text-brand-honda' },
+  ducati:   { border: 'border-brand-ducati/20',   bg: 'bg-brand-ducati/10',   text: 'text-brand-ducati' },
+};
+
+const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading, brand = 'kawasaki' }) {
+  const style = BRAND_STYLES[brand];
   return (
     <div className="flex-1 surface-card p-3 text-center">
       <div className="flex items-center justify-center mb-1.5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-          <Icon className="h-3.5 w-3.5 text-primary" />
+        <div className={cn('flex h-7 w-7 items-center justify-center rounded-full border', style.border, style.bg)}>
+          <Icon className={cn('h-3.5 w-3.5', style.text)} />
         </div>
       </div>
-      <Text variant="bodySm" className="font-bold">
+      <Text variant="bodySm" className={cn('font-bold', style.text)}>
         {isLoading ? '—' : value}
       </Text>
       <Text variant="micro" color="muted">{label}</Text>
