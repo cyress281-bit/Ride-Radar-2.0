@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin } from 'lucide-react';
 import AlertPhotoUploader from './AlertPhotoUploader';
 import SignalIcon from '@/components/brand/SignalIcon';
+import { Text } from '@/components/ui/primitives/Text';
+import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useCreateBroadcast } from '@/features/broadcast/hooks/use-create-broadcast.js';
@@ -214,40 +216,55 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
   return (
     <div className="px-5 pt-5 pb-8">
-      <button onClick={onBack} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
+      <button onClick={onBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
         <ArrowLeft className="w-4 h-4" /> All types
       </button>
 
-      <div className="flex items-center gap-4 mb-5 rr-surface-strong p-5 rounded-[20px] relative overflow-hidden border-l-[3px] border-l-primary/40">
+      {/* Type header */}
+      <HStack gap={4} align="center" className="mb-5 rr-surface-strong p-5 rounded-[20px] relative overflow-hidden border-l-[3px] border-l-primary/40">
         <div className={cn('absolute top-0 right-0 w-40 h-40 opacity-[0.07] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2', typeStyles.glow)} />
         <div className={cn('h-14 w-14 rounded-2xl flex items-center justify-center border shrink-0 relative z-10', typeStyles.border, typeStyles.bg)}>
           <SignalIcon type={type} size="lg" />
         </div>
-        <div className="relative z-10">
-          <h1 className="font-display text-2xl font-extrabold tracking-[-0.04em]">{typeMeta.label}</h1>
-          <p className="text-xs text-muted-foreground font-medium mt-0.5">{typeMeta.desc}</p>
-        </div>
-      </div>
+        <VStack gap={0.5} className="relative z-10">
+          <Text as="h1" variant="h2">{typeMeta.label}</Text>
+          <Text variant="caption" color="muted" className="font-medium mt-0.5">{typeMeta.desc}</Text>
+        </VStack>
+      </HStack>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rr-surface rounded-[20px] p-5">
+      {/* Form */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 surface-card p-5">
+        {/* ISO subtype selector */}
         {type === 'iso' && (
-          <div>
-            <Label className="rr-kicker text-muted-foreground mb-2 block">Looking for</Label>
-            <Select value={isoSubtype} onValueChange={(v) => setValue('isoSubtype', v)}>
-              <SelectTrigger className="rr-premium-input rounded-xl mt-1.5">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="mechanic">Mechanic</SelectItem>
-                <SelectItem value="bike_crew">Bike Crew</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <VStack gap={2}>
+            <Label className="rr-kicker text-muted-foreground mb-1 block">Looking for</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: 'mechanic', label: 'Mechanic', icon: ShieldAlert },
+                { value: 'bike_crew', label: 'Bike Crew', icon: Users },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setValue('isoSubtype', opt.value)}
+                  className={cn(
+                    'flex items-center gap-2 rounded-xl border p-3 text-sm font-bold transition-all active:scale-[0.96]',
+                    isoSubtype === opt.value
+                      ? 'border-iso/40 bg-iso/10 text-iso'
+                      : 'border-border bg-surface text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <opt.icon className="w-4 h-4" />
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </VStack>
         )}
 
         {type === 'iso' && isoSubtype === 'bike_crew' ? (
-          <div>
-            <Label className="rr-kicker text-muted-foreground mb-2 block">Looking to</Label>
+          <VStack gap={2}>
+            <Label className="rr-kicker text-muted-foreground mb-1 block">Looking to</Label>
             <Select value={watch('lookingTo')} onValueChange={(v) => setValue('lookingTo', v)}>
               <SelectTrigger className="rr-premium-input rounded-xl mt-1.5">
                 <SelectValue />
@@ -257,10 +274,10 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 <SelectItem value="start_crew">Start a crew</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </VStack>
         ) : (
-          <div>
-            <Label className="rr-kicker text-muted-foreground mb-2 block">Title *</Label>
+          <VStack gap={2}>
+            <Label className="rr-kicker text-muted-foreground mb-1 block">Title *</Label>
             <Input
               {...register('title')}
               placeholder={
@@ -275,12 +292,16 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               className="rr-premium-input rounded-xl mt-1.5"
               maxLength={120}
             />
+            <Text variant="caption" color="muted" className="text-right">
+              {watch('title')?.length || 0} / 120
+            </Text>
             {errors.title && <p className="mt-1 text-xs text-destructive">{errors.title.message}</p>}
-          </div>
+          </VStack>
         )}
 
-        <div>
-          <Label className="rr-kicker text-muted-foreground mb-2 block">Details</Label>
+        {/* Details */}
+        <VStack gap={2}>
+          <Label className="rr-kicker text-muted-foreground mb-1 block">Details</Label>
           <Textarea
             {...register('body')}
             placeholder={
@@ -294,36 +315,42 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             rows={4}
             maxLength={500}
           />
-        </div>
+          <Text variant="caption" color="muted" className="text-right">
+            {watch('body')?.length || 0} / 500
+          </Text>
+        </VStack>
 
+        {/* Event fields */}
         {type === 'event' && (
-          <>
-            <div>
-              <Label className="rr-kicker text-muted-foreground mb-2 block">Location *</Label>
+          <VStack gap={5}>
+            <VStack gap={2}>
+              <Label className="rr-kicker text-muted-foreground mb-1 block">Location *</Label>
               <Input
                 {...register('exactLocationText')}
                 placeholder="Red Rocks Park, parking lot 2"
                 className="rr-premium-input rounded-xl mt-1.5"
               />
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
-            </div>
+            </VStack>
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="rr-kicker text-muted-foreground mb-2 block">Start *</Label>
+              <VStack gap={2}>
+                <Label className="rr-kicker text-muted-foreground mb-1 block">Start *</Label>
                 <Input type="datetime-local" {...register('eventDate')} className="rr-premium-input rounded-xl mt-1.5" />
                 {errors.eventDate && <p className="mt-1 text-xs text-destructive">{errors.eventDate.message}</p>}
-              </div>
-              <div>
-                <Label className="rr-kicker text-muted-foreground mb-2 block">End *</Label>
+              </VStack>
+              <VStack gap={2}>
+                <Label className="rr-kicker text-muted-foreground mb-1 block">End *</Label>
                 <Input type="datetime-local" {...register('eventEndTime')} className="rr-premium-input rounded-xl mt-1.5" />
                 {errors.eventEndTime && <p className="mt-1 text-xs text-destructive">{errors.eventEndTime.message}</p>}
-              </div>
+              </VStack>
             </div>
-            <div>
-              <Label className="rr-kicker text-muted-foreground mb-2 block">Event poster (optional)</Label>
+
+            {/* Event poster upload */}
+            <VStack gap={2}>
+              <Label className="rr-kicker text-muted-foreground mb-1 block">Event poster (optional)</Label>
               <div className="mt-1.5 rounded-[20px] border border-border/70 bg-black/30 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
                 {eventImage ? (
-                  <div className="space-y-3">
+                  <VStack gap={3}>
                     <div className="flex max-h-72 items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-black/45 p-2">
                       <img
                         src={eventImage.previewUrl || eventImage}
@@ -332,49 +359,51 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <label className="rr-haptic flex h-11 min-h-[44px] cursor-pointer items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-xs font-bold text-primary transition hover:bg-primary/15">
+                      <label className="pressable flex h-11 min-h-[44px] cursor-pointer items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-xs font-bold text-primary transition hover:bg-primary/15">
                         <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                         {uploading ? 'Preparing...' : 'Replace'}
                       </label>
                       <button
                         type="button"
                         onClick={() => setEventImage(null)}
-                        className="rr-haptic h-11 min-h-[44px] rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive"
+                        className="pressable h-11 min-h-[44px] rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive"
                       >
                         Remove
                       </button>
                     </div>
-                  </div>
+                  </VStack>
                 ) : (
-                  <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-6 text-center transition hover:border-primary/50 hover:bg-primary/10 rr-haptic">
+                  <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-6 text-center transition hover:border-primary/50 hover:bg-primary/10 pressable">
                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                     <Upload className="mb-2 h-6 w-6 text-primary" />
-                    <div className="text-sm font-bold text-foreground">{uploading ? 'Preparing preview...' : 'Upload event poster'}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">Drag and drop or tap to browse</div>
+                    <Text variant="bodySm" className="font-bold">{uploading ? 'Preparing preview...' : 'Upload event poster'}</Text>
+                    <Text variant="caption" color="muted" className="mt-1">Drag and drop or tap to browse</Text>
                   </label>
                 )}
               </div>
               {uploadError && <p className="mt-2 text-sm text-destructive">{uploadError}</p>}
-            </div>
-          </>
+            </VStack>
+          </VStack>
         )}
 
+        {/* Alert fields */}
         {type === 'alert' && (
-          <>
-            <div>
-              <Label className="rr-kicker text-muted-foreground mb-2 block">Approximate area *</Label>
+          <VStack gap={5}>
+            <VStack gap={2}>
+              <Label className="rr-kicker text-muted-foreground mb-1 block">Approximate area *</Label>
               <Input
                 {...register('exactLocationText')}
                 placeholder="I-70 westbound near Idaho Springs"
                 className="rr-premium-input rounded-xl mt-1.5"
               />
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
-              <p className="text-xs text-muted-foreground mt-1.5">Describe the area. No exact pin is shared.</p>
-            </div>
+              <Text variant="caption" color="muted" className="mt-1.5">Describe the area. No exact pin is shared.</Text>
+            </VStack>
             <AlertPhotoUploader images={alertImages} onChange={setAlertImages} />
-          </>
+          </VStack>
         )}
 
+        {/* Location info */}
         {(type === 'solo_ride' || type === 'iso') && (
           <div className="p-3 bg-primary/5 rounded-xl text-xs text-primary border border-primary/15 flex items-start gap-2">
             <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
@@ -382,17 +411,20 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           </div>
         )}
 
+        {/* Errors */}
         {post.isError && <p className="text-sm text-destructive">{post.error?.message || 'Failed to create broadcast'}</p>}
         {geoError && (
           <p className="text-sm text-alert">
             Location access is required for this signal type. Enable location or try again.
           </p>
         )}
+
+        {/* Publish button */}
         <Button
           type="submit"
           disabled={!canPost || post.isPending || !user}
           className={cn(
-            'w-full h-14 rounded-full mt-2 text-base font-bold rr-haptic transition-colors',
+            'w-full h-14 rounded-full mt-2 text-base font-bold pressable transition-colors',
             type === 'alert'
               ? 'bg-alert hover:bg-alert/90 text-alert-foreground glow-honda'
               : 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'

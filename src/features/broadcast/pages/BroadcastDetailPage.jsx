@@ -4,9 +4,11 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, memo, useCallback } from 'react';
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, MessageCircle, Radio } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import AlertPhotoGrid from '@/components/shared/AlertPhotoGrid';
+import { Text } from '@/components/ui/primitives/Text';
+import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { BROADCAST_META, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils.js';
 import { getProfileById } from '@/features/profile/api/profile-api.js';
@@ -79,12 +81,12 @@ function BroadcastDetailPage() {
   if (!hasValidBroadcastId) {
     return (
       <div className="px-5 pt-5">
-        <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
+        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="rr-surface rounded-[20px] p-10 text-center">
+        <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
-          <p className="text-sm text-muted-foreground">Invalid broadcast link.</p>
+          <Text variant="bodySm" color="muted">Invalid broadcast link.</Text>
         </div>
       </div>
     );
@@ -102,12 +104,12 @@ function BroadcastDetailPage() {
   if (isBroadcastError) {
     return (
       <div className="px-5 pt-5">
-        <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
+        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="rr-surface rounded-[20px] p-10 text-center">
+        <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
-          <p className="text-sm text-muted-foreground">Unable to load this broadcast.</p>
+          <Text variant="bodySm" color="muted">Unable to load this broadcast.</Text>
         </div>
       </div>
     );
@@ -116,12 +118,12 @@ function BroadcastDetailPage() {
   if (!broadcast) {
     return (
       <div className="px-5 pt-5">
-        <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
+        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="rr-surface rounded-[20px] p-10 text-center">
+        <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
-          <p className="text-sm text-muted-foreground">Broadcast not found.</p>
+          <Text variant="bodySm" color="muted">Broadcast not found.</Text>
         </div>
       </div>
     );
@@ -138,10 +140,13 @@ function BroadcastDetailPage() {
     alert: 'border-l-[3px] border-l-alert shadow-[-3px_0_14px_hsl(var(--alert)/0.25)]',
   }[broadcast.type] || 'border-l-[3px] border-l-border/60';
 
+  const hasHeroImage = broadcast.type === 'event' && broadcast.event_image_url;
+
   return (
     <div className="px-5 pt-5 pb-8">
-      <div className="flex items-center justify-between mb-4">
-        <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1">
+      {/* Top nav */}
+      <HStack justify="between" align="center" className="mb-4">
+        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <button
@@ -153,40 +158,69 @@ function BroadcastDetailPage() {
               toast({ title: 'Copy failed', description: 'Unable to copy link.', variant: 'destructive' });
             }
           }}
-          className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
+          className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
           aria-label="Copy broadcast link"
         >
           <Share2 className="w-4 h-4" /> Share
         </button>
-      </div>
+      </HStack>
 
-      <div className={cn('rounded-[20px] border p-5 relative overflow-hidden rr-surface', typeAccentClass)}>
-        <div
-          className={cn(
-            'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-4 border',
-            isAlert && 'bg-alert/10 text-alert border-alert/30',
-            broadcast.type === 'solo_ride' && 'bg-solo/10 text-solo border-solo/30',
-            broadcast.type === 'iso' && 'bg-iso/10 text-iso border-iso/30',
-            broadcast.type === 'event' && 'bg-event/10 text-event border-event/30'
-          )}
-        >
-          {broadcast.type === 'solo_ride' && <OfficialMotorcycleIcon className="h-5 w-6 rounded-md" />}
-          {meta.label}
-          {broadcast.iso_subtype && ` · ${broadcast.iso_subtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}`}
-        </div>
-
-        <h1 className="font-display text-2xl font-bold tracking-tight mb-2">{broadcast.title}</h1>
-        {broadcast.body && <p className="text-[15px] text-foreground/80 leading-relaxed mb-4 whitespace-pre-wrap">{broadcast.body}</p>}
-
-        {broadcast.type === 'event' && broadcast.event_image_url && (
-          <div className="my-5 flex max-h-[70vh] items-center justify-center overflow-hidden rounded-[20px] border border-event/20 bg-black/45 p-2 shadow-[0_18px_55px_rgba(0,0,0,0.35),inset_0_1px_0_hsl(0_0%_100%/0.05)]">
-            <img src={broadcast.event_image_url} className="max-h-[68vh] w-full object-contain" alt="Event poster" />
+      {/* Hero image with gradient overlay */}
+      {hasHeroImage && (
+        <div className="relative -mx-5 mb-5 overflow-hidden">
+          <img
+            src={broadcast.event_image_url}
+            className="w-full h-64 object-cover"
+            alt="Event poster"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-5">
+            <div className={cn(
+              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-3 border',
+              broadcast.type === 'event' && 'bg-event/10 text-event border-event/30'
+            )}>
+              {meta.label}
+            </div>
+            <Text as="h1" variant="h1" className="text-white drop-shadow-lg">
+              {broadcast.title}
+            </Text>
           </div>
+        </div>
+      )}
+
+      <div className={cn('rounded-[20px] border p-5 relative overflow-hidden rr-surface', !hasHeroImage && typeAccentClass)}>
+        {!hasHeroImage && (
+          <div
+            className={cn(
+              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-4 border',
+              isAlert && 'bg-alert/10 text-alert border-alert/30',
+              broadcast.type === 'solo_ride' && 'bg-solo/10 text-solo border-solo/30',
+              broadcast.type === 'iso' && 'bg-iso/10 text-iso border-iso/30',
+              broadcast.type === 'event' && 'bg-event/10 text-event border-event/30'
+            )}
+          >
+            {broadcast.type === 'solo_ride' && <OfficialMotorcycleIcon className="h-5 w-6 rounded-md" />}
+            {meta.label}
+            {broadcast.iso_subtype && ` · ${broadcast.iso_subtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}`}
+          </div>
+        )}
+
+        {!hasHeroImage && (
+          <Text as="h1" variant="h2" className="mb-2">
+            {broadcast.title}
+          </Text>
+        )}
+
+        {broadcast.body && (
+          <Text variant="body" className="text-foreground/80 leading-relaxed mb-4 whitespace-pre-wrap">
+            {broadcast.body}
+          </Text>
         )}
 
         {isAlert && <AlertPhotoGrid images={(broadcast.alert_photos || broadcast.alert_image_urls) || []} variant="detail" />}
 
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground mt-4">
+        {/* Metadata */}
+        <HStack gap={4} wrap className="text-sm text-muted-foreground mt-4">
           {(broadcast.type === 'event' || isAlert) && broadcast.exact_location_text && (
             <span className="flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-primary" />
@@ -203,26 +237,27 @@ function BroadcastDetailPage() {
             <Clock className="w-4 h-4 text-primary" />
             {timeUntilExpiry(broadcast.expires_at)}
           </span>
-        </div>
+        </HStack>
 
+        {/* Author card */}
         {author && (
           <Link
             to={`/profile/${author.user_id}`}
-            className="flex items-center gap-3 mt-5 pt-4 border-t border-border/60 rr-haptic"
+            className="flex items-center gap-3 mt-5 pt-4 border-t border-border/60 pressable"
           >
-            {author.avatar ? (
+            {author.avatar_url ? (
               <div className="rr-avatar-ring shrink-0" style={{ padding: '3px' }}>
-                <img src={author.avatar} className="w-10 h-10 rounded-full object-cover border border-primary/30" alt={author.display_name || 'Rider'} />
+                <img src={author.avatar_url} className="w-10 h-10 rounded-full object-cover border border-primary/30" alt={author.display_name || 'Rider'} />
               </div>
             ) : (
               <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center font-semibold text-sm border border-border/50">
                 {author.displayName?.[0] || '?'}
               </div>
             )}
-            <div>
-              <div className="font-semibold text-sm">{author.display_name}</div>
-              <div className="text-xs text-muted-foreground">{timeAgo(broadcast.created_at)}</div>
-            </div>
+            <VStack gap={0.5}>
+              <Text variant="bodySm" className="font-semibold">{author.display_name}</Text>
+              <Text variant="caption" color="muted">{timeAgo(broadcast.created_at)}</Text>
+            </VStack>
           </Link>
         )}
       </div>
@@ -233,23 +268,45 @@ function BroadcastDetailPage() {
         </div>
       )}
 
+      {/* Action bar */}
       {!isAuthor && !isAlert && user && (
-        <BroadcastActions
-          broadcast={broadcast}
-          user={user}
-          myRSVP={myRSVP}
-          rsvpCounts={rsvpCounts}
-          connectionRequest={connectionRequest}
-          id={id}
-        />
-      )}
-
-      {isAuthor && broadcast.type === 'event' && (
-        <div className="mt-5 p-4 rounded-[20px] rr-surface border border-primary/15">
-          <div className="rr-kicker text-muted-foreground mb-2">Your event</div>
-          <div className="font-display text-lg font-bold">{rsvpCounts.going} going · {rsvpCounts.interested} interested</div>
+        <div className="mt-5">
+          <BroadcastActions
+            broadcast={broadcast}
+            user={user}
+            myRSVP={myRSVP}
+            rsvpCounts={rsvpCounts}
+            connectionRequest={connectionRequest}
+            id={id}
+          />
         </div>
       )}
+
+      {/* Author event stats */}
+      {isAuthor && broadcast.type === 'event' && (
+        <div className="mt-5 p-4 rounded-[20px] rr-glass-panel border border-primary/15">
+          <Text variant="micro" color="muted" className="mb-2">Your event</Text>
+          <Text variant="h3">{rsvpCounts.going} going · {rsvpCounts.interested} interested</Text>
+        </div>
+      )}
+
+      {/* Comments section placeholder */}
+      <div className="mt-5 surface-card p-5">
+        <Text variant="micro" color="muted" className="mb-3">Comments</Text>
+        <VStack gap={3} align="center" className="py-6 text-center">
+          <MessageCircle className="w-8 h-8 text-muted-foreground/30" />
+          <Text variant="bodySm" color="muted">Comments coming soon</Text>
+        </VStack>
+      </div>
+
+      {/* Related rides section placeholder */}
+      <div className="mt-5 surface-card p-5">
+        <Text variant="micro" color="muted" className="mb-3">Related rides</Text>
+        <VStack gap={3} align="center" className="py-6 text-center">
+          <Radio className="w-8 h-8 text-muted-foreground/30" />
+          <Text variant="bodySm" color="muted">Nearby broadcasts will appear here</Text>
+        </VStack>
+      </div>
     </div>
   );
 }
@@ -269,7 +326,7 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
         <Button
           variant={myRSVP?.status === 'interested' ? 'default' : 'outline'}
           className={cn(
-            'h-14 rounded-full text-base font-bold rr-haptic transition-colors',
+            'h-14 rounded-full text-base font-bold pressable transition-colors',
             myRSVP?.status === 'interested'
               ? 'bg-iso hover:bg-iso/90 text-iso-foreground glow-yamaha'
               : 'border-iso/30 text-iso hover:bg-iso/10 hover:border-iso/50'
@@ -283,7 +340,7 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
         <Button
           variant={myRSVP?.status === 'going' ? 'default' : 'outline'}
           className={cn(
-            'h-14 rounded-full text-base font-bold rr-haptic transition-colors',
+            'h-14 rounded-full text-base font-bold pressable transition-colors',
             myRSVP?.status === 'going'
               ? 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
               : 'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50'
@@ -323,12 +380,12 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
   return (
     <div>
       {!open ? (
-        <Button onClick={() => setOpen(true)} className="w-full h-14 rounded-full glow-kawasaki-sm rr-haptic text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
+        <Button onClick={() => setOpen(true)} className="w-full h-14 rounded-full glow-kawasaki-sm pressable text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
           <Users className="w-4 h-4 mr-1.5" /> Initiate connection
         </Button>
       ) : (
         <div className="p-4 rounded-[20px] rr-glass-panel space-y-3">
-          <div className="rr-kicker text-muted-foreground mb-1">Connection request</div>
+          <Text variant="micro" color="muted" className="mb-1">Connection request</Text>
           <Textarea
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
@@ -339,8 +396,8 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
           />
           {sendRequest.isError && <p className="text-xs text-destructive">{sendRequest.error?.message || 'Failed to send request'}</p>}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 rounded-full h-11 border-primary/20 rr-haptic">Cancel</Button>
-            <Button onClick={handleSend} disabled={sendRequest.isPending} className="flex-1 rounded-full h-11 glow-kawasaki-sm rr-haptic bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
+            <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 rounded-full h-11 border-primary/20 pressable">Cancel</Button>
+            <Button onClick={handleSend} disabled={sendRequest.isPending} className="flex-1 rounded-full h-11 glow-kawasaki-sm pressable bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
               {sendRequest.isPending ? 'Sending...' : 'Send request'}
             </Button>
           </div>

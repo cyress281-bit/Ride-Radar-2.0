@@ -19,6 +19,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle } from 'lucide-react';
+import { Text } from '@/components/ui/primitives/Text';
+import { VStack } from '@/components/ui/primitives/Stack';
 
 export default function LoginPage() {
   const { isLoading, authEvent } = useAuthState();
@@ -71,7 +73,7 @@ export default function LoginPage() {
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
+        <VStack align="center" gap={4}>
           <img
             src={RIDE_RADAR_LOGO_URL}
             alt="Ride Radar"
@@ -82,7 +84,7 @@ export default function LoginPage() {
             <span className="h-1 w-1 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '150ms' }} />
             <span className="h-1 w-1 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '300ms' }} />
           </div>
-        </div>
+        </VStack>
       </div>
     );
   }
@@ -96,17 +98,17 @@ export default function LoginPage() {
       <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-primary/6 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md">
-        <div className="bg-surface rounded-[20px] p-8 border border-border shadow-2xl">
+        <div className="surface-card p-8">
           {/* Branding */}
-          <div className="mb-8 flex flex-col items-center">
-            <RRLogo size="lg" className="mb-4" />
-            <h1 className="font-display text-center text-3xl font-bold tracking-tight">
+          <VStack align="center" gap={2} className="mb-8">
+            <RRLogo size="lg" className="mb-2" />
+            <Text as="h1" variant="h2" align="center">
               Ride<span className="text-primary">Radar</span>
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+            </Text>
+            <Text variant="bodySm" color="muted" align="center">
               {isRecovery ? 'Set a new password for your account' : 'Sign in to your rider network'}
-            </p>
-          </div>
+            </Text>
+          </VStack>
 
           {isRecovery ? (
             <form onSubmit={handleUpdatePassword} className="space-y-4">
@@ -131,13 +133,13 @@ export default function LoginPage() {
                   value={recoveryPassword}
                   onChange={(e) => setRecoveryPassword(e.target.value)}
                   disabled={recoveryLoading}
-                  className="h-12 bg-surface border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                  className="h-12 bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 />
               </div>
               <Button
                 type="submit"
                 disabled={recoveryLoading}
-                className="h-12 w-full rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 active:scale-95 transition-all duration-150"
+                className="h-12 w-full rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 active:scale-[0.96] transition-all duration-150"
               >
                 {recoveryLoading ? (
                   <span className="flex items-center gap-2">
@@ -155,15 +157,15 @@ export default function LoginPage() {
 
           {/* Link to landing */}
           {!isRecovery && (
-            <p className="mt-6 text-center text-xs text-muted-foreground">
+            <Text variant="caption" color="muted" align="center" className="mt-6 block">
               New to Ride Radar?{' '}
               <button
                 onClick={() => navigate('/landing')}
-                className="font-medium text-primary hover:underline active:scale-95 transition-transform inline-block"
+                className="font-medium text-primary hover:underline active:scale-[0.96] transition-transform inline-block"
               >
                 Learn more
               </button>
-            </p>
+            </Text>
           )}
         </div>
       </div>

@@ -1,8 +1,8 @@
 /**
  * Settings hub page for Ride Radar 2.0.
  *
- * Sections: Notifications, Live Map, Privacy, PWA, Account, Links.
- * Each toggle saves immediately. Properly exposes error and refetch from the query hook.
+ * Sections: Profile, Account, Preferences, App, Support, Danger.
+ * Each toggle saves immediately. Grouped sections as cards.
  */
 
 import { useCallback, useEffect, memo } from 'react';
@@ -23,10 +23,11 @@ import {
   Eye,
   AlertCircle,
   ChevronRight,
+  User,
+  Settings2,
+  Heart,
 } from 'lucide-react';
-import RRLogo from '@/components/RRLogo';
 import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -45,54 +46,36 @@ import { normalizePrecision } from '@/lib/geocoding.js';
 import { logger } from '@/lib/logger.js';
 import { supabase } from '@/lib/supabase.js';
 import { useQueryClient } from '@tanstack/react-query';
+import { Text } from '@/components/ui/primitives/Text';
+import { HStack, VStack } from '@/components/ui/primitives/Stack';
+import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
+import { ErrorState } from '@/components/shared/ErrorState';
 
 /**
- * Section wrapper with title and optional error state.
+ * Settings row with icon, label, chevron, and optional value/toggle.
  */
-const SettingsSection = memo(function SettingsSection({ title, icon: Icon, children, error }) {
+const SettingsRow = memo(function SettingsRow({
+  icon: Icon,
+  label,
+  desc,
+  value,
+  toggle,
+  onToggle,
+  danger,
+  onClick,
+  disabled,
+}) {
   return (
-    <div className="mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)]">
-      <div className="flex items-center gap-2 border-b border-border/40 px-5 py-3">
-        {Icon && <Icon className="h-4 w-4 text-primary" />}
-        <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{title}</div>
-      </div>
-      {children}
-      {error && (
-        <div className="flex items-center gap-2 border-t border-border/40 px-5 py-3 text-sm text-destructive">
-          <AlertCircle className="h-4 w-4 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-    </div>
-  );
-});
-
-/**
- * Toggle row within a settings section.
- */
-const ToggleRow = memo(function ToggleRow({ label, description, checked, onChange, disabled }) {
-  return (
-    <div className="flex items-center justify-between gap-4 px-5 py-4">
-      <div className="flex-1">
-        <span className="text-sm font-medium leading-snug">{label}</span>
-        {description && (
-          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-        )}
-      </div>
-      <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} />
-    </div>
-  );
-});
-
-/**
- * Link row for navigation items.
- */
-const LinkRow = memo(function LinkRow({ to, icon: Icon, label, desc, danger }) {
-  return (
-    <Link
-      to={to}
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled || !!toggle}
       className={cn(
-        'flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.02] active:scale-[0.99]'
+        'w-full flex items-center gap-3.5 px-4 py-3.5 text-left transition-colors',
+        'hover:bg-white/[0.02] active:bg-white/[0.04]',
+        danger && 'hover:bg-destructive/5',
+        onClick && 'cursor-pointer',
+        disabled && 'opacity-50 cursor-not-allowed'
       )}
     >
       <div className={cn(
@@ -101,57 +84,60 @@ const LinkRow = memo(function LinkRow({ to, icon: Icon, label, desc, danger }) {
       )}>
         <Icon className={cn('h-5 w-5', danger ? 'text-destructive' : 'text-primary')} />
       </div>
-      <div className="flex-1 min-w-0">
-        <div className={cn('text-sm font-semibold', danger && 'text-destructive')}>
+      <VStack flex className="min-w-0">
+        <Text variant="bodySm" className={cn('font-semibold', danger && 'text-destructive')}>
           {label}
-        </div>
-        {desc && <div className="mt-0.5 text-xs text-muted-foreground truncate">{desc}</div>}
-      </div>
-      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-    </Link>
+        </Text>
+        {desc && (
+          <Text variant="caption" color="muted" truncate>{desc}</Text>
+        )}
+      </VStack>
+      {toggle !== undefined && (
+        <Switch checked={toggle} onCheckedChange={onToggle} disabled={disabled} />
+      )}
+      {value && toggle === undefined && (
+        <Text variant="caption" color="muted" className="shrink-0">{value}</Text>
+      )}
+      {onClick && toggle === undefined && (
+        <ChevronRight className={cn('h-4 w-4 shrink-0', danger ? 'text-destructive/50' : 'text-muted-foreground')} />
+      )}
+    </button>
   );
 });
 
-const SETTINGS_LINKS = [
-  {
-    to: '/privacy-policy',
-    icon: FileText,
-    label: 'Privacy Policy',
-    desc: 'Data collection, location, uploads, and deletion',
-  },
-  {
-    to: '/support',
-    icon: Mail,
-    label: 'Contact / Support',
-    desc: SUPPORT_EMAIL,
-  },
-  {
-    to: '/review-readiness',
-    icon: Database,
-    label: 'Data Safety Summary',
-    desc: 'Store review disclosure checklist',
-  },
-];
-
-const DANGER_LINKS = [
-  {
-    to: '/account-deletion',
-    icon: Trash2,
-    label: 'Delete Account',
-    desc: 'Permanently delete Ride Radar app data',
-    danger: true,
-  },
-];
-
 /**
- * Loading skeleton for the settings page.
+ * Section card wrapper.
  */
+const SettingsSection = memo(function SettingsSection({ title, icon: Icon, children, error, danger }) {
+  return (
+    <div className={cn(
+      'overflow-hidden surface-card',
+      danger && 'border-destructive/20'
+    )}>
+      <HStack align="center" gap={2} className={cn(
+        'px-4 py-3 border-b',
+        danger ? 'border-destructive/10' : 'border-border/40'
+      )}>
+        {Icon && <Icon className={cn('h-4 w-4', danger ? 'text-destructive' : 'text-primary')} />}
+        <Text variant="micro" color={danger ? 'destructive' : 'muted'}>{title}</Text>
+      </HStack>
+      <VStack>{children}</VStack>
+      {error && (
+        <HStack align="center" gap={2} className="border-t border-border/40 px-4 py-3">
+          <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
+          <Text variant="caption" color="destructive">{error}</Text>
+        </HStack>
+      )}
+    </div>
+  );
+});
+
 function SettingsSkeleton() {
   return (
-    <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
-      <Skeleton className="mb-5 h-40 w-full rounded-[20px]" />
-      <Skeleton className="mb-5 h-64 w-full rounded-[20px]" />
-      <Skeleton className="mb-5 h-32 w-full rounded-[20px]" />
+    <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
+      <Skeleton className="mb-4 h-32 w-full rounded-[1.25rem]" />
+      <Skeleton className="mb-4 h-56 w-full rounded-[1.25rem]" />
+      <Skeleton className="mb-4 h-40 w-full rounded-[1.25rem]" />
       <Skeleton className="h-12 w-full rounded-full" />
     </div>
   );
@@ -164,7 +150,6 @@ function SettingsPage() {
   const navigate = useNavigate();
   const { isInstallable, isInstalled, promptInstall } = usePWAInstall();
 
-  // FIX: properly destructure error and refetch from the query hook
   const {
     data: settings,
     isLoading: settingsLoading,
@@ -190,18 +175,13 @@ function SettingsPage() {
         { userId: user.id, updates: { [key]: value } },
         {
           onSuccess: () => {
-            // Track notification toggles
             const notificationKeys = ['notifications_enabled'];
             if (notificationKeys.includes(key)) {
               trackNotificationToggle(key, value);
             }
-
-            // Update analytics opt-in state
             if (key === 'analytics_enabled') {
               setAnalyticsOptIn(value);
             }
-
-            // Clear live map presence when turning off
             if (key === 'live_map_visible' && value === false && user?.id) {
               supabase
                 .from('live_map_presence')
@@ -211,9 +191,7 @@ function SettingsPage() {
                     display_name: profile?.display_name || profile?.displayName || 'Rider',
                     avatar_url: profile?.avatar_url || profile?.avatar || null,
                     is_visible: false,
-                    location_precision: normalizePrecision(
-                      settings.live_map_location_precision
-                    ),
+                    location_precision: normalizePrecision(settings.live_map_location_precision),
                     lat: null,
                     lng: null,
                     accuracy_meters: null,
@@ -257,125 +235,83 @@ function SettingsPage() {
     navigate('/landing');
   }, [signOut, navigate]);
 
-  // Loading state
   if (settingsLoading || !profile) {
     return <SettingsSkeleton />;
   }
 
-  // Error state — FIX: uses `settingsError` and `refetchSettings` properly
   if (settingsIsError || settingsError) {
     return (
-      <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
-        <div className="rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6 text-center">
-          <h2 className="font-display mb-2 text-xl font-bold text-destructive">
-            Settings unavailable
-          </h2>
-          <p className="mb-4 text-sm text-muted-foreground">
-            Unable to load your settings. You can still log out safely.
-          </p>
-          <div className="flex justify-center gap-2">
-            <Button onClick={() => refetchSettings()} variant="outline" className="rounded-full">
-              Retry
-            </Button>
-            <Button
-              onClick={handleSignOut}
-              variant="outline"
-              className="rounded-full border-destructive/30 text-destructive"
-            >
-              Log out
-            </Button>
-          </div>
+      <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
+        <ErrorState
+          title="Settings unavailable"
+          message="Unable to load your settings. You can still log out safely."
+          onRetry={refetchSettings}
+        />
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={handleSignOut}
+            className={cn(
+              'px-5 py-2.5 rounded-full border border-destructive/30 text-destructive text-sm font-semibold',
+              'hover:bg-destructive/10 transition-colors pressable'
+            )}
+          >
+            Log out
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
+    <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8">
       {/* Back link */}
       <Link
         to="/profile"
-        className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 active:scale-95 transition-transform"
+        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 pressable self-start"
       >
         <ArrowLeft className="h-4 w-4" /> Profile
       </Link>
 
-      {/* Header */}
-      <div className="relative mb-6 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6">
-        <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-primary/15" />
-        <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-        <div className="relative z-10">
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
-            <ShieldCheck className="h-3.5 w-3.5" /> Safety hub
-          </div>
-          <div className="flex items-center gap-3 mb-2">
-            <RRLogo size="md" />
-            <h1 className="font-display text-4xl font-extrabold tracking-[-0.04em]">Settings</h1>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Privacy, safety, notifications, and account controls.
-          </p>
-        </div>
-      </div>
+      {/* Profile Section */}
+      <SettingsSection title="Profile" icon={User}>
+        <Link to="/profile" className="block">
+          <HStack align="center" gap={3} className="px-4 py-4 hover:bg-white/[0.02] transition-colors">
+            <AvatarWithStatus
+              url={profile?.avatar_url}
+              name={profile?.display_name}
+              status="online"
+              size="md"
+            />
+            <VStack flex className="min-w-0">
+              <Text variant="bodySm" className="font-semibold truncate">
+                {profile?.display_name || user?.email}
+              </Text>
+              <Text variant="caption" color="muted" truncate>
+                {user?.email}
+              </Text>
+            </VStack>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </HStack>
+        </Link>
+      </SettingsSection>
 
-      {/* Notifications */}
-      <SettingsSection title="Notifications" icon={Bell} error={null}>
-        <ToggleRow
+      {/* Account */}
+      <SettingsSection title="Account" icon={ShieldCheck}>
+        <SettingsRow
+          icon={Bell}
           label="Push notifications"
-          description="Receive push notifications on your device"
-          checked={settings?.notifications_enabled !== false}
-          onChange={(v) => handleToggle('notifications_enabled', v)}
-          disabled={isSaving}
-        />
-      </SettingsSection>
-
-      {/* Live Map */}
-      <SettingsSection title="Live Map" icon={MapPin} error={null}>
-        <ToggleRow
-          label="Show me on the live map"
-          description="Opt in only when you want other signed-in riders to see your current riding marker"
-          checked={!!settings?.live_map_visible}
-          onChange={(v) => handleToggle('live_map_visible', v)}
-          disabled={isSaving}
-        />
-        {settings?.live_map_visible && (
-          <div className="flex items-center justify-between gap-4 border-t border-border/40 px-5 py-4">
-            <div className="flex-1">
-              <span className="text-sm font-medium leading-snug">Location precision</span>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Approximate stores a fuzzed marker. Precise stores your current marker coordinate.
-              </p>
-            </div>
-            <Select
-              value={normalizePrecision(settings?.live_map_location_precision)}
-              onValueChange={handlePrecisionChange}
-            >
-              <SelectTrigger className="w-36 rounded-xl border-border/60 bg-black/25">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="approximate">Approximate</SelectItem>
-                <SelectItem value="precise">Precise</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-      </SettingsSection>
-
-      {/* Privacy */}
-      <SettingsSection title="Privacy" icon={Eye} error={null}>
-        <ToggleRow
-          label="Anonymous usage analytics"
-          description="Help improve the app (no personal data collected)"
-          checked={settings?.analytics_enabled !== false}
-          onChange={(v) => handleToggle('analytics_enabled', v)}
+          desc="Receive push notifications on your device"
+          toggle={settings?.notifications_enabled !== false}
+          onToggle={(v) => handleToggle('notifications_enabled', v)}
           disabled={isSaving}
         />
         <div className="border-t border-border/40">
-          <ToggleRow
+          <SettingsRow
+            icon={Eye}
             label="Public profile preview"
-            checked={profile?.is_public !== false}
-            onChange={async (v) => {
+            desc="Allow others to see your profile without connecting"
+            toggle={profile?.is_public !== false}
+            onToggle={async (v) => {
               const { error } = await supabase
                 .from('user_profiles')
                 .update({ is_public: v })
@@ -387,84 +323,131 @@ function SettingsPage() {
         </div>
       </SettingsSection>
 
-      {/* PWA */}
-      <SettingsSection title="App Features" icon={Smartphone} error={null}>
-        <div className="space-y-2 p-3">
-          {isInstallable && (
-            <Button
-              onClick={handleInstallApp}
-              className="h-12 w-full rounded-full bg-primary font-bold text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.35)] transition-all hover:bg-primary/90 active:scale-95"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Install Ride Radar App
-            </Button>
-          )}
-          {isInstalled && (
-            <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/10 p-3">
-              <Check className="h-5 w-5 text-primary" />
-              <div className="flex-1">
-                <div className="text-sm font-bold text-primary">App Installed</div>
-                <div className="text-xs text-muted-foreground">
-                  Ride Radar is installed on your device
-                </div>
-              </div>
-              <Smartphone className="h-5 w-5 text-primary" />
-            </div>
-          )}
-          {!isInstallable && !isInstalled && /iPad|iPhone|iPod/.test(navigator.userAgent) && (
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-              <div className="mb-1 text-sm font-bold text-primary">Install on iOS</div>
-              <ol className="list-inside list-decimal space-y-1 text-xs text-muted-foreground">
-                <li>
-                  Tap the <strong>Share</strong> button in Safari
-                </li>
-                <li>
-                  Scroll down and tap <strong>Add to Home Screen</strong>
-                </li>
-                <li>
-                  Tap <strong>Add</strong> in the top right
-                </li>
-              </ol>
-            </div>
-          )}
+      {/* Preferences */}
+      <SettingsSection title="Preferences" icon={Settings2}>
+        <SettingsRow
+          icon={MapPin}
+          label="Show me on the live map"
+          desc="Opt in only when you want other signed-in riders to see your current riding marker"
+          toggle={!!settings?.live_map_visible}
+          onToggle={(v) => handleToggle('live_map_visible', v)}
+          disabled={isSaving}
+        />
+        {settings?.live_map_visible && (
+          <div className="border-t border-border/40 px-4 py-4">
+            <HStack align="center" justify="between" gap={4}>
+              <VStack flex>
+                <Text variant="bodySm" className="font-medium">Location precision</Text>
+                <Text variant="caption" color="muted">
+                  Approximate stores a fuzzed marker. Precise stores your current marker coordinate.
+                </Text>
+              </VStack>
+              <Select
+                value={normalizePrecision(settings?.live_map_location_precision)}
+                onValueChange={handlePrecisionChange}
+              >
+                <SelectTrigger className="w-36 rounded-xl border-border/60 bg-black/25">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="approximate">Approximate</SelectItem>
+                  <SelectItem value="precise">Precise</SelectItem>
+                </SelectContent>
+              </Select>
+            </HStack>
+          </div>
+        )}
+        <div className="border-t border-border/40">
+          <SettingsRow
+            icon={Heart}
+            label="Anonymous usage analytics"
+            desc="Help improve the app (no personal data collected)"
+            toggle={settings?.analytics_enabled !== false}
+            onToggle={(v) => handleToggle('analytics_enabled', v)}
+            disabled={isSaving}
+          />
         </div>
       </SettingsSection>
 
-      {/* Support Links */}
-      <div className="mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)]">
-        <div className="flex items-center gap-2 border-b border-border/40 px-5 py-3">
-          <Mail className="h-4 w-4 text-primary" />
-          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Support</div>
+      {/* App */}
+      <SettingsSection title="App" icon={Smartphone}>
+        {isInstallable && (
+          <button
+            onClick={handleInstallApp}
+            className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left hover:bg-white/[0.02] transition-colors"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <Download className="h-5 w-5 text-primary" />
+            </div>
+            <VStack flex>
+              <Text variant="bodySm" className="font-semibold">Install Ride Radar</Text>
+              <Text variant="caption" color="muted">Add to your home screen</Text>
+            </VStack>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+        )}
+        {isInstalled && (
+          <div className="flex items-center gap-3 px-4 py-3.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <Check className="h-5 w-5 text-primary" />
+            </div>
+            <VStack flex>
+              <Text variant="bodySm" className="font-semibold text-primary">App Installed</Text>
+              <Text variant="caption" color="muted">Ride Radar is installed on your device</Text>
+            </VStack>
+          </div>
+        )}
+        {!isInstallable && !isInstalled && /iPad|iPhone|iPod/.test(navigator.userAgent) && (
+          <div className="px-4 py-4">
+            <Text variant="bodySm" className="font-semibold text-primary mb-2">Install on iOS</Text>
+            <ol className="list-inside list-decimal space-y-1">
+              <Text variant="caption" color="muted">Tap the <strong>Share</strong> button in Safari</Text>
+              <Text variant="caption" color="muted">Scroll down and tap <strong>Add to Home Screen</strong></Text>
+              <Text variant="caption" color="muted">Tap <strong>Add</strong> in the top right</Text>
+            </ol>
+          </div>
+        )}
+      </SettingsSection>
+
+      {/* Support */}
+      <SettingsSection title="Support" icon={Mail}>
+        <Link to="/privacy-policy" className="block">
+          <SettingsRow icon={FileText} label="Privacy Policy" desc="Data collection, location, uploads, and deletion" />
+        </Link>
+        <div className="border-t border-border/40">
+          <Link to="/support" className="block">
+            <SettingsRow icon={Mail} label="Contact / Support" desc={SUPPORT_EMAIL} />
+          </Link>
         </div>
-        {SETTINGS_LINKS.map((item) => (
-          <LinkRow key={item.label} {...item} />
-        ))}
-      </div>
+        <div className="border-t border-border/40">
+          <Link to="/review-readiness" className="block">
+            <SettingsRow icon={Database} label="Data Safety Summary" desc="Store review disclosure checklist" />
+          </Link>
+        </div>
+      </SettingsSection>
 
       {/* Danger Zone */}
-      <div className="mb-6 overflow-hidden rounded-[20px] border border-destructive/20 bg-destructive/[0.03]">
-        <div className="flex items-center gap-2 border-b border-destructive/10 px-5 py-3">
-          <AlertCircle className="h-4 w-4 text-destructive" />
-          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-destructive">Danger Zone</div>
+      <SettingsSection title="Danger Zone" icon={AlertCircle} danger>
+        <Link to="/account-deletion" className="block">
+          <SettingsRow icon={Trash2} label="Delete Account" desc="Permanently delete Ride Radar app data" danger />
+        </Link>
+        <div className="border-t border-destructive/10">
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left hover:bg-destructive/5 transition-colors"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
+              <LogOut className="h-5 w-5 text-destructive" />
+            </div>
+            <VStack flex>
+              <Text variant="bodySm" className="font-semibold text-destructive">Log out</Text>
+              <Text variant="caption" className="text-destructive/70">Sign out of your account</Text>
+            </VStack>
+            <ChevronRight className="h-4 w-4 shrink-0 text-destructive/50" />
+          </button>
         </div>
-        {DANGER_LINKS.map((item) => (
-          <LinkRow key={item.label} {...item} />
-        ))}
-        <button
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-4 px-5 py-4 text-destructive transition-colors hover:bg-destructive/5 active:scale-[0.99]"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
-            <LogOut className="h-5 w-5 text-destructive" />
-          </div>
-          <div className="flex-1 text-left">
-            <div className="text-sm font-semibold">Log out</div>
-            <div className="mt-0.5 text-xs text-destructive/70">Sign out of your account</div>
-          </div>
-          <ChevronRight className="h-4 w-4 shrink-0 text-destructive/50" />
-        </button>
-      </div>
-    </div>
+      </SettingsSection>
+    </VStack>
   );
 }
 

@@ -1,13 +1,17 @@
 /**
  * Support page for Ride Radar 2.0.
  *
- * Provides contact information and a placeholder FAQ section.
+ * Provides contact information and FAQ accordion.
+ * Modern design: contact cards with icons, FAQ accordion.
  */
 
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Mail, HelpCircle, MessageSquare } from 'lucide-react';
-import RRLogo from '@/components/RRLogo';
+import { ArrowLeft, Mail, HelpCircle, MessageSquare, ChevronDown } from 'lucide-react';
 import { SUPPORT_EMAIL } from '@/lib/constants.js';
+import { Text } from '@/components/ui/primitives/Text';
+import { VStack, HStack } from '@/components/ui/primitives/Stack';
+import { cn } from '@/lib/utils.js';
 
 const FAQS = [
   {
@@ -24,81 +28,115 @@ const FAQS = [
   },
   {
     q: 'How do I report a user?',
-    a: 'Open the user\'s profile and tap the menu to find the report option.',
+    a: "Open the user's profile and tap the menu to find the report option.",
   },
 ];
 
 export default function SupportPage() {
+  const [openFaq, setOpenFaq] = useState(null);
+
+  const toggleFaq = (index) => {
+    setOpenFaq((prev) => (prev === index ? null : index));
+  };
+
   return (
-    <div className="min-h-dvh bg-background px-5 py-6 text-foreground">
-      <div className="mx-auto max-w-2xl">
+    <div className="min-h-dvh bg-background px-4 py-6 text-foreground">
+      <VStack gap={5} className="mx-auto max-w-2xl">
         <Link
           to="/settings"
-          className="mb-5 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground pressable self-start"
         >
           <ArrowLeft className="h-4 w-4" /> Settings
         </Link>
 
-        <div className="relative mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6">
+        {/* Header */}
+        <div className="surface-card p-6 relative overflow-hidden">
           <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-primary/15" />
           <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-          <div className="relative z-10">
-            <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Help & Support</div>
-            <div className="flex items-center gap-3 mb-3">
-              <RRLogo size="md" />
-              <h1 className="font-display text-3xl font-extrabold tracking-[-0.04em]">Support</h1>
-            </div>
-            <p className="text-sm text-muted-foreground">
+          <VStack gap={2} className="relative z-10">
+            <Text variant="micro" color="primary">Help & Support</Text>
+            <HStack align="center" gap={3}>
+              <HelpCircle className="h-8 w-8 text-primary" />
+              <Text as="h1" variant="h2" color="default">Support</Text>
+            </HStack>
+            <Text variant="bodySm" color="muted">
               Need help? Reach out or browse the frequently asked questions below.
-            </p>
-          </div>
+            </Text>
+          </VStack>
         </div>
 
-        {/* Contact */}
-        <div className="mb-6 grid gap-3 sm:grid-cols-2">
+        {/* Contact Cards */}
+        <div className="grid gap-3 sm:grid-cols-2">
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
-            className="flex items-center gap-4 rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5 transition-all hover:border-primary/30 hover:bg-primary/[0.02] active:scale-[0.99]"
+            className={cn(
+              'surface-card p-5 transition-colors hover:border-primary/30 hover:bg-primary/[0.02]',
+              'active:scale-[0.99] pressable'
+            )}
           >
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
-              <Mail className="h-6 w-6 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-sm font-bold">Email us</div>
-              <div className="mt-0.5 text-xs text-muted-foreground truncate">{SUPPORT_EMAIL}</div>
-            </div>
+            <HStack align="center" gap={3}>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <Mail className="h-6 w-6 text-primary" />
+              </div>
+              <VStack className="min-w-0">
+                <Text variant="bodySm" className="font-bold">Email us</Text>
+                <Text variant="caption" color="muted" truncate>{SUPPORT_EMAIL}</Text>
+              </VStack>
+            </HStack>
           </a>
 
-          <div className="flex items-center gap-4 rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
-              <MessageSquare className="h-6 w-6 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <div className="text-sm font-bold">Response time</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">
-                We typically respond within 24-48 hours
+          <div className="surface-card p-5">
+            <HStack align="center" gap={3}>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <MessageSquare className="h-6 w-6 text-primary" />
               </div>
-            </div>
+              <VStack className="min-w-0">
+                <Text variant="bodySm" className="font-bold">Response time</Text>
+                <Text variant="caption" color="muted">We typically respond within 24-48 hours</Text>
+              </VStack>
+            </HStack>
           </div>
         </div>
 
-        {/* FAQ */}
-        <div className="mb-4 flex items-center gap-2 text-muted-foreground">
-          <HelpCircle className="h-4 w-4 text-primary" />
-          <span className="text-[11px] font-bold uppercase tracking-[0.18em]">Frequently Asked Questions</span>
-        </div>
-        <div className="space-y-3">
-          {FAQS.map((faq, i) => (
-            <div
-              key={i}
-              className="rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5"
-            >
-              <h3 className="mb-2 text-sm font-semibold text-foreground">{faq.q}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+        {/* FAQ Accordion */}
+        <VStack gap={2}>
+          <HStack align="center" gap={2} className="px-1">
+            <HelpCircle className="h-4 w-4 text-primary" />
+            <Text variant="micro" color="muted">Frequently Asked Questions</Text>
+          </HStack>
+
+          <VStack gap={2}>
+            {FAQS.map((faq, i) => (
+              <div key={i} className="surface-card overflow-hidden">
+                <button
+                  onClick={() => toggleFaq(i)}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-4 text-left hover:bg-white/[0.02] transition-colors"
+                >
+                  <Text variant="bodySm" className="font-semibold">{faq.q}</Text>
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200',
+                      openFaq === i && 'rotate-180'
+                    )}
+                  />
+                </button>
+                <div
+                  className={cn(
+                    'overflow-hidden transition-all duration-200',
+                    openFaq === i ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+                  )}
+                >
+                  <div className="px-4 pb-4">
+                    <Text variant="caption" color="muted" className="leading-relaxed">
+                      {faq.a}
+                    </Text>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </VStack>
+        </VStack>
+      </VStack>
     </div>
   );
 }

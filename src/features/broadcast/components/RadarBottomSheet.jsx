@@ -1,7 +1,10 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { SlidersHorizontal, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import RRLogo from '@/components/RRLogo';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Text } from '@/components/ui/primitives/Text';
+import { HStack } from '@/components/ui/primitives/Stack';
 import RadarBroadcastList from './RadarBroadcastList';
 
 const FILTER_TYPES = [
@@ -21,7 +24,7 @@ const FILTER_STYLES = {
 };
 
 /**
- * Draggable bottom sheet containing filters, sort, and the broadcast list.
+ * Draggable bottom sheet containing stories, filters, sort, and the broadcast list.
  *
  * @param {Object} props
  */
@@ -45,6 +48,26 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
   activeCount,
   isPending,
 }) {
+  // Build unique author stories from broadcasts
+  const stories = useMemo(() => {
+    const seen = new Set();
+    const list = [];
+    for (const b of broadcasts) {
+      const author = getProfile(b.author_id);
+      if (!author || !author.avatar_url) continue;
+      if (seen.has(b.author_id)) continue;
+      seen.add(b.author_id);
+      list.push({
+        id: b.author_id,
+        name: author.display_name || 'Rider',
+        avatar: author.avatar_url,
+        type: b.type,
+      });
+      if (list.length >= 10) break;
+    }
+    return list;
+  }, [broadcasts, getProfile]);
+
   return (
     <div
       ref={sheetRef}
@@ -63,17 +86,17 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
       {/* Sheet handle */}
       <button
         onClick={() => setSheetOpen((v) => !v)}
-        className="w-full flex flex-col items-center pt-3 pb-2 min-h-[44px] active:scale-95 active:opacity-80 transition-all duration-150"
+        className="w-full flex flex-col items-center pt-3 pb-2 min-h-[44px] active:scale-[0.96] active:opacity-80 transition-all duration-150"
       >
         <span className="h-1 w-10 rounded-full bg-muted-foreground/30" />
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-xs font-bold text-foreground">
+        <HStack gap={2} align="center" className="mt-2">
+          <Text variant="micro" className="text-foreground">
             {activeCount} {activeCount === 1 ? 'signal' : 'signals'} nearby
-          </span>
+          </Text>
           <ChevronUp
             className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform', sheetOpen && 'rotate-180')}
           />
-        </div>
+        </HStack>
       </button>
 
       {/* Pull indicator */}
@@ -92,6 +115,37 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
           sheetOpen ? 'max-h-[55vh]' : 'max-h-0'
         )}
       >
+        {/* Stories / Highlights */}
+        {stories.length > 0 && (
+          <div className="mb-4 -mx-4 px-4">
+            <Text variant="micro" color="muted" className="mb-2">Active riders</Text>
+            <div className="flex gap-3 overflow-x-auto scroll-hide pb-1">
+              {stories.map((story) => (
+                <button
+                  key={story.id}
+                  className="shrink-0 flex flex-col items-center gap-1.5 active:scale-[0.96] transition-transform"
+                >
+                  <div className={cn(
+                    'relative p-[2px] rounded-full',
+                    story.type === 'alert' && 'bg-gradient-to-br from-alert/60 to-alert/20',
+                    story.type === 'solo_ride' && 'bg-gradient-to-br from-solo/60 to-solo/20',
+                    story.type === 'iso' && 'bg-gradient-to-br from-iso/60 to-iso/20',
+                    story.type === 'event' && 'bg-gradient-to-br from-event/60 to-event/20',
+                  )}>
+                    <Avatar className="h-12 w-12 border-2 border-background">
+                      <AvatarImage src={story.avatar} alt={story.name} />
+                      <AvatarFallback>{story.name[0]}</AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <Text variant="caption" color="muted" className="max-w-[64px] truncate">
+                    {story.name}
+                  </Text>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Filters */}
         <div className={cn('flex items-center gap-2 overflow-x-auto pb-3 pt-1 scroll-hide [-webkit-overflow-scrolling:touch]', isPending && 'opacity-60')}>
           {FILTER_TYPES.map((f) => {
@@ -102,7 +156,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
                 onClick={() => setFilter(f.id)}
                 disabled={isPending}
                 className={cn(
-                  'shrink-0 rounded-full px-4 py-2 min-h-[44px] text-xs font-bold transition-all duration-150 active:scale-95 active:opacity-80 disabled:opacity-50 border border-transparent',
+                  'shrink-0 rounded-full px-4 py-2 min-h-[44px] text-xs font-bold transition-all duration-150 active:scale-[0.96] active:opacity-80 disabled:opacity-50 border border-transparent',
                   filter === f.id
                     ? fStyle.active
                     : 'bg-white/5 text-muted-foreground hover:bg-white/10'

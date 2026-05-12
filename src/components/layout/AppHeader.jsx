@@ -1,12 +1,14 @@
 import { memo, useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { Bell, User } from 'lucide-react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Bell, ChevronLeft, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { useUnreadCount } from '@/features/notifications/hooks/use-notifications';
 import RRLogo from '@/components/RRLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Text } from '@/components/ui/primitives/Text';
+import { HStack } from '@/components/ui/primitives/Stack';
 
 const ROUTE_TITLES = {
   '/home': '',
@@ -29,21 +31,24 @@ function getPageTitle(pathname) {
 }
 
 /**
- * AppHeader — Premium scroll-aware header.
+ * AppHeader — Scroll-aware minimal header.
  *
  * Design:
- * - Transparent when at top, glassmorphism blur when scrolled
- * - Compact 56px height
- * - Left: Logo icon
- * - Center: Page title or LIVE indicator
- * - Right: Notifications + Avatar
+ * - Transparent at top, gains bg-background/80 backdrop-blur on scroll
+ * - Left: Back button (when not on home) OR Logo (on home)
+ * - Center: Page title (bold, not uppercase micro label)
+ * - Right: Notifications bell + Avatar
+ * - Height: 56px
+ * - Keeps existing admin dot, unread badge logic
  */
 const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { isAdmin } = useAdminRole();
   const { user, profile } = useAuthState();
   const { data: unreadCount = 0 } = useUnreadCount(user?.id);
   const isRadar = pathname === '/home';
+  const isHome = pathname === '/home';
   const isTransparent = isOverlay || isRadar;
   const pageTitle = getPageTitle(pathname);
 
@@ -59,6 +64,8 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const avatarUrl = profile?.avatar_url;
   const displayName = profile?.display_name || profile?.username || 'Rider';
 
+  const showBackButton = !isHome;
+
   return (
     <header
       className={cn(
@@ -70,15 +77,43 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             : 'bg-transparent'
       )}
     >
-      <div className="mx-auto px-4 h-14 flex items-center justify-between max-w-2xl">
-        {/* Left: Logo */}
-        <NavLink
-          to="/home"
-          className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 transition-all duration-150 will-change-transform"
-          aria-label="Ride Radar home"
-        >
-          <RRLogo size="md" glow={isRadar} className={cn(isRadar && 'animate-pulse')} />
-        </NavLink>
+      <HStack
+        align="center"
+        justify="between"
+        className="mx-auto px-4 h-14 max-w-xl"
+      >
+        {/* Left: Back button or Logo */}
+        {showBackButton ? (
+          <button
+            onClick={() => navigate(-1)}
+            className={cn(
+              'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
+              'text-foreground hover:text-primary',
+              'transition-all duration-150',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'pressable'
+            )}
+            aria-label="Go back"
+          >
+            <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+          </button>
+        ) : (
+          <NavLink
+            to="/home"
+            className={cn(
+              'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'pressable'
+            )}
+            aria-label="Ride Radar home"
+          >
+            <RRLogo
+              size="md"
+              glow={isRadar}
+              className={cn(isRadar && 'animate-pulse')}
+            />
+          </NavLink>
+        )}
 
         {/* Center: Page context */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none">
@@ -92,22 +127,34 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             </span>
           ) : (
             pageTitle && (
-              <span className="text-sm font-bold tracking-tight text-foreground">
+              <Text
+                variant="h3"
+                color="default"
+                className="text-base font-bold"
+              >
                 {pageTitle}
-              </span>
+              </Text>
             )
           )}
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-1" role="group" aria-label="Header actions">
+        <HStack align="center" gap={1} role="group" aria-label="Header actions">
           {isAdmin && (
             <NavLink
               to="/admin"
-              className="flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95"
+              className={cn(
+                'flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full',
+                'transition-all duration-150',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'pressable'
+              )}
               aria-label="Admin panel"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+              <span
+                className="h-1.5 w-1.5 rounded-full bg-primary"
+                aria-hidden="true"
+              />
             </NavLink>
           )}
 
@@ -115,10 +162,13 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             to="/notifications"
             className={({ isActive }) =>
               cn(
-                'relative flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full transition-all duration-150',
+                'relative flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full',
+                'transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                'active:scale-95',
-                isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
+                'pressable',
+                isActive
+                  ? 'text-primary bg-primary/10'
+                  : 'text-muted-foreground hover:text-foreground'
               )
             }
             aria-label="Notifications"
@@ -136,9 +186,10 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             to="/profile"
             className={({ isActive }) =>
               cn(
-                'flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full transition-all duration-150',
+                'flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full',
+                'transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                'active:scale-95',
+                'pressable',
                 isActive && 'ring-1 ring-primary/40'
               )
             }
@@ -153,8 +204,8 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               </AvatarFallback>
             </Avatar>
           </NavLink>
-        </div>
-      </div>
+        </HStack>
+      </HStack>
     </header>
   );
 });

@@ -6,20 +6,26 @@ import BottomNav from './BottomNav';
 import OfflineBanner from '@/components/OfflineBanner';
 
 /**
- * AppLayout — Main application shell.
+ * AppLayout — Main application shell with refined background.
  *
  * Provides the persistent UI frame for all authenticated pages:
  * - Scroll-aware glassmorphism header
  * - Scrollable main content area
- * - Floating dock-style bottom navigation
- * - Subtle ambient background with brand-colored glows
+ * - Full-width bottom tab bar navigation
+ * - Subtle warm ambient background with very faint radial glow
+ * - Top edge gradient fade for header blending
  */
 const AppLayout = memo(function AppLayout() {
   const { pathname } = useLocation();
   const isRadar = pathname === '/home';
 
   return (
-    <div className={cn('min-h-dvh bg-background relative overflow-hidden selection:bg-primary/30', isRadar && 'min-h-0 h-dvh')}>
+    <div
+      className={cn(
+        'min-h-dvh bg-background relative overflow-hidden selection:bg-primary/30',
+        isRadar && 'min-h-0 h-dvh'
+      )}
+    >
       {/* Offline status banner */}
       <OfflineBanner />
 
@@ -34,17 +40,17 @@ const AppLayout = memo(function AppLayout() {
       {/* Background effects — hidden on radar (map is the background) */}
       {!isRadar && (
         <>
-          {/* Subtle radial glow — top left (Kawasaki Green hint) */}
+          {/* Subtle warm radial glow — top left (very faint) */}
           <div
-            className="fixed top-[-15%] left-[-10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-primary/[0.04] blur-3xl pointer-events-none"
+            className="fixed top-[-10%] left-[-10%] w-[45vw] h-[45vw] max-w-[400px] max-h-[400px] rounded-full bg-primary/[0.025] blur-3xl pointer-events-none"
             aria-hidden="true"
           />
-          {/* Subtle radial glow — bottom right (Yamaha Blue hint) */}
+          {/* Subtle warm radial glow — bottom right (very faint) */}
           <div
-            className="fixed bottom-[-15%] right-[-10%] w-[55vw] h-[55vw] max-w-[500px] max-h-[500px] rounded-full bg-cyan/[0.03] blur-3xl pointer-events-none"
+            className="fixed bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-cyan/[0.02] blur-3xl pointer-events-none"
             aria-hidden="true"
           />
-          {/* Top edge fade for header blending */}
+          {/* Top edge gradient fade for header blending */}
           <div
             className="fixed top-0 left-0 right-0 h-24 bg-gradient-to-b from-background to-transparent pointer-events-none z-[1]"
             aria-hidden="true"
@@ -61,7 +67,7 @@ const AppLayout = memo(function AppLayout() {
         className={cn(
           isRadar
             ? 'fixed inset-0 z-0'
-            : 'relative z-10 mx-auto max-w-2xl pt-14 pb-28 pb-safe'
+            : 'relative z-10 mx-auto max-w-xl pt-16 pb-24 pb-safe'
         )}
         role="main"
       >

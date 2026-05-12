@@ -5,6 +5,8 @@ import { ShieldAlert, Route, Search, CalendarClock, CheckCircle2 } from 'lucide-
 import SignalIcon from '@/components/brand/SignalIcon';
 import RRLogo from '@/components/RRLogo';
 import BroadcastForm from '@/features/broadcast/components/BroadcastForm';
+import { Text } from '@/components/ui/primitives/Text';
+import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
 
 const TYPES = [
@@ -75,17 +77,17 @@ function BroadcastCreatePage() {
           <div className="rr-chip mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Signal console
           </div>
-          <div className="flex items-center gap-3 mb-1">
+          <HStack gap={3} align="center" className="mb-1">
             <RRLogo size="md" />
-            <h1 className="rr-heading text-4xl">Broadcast</h1>
-          </div>
-          <p className="text-sm text-muted-foreground">Choose the kind of signal you want to send.</p>
+            <Text as="h1" variant="h1" className="rr-heading">Broadcast</Text>
+          </HStack>
+          <Text variant="bodySm" color="muted">Choose the kind of signal you want to send.</Text>
           <div className="mt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
             <span className="h-px flex-1 bg-gradient-to-r from-primary/50 to-border/40" />
             Broadcast types
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-3">
+        <VStack gap={3}>
           {TYPES.map((t) => {
             const styles = TYPE_STYLE_MAP[t.color];
             return (
@@ -93,26 +95,26 @@ function BroadcastCreatePage() {
                 key={t.id}
                 onClick={() => setType(t.id)}
                 className={cn(
-                  'w-full text-left p-5 rounded-[20px] rr-surface transition-all duration-300 group relative overflow-hidden hover:-translate-y-0.5 rr-haptic border-l-[3px]',
+                  'w-full text-left p-5 rounded-[20px] rr-surface transition-all duration-300 group relative overflow-hidden hover:-translate-y-0.5 pressable border-l-[3px]',
                   styles.hover,
                   styles.borderLeft
                 )}
               >
                 <div className={cn('absolute top-0 right-0 w-32 h-32 opacity-[0.06] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-125', styles.glow)} />
-                <div className="relative z-10 flex items-center gap-4">
+                <HStack gap={4} align="center" className="relative z-10">
                   <div className={cn('h-14 w-14 rounded-2xl flex items-center justify-center border shrink-0', styles.border, styles.bg)}>
                     <SignalIcon type={t.id} size="lg" className="transition-transform duration-300 group-hover:scale-105" />
                   </div>
-                  <div className="flex-1">
-                    <div className="font-display font-extrabold tracking-[-0.03em] text-xl mb-0.5 text-foreground">{t.label}</div>
-                    <div className="text-[13px] text-muted-foreground font-medium">{t.desc}</div>
-                  </div>
+                  <VStack gap={0.5} flex>
+                    <Text variant="h3">{t.label}</Text>
+                    <Text variant="bodySm" color="muted" className="font-medium">{t.desc}</Text>
+                  </VStack>
                   <div className={cn('h-2 w-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity', styles.glow)} />
-                </div>
+                </HStack>
               </button>
             );
           })}
-        </div>
+        </VStack>
       </div>
     );
   }

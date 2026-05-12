@@ -4,6 +4,7 @@
  * URL param: :userId
  * Privacy-aware: hides details for private profiles unless connected.
  * Supports friend request, chat, and block actions.
+ * Instagram-style layout with Connect / Message / Block buttons.
  */
 
 import { useMemo, useState } from 'react';
@@ -13,7 +14,6 @@ import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { getProfileByUserId } from '@/features/profile/api/profile-api';
 import { getOrCreateConversation } from '@/lib/conversationUtils';
 import { isValidUuid } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import {
   ArrowLeft,
   Bike,
@@ -23,17 +23,28 @@ import {
   ShieldCheck,
   Radio,
   Lock,
+  MapPin,
+  Calendar,
+  Grid3X3,
+  User,
+  Ban,
 } from 'lucide-react';
-import RRLogo from '@/components/RRLogo';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import BroadcastCard from '@/components/shared/BroadcastCard';
 import { isExpired } from '@/lib/broadcastUtils';
-import { Skeleton } from '@/components/ui/skeleton';
 import { getBroadcastsByAuthor } from '@/features/broadcast/api/broadcast-api.js';
 import { useIsBlocked } from '@/features/safety/hooks/use-blocks.js';
 import { useIsFriend } from '@/features/connections/hooks/use-friendships.js';
 import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Text } from '@/components/ui/primitives/Text';
+import { HStack, VStack } from '@/components/ui/primitives/Stack';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils.js';
+import { LoadingState } from '@/components/shared/LoadingState';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { ErrorState } from '@/components/shared/ErrorState';
 
 export default function RiderProfilePage() {
   const { userId } = useParams();
@@ -41,6 +52,7 @@ export default function RiderProfilePage() {
   const qc = useQueryClient();
   const { user } = useAuthState();
   const [avatarError, setAvatarError] = useState(false);
+  const [activeTab, setActiveTab] = useState('broadcasts');
 
   const hasValidUserId = isValidUuid(userId);
   const isMeRoute = user?.id === userId;
@@ -56,6 +68,8 @@ export default function RiderProfilePage() {
     data: profile,
     isLoading: isProfileLoading,
     isError: isProfileError,
+    error: profileError,
+    refetch: refetchProfile,
   } = useQuery({
     queryKey: ['profile', userId],
     enabled: hasValidUserId,
@@ -67,7 +81,7 @@ export default function RiderProfilePage() {
     staleTime: 30_000,
   });
 
-  const { data: riderBroadcasts = [], isLoading: isBroadcastsLoading } = useQuery({
+  const { data: riderBroadcasts = [], isLoading: isBroadcastsLoading, isError: broadcastsError, refetch: refetchBroadcasts } = useQuery({
     queryKey: ['rider-broadcasts', userId],
     enabled: hasValidUserId && !!profile,
     queryFn: async () => {
@@ -111,67 +125,71 @@ export default function RiderProfilePage() {
       .trim();
   }, [profile]);
 
+  const joinDate = useMemo(() => {
+    if (!profile?.created_at) return null;
+    const date = new Date(profile.created_at);
+    return date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+  }, [profile?.created_at]);
+
   if (!hasValidUserId) {
     return (
-      <div className="mx-auto max-w-2xl px-5 pt-5">
+      <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
         <button
           onClick={() => navigate(-1)}
-          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
+          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 pressable"
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
-        <div className="p-10 text-center text-sm text-muted-foreground">Invalid rider link.</div>
+        <EmptyState icon={User} title="Invalid rider link" description="The profile URL appears to be malformed." />
       </div>
     );
   }
 
   if (isProfileLoading) {
     return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center text-sm text-muted-foreground">
-        <RRLogo size="md" className="mb-4 animate-pulse" />
-        Loading rider profile…
+      <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
+        <VStack gap={4} align="center" className="min-h-[50vh] justify-center">
+          <LoadingState variant="section" message="Loading rider profile..." />
+        </VStack>
       </div>
     );
   }
 
   if (isProfileError || !profile) {
     return (
-      <div className="mx-auto max-w-2xl px-5 pt-5">
+      <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
         <button
           onClick={() => navigate(-1)}
-          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
+          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 pressable"
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
-        <div className="rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-10 text-center">
-          <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
-          <p className="text-sm text-muted-foreground">Rider profile not found or private.</p>
-        </div>
+        <ErrorState
+          title="Rider not found"
+          message={profileError?.message || 'Rider profile not found or private.'}
+          onRetry={refetchProfile}
+        />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
+    <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-in">
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 active:scale-95 transition-transform"
+        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 pressable self-start"
       >
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
-      {/* Profile Header */}
-      <div className="relative mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6">
-        <div className="pointer-events-none absolute right-[-10%] top-[-20%] h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-primary/15" />
-        <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-
-        <div className="relative z-10 flex flex-col items-center text-center">
-          {/* Avatar */}
-          <div className="relative mb-4">
-            {canSeeDetails && profile.avatar_url && !avatarError ? (
-              <div className="rounded-full bg-gradient-to-br from-primary/40 to-primary/10 p-[3px] shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+      {/* Profile Header Card */}
+      <div className="surface-card p-5">
+        <VStack align="center" gap={3}>
+          {/* Avatar with gradient ring */}
+          <div className="relative">
+            <div className="rr-avatar-ring">
+              {canSeeDetails && profile.avatar_url && !avatarError ? (
                 <OptimizedImage
                   src={profile.avatar_url}
                   alt=""
@@ -184,192 +202,238 @@ export default function RiderProfilePage() {
                   showSkeleton
                   onError={() => setAvatarError(true)}
                 />
-              </div>
-            ) : (
-              <div className="rounded-full bg-gradient-to-br from-primary/40 to-primary/10 p-[3px] shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+              ) : (
                 <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 font-display text-3xl font-bold text-primary-foreground">
                   {canSeeDetails ? profile.display_name?.[0]?.toUpperCase() || '?' : '?'}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
             {canSeeDetails && (
-              <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-[hsl(220_20%_7%)] bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
+              <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-background bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
             )}
           </div>
 
           {/* Name & Username */}
-          <h1 className="font-display text-[clamp(1.25rem,5vw,1.75rem)] font-extrabold leading-tight tracking-[-0.04em]">
-            {canSeeDetails ? profile.display_name : 'Private Rider'}
-          </h1>
-          {canSeeDetails && profile.username && (
-            <p className="mt-1 text-sm text-muted-foreground">@{profile.username}</p>
-          )}
-        </div>
+          <VStack align="center" gap={0.5}>
+            <HStack align="center" gap={2}>
+              <Text as="h1" variant="h2" color="default" align="center">
+                {canSeeDetails ? profile.display_name : 'Private Rider'}
+              </Text>
+              {isFriend && (
+                <Badge variant="secondary" className="text-[10px]">Friend</Badge>
+              )}
+              {isPending && (
+                <Badge variant="outline" className="text-[10px]">Pending</Badge>
+              )}
+            </HStack>
+            {canSeeDetails && profile.username && (
+              <Text variant="bodySm" color="muted">@{profile.username}</Text>
+            )}
+          </VStack>
 
-        {/* Stats Row */}
-        {canSeeDetails && (
-          <div className="relative z-10 mt-6 grid grid-cols-3 gap-3">
-            <RiderMetric icon={Radio} label="Signals" value={activeBroadcasts.length} />
-            <RiderMetric icon={Bike} label="Bike" value={bikeLabel || 'Not set'} />
-            <RiderMetric
-              icon={ShieldCheck}
-              label="Status"
-              value={profile.is_public === false ? 'Private' : 'Public'}
-            />
-          </div>
-        )}
+          {/* Connection Status */}
+          {isBlocked && (
+            <HStack align="center" gap={1.5} className="px-3 py-1.5 rounded-full bg-destructive/10 border border-destructive/20">
+              <Ban className="w-3.5 h-3.5 text-destructive" />
+              <Text variant="micro" color="destructive">Blocked</Text>
+            </HStack>
+          )}
+
+          {/* Stats Row */}
+          {canSeeDetails && (
+            <HStack gap={2} className="w-full mt-1">
+              <StatPill icon={Radio} label="Broadcasts" value={activeBroadcasts.length} isLoading={isBroadcastsLoading} />
+              <StatPill icon={Bike} label="Bike" value={bikeLabel || 'Not set'} />
+              <StatPill icon={ShieldCheck} label="Status" value={profile.is_public === false ? 'Private' : 'Public'} />
+            </HStack>
+          )}
+
+          {/* Action Buttons */}
+          {!isMeRoute && !isBlocked && (
+            <HStack gap={3} className="w-full mt-1">
+              {isFriend ? (
+                <button
+                  onClick={() => openFriendChat.mutate()}
+                  disabled={openFriendChat.isPending}
+                  className={cn(
+                    'flex-1 flex items-center justify-center gap-2 rounded-full',
+                    'bg-brand-kawasaki text-primary-foreground px-5 py-2.5 text-sm font-bold',
+                    'transition-all hover:bg-brand-kawasaki/90 pressable glow-kawasaki-sm',
+                    'disabled:opacity-50'
+                  )}
+                >
+                  <MessageCircle className="h-4 w-4" /> Message
+                </button>
+              ) : isPending ? (
+                <button
+                  disabled
+                  className={cn(
+                    'flex-1 flex items-center justify-center gap-2 rounded-full border border-border/60',
+                    'bg-surface px-5 py-2.5 text-sm font-semibold text-muted-foreground',
+                    'disabled:opacity-60'
+                  )}
+                >
+                  <Clock className="h-4 w-4" />
+                  Request {connectionRequest?.from_user_id === user?.id ? 'sent' : 'pending'}
+                </button>
+              ) : (
+                <button
+                  onClick={() => sendFriendReq.mutate({ from_user_id: user.id, to_user_id: userId })}
+                  disabled={sendFriendReq.isPending}
+                  className={cn(
+                    'flex-1 flex items-center justify-center gap-2 rounded-full',
+                    'bg-brand-kawasaki text-primary-foreground px-5 py-2.5 text-sm font-bold',
+                    'transition-all hover:bg-brand-kawasaki/90 pressable glow-kawasaki-sm',
+                    'disabled:opacity-50'
+                  )}
+                >
+                  <UserPlus className="h-4 w-4" /> Connect
+                </button>
+              )}
+            </HStack>
+          )}
+        </VStack>
       </div>
 
-      {canSeeDetails ? (
-        <>
-          {profile.bio && (
-            <div className="mb-4 rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5">
-              <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Rider note</div>
-              <p className="text-[15px] leading-relaxed text-foreground/90">{profile.bio}</p>
-            </div>
-          )}
+      {/* Private notice */}
+      {!canSeeDetails && (
+        <div className="surface-card p-6 text-center">
+          <Lock className="mx-auto mb-3 h-8 w-8 text-muted-foreground opacity-60" />
+          <Text variant="bodySm" color="muted">
+            This profile is private. Add them as a friend to see more details.
+          </Text>
+        </div>
+      )}
 
-          {/* Bike Info Card */}
-          {bikeLabel && (
-            <div className="mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)]">
-              {profile.bike_photo_url && (
-                <div className="relative h-48 border-b border-border/60 bg-black/40">
+      {/* Tabs — only shown when details are visible */}
+      {canSeeDetails && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="broadcasts" className="gap-1.5">
+              <Radio className="w-3.5 h-3.5" /> Broadcasts
+            </TabsTrigger>
+            <TabsTrigger value="about" className="gap-1.5">
+              <User className="w-3.5 h-3.5" /> About
+            </TabsTrigger>
+            <TabsTrigger value="media" className="gap-1.5">
+              <Grid3X3 className="w-3.5 h-3.5" /> Media
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="broadcasts" className="mt-4">
+            {isBroadcastsLoading ? (
+              <LoadingState variant="section" message="Loading broadcasts..." />
+            ) : broadcastsError ? (
+              <ErrorState title="Broadcasts unavailable" onRetry={refetchBroadcasts} />
+            ) : activeBroadcasts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {activeBroadcasts.map((b) => (
+                  <BroadcastCard key={b.id} broadcast={b} author={profile} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState icon={Radio} title="No active broadcasts" description="This rider has no active signals." />
+            )}
+          </TabsContent>
+
+          <TabsContent value="about" className="mt-4">
+            <VStack gap={3}>
+              {bikeLabel && (
+                <div className="surface-card p-4">
+                  <HStack align="center" gap={3}>
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+                      <Bike className="h-5 w-5 text-primary" />
+                    </div>
+                    <VStack gap={0.5}>
+                      <Text variant="micro" color="primary">Machine</Text>
+                      <Text variant="bodySm" className="font-semibold">{bikeLabel}</Text>
+                    </VStack>
+                  </HStack>
+                </div>
+              )}
+
+              {profile?.location && (
+                <div className="surface-card p-4">
+                  <HStack align="center" gap={3}>
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-yamaha/20 bg-brand-yamaha/10">
+                      <MapPin className="h-5 w-5 text-brand-yamaha" />
+                    </div>
+                    <VStack gap={0.5}>
+                      <Text variant="micro" color="brandYamaha">Location</Text>
+                      <Text variant="bodySm" className="font-semibold">{profile.location}</Text>
+                    </VStack>
+                  </HStack>
+                </div>
+              )}
+
+              {joinDate && (
+                <div className="surface-card p-4">
+                  <HStack align="center" gap={3}>
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-ducati/20 bg-brand-ducati/10">
+                      <Calendar className="h-5 w-5 text-brand-ducati" />
+                    </div>
+                    <VStack gap={0.5}>
+                      <Text variant="micro" color="brandDucati">Joined</Text>
+                      <Text variant="bodySm" className="font-semibold">{joinDate}</Text>
+                    </VStack>
+                  </HStack>
+                </div>
+              )}
+
+              {profile?.bio && (
+                <div className="surface-card p-4">
+                  <Text variant="bodySm" color="muted" className="leading-relaxed text-pretty">
+                    {profile.bio}
+                  </Text>
+                </div>
+              )}
+            </VStack>
+          </TabsContent>
+
+          <TabsContent value="media" className="mt-4">
+            {profile?.bike_photo_url ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="surface-card overflow-hidden aspect-square">
                   <OptimizedImage
                     src={profile.bike_photo_url}
                     alt="Bike"
                     containerClassName="h-full w-full"
+                    className="h-full w-full"
                     objectFit="cover"
                     loading="lazy"
                     showSkeleton
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                  <div className="absolute bottom-4 left-5 right-5">
-                    <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Machine</div>
-                    <div className="font-display text-lg font-bold text-white drop-shadow-lg">
-                      {bikeLabel}
-                    </div>
-                  </div>
                 </div>
-              )}
-              {!profile.bike_photo_url && (
-                <div className="flex items-center gap-4 p-5">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-                    <Bike className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Machine</div>
-                    <div className="mt-0.5 font-display text-base font-bold">{bikeLabel}</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="my-6 rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6 text-center text-sm text-muted-foreground">
-          <Lock className="mx-auto mb-3 h-6 w-6 opacity-60" />
-          This profile is private. Add them as a friend to see more details.
-        </div>
+              </div>
+            ) : (
+              <EmptyState icon={Grid3X3} title="No media" description="This rider hasn't uploaded any photos yet." />
+            )}
+          </TabsContent>
+        </Tabs>
       )}
 
       {/* Safety Actions */}
       {!isMeRoute && (
-        <div className="mb-5">
+        <div className="surface-card p-4">
           <SafetyActions targetType="user" targetId={profile.user_id} targetProfileId={profile.user_id} />
         </div>
       )}
-
-      {/* Connection Actions */}
-      {!isMeRoute && !isBlocked && (
-        <div className="mb-6">
-          {isFriend ? (
-            <Button
-              onClick={() => openFriendChat.mutate()}
-              className="h-12 w-full rounded-full bg-primary font-bold text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.35)] transition-all hover:bg-primary/90 active:scale-95"
-              disabled={openFriendChat.isPending}
-            >
-              <MessageCircle className="mr-2 h-4 w-4" /> Message
-            </Button>
-          ) : isPending ? (
-            <Button
-              variant="outline"
-              disabled
-              className="h-12 w-full rounded-full border-border/60 bg-[hsl(220_20%_7%)]"
-            >
-              <Clock className="mr-2 h-4 w-4" /> Request{' '}
-              {connectionRequest?.from_user_id === user?.id ? 'sent' : 'pending'}
-            </Button>
-          ) : (
-            <Button
-              onClick={() =>
-                sendFriendReq.mutate({ from_user_id: user.id, to_user_id: userId })
-              }
-              disabled={sendFriendReq.isPending}
-              className="h-12 w-full rounded-full bg-primary font-bold text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.35)] transition-all hover:bg-primary/90 active:scale-95"
-            >
-              <UserPlus className="mr-2 h-4 w-4" /> Connect
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* Active broadcasts */}
-      {canSeeDetails && (
-        <>
-          <div className="mb-4 flex items-center justify-between px-1">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Active broadcasts</h2>
-            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-              <span className="h-1.5 w-1.5 animate-pulse-green rounded-full bg-primary" />
-              Signal log
-            </span>
-          </div>
-          {isBroadcastsLoading ? (
-            <div className="space-y-3">
-              {[1, 2].map((i) => (
-                <div key={i} className="rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5 space-y-2">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-3 w-1/3" />
-                </div>
-              ))}
-            </div>
-          ) : activeBroadcasts.length > 0 ? (
-            <div className="space-y-3">
-              {activeBroadcasts.map((b) => (
-                <BroadcastCard key={b.id} broadcast={b} author={profile} />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-[20px] border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
-              <RRLogo size="sm" className="mx-auto mb-3 opacity-50" />
-              No active broadcasts
-            </div>
-          )}
-        </>
-      )}
-
-      <div className="mt-6 rounded-2xl border border-border/40 bg-[hsl(220_20%_7%)] py-4 text-center text-xs text-muted-foreground">
-        {isBlocked
-          ? 'You have blocked this rider.'
-          : 'Limited rider preview. More details visible after connecting.'}
-      </div>
-    </div>
+    </VStack>
   );
 }
 
-function RiderMetric({ icon: Icon, label, value }) {
+function StatPill({ icon: Icon, label, value, isLoading }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-black/30 p-3 backdrop-blur-sm">
-      <div className="absolute right-2 top-2 h-1.5 w-1.5 animate-pulse-green rounded-full bg-primary/60" />
-      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-        <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
-          <Icon className="h-3.5 w-3.5" />
-        </span>
-        {label}
+    <div className="flex-1 surface-card p-3 text-center">
+      <div className="flex items-center justify-center mb-1.5">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+          <Icon className="h-3.5 w-3.5 text-primary" />
+        </div>
       </div>
-      <div className="truncate font-display text-sm font-extrabold capitalize tracking-[-0.03em] text-foreground">
-        {value}
-      </div>
+      <Text variant="bodySm" className="font-bold truncate">
+        {isLoading ? '—' : value}
+      </Text>
+      <Text variant="micro" color="muted">{label}</Text>
     </div>
   );
 }

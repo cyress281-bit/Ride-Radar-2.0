@@ -1,36 +1,42 @@
 /**
- * Own profile view.
+ * Own profile view — Instagram-style layout.
  *
  * Displays identity card with metrics, bio, bike info, active broadcasts,
  * and supports inline editing via ProfileEditForm.
  */
 
 import { useState, useMemo, memo } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
-import { Button } from '@/components/ui/button';
-import { Settings, LogOut, Edit2, Radio, Bike, ShieldCheck, Users } from 'lucide-react';
-import RRLogo from '@/components/RRLogo';
+import { Edit2, Settings, LogOut, Radio, Users, ShieldCheck, Bike, MapPin, Calendar, Grid3X3, User } from 'lucide-react';
 import BroadcastCard from '@/components/shared/BroadcastCard';
 import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { isExpired } from '@/lib/broadcastUtils';
 import { LoadingState } from '@/components/shared/LoadingState';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { ErrorState } from '@/components/shared/ErrorState';
 import { getBroadcastsByAuthor } from '@/features/broadcast/api/broadcast-api.js';
 import { getFriendshipsCount } from '@/features/connections/api/connections-api.js';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Text } from '@/components/ui/primitives/Text';
+import { HStack, VStack } from '@/components/ui/primitives/Stack';
+import { cn } from '@/lib/utils.js';
 
 function ProfilePage() {
   const { user, profile } = useAuthState();
   const { signOut } = useAuthActions();
   const [editing, setEditing] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+  const [activeTab, setActiveTab] = useState('broadcasts');
 
   const {
     data: myBroadcasts = [],
     isError: broadcastsFailed,
     error: broadcastsError,
+    isLoading: broadcastsLoading,
+    refetch: refetchBroadcasts,
   } = useQuery({
     queryKey: ['myBroadcasts', user?.id],
     enabled: !!user,
@@ -41,7 +47,7 @@ function ProfilePage() {
     },
   });
 
-  const { data: connectionsCount = 0 } = useQuery({
+  const { data: connectionsCount = 0, isLoading: connectionsLoading } = useQuery({
     queryKey: ['connections-count', user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -68,6 +74,8 @@ function ProfilePage() {
         avatar_url: '',
         bike_photo_url: '',
         is_public: true,
+        location: '',
+        created_at: user?.created_at,
       },
     [profile, user]
   );
@@ -79,199 +87,268 @@ function ProfilePage() {
     return parts.join(' ') || null;
   }, [displayProfile]);
 
+  const joinDate = useMemo(() => {
+    if (!displayProfile?.created_at && !user?.created_at) return null;
+    const date = new Date(displayProfile?.created_at || user?.created_at);
+    return date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+  }, [displayProfile?.created_at, user?.created_at]);
+
   if (!user) {
     return <LoadingState variant="section" message="Loading profile..." />;
   }
 
+  if (editing) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-in">
+        <ProfileEditForm profile={displayProfile} onDone={() => setEditing(false)} />
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
-      <AnimatePresence mode="wait">
-        {editing ? (
-          <motion.div
-            key="edit"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ProfileEditForm profile={displayProfile} onDone={() => setEditing(false)} />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="view"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-          >
-            {/* Profile Header */}
-            <div className="relative mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6">
-              <div className="pointer-events-none absolute right-[-10%] top-[-20%] h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
-              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-primary/15" />
-              <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-
-              <div className="relative z-10 flex flex-col items-center text-center">
-                {/* Avatar */}
-                <div className="relative mb-4">
-                  {displayProfile?.avatar_url && !avatarError ? (
-                    <div className="rounded-full bg-gradient-to-br from-primary/40 to-primary/10 p-[3px] shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
-                      <OptimizedImage
-                        src={displayProfile.avatar_url}
-                        alt=""
-                        containerClassName="h-24 w-24 shrink-0 rounded-full"
-                        className="rounded-full"
-                        objectFit="cover"
-                        loading="eager"
-                        fetchPriority="high"
-                        fadeInDuration={200}
-                        showSkeleton
-                        onError={() => setAvatarError(true)}
-                      />
-                    </div>
-                  ) : (
-                    <div className="rounded-full bg-gradient-to-br from-primary/40 to-primary/10 p-[3px] shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
-                      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 font-display text-3xl font-bold text-primary-foreground">
-                        {displayProfile?.display_name?.[0]?.toUpperCase() || '?'}
-                      </div>
-                    </div>
-                  )}
-                  {/* Online indicator */}
-                  <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-[hsl(220_20%_7%)] bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
+    <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-in">
+      {/* Profile Header Card */}
+      <div className="surface-card p-5">
+        <VStack align="center" gap={3}>
+          {/* Avatar with gradient ring */}
+          <div className="relative">
+            <div className="rr-avatar-ring">
+              {displayProfile?.avatar_url && !avatarError ? (
+                <OptimizedImage
+                  src={displayProfile.avatar_url}
+                  alt=""
+                  containerClassName="h-24 w-24 shrink-0 rounded-full"
+                  className="rounded-full"
+                  objectFit="cover"
+                  loading="eager"
+                  fetchPriority="high"
+                  fadeInDuration={200}
+                  showSkeleton
+                  onError={() => setAvatarError(true)}
+                />
+              ) : (
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 font-display text-3xl font-bold text-primary-foreground">
+                  {displayProfile?.display_name?.[0]?.toUpperCase() || '?'}
                 </div>
-
-                {/* Name & Username */}
-                <h1 className="font-display text-[clamp(1.25rem,5vw,1.75rem)] font-extrabold leading-tight tracking-[-0.04em]">
-                  {displayProfile?.display_name || user?.email}
-                </h1>
-                {displayProfile?.username && (
-                  <p className="mt-1 text-sm text-muted-foreground">@{displayProfile.username}</p>
-                )}
-
-                {/* Edit button */}
-                <button
-                  onClick={() => setEditing(true)}
-                  className="mt-4 flex items-center gap-2 rounded-full border border-border/60 bg-secondary/50 px-5 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95 min-h-[44px]"
-                >
-                  <Edit2 className="h-4 w-4" />
-                  Edit Profile
-                </button>
-              </div>
-
-              {/* Stats Row */}
-              <div className="relative z-10 mt-6 grid grid-cols-3 gap-3">
-                <RiderMetric icon={Radio} label="Signals" value={active.length} />
-                <RiderMetric icon={Users} label="Pack" value={connectionsCount} />
-                <RiderMetric icon={ShieldCheck} label="Status" value={displayProfile?.is_public === false ? 'Private' : 'Public'} />
-              </div>
+              )}
             </div>
+            {/* Online indicator */}
+            <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-background bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
+          </div>
 
-            {/* Bio Card */}
-            {displayProfile?.bio && (
-              <div className="mb-4 rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5">
-                <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Rider note</div>
-                <p className="text-[15px] leading-relaxed text-foreground/90">{displayProfile.bio}</p>
-              </div>
+          {/* Name & Username */}
+          <VStack align="center" gap={0.5}>
+            <Text as="h1" variant="h2" color="default" align="center">
+              {displayProfile?.display_name || user?.email}
+            </Text>
+            {displayProfile?.username && (
+              <Text variant="bodySm" color="muted">@{displayProfile.username}</Text>
             )}
+          </VStack>
 
-            {/* Bike Info Card */}
-            {bikeLabel && (
-              <div className="mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)]">
-                {displayProfile.bike_photo_url && (
-                  <div className="relative h-48 border-b border-border/60 bg-background/40">
-                    <OptimizedImage
-                      src={displayProfile.bike_photo_url}
-                      alt="Bike"
-                      containerClassName="h-full w-full"
-                      objectFit="cover"
-                      loading="lazy"
-                      showSkeleton
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                    <div className="absolute bottom-4 left-5 right-5">
-                      <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Machine</div>
-                      <div className="font-display text-lg font-bold text-white drop-shadow-lg">{bikeLabel}</div>
-                    </div>
-                  </div>
-                )}
-                {!displayProfile.bike_photo_url && (
-                  <div className="flex items-center gap-4 p-5">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-                      <Bike className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Machine</div>
-                      <div className="mt-0.5 font-display text-base font-bold">{bikeLabel}</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+          {/* Bio */}
+          {displayProfile?.bio && (
+            <Text variant="body" color="default" align="center" className="max-w-sm text-pretty">
+              {displayProfile.bio}
+            </Text>
+          )}
 
-            {/* Action Buttons */}
-            <div className="mb-6 flex gap-3">
-              <Link to="/settings" className="flex-1">
-                <Button
-                  variant="outline"
-                  className="h-12 w-full rounded-full border-border/60 bg-[hsl(220_20%_7%)] transition-all hover:border-primary/30 hover:bg-primary/5 active:scale-95"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                className="h-12 w-12 rounded-full border-destructive/30 text-destructive transition-all hover:bg-destructive/10 active:scale-95 flex items-center justify-center"
-                onClick={() => signOut()}
+          {/* Stats Row */}
+          <HStack gap={2} className="w-full mt-1">
+            <StatPill
+              icon={Radio}
+              label="Broadcasts"
+              value={active.length}
+              isLoading={broadcastsLoading}
+            />
+            <StatPill
+              icon={Users}
+              label="Pack"
+              value={connectionsCount}
+              isLoading={connectionsLoading}
+            />
+            <StatPill
+              icon={ShieldCheck}
+              label="Status"
+              value={displayProfile?.is_public === false ? 'Private' : 'Public'}
+            />
+          </HStack>
+
+          {/* Action Buttons */}
+          <HStack gap={3} className="w-full mt-1">
+            <button
+              onClick={() => setEditing(true)}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 rounded-full border border-border/60',
+                'bg-surface px-5 py-2.5 text-sm font-semibold text-foreground',
+                'transition-all hover:bg-surface-elevated hover:border-primary/25 active:scale-95'
+              )}
+            >
+              <Edit2 className="h-4 w-4" />
+              Edit Profile
+            </button>
+            <Link to="/settings" className="shrink-0">
+              <button
+                className={cn(
+                  'h-11 w-11 rounded-full border border-border/60 bg-surface',
+                  'flex items-center justify-center text-muted-foreground',
+                  'transition-all hover:bg-surface-elevated hover:text-foreground active:scale-95'
+                )}
               >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
+                <Settings className="h-4 w-4" />
+              </button>
+            </Link>
+            <button
+              onClick={() => signOut()}
+              className={cn(
+                'h-11 w-11 rounded-full border border-destructive/30 bg-destructive/5',
+                'flex items-center justify-center text-destructive',
+                'transition-all hover:bg-destructive/10 active:scale-95'
+              )}
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </HStack>
+        </VStack>
+      </div>
 
-            {/* Signal Log */}
-            <div className="mb-4 flex items-center justify-between px-1">
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Active broadcasts</h2>
-              <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-                <span className="h-1.5 w-1.5 animate-pulse-green rounded-full bg-primary" />
-                Signal log
-              </span>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full grid grid-cols-3">
+          <TabsTrigger value="broadcasts" className="gap-1.5">
+            <Radio className="w-3.5 h-3.5" /> Broadcasts
+          </TabsTrigger>
+          <TabsTrigger value="about" className="gap-1.5">
+            <User className="w-3.5 h-3.5" /> About
+          </TabsTrigger>
+          <TabsTrigger value="media" className="gap-1.5">
+            <Grid3X3 className="w-3.5 h-3.5" /> Media
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Broadcasts Tab */}
+        <TabsContent value="broadcasts" className="mt-4">
+          {broadcastsLoading ? (
+            <LoadingState variant="section" message="Loading broadcasts..." />
+          ) : broadcastsFailed ? (
+            <ErrorState
+              title="Broadcasts unavailable"
+              message={broadcastsError?.message || 'Your profile is available, but active broadcasts could not be loaded.'}
+              onRetry={refetchBroadcasts}
+            />
+          ) : active.length === 0 ? (
+            <EmptyState
+              icon={Radio}
+              title="No active broadcasts"
+              description="Your active ride signals will appear here."
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {active.map((b) => (
+                <BroadcastCard key={b.id} broadcast={b} author={displayProfile} />
+              ))}
             </div>
-            {broadcastsFailed ? (
-              <div className="rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5 text-sm text-muted-foreground">
-                <h3 className="mb-1 font-display text-base font-bold text-foreground">Broadcasts unavailable</h3>
-                <p>{broadcastsError?.message || 'Your profile is available, but active broadcasts could not be loaded.'}</p>
-              </div>
-            ) : active.length === 0 ? (
-              <div className="rounded-[20px] border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
-                <RRLogo size="sm" className="mx-auto mb-3 opacity-50" />
-                No active broadcasts
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {active.map((b) => (
-                  <BroadcastCard key={b.id} broadcast={b} author={displayProfile} />
-                ))}
+          )}
+        </TabsContent>
+
+        {/* About Tab */}
+        <TabsContent value="about" className="mt-4">
+          <VStack gap={3}>
+            {bikeLabel && (
+              <div className="surface-card p-4">
+                <HStack align="center" gap={3}>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+                    <Bike className="h-5 w-5 text-primary" />
+                  </div>
+                  <VStack gap={0.5}>
+                    <Text variant="micro" color="primary">Machine</Text>
+                    <Text variant="bodySm" className="font-semibold">{bikeLabel}</Text>
+                  </VStack>
+                </HStack>
               </div>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+
+            {displayProfile?.location && (
+              <div className="surface-card p-4">
+                <HStack align="center" gap={3}>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-yamaha/20 bg-brand-yamaha/10">
+                    <MapPin className="h-5 w-5 text-brand-yamaha" />
+                  </div>
+                  <VStack gap={0.5}>
+                    <Text variant="micro" color="brandYamaha">Location</Text>
+                    <Text variant="bodySm" className="font-semibold">{displayProfile.location}</Text>
+                  </VStack>
+                </HStack>
+              </div>
+            )}
+
+            {joinDate && (
+              <div className="surface-card p-4">
+                <HStack align="center" gap={3}>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-ducati/20 bg-brand-ducati/10">
+                    <Calendar className="h-5 w-5 text-brand-ducati" />
+                  </div>
+                  <VStack gap={0.5}>
+                    <Text variant="micro" color="brandDucati">Joined</Text>
+                    <Text variant="bodySm" className="font-semibold">{joinDate}</Text>
+                  </VStack>
+                </HStack>
+              </div>
+            )}
+
+            {!bikeLabel && !displayProfile?.location && !joinDate && (
+              <EmptyState
+                icon={User}
+                title="About section empty"
+                description="Edit your profile to add bike info, location, and more."
+                action={{ label: 'Edit Profile', onClick: () => setEditing(true) }}
+              />
+            )}
+          </VStack>
+        </TabsContent>
+
+        {/* Media Tab */}
+        <TabsContent value="media" className="mt-4">
+          {displayProfile?.bike_photo_url ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="surface-card overflow-hidden aspect-square">
+                <OptimizedImage
+                  src={displayProfile.bike_photo_url}
+                  alt="Bike"
+                  containerClassName="h-full w-full"
+                  className="h-full w-full"
+                  objectFit="cover"
+                  loading="lazy"
+                  showSkeleton
+                />
+              </div>
+            </div>
+          ) : (
+            <EmptyState
+              icon={Grid3X3}
+              title="No media yet"
+              description="Upload a bike photo to see it here."
+              action={{ label: 'Add Photo', onClick: () => setEditing(true) }}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
+    </VStack>
   );
 }
 
-const RiderMetric = memo(function RiderMetric({ icon: Icon, label, value }) {
+const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-black/30 p-3 backdrop-blur-sm">
-      <div className="absolute right-2 top-2 h-1.5 w-1.5 animate-pulse-green rounded-full bg-primary/60" />
-      <div className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-        <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
-          <Icon className="h-3.5 w-3.5" />
-        </span>
-        {label}
+    <div className="flex-1 surface-card p-3 text-center">
+      <div className="flex items-center justify-center mb-1.5">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+          <Icon className="h-3.5 w-3.5 text-primary" />
+        </div>
       </div>
-      <div className="truncate font-display text-sm font-extrabold capitalize tracking-[-0.03em] text-foreground">
-        {value}
-      </div>
+      <Text variant="bodySm" className="font-bold">
+        {isLoading ? '—' : value}
+      </Text>
+      <Text variant="micro" color="muted">{label}</Text>
     </div>
   );
 });

@@ -1,10 +1,17 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils.js';
 import { MAX_MESSAGE_LENGTH } from '@/lib/constants.js';
-import { Send } from 'lucide-react';
+import { Send, Paperclip } from 'lucide-react';
+import { HStack } from '@/components/ui/primitives/Stack';
 
 /**
- * Auto-resizing message textarea with send button.
+ * Auto-resizing message textarea with modern input bar design.
+ *
+ * Features:
+ * - Rounded-full text input that grows with content
+ * - Send button (Kawasaki Green circle)
+ * - Attachment button placeholder
+ * - Character counter
  *
  * Enter sends; Shift+Enter inserts a newline.
  *
@@ -50,35 +57,53 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
   );
 
   return (
-    <div className="p-3 pb-safe bg-background/60 backdrop-blur-xl border-t border-border/30">
-      <div className="flex gap-2 items-end max-w-2xl mx-auto">
+    <div className="p-3 pb-safe bg-background/80 backdrop-blur-xl border-t border-border/30">
+      <HStack align="end" gap={2} className="max-w-2xl mx-auto">
+        {/* Attachment button */}
+        <button
+          type="button"
+          disabled={disabled || isSending}
+          className={cn(
+            'shrink-0 h-11 w-11 rounded-full flex items-center justify-center',
+            'border border-border/40 bg-surface text-muted-foreground',
+            'transition-colors hover:bg-surface-elevated hover:text-foreground',
+            'disabled:opacity-40 disabled:cursor-not-allowed pressable'
+          )}
+          aria-label="Attach file"
+          onClick={() => { /* placeholder */ }}
+        >
+          <Paperclip className="w-5 h-5" />
+        </button>
+
+        {/* Textarea */}
         <div className="relative flex-1">
           <textarea
             ref={textareaRef}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder={disabled ? 'Conversation archived' : 'Type a message...'}
             rows={1}
             disabled={disabled || isSending}
             className={cn(
-              'w-full resize-none rounded-2xl border bg-surface-elevated/80 px-4 py-2.5 text-sm text-foreground',
-              'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-kawasaki/30 focus-visible:border-brand-kawasaki/50',
-              'disabled:cursor-not-allowed disabled:opacity-50',
+              'w-full resize-none rounded-full border bg-surface-elevated/80 px-5 py-3 text-sm text-foreground',
+              'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:border-primary/40',
+              'disabled:cursor-not-allowed disabled:opacity-50 transition-all',
               isOverLimit && 'border-brand-honda focus-visible:ring-brand-honda focus-visible:border-brand-honda'
             )}
-            style={{ minHeight: '40px', maxHeight: '160px' }}
+            style={{ minHeight: '44px', maxHeight: '160px' }}
           />
           <div
             className={cn(
-              'absolute right-3 bottom-2 text-[10px]',
-              isOverLimit ? 'text-brand-honda font-semibold' : 'text-muted-foreground'
+              'absolute right-4 bottom-3 text-[10px]',
+              isOverLimit ? 'text-brand-honda font-semibold' : 'text-muted-foreground/60'
             )}
           >
             {length}/{MAX_MESSAGE_LENGTH}
           </div>
         </div>
 
+        {/* Send button */}
         <button
           type="button"
           onClick={handleSend}
@@ -86,14 +111,15 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
           className={cn(
             'shrink-0 h-11 w-11 rounded-full flex items-center justify-center',
             'bg-brand-kawasaki text-primary-foreground transition-all duration-200',
-            'hover:bg-brand-kawasaki/90 active:scale-95',
-            'disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100'
+            'hover:bg-brand-kawasaki/90 pressable',
+            'disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100',
+            'glow-kawasaki-sm'
           )}
           aria-label="Send message"
         >
           <Send className="w-4 h-4" />
         </button>
-      </div>
+      </HStack>
     </div>
   );
 }

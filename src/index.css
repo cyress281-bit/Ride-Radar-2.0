@@ -29,38 +29,38 @@
     --brand-honda: 356 95% 45%;
     --brand-ducati: 44 100% 50%;
 
-    /* Surfaces — deep carbon navy, like a motorcycle TFT dash */
-    --background: 220 25% 4%;
-    --foreground: 0 0% 96%;
-    --surface: 220 20% 7%;
-    --surface-elevated: 220 18% 10%;
+    /* Surfaces — warm charcoal, premium depth */
+    --background: 240 6% 5%;
+    --foreground: 0 0% 98%;
+    --surface: 240 5% 10%;
+    --surface-elevated: 240 4% 14%;
 
     /* Primary — Kawasaki Green (#6BBF00) */
     --primary: 88 100% 37%;
-    --primary-foreground: 220 25% 4%;
+    --primary-foreground: 240 6% 5%;
     --primary-dim: 88 100% 37%;
 
     /* Secondary & muted */
-    --secondary: 220 14% 12%;
+    --secondary: 240 4% 14%;
     --secondary-foreground: 0 0% 85%;
-    --muted: 220 12% 18%;
-    --muted-foreground: 220 8% 52%;
+    --muted: 240 4% 18%;
+    --muted-foreground: 240 4% 55%;
 
     /* Borders & inputs */
-    --border: 220 12% 16%;
-    --input: 220 12% 18%;
+    --border: 240 4% 16%;
+    --input: 240 4% 18%;
     --ring: 88 100% 37%;
     --radius: 0.75rem;
 
     /* Extended semantic surfaces */
-    --card: 220 18% 6%;
-    --card-foreground: 0 0% 96%;
-    --popover: 220 16% 9%;
-    --popover-foreground: 0 0% 96%;
-    --accent: 220 50% 12%;
-    --accent-foreground: 0 0% 96%;
+    --card: 240 5% 8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 4% 12%;
+    --popover-foreground: 0 0% 98%;
+    --accent: 240 30% 12%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 356 95% 45%;
-    --destructive-foreground: 0 0% 96%;
+    --destructive-foreground: 0 0% 98%;
 
     /* Yamaha Blue — info, ISO, tech elements (#00AEEF) */
     --cyan: 197 100% 47%;
@@ -873,4 +873,107 @@
     pointer-events: none;
     mix-blend-mode: screen;
   }
+}
+
+
+/* ================================================================
+   VELOCITY DESIGN SYSTEM — NEW UTILITIES
+   Depth shadows, gradient accents, card surfaces
+   ================================================================ */
+
+@layer utilities {
+  /* ---------- Depth Shadows (replace glows) ---------- */
+  .shadow-depth-1 { box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2); }
+  .shadow-depth-2 { box-shadow: 0 4px 6px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15); }
+  .shadow-depth-3 { box-shadow: 0 10px 15px rgba(0,0,0,0.3), 0 4px 6px rgba(0,0,0,0.15); }
+  .shadow-depth-4 { box-shadow: 0 20px 25px rgba(0,0,0,0.35), 0 10px 10px rgba(0,0,0,0.15); }
+  .shadow-depth-5 { box-shadow: 0 25px 50px rgba(0,0,0,0.45), 0 10px 20px rgba(0,0,0,0.2); }
+
+  /* Inner highlight for card depth */
+  .shadow-inner-highlight { box-shadow: inset 0 1px 0 rgba(255,255,255,0.04); }
+
+  /* ---------- Gradient Accents ---------- */
+  .gradient-primary { background: linear-gradient(135deg, hsl(88 100% 37%), hsl(88 100% 28%)); }
+  .gradient-yamaha { background: linear-gradient(135deg, hsl(197 100% 47%), hsl(197 100% 35%)); }
+  .gradient-honda { background: linear-gradient(135deg, hsl(356 95% 45%), hsl(356 95% 35%)); }
+  .gradient-ducati { background: linear-gradient(135deg, hsl(44 100% 50%), hsl(44 100% 40%)); }
+  .gradient-hero { background: linear-gradient(180deg, transparent 0%, hsl(240 6% 5%) 100%); }
+  .gradient-surface { background: linear-gradient(180deg, hsl(240 5% 10%) 0%, hsl(240 6% 5%) 100%); }
+
+  /* ---------- Card Surfaces ---------- */
+  .surface-card {
+    background: hsl(240 5% 10%);
+    border: 1px solid hsl(240 4% 16%);
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .surface-card-elevated {
+    background: hsl(240 4% 14%);
+    border: 1px solid hsl(240 4% 18%);
+    border-radius: 1.25rem;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .surface-card-pressed {
+    background: hsl(240 4% 12%);
+    border: 1px solid hsl(240 4% 16%);
+    border-radius: 1.25rem;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  /* ---------- Press Feedback ---------- */
+  .pressable {
+    transition: transform 100ms ease-out, background-color 150ms ease;
+  }
+  .pressable:active {
+    transform: scale(0.97);
+  }
+
+  /* ---------- Text Utilities ---------- */
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+
+  /* ---------- Animation Utilities ---------- */
+  .animate-fade-in {
+    animation: fadeIn 200ms ease-out both;
+  }
+  .animate-fade-up {
+    animation: fadeUp 300ms ease-out both;
+  }
+  .animate-slide-in-right {
+    animation: slideInRight 250ms ease-out both;
+  }
+  .animate-scale-in {
+    animation: scaleIn 200ms ease-out both;
+  }
+
+  /* Stagger children */
+  .stagger-children > * {
+    animation: fadeUp 300ms ease-out both;
+  }
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }

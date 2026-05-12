@@ -2,7 +2,10 @@ import { memo, useCallback } from 'react';
 import BroadcastCard from '@/components/shared/BroadcastCard';
 import VirtualList from '@/components/shared/VirtualList';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
-import RRLogo from '@/components/RRLogo';
+import { VStack } from '@/components/ui/primitives/Stack';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { LoadingState } from '@/components/shared/LoadingState';
+import { Radio } from 'lucide-react';
 
 /**
  * Virtualized list of broadcasts for the radar bottom sheet.
@@ -24,16 +27,20 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
   scrollElementRef,
 }) {
   const renderItem = useCallback(
-    (broadcast) => (
-      <div className="will-change-transform transform-gpu">
-        <BroadcastCard
-          broadcast={broadcast}
-          author={getProfile(broadcast.author_id)}
-          userLat={userLat}
-          userLng={userLng}
-        />
-      </div>
-    ),
+    (broadcast, index) => {
+      const isFeatured = index === 0;
+      return (
+        <div className="will-change-transform transform-gpu">
+          <BroadcastCard
+            broadcast={broadcast}
+            author={getProfile(broadcast.author_id)}
+            userLat={userLat}
+            userLng={userLng}
+            prominentSoloAvatar={isFeatured && broadcast.type === 'solo_ride'}
+          />
+        </div>
+      );
+    },
     [getProfile, userLat, userLng]
   );
 
@@ -41,22 +48,22 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
 
   if (isLoading && broadcasts.length === 0) {
     return (
-      <div className="py-12 flex flex-col items-center gap-4">
-        <RRLogo size="sm" className="opacity-40 animate-pulse" glow={false} />
-        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground animate-pulse">
-          Scanning area…
-        </p>
-      </div>
+      <LoadingState
+        variant="section"
+        message="Scanning area…"
+        className="py-12"
+      />
     );
   }
 
   if (broadcasts.length === 0 && !isLoading) {
     return (
-      <div className="py-12 text-center">
-        <RRLogo size="sm" className="mx-auto mb-4 opacity-50" glow={false} />
-        <p className="text-sm font-medium text-muted-foreground">No signals in this area.</p>
-        <p className="text-xs text-muted-foreground/60 mt-2">Tap the + button to create one.</p>
-      </div>
+      <EmptyState
+        icon={Radio}
+        title="No signals in this area"
+        description="Tap the + button to create one."
+        className="mt-4"
+      />
     );
   }
 
@@ -64,18 +71,19 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
 
   if (!shouldVirtualize) {
     return (
-      <div className="space-y-3">
-        {broadcasts.map((broadcast) => (
+      <VStack gap={3}>
+        {broadcasts.map((broadcast, index) => (
           <div key={broadcast.id} className="will-change-transform transform-gpu">
             <BroadcastCard
               broadcast={broadcast}
               author={getProfile(broadcast.author_id)}
               userLat={userLat}
               userLng={userLng}
+              prominentSoloAvatar={index === 0 && broadcast.type === 'solo_ride'}
             />
           </div>
         ))}
-      </div>
+      </VStack>
     );
   }
 

@@ -1,16 +1,18 @@
 import { memo } from 'react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { Text } from '@/components/ui/primitives/Text';
+import { VStack } from '@/components/ui/primitives/Stack';
+import { Button } from './Button';
 
 /**
  * Consistent empty state with icon, title, description, and optional action.
  *
  * @param {object} props
  * @param {React.ComponentType} [props.icon] - Lucide icon component
- * @param {string} props.title - Title text
- * @param {string} [props.description] - Description text
- * @param {{ label: string, onClick: () => void, variant?: string }} [props.action] - Optional action button config
- * @param {string} [props.className] - Additional classes
+ * @param {string} props.title
+ * @param {string} [props.description]
+ * @param {{ label: string, onClick: () => void }} [props.action]
+ * @param {string} [props.className]
  */
 export const EmptyState = memo(function EmptyState({
   icon: Icon,
@@ -20,36 +22,37 @@ export const EmptyState = memo(function EmptyState({
   className,
 }) {
   return (
-    <div
+    <VStack
+      align="center"
+      justify="center"
+      gap={4}
       className={cn(
-        'bg-surface border border-border rounded-[1rem] p-5',
-        'flex flex-col items-center justify-center text-center',
+        'w-full rounded-[1rem] border border-border bg-surface p-8 text-center',
         className
       )}
     >
       {Icon && (
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/15 bg-primary/8">
-          <Icon className="h-7 w-7 text-primary/70" />
+        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-primary/15 bg-primary/10">
+          <Icon className="h-7 w-7 text-primary/80" aria-hidden="true" />
         </div>
       )}
 
-      <h3 className="font-semibold text-lg text-foreground">{title}</h3>
-
-      {description && (
-        <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-          {description}
-        </p>
-      )}
+      <VStack gap={1} align="center">
+        <Text as="h3" variant="h3" color="default">
+          {title}
+        </Text>
+        {description && (
+          <Text variant="bodySm" color="muted" className="max-w-xs">
+            {description}
+          </Text>
+        )}
+      </VStack>
 
       {action && (
-        <Button
-          onClick={action.onClick}
-          variant={action.variant || 'outline'}
-          className="mt-4 rounded-full"
-        >
+        <Button variant="outline" size="md" onClick={action.onClick}>
           {action.label}
         </Button>
       )}
-    </div>
+    </VStack>
   );
 });

@@ -1,8 +1,15 @@
 import React, { memo } from 'react';
 import { cn, timeAgo } from '@/lib/utils.js';
+import { Text } from '@/components/ui/primitives/Text';
+import { HStack, VStack } from '@/components/ui/primitives/Stack';
+import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
+import { Badge } from '@/components/ui/badge';
 
 /**
  * Single conversation row item.
+ *
+ * Modern design: large avatar with online status, name + preview,
+ * timestamp, unread count badge.
  *
  * @param {Object} props
  * @param {object} props.conversation
@@ -24,48 +31,57 @@ const ConversationItem = memo(function ConversationItem({
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full flex items-center gap-3.5 p-3.5 rounded-2xl border transition-all duration-200 text-left active:scale-95',
-        'bg-surface border-border/40 hover:bg-surface-elevated hover:border-brand-kawasaki/25'
+        'w-full text-left pressable',
+        'surface-card p-3.5 transition-colors duration-200',
+        'hover:surface-card-elevated active:surface-card-pressed'
       )}
     >
-      <div className="relative shrink-0">
-        {profile?.avatar_url ? (
-          <img
-            src={profile.avatar_url}
-            alt=""
-            className="w-12 h-12 rounded-full object-cover border border-border/50"
-            loading="lazy"
+      <HStack align="center" gap={3.5}>
+        {/* Avatar with status */}
+        <div className="relative shrink-0">
+          <AvatarWithStatus
+            url={profile?.avatar_url}
+            name={profile?.display_name}
+            status={profile?.is_online ? 'online' : 'offline'}
+            size="lg"
+            className={cn(hasUnread && 'ring-2 ring-brand-honda/40 ring-offset-2 ring-offset-background rounded-full')}
           />
-        ) : (
-          <div className="w-12 h-12 rounded-full bg-surface-elevated flex items-center justify-center font-semibold text-base text-foreground border border-border/50">
-            {profile?.display_name?.[0] || '?'}
-          </div>
-        )}
-        {hasUnread && (
-          <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-brand-honda border-2 border-surface animate-pulse" />
-        )}
-        {profile?.is_online && (
-          <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-brand-kawasaki border-2 border-surface" />
-        )}
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <div className={cn('font-semibold text-sm truncate', hasUnread && 'text-foreground')}>
-            {profile?.display_name || 'Rider'}
-          </div>
           {hasUnread && (
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-honda shrink-0 animate-pulse" />
+            <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-brand-honda border-2 border-background animate-pulse" />
           )}
         </div>
-        <div className={cn('text-xs truncate mt-0.5', hasUnread ? 'text-foreground/80' : 'text-muted-foreground')}>
-          {lastMessage || 'Start a conversation'}
-        </div>
-      </div>
 
-      <div className="shrink-0 text-[11px] text-muted-foreground text-right">
-        {conversation.last_message_at ? timeAgo(conversation.last_message_at) : ''}
-      </div>
+        {/* Content */}
+        <VStack flex className="min-w-0">
+          <HStack align="center" justify="between" gap={2}>
+            <Text
+              variant="bodySm"
+              className={cn('font-semibold truncate', hasUnread && 'text-foreground')}
+            >
+              {profile?.display_name || 'Rider'}
+            </Text>
+            <Text variant="micro" color="muted" className="shrink-0">
+              {conversation.last_message_at ? timeAgo(conversation.last_message_at) : ''}
+            </Text>
+          </HStack>
+
+          <HStack align="center" justify="between" gap={2}>
+            <Text
+              variant="caption"
+              color={hasUnread ? 'default' : 'muted'}
+              truncate
+              className={cn(hasUnread && 'text-foreground/80 font-medium')}
+            >
+              {lastMessage || 'Start a conversation'}
+            </Text>
+            {hasUnread && (
+              <Badge variant="destructive" className="h-5 min-w-[20px] px-1.5 text-[10px] shrink-0">
+                {unreadCount}
+              </Badge>
+            )}
+          </HStack>
+        </VStack>
+      </HStack>
     </button>
   );
 });

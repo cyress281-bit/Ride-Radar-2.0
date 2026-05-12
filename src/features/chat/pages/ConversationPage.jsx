@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useCallback, memo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useMessages, useMarkRead } from '@/features/chat/hooks/use-messages.js';
 import { useSendMessage } from '@/features/chat/hooks/use-send-message.js';
@@ -10,37 +9,29 @@ import MessageInput from '@/features/chat/components/MessageInput.jsx';
 import VirtualList from '@/components/shared/VirtualList.jsx';
 import { supabase } from '@/lib/supabase.js';
 import { cn } from '@/lib/utils.js';
-import { ArrowLeft, Shield } from 'lucide-react';
+import { ArrowLeft, Shield, MoreVertical } from 'lucide-react';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
+import { Text } from '@/components/ui/primitives/Text';
+import { HStack, VStack } from '@/components/ui/primitives/Stack';
+import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
+import { Skeleton } from '@/components/ui/skeleton';
 
 /**
- * Typing indicator — bouncing dots animation.
+ * Typing indicator — animated dots using pure CSS.
  */
 function TypingIndicator() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 6 }}
-      transition={{ duration: 0.2 }}
-      className="flex justify-start"
-    >
-      <div className="flex items-center gap-1 px-4 py-2.5 rounded-[18px] rounded-bl-[4px] bg-surface-elevated border border-border/30">
+    <div className="flex justify-start animate-fade-in">
+      <div className="flex items-center gap-1.5 px-4 py-3 rounded-2xl rounded-bl-sm surface-card-elevated">
         {[0, 1, 2].map((i) => (
-          <motion.span
+          <span
             key={i}
-            className="h-1.5 w-1.5 rounded-full bg-muted-foreground"
-            animate={{ y: [0, -4, 0] }}
-            transition={{
-              duration: 0.6,
-              repeat: Infinity,
-              delay: i * 0.15,
-              ease: 'easeInOut',
-            }}
+            className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-bounce"
+            style={{ animationDelay: `${i * 120}ms`, animationDuration: '800ms' }}
           />
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -49,29 +40,29 @@ function TypingIndicator() {
  */
 function ConversationSkeleton() {
   return (
-    <div className="flex flex-col h-[calc(100dvh-3.5rem)]">
-      <div className="px-5 py-3 border-b border-border/40 flex items-center gap-3 bg-background/80 backdrop-blur-xl">
-        <div className="h-9 w-9 rounded-full bg-surface animate-pulse" />
-        <div className="flex-1 space-y-2">
-          <div className="h-4 w-32 bg-surface rounded animate-pulse" />
-          <div className="h-3 w-20 bg-surface/60 rounded animate-pulse" />
-        </div>
-      </div>
-      <div className="flex-1 px-4 py-4 space-y-3 overflow-hidden">
+    <VStack className="h-[calc(100dvh-3.5rem)]">
+      <HStack align="center" gap={3} className="px-4 py-3 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <VStack gap={1.5} flex={1}>
+          <Skeleton className="h-4 w-32 rounded" />
+          <Skeleton className="h-3 w-20 rounded" />
+        </VStack>
+      </HStack>
+      <VStack flex className="px-4 py-4 overflow-hidden">
         {[0, 1, 2, 3, 4].map((i) => (
-          <div
+          <Skeleton
             key={i}
             className={cn(
-              'h-12 rounded-2xl bg-surface/60 animate-pulse',
+              'h-12 rounded-2xl',
               i % 2 === 0 ? 'w-3/4 ml-auto' : 'w-2/3'
             )}
           />
         ))}
-      </div>
+      </VStack>
       <div className="p-3 border-t border-border/40 bg-background/80 backdrop-blur-xl">
-        <div className="h-10 rounded-full bg-surface animate-pulse" />
+        <Skeleton className="h-12 rounded-full" />
       </div>
-    </div>
+    </VStack>
   );
 }
 
@@ -87,6 +78,7 @@ function ConversationPage() {
   const { user } = useAuthState();
   const endRef = useRef(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [showActions, setShowActions] = useState(false);
   const lastMarkedLengthRef = useRef(0);
 
   const {
@@ -182,67 +174,97 @@ function ConversationPage() {
 
   if (conversationError || !conversation) {
     return (
-      <div className="flex flex-col h-[calc(100dvh-3.5rem)] items-center justify-center px-6 text-center max-w-md mx-auto">
-        <h2 className="text-lg font-semibold mb-2 text-foreground">Conversation not found</h2>
-        <p className="text-sm text-muted-foreground mb-4">
+      <VStack align="center" justify="center" gap={4} className="h-[calc(100dvh-3.5rem)] px-6 text-center max-w-md mx-auto">
+        <Text variant="h3" color="default">Conversation not found</Text>
+        <Text variant="bodySm" color="muted">
           {conversationError?.message || 'This conversation may have been deleted or you do not have access.'}
-        </p>
+        </Text>
         <button
           type="button"
           onClick={() => navigate('/messages')}
-          className="px-4 py-2 rounded-full bg-brand-kawasaki text-primary-foreground text-sm font-medium hover:bg-brand-kawasaki/90 transition-colors active:scale-95"
+          className="px-5 py-2.5 rounded-full bg-brand-kawasaki text-primary-foreground text-sm font-semibold hover:bg-brand-kawasaki/90 transition-colors pressable"
         >
           Back to messages
         </button>
-      </div>
+      </VStack>
     );
   }
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-3.5rem)]">
+    <VStack className="h-[calc(100dvh-3.5rem)] bg-background">
       {/* Header */}
-      <div className="px-5 py-3 border-b border-border/40 flex items-center gap-3 bg-background/80 backdrop-blur-xl shrink-0">
+      <HStack
+        align="center"
+        gap={3}
+        className="px-4 py-3 border-b border-border/40 bg-background/80 backdrop-blur-xl shrink-0"
+      >
         <button
           type="button"
           onClick={() => navigate('/messages')}
-          className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-surface-elevated rounded-full border border-border/30 transition-colors flex items-center justify-center active:scale-95"
+          className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-surface-elevated rounded-full border border-border/30 transition-colors flex items-center justify-center pressable"
           aria-label="Back"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
 
         {otherProfile ? (
-          <div className="flex items-center gap-2.5 flex-1 min-w-0">
-            {otherProfile.avatar_url ? (
-              <div className="relative">
-                <img
-                  src={otherProfile.avatar_url}
-                  alt=""
-                  className="w-9 h-9 rounded-full object-cover border border-brand-kawasaki/30"
-                  loading="lazy"
-                />
-                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-brand-kawasaki border-2 border-background" />
-              </div>
-            ) : (
-              <div className="w-9 h-9 rounded-full bg-surface-elevated flex items-center justify-center font-semibold text-sm text-foreground border border-border/50">
-                {otherProfile.display_name?.[0] || '?'}
-              </div>
-            )}
-            <div className="min-w-0">
-              <div className="font-semibold text-sm truncate text-foreground">
+          <HStack align="center" gap={3} flex className="min-w-0">
+            <AvatarWithStatus
+              url={otherProfile.avatar_url}
+              name={otherProfile.display_name}
+              status={otherProfile.is_online ? 'online' : 'offline'}
+              size="md"
+            />
+            <VStack flex className="min-w-0">
+              <Text variant="bodySm" className="font-semibold truncate">
                 {otherProfile.display_name}
-              </div>
-              <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                <Shield className="w-3 h-3 text-brand-yamaha" /> Secure channel
-              </div>
-            </div>
-          </div>
+              </Text>
+              <HStack align="center" gap={1}>
+                <Shield className="w-3 h-3 text-brand-yamaha" />
+                <Text variant="micro" color="muted">Secure channel</Text>
+              </HStack>
+            </VStack>
+          </HStack>
         ) : (
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm truncate text-foreground">Rider</div>
+          <VStack flex className="min-w-0">
+            <Text variant="bodySm" className="font-semibold truncate">Rider</Text>
+          </VStack>
+        )}
+
+        {/* Message actions placeholder */}
+        <button
+          type="button"
+          onClick={() => setShowActions((s) => !s)}
+          className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-surface-elevated rounded-full border border-border/30 transition-colors flex items-center justify-center pressable relative"
+          aria-label="More options"
+        >
+          <MoreVertical className="w-5 h-5 text-foreground" />
+        </button>
+
+        {/* Action menu placeholder */}
+        {showActions && (
+          <div className="absolute top-16 right-4 z-50 surface-card p-2 min-w-[160px] animate-scale-in">
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors"
+              onClick={() => setShowActions(false)}
+            >
+              Block user
+            </button>
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors"
+              onClick={() => setShowActions(false)}
+            >
+              Report
+            </button>
+            <button
+              className="w-full text-left px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+              onClick={() => setShowActions(false)}
+            >
+              Delete conversation
+            </button>
           </div>
         )}
-      </div>
+      </HStack>
 
       {/* Message list */}
       {shouldVirtualize ? (
@@ -259,17 +281,31 @@ function ConversationPage() {
           />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-          {messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              isMine={message.from_user_id === user?.id}
-            />
-          ))}
+        <VStack gap={3} flex className="overflow-y-auto px-4 py-4">
+          {messages.map((message, index) => {
+            const showTimestamp = index === 0 || (
+              new Date(message.created_at).getTime() -
+              new Date(messages[index - 1].created_at).getTime() > 15 * 60 * 1000
+            );
+            return (
+              <React.Fragment key={message.id}>
+                {showTimestamp && (
+                  <div className="flex justify-center my-2">
+                    <Text variant="micro" color="muted" className="px-3 py-1 rounded-full bg-surface-elevated/60">
+                      {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                  </div>
+                )}
+                <MessageBubble
+                  message={message}
+                  isMine={message.from_user_id === user?.id}
+                />
+              </React.Fragment>
+            );
+          })}
           {isTyping && <TypingIndicator />}
           <div ref={endRef} />
-        </div>
+        </VStack>
       )}
 
       {/* Input */}
@@ -278,7 +314,7 @@ function ConversationPage() {
         isSending={send.isPending}
         disabled={conversation?.status === 'archived'}
       />
-    </div>
+    </VStack>
   );
 }
 

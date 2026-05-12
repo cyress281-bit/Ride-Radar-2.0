@@ -31,6 +31,8 @@ import {
   FormDescription,
 } from '@/components/ui/form';
 import RRLogo from '@/components/RRLogo';
+import { Text } from '@/components/ui/primitives/Text';
+import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
 import { logger } from '@/lib/logger.js';
 import {
@@ -326,49 +328,48 @@ export default function OnboardingPage() {
       <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-cyan/8 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-primary/6 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-md rounded-[20px] bg-surface border border-border px-6 py-8 shadow-2xl">
+      <div className="relative z-10 w-full max-w-md surface-card px-6 py-8">
         {/* Logo & Header */}
-        <div className="mb-6 flex items-center gap-2.5">
+        <HStack gap={2.5} align="center" className="mb-6">
           <span className="rr-led-logo">
             <RRLogo size="md" />
           </span>
-          <span className="font-display text-2xl font-bold uppercase tracking-[0.04em]">
+          <Text as="span" variant="h3" className="uppercase tracking-[0.04em]">
             Ride<span className="text-primary text-glow-green">Radar</span>
-          </span>
-        </div>
+          </Text>
+        </HStack>
 
         <div className="rr-chip mb-3">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Boot sequence
         </div>
-        <h1 className="rr-aggressive-heading mb-1 text-4xl font-bold leading-none text-foreground">
+        <Text as="h1" variant="h1" className="rr-aggressive-heading mb-1">
           Join the network
-        </h1>
-        <p className="mb-5 text-sm text-muted-foreground">
+        </Text>
+        <Text variant="bodySm" color="muted" className="mb-5">
           Set up your rider profile to broadcast signals and connect with the pack.
-        </p>
+        </Text>
 
         {/* Progress */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-              Profile completion
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
-              {progressPercent}%
-            </span>
-          </div>
+        <VStack gap={2} className="mb-6">
+          <HStack justify="between" align="center">
+            <Text variant="micro" color="muted">Profile completion</Text>
+            <Text variant="micro" color="primary">{progressPercent}%</Text>
+          </HStack>
           <div className="h-1.5 rounded-full bg-muted overflow-hidden">
             <div
               className="h-full bg-primary rounded-full transition-all duration-500 shadow-[0_0_8px_hsl(var(--primary)/0.5)]"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <div className="flex items-center gap-2 mt-3 flex-wrap">
-            {steps.map((step) => (
-              <div
+          {/* Progress dots */}
+          <HStack gap={2} className="mt-2 flex-wrap">
+            {steps.map((step, idx) => (
+              <HStack
                 key={step.id}
+                gap={1.5}
+                align="center"
                 className={cn(
-                  'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all duration-300',
+                  'px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all duration-300',
                   step.done
                     ? 'bg-primary/10 border-primary/30 text-primary'
                     : 'bg-muted/30 border-border/40 text-muted-foreground'
@@ -377,19 +378,19 @@ export default function OnboardingPage() {
                 <step.icon className="w-3 h-3" />
                 {step.label}
                 {step.done && <Check className="w-3 h-3" />}
-              </div>
+              </HStack>
             ))}
-          </div>
-        </div>
+          </HStack>
+        </VStack>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Avatar */}
-            <div className="rounded-xl bg-surface border border-border p-4">
+            <div className="surface-card p-4">
               <Label className="mb-3 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Profile picture
               </Label>
-              <div className="flex flex-wrap items-center gap-4">
+              <HStack gap={4} align="center" wrap className="flex-wrap">
                 <span className="rr-avatar-ring shrink-0">
                   {getPreviewUrl(avatarLocal) ? (
                     <img
@@ -403,7 +404,7 @@ export default function OnboardingPage() {
                     </div>
                   )}
                 </span>
-                <label className="flex min-w-0 flex-1 cursor-pointer justify-center rounded-full border border-primary/25 bg-primary/10 px-4 py-2.5 text-center text-sm font-bold text-primary transition-all duration-150 hover:bg-primary/15 hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/80 active:scale-95">
+                <label className="flex min-w-0 flex-1 cursor-pointer justify-center rounded-full border border-primary/25 bg-primary/10 px-4 py-2.5 text-center text-sm font-bold text-primary transition-all duration-150 hover:bg-primary/15 hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/80 active:scale-[0.96]">
                   <input
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -417,17 +418,17 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => setAvatarLocal(null)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50 transition active:scale-95"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50 transition active:scale-[0.96]"
                     aria-label="Remove avatar"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 )}
-              </div>
+              </HStack>
             </div>
 
             {/* Display Name */}
-            <div className="rounded-xl bg-surface border border-border p-4">
+            <div className="surface-card p-4">
               <FormField
                 control={form.control}
                 name="display_name"
@@ -457,7 +458,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Username */}
-            <div className="rounded-xl bg-surface border border-border p-4">
+            <div className="surface-card p-4">
               <FormField
                 control={form.control}
                 name="username"
@@ -493,7 +494,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bio */}
-            <div className="rounded-xl bg-surface border border-border p-4">
+            <div className="surface-card p-4">
               <FormField
                 control={form.control}
                 name="bio"
@@ -521,7 +522,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Year & Make */}
-            <div className="rounded-xl bg-surface border border-border p-4 grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2">
+            <div className="surface-card p-4 grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2">
               <FormField
                 control={form.control}
                 name="bike_year"
@@ -577,7 +578,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Model */}
-            <div className="rounded-xl bg-surface border border-border p-4">
+            <div className="surface-card p-4">
               <FormField
                 control={form.control}
                 name="bike_model"
@@ -611,13 +612,13 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Photo */}
-            <div className="rounded-xl bg-surface border border-border p-4">
+            <div className="surface-card p-4">
               <Label className="mb-3 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Bike photo
               </Label>
 
               {getPreviewUrl(bikePhotoLocal) ? (
-                <div className="space-y-3">
+                <VStack gap={3}>
                   <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-surface">
                     <img
                       src={getPreviewUrl(bikePhotoLocal)}
@@ -629,7 +630,7 @@ export default function OnboardingPage() {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <label className="flex h-11 cursor-pointer items-center justify-center rounded-full border border-border bg-background text-xs font-bold text-muted-foreground transition hover:border-primary/50 hover:text-primary active:scale-95">
+                    <label className="flex h-11 cursor-pointer items-center justify-center rounded-full border border-border bg-background text-xs font-bold text-muted-foreground transition hover:border-primary/50 hover:text-primary active:scale-[0.96]">
                       <input
                         type="file"
                         accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -643,14 +644,14 @@ export default function OnboardingPage() {
                       type="button"
                       variant="outline"
                       onClick={() => setBikePhotoLocal(null)}
-                      className="h-11 rounded-full border-border text-xs text-muted-foreground hover:border-destructive/50 hover:text-destructive active:scale-95"
+                      className="h-11 rounded-full border-border text-xs text-muted-foreground hover:border-destructive/50 hover:text-destructive active:scale-[0.96]"
                     >
                       <X className="h-3.5 w-3.5 mr-1" /> Remove
                     </Button>
                   </div>
-                </div>
+                </VStack>
               ) : (
-                <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-5 text-center transition hover:border-primary/50 hover:bg-primary/10 active:scale-95">
+                <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-5 text-center transition hover:border-primary/50 hover:bg-primary/10 active:scale-[0.96]">
                   <input
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -696,7 +697,7 @@ export default function OnboardingPage() {
             <Button
               type="submit"
               disabled={saveProfile.isPending}
-              className="h-12 w-full rounded-full bg-primary text-primary-foreground text-base font-semibold hover:bg-primary/90 active:scale-95 transition-all duration-150 glow-green"
+              className="h-12 w-full rounded-full bg-primary text-primary-foreground text-base font-semibold hover:bg-primary/90 active:scale-[0.96] transition-all duration-150 glow-green"
             >
               {saveProfile.isPending ? 'Creating profile...' : 'Join the network'}
             </Button>
@@ -706,7 +707,7 @@ export default function OnboardingPage() {
               variant="ghost"
               onClick={handleSkip}
               disabled={saveProfile.isPending}
-              className="h-11 w-full rounded-full text-muted-foreground hover:text-foreground active:scale-95 transition-all duration-150"
+              className="h-11 w-full rounded-full text-muted-foreground hover:text-foreground active:scale-[0.96] transition-all duration-150"
             >
               Finish details later
             </Button>
