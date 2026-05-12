@@ -27,7 +27,7 @@ export default function AdminUsersPage() {
           <Skeleton className="mb-4 h-10 w-full" />
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full" />
+              <Skeleton key={i} className="h-16 w-full rounded-[20px]" />
             ))}
           </div>
         </AdminLayout>
@@ -114,7 +114,7 @@ function AdminUsersContent() {
           return (
             <div
               key={u.id}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
+              className="flex items-center gap-3 rounded-[20px] border border-border bg-surface p-3 transition hover:bg-surface-elevated"
             >
               <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-semibold">
                 {initials}
@@ -152,7 +152,7 @@ function AdminUsersContent() {
           );
         })}
         {filtered.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-[20px] border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             <Users className="mx-auto mb-2 h-6 w-6 text-primary" />
             {q ? 'No users match your search.' : 'No users found.'}
           </div>

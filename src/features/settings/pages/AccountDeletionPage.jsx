@@ -74,20 +74,21 @@ export default function AccountDeletionPage() {
       <div className="mx-auto max-w-2xl">
         <Link
           to="/settings"
-          className="mb-5 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          className="mb-5 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
         >
           <ArrowLeft className="h-4 w-4" /> Settings
         </Link>
 
-        <div className="rr-surface-strong relative mb-6 overflow-hidden rounded-2xl p-5">
+        <div className="relative mb-6 overflow-hidden rounded-[20px] border border-destructive/20 bg-[hsl(220_20%_7%)] p-6">
           <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-destructive/15" />
+          <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-destructive/30 to-transparent" />
           <div className="relative z-10">
-            <div className="rr-chip mb-3 text-destructive">
+            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-destructive">
               <ShieldCheck className="h-3.5 w-3.5" /> Account safety
             </div>
             <div className="flex items-center gap-3 mb-2">
               <RRLogo size="md" />
-              <h1 className="rr-heading text-3xl">Delete Account</h1>
+              <h1 className="font-display text-3xl font-extrabold tracking-[-0.04em]">Delete Account</h1>
             </div>
             <p className="text-sm text-muted-foreground">
               Permanently remove your Ride Radar data. This action cannot be undone.
@@ -96,7 +97,7 @@ export default function AccountDeletionPage() {
         </div>
 
         {success ? (
-          <div className="rr-surface rounded-2xl border border-primary/30 bg-primary/10 p-6 text-center">
+          <div className="rounded-[20px] border border-primary/30 bg-primary/10 p-6 text-center">
             <CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-primary" />
             <h2 className="mb-1 font-display text-xl font-bold">Account deleted</h2>
             <p className="text-sm text-muted-foreground">
@@ -106,7 +107,7 @@ export default function AccountDeletionPage() {
         ) : (
           <div className="space-y-4">
             {/* Warnings */}
-            <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-5">
+            <div className="rounded-[20px] border border-destructive/30 bg-destructive/10 p-5">
               <div className="mb-3 flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
                 <span className="font-bold">Warning: irreversible action</span>
@@ -120,15 +121,15 @@ export default function AccountDeletionPage() {
             </div>
 
             {/* Confirm input */}
-            <div className="rr-surface rounded-2xl p-5">
+            <div className="rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5">
               <label className="mb-2 block text-sm font-medium">
-                Type <strong>DELETE</strong> to confirm
+                Type <strong className="text-destructive">DELETE</strong> to confirm
               </label>
               <Input
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
                 placeholder="DELETE"
-                className="rr-premium-input rounded-xl"
+                className="rounded-xl border-border/60 bg-black/25"
                 autoComplete="off"
               />
 
@@ -140,7 +141,7 @@ export default function AccountDeletionPage() {
                 onClick={handleDelete}
                 disabled={!canDelete || isDeleting}
                 variant="destructive"
-                className="mt-4 h-12 w-full rounded-full"
+                className="mt-4 h-12 w-full rounded-full active:scale-95 transition-transform"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 {isDeleting ? 'Deleting...' : 'Permanently delete my account'}

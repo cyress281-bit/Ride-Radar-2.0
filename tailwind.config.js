@@ -37,6 +37,11 @@ module.exports = {
         success: { DEFAULT: 'hsl(var(--success))', foreground: 'hsl(var(--success-foreground))' },
         warning: { DEFAULT: 'hsl(var(--warning))', foreground: 'hsl(var(--warning-foreground))' },
         info: { DEFAULT: 'hsl(var(--info))', foreground: 'hsl(var(--info-foreground))' },
+        /* Brand identity colors */
+        'brand-kawasaki': { DEFAULT: 'hsl(var(--brand-kawasaki))', foreground: 'hsl(var(--primary-foreground))' },
+        'brand-yamaha': { DEFAULT: 'hsl(var(--brand-yamaha))', foreground: 'hsl(var(--primary-foreground))' },
+        'brand-honda': { DEFAULT: 'hsl(var(--brand-honda))', foreground: 'hsl(var(--primary-foreground))' },
+        'brand-ducati': { DEFAULT: 'hsl(var(--brand-ducati))', foreground: 'hsl(var(--primary-foreground))' },
       },
       keyframes: {
         'accordion-down': { from: { height: '0' }, to: { height: 'var(--radix-accordion-content-height)' } },

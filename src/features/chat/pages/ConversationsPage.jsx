@@ -61,29 +61,29 @@ function ConversationsPage() {
   const { profiles } = useProfileBatch(otherIds);
 
   return (
-    <div className="px-5 pt-5 pb-8">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Comms</h1>
+    <div className="px-5 pt-5 pb-8 max-w-2xl mx-auto">
+      <div className="mb-5 flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Comms</h1>
       </div>
 
       {isLoading && conversations.length === 0 ? (
         <LoadingState variant="section" message="Loading comms..." />
       ) : isError ? (
-        <div className="rr-surface text-center py-16 rounded-3xl border border-destructive/30 backdrop-blur-xl mt-8">
-          <h3 className="font-bold text-xl mb-2">Messages failed to load</h3>
+        <div className="rr-surface text-center py-16 rounded-3xl border border-brand-honda/30 backdrop-blur-xl mt-8">
+          <h3 className="font-bold text-xl mb-2 text-foreground">Messages failed to load</h3>
           <p className="text-sm text-muted-foreground max-w-xs mx-auto">
             {error?.message || 'Please refresh and try again.'}
           </p>
         </div>
       ) : conversations.length === 0 ? (
-        <div className="rr-surface text-center py-20 rounded-3xl border border-dashed border-primary/25 backdrop-blur-xl mt-4 relative overflow-hidden">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 bg-primary/8 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative z-10 w-16 h-16 rounded-2xl bg-primary/10 mx-auto flex items-center justify-center mb-5 border border-primary/30">
-            <MessageCircle className="w-7 h-7 text-primary" />
+        <div className="rr-surface text-center py-20 rounded-3xl border border-dashed border-brand-kawasaki/25 backdrop-blur-xl mt-4 relative overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 bg-brand-kawasaki/8 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 w-16 h-16 rounded-2xl bg-brand-kawasaki/10 mx-auto flex items-center justify-center mb-5 border border-brand-kawasaki/30">
+            <MessageCircle className="w-7 h-7 text-brand-kawasaki" />
           </div>
           <div className="relative z-10 flex items-center justify-center gap-2 mb-2">
             <RRLogo size="sm" className="opacity-70" />
-            <h3 className="font-bold text-xl">No open comms</h3>
+            <h3 className="font-bold text-xl text-foreground">No open comms</h3>
           </div>
           <p className="text-sm text-muted-foreground max-w-xs mx-auto relative z-10">
             Start a conversation with another rider to see it here.
@@ -104,10 +104,10 @@ function ConversationsPage() {
         onClick={() => navigate('/messages/new')}
         className={cn(
           'fixed bottom-28 right-6 z-50 h-14 w-14 rounded-full',
-          'bg-primary text-primary-foreground shadow-lg',
+          'bg-brand-kawasaki text-primary-foreground shadow-lg',
           'flex items-center justify-center',
           'transition-transform duration-200 hover:scale-105 active:scale-95',
-          'border border-primary/20'
+          'border border-brand-kawasaki/20'
         )}
         aria-label="New message"
       >

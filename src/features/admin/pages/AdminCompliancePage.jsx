@@ -40,8 +40,8 @@ export default function AdminCompliancePage() {
         <AdminLayout>
           <Skeleton className="mb-4 h-7 w-32" />
           <div className="mb-6 space-y-2">
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full rounded-[20px]" />
+            <Skeleton className="h-16 w-full rounded-[20px]" />
           </div>
           <Skeleton className="h-48 w-full" />
         </AdminLayout>
@@ -62,7 +62,7 @@ function AdminComplianceContent() {
       <div className="mb-6 space-y-2">
         {quickLinks.map((item) => {
           const content = (
-            <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 transition hover:border-primary/40">
+            <div className="flex items-center gap-3 rounded-[20px] border border-border bg-surface p-4 transition hover:bg-surface-elevated hover:border-primary/40">
               <item.icon className="h-5 w-5 text-primary" />
               <span className="flex-1 text-sm font-semibold">{item.label}</span>
               <ExternalLink className="h-4 w-4 text-muted-foreground" />
@@ -85,7 +85,7 @@ function AdminComplianceContent() {
         })}
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-4">
+      <div className="rounded-[20px] border border-border bg-surface p-4">
         <div className="mb-3 flex items-center gap-2 font-bold">
           <ClipboardCheck className="h-4 w-4 text-primary" />
           Compliance Checklist
@@ -94,7 +94,7 @@ function AdminComplianceContent() {
           {checklist.map((item, idx) => (
             <div
               key={idx}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-secondary/50 p-3 text-sm"
+              className="flex items-center gap-3 rounded-[20px] border border-border bg-secondary/50 p-3 text-sm transition hover:bg-surface-elevated"
             >
               <item.icon className="h-4 w-4 text-muted-foreground" />
               <span className="flex-1">{item.label}</span>

@@ -25,10 +25,10 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
       <div className="max-w-[80%]">
         <div
           className={cn(
-            'px-4 py-2.5 rounded-2xl text-sm leading-relaxed border',
+            'px-4 py-2.5 text-sm leading-relaxed border',
             isMine
-              ? 'bg-primary/10 text-foreground border-primary/25 rounded-br-md'
-              : 'bg-secondary/70 text-secondary-foreground border-border/40 rounded-bl-md'
+              ? 'bg-brand-kawasaki text-primary-foreground border-brand-kawasaki/30 rounded-[18px] shadow-sm'
+              : 'bg-surface-elevated text-foreground border-border/30 rounded-[18px] rounded-bl-[4px]'
           )}
         >
           {message.body}

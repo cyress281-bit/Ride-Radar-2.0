@@ -82,7 +82,7 @@ function BroadcastDetailPage() {
         <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="rr-surface rounded-2xl p-10 text-center">
+        <div className="rr-surface rounded-[20px] p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
           <p className="text-sm text-muted-foreground">Invalid broadcast link.</p>
         </div>
@@ -105,7 +105,7 @@ function BroadcastDetailPage() {
         <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="rr-surface rounded-2xl p-10 text-center">
+        <div className="rr-surface rounded-[20px] p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
           <p className="text-sm text-muted-foreground">Unable to load this broadcast.</p>
         </div>
@@ -119,7 +119,7 @@ function BroadcastDetailPage() {
         <button onClick={() => navigate(-1)} className="rr-haptic flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="rr-surface rounded-2xl p-10 text-center">
+        <div className="rr-surface rounded-[20px] p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
           <p className="text-sm text-muted-foreground">Broadcast not found.</p>
         </div>
@@ -132,18 +132,11 @@ function BroadcastDetailPage() {
   const isAlert = broadcast.type === 'alert';
 
   const typeAccentClass = {
-    solo_ride: 'border-solo/30 bg-solo/5',
-    iso: 'border-iso/30 bg-iso/5',
-    event: 'border-event/30 bg-event/5',
-    alert: 'border-alert/30 bg-alert/5',
-  }[broadcast.type] || 'border-border/60 bg-card';
-
-  const typeTopBorder = {
-    solo_ride: 'bg-solo',
-    iso: 'bg-iso',
-    event: 'bg-event',
-    alert: 'bg-alert animate-pulse-alert',
-  }[broadcast.type];
+    solo_ride: 'border-l-[3px] border-l-solo shadow-[-3px_0_14px_hsl(var(--solo)/0.2)]',
+    iso: 'border-l-[3px] border-l-iso shadow-[-3px_0_14px_hsl(var(--iso)/0.2)]',
+    event: 'border-l-[3px] border-l-event shadow-[-3px_0_14px_hsl(var(--event)/0.2)]',
+    alert: 'border-l-[3px] border-l-alert shadow-[-3px_0_14px_hsl(var(--alert)/0.25)]',
+  }[broadcast.type] || 'border-l-[3px] border-l-border/60';
 
   return (
     <div className="px-5 pt-5 pb-8">
@@ -167,16 +160,14 @@ function BroadcastDetailPage() {
         </button>
       </div>
 
-      <div className={cn('rounded-[1.45rem] border p-5 relative overflow-hidden rr-surface', typeAccentClass)}>
-        <div className={cn('absolute top-0 left-0 right-0 h-1', typeTopBorder)} />
-
+      <div className={cn('rounded-[20px] border p-5 relative overflow-hidden rr-surface', typeAccentClass)}>
         <div
           className={cn(
             'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-4 border',
-            isAlert && 'bg-alert/10 text-alert border-alert/20',
-            broadcast.type === 'solo_ride' && 'bg-solo/10 text-solo border-solo/20',
-            broadcast.type === 'iso' && 'bg-iso/10 text-iso border-iso/20',
-            broadcast.type === 'event' && 'bg-event/10 text-event border-event/20'
+            isAlert && 'bg-alert/10 text-alert border-alert/30',
+            broadcast.type === 'solo_ride' && 'bg-solo/10 text-solo border-solo/30',
+            broadcast.type === 'iso' && 'bg-iso/10 text-iso border-iso/30',
+            broadcast.type === 'event' && 'bg-event/10 text-event border-event/30'
           )}
         >
           {broadcast.type === 'solo_ride' && <OfficialMotorcycleIcon className="h-5 w-6 rounded-md" />}
@@ -188,7 +179,7 @@ function BroadcastDetailPage() {
         {broadcast.body && <p className="text-[15px] text-foreground/80 leading-relaxed mb-4 whitespace-pre-wrap">{broadcast.body}</p>}
 
         {broadcast.type === 'event' && broadcast.event_image_url && (
-          <div className="my-5 flex max-h-[70vh] items-center justify-center overflow-hidden rounded-2xl border border-event/20 bg-black/45 p-2 shadow-[0_18px_55px_rgba(0,0,0,0.35),inset_0_1px_0_hsl(0_0%_100%/0.05)]">
+          <div className="my-5 flex max-h-[70vh] items-center justify-center overflow-hidden rounded-[20px] border border-event/20 bg-black/45 p-2 shadow-[0_18px_55px_rgba(0,0,0,0.35),inset_0_1px_0_hsl(0_0%_100%/0.05)]">
             <img src={broadcast.event_image_url} className="max-h-[68vh] w-full object-contain" alt="Event poster" />
           </div>
         )}
@@ -254,7 +245,7 @@ function BroadcastDetailPage() {
       )}
 
       {isAuthor && broadcast.type === 'event' && (
-        <div className="mt-5 p-4 rounded-2xl rr-surface border border-primary/15">
+        <div className="mt-5 p-4 rounded-[20px] rr-surface border border-primary/15">
           <div className="rr-kicker text-muted-foreground mb-2">Your event</div>
           <div className="font-display text-lg font-bold">{rsvpCounts.going} going · {rsvpCounts.interested} interested</div>
         </div>
@@ -277,7 +268,12 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
       <div className="grid grid-cols-2 gap-3">
         <Button
           variant={myRSVP?.status === 'interested' ? 'default' : 'outline'}
-          className={cn('h-14 rounded-full text-base font-bold rr-haptic', myRSVP?.status === 'interested' && 'glow-green')}
+          className={cn(
+            'h-14 rounded-full text-base font-bold rr-haptic transition-colors',
+            myRSVP?.status === 'interested'
+              ? 'bg-iso hover:bg-iso/90 text-iso-foreground glow-yamaha'
+              : 'border-iso/30 text-iso hover:bg-iso/10 hover:border-iso/50'
+          )}
           onClick={() => set.mutate('interested')}
           disabled={set.isPending}
         >
@@ -286,7 +282,12 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
         </Button>
         <Button
           variant={myRSVP?.status === 'going' ? 'default' : 'outline'}
-          className={cn('h-14 rounded-full text-base font-bold rr-haptic', myRSVP?.status === 'going' && 'glow-green')}
+          className={cn(
+            'h-14 rounded-full text-base font-bold rr-haptic transition-colors',
+            myRSVP?.status === 'going'
+              ? 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
+              : 'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50'
+          )}
           onClick={() => set.mutate('going')}
           disabled={set.isPending}
         >
@@ -313,7 +314,7 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
   if (existing) {
     const map = { pending: 'Request sent', accepted: 'Connected', declined: 'Declined' };
     return (
-      <Button variant="outline" disabled className="w-full h-12 rounded-full border-primary/20">
+      <Button variant="outline" disabled className="w-full h-14 rounded-full border-primary/20">
         <Check className="w-4 h-4 mr-1.5" /> {map[existing.status] || 'Request sent'}
       </Button>
     );
@@ -322,11 +323,11 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
   return (
     <div>
       {!open ? (
-        <Button onClick={() => setOpen(true)} className="w-full h-12 rounded-full glow-green rr-haptic text-base font-bold">
+        <Button onClick={() => setOpen(true)} className="w-full h-14 rounded-full glow-kawasaki-sm rr-haptic text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
           <Users className="w-4 h-4 mr-1.5" /> Initiate connection
         </Button>
       ) : (
-        <div className="p-4 rounded-2xl rr-glass-panel space-y-3">
+        <div className="p-4 rounded-[20px] rr-glass-panel space-y-3">
           <div className="rr-kicker text-muted-foreground mb-1">Connection request</div>
           <Textarea
             value={msg}
@@ -339,7 +340,7 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
           {sendRequest.isError && <p className="text-xs text-destructive">{sendRequest.error?.message || 'Failed to send request'}</p>}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 rounded-full h-11 border-primary/20 rr-haptic">Cancel</Button>
-            <Button onClick={handleSend} disabled={sendRequest.isPending} className="flex-1 rounded-full h-11 glow-green-sm rr-haptic">
+            <Button onClick={handleSend} disabled={sendRequest.isPending} className="flex-1 rounded-full h-11 glow-kawasaki-sm rr-haptic bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
               {sendRequest.isPending ? 'Sending...' : 'Send request'}
             </Button>
           </div>

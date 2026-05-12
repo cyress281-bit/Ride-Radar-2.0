@@ -20,7 +20,7 @@ export default function AdminBlocksPage() {
           </div>
           <div className="space-y-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 w-full" />
+              <Skeleton key={i} className="h-24 w-full rounded-[20px]" />
             ))}
           </div>
         </AdminLayout>
@@ -71,7 +71,7 @@ function AdminBlocksContent() {
         {blocksData.map((block) => (
           <div
             key={block.id}
-            className="rounded-2xl border border-border bg-surface p-4"
+            className="rounded-[20px] border border-border bg-surface p-4 transition hover:bg-surface-elevated"
           >
             <div className="text-sm">
               <span className="font-bold">
@@ -89,14 +89,14 @@ function AdminBlocksContent() {
                 : 'No timestamp'}
             </div>
             {block.reason && (
-              <div className="mt-2 rounded-2xl bg-secondary/50 p-3 text-sm text-muted-foreground">
+              <div className="mt-2 rounded-[20px] bg-secondary/50 p-3 text-sm text-muted-foreground">
                 {block.reason}
               </div>
             )}
           </div>
         ))}
         {blocksData.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-[20px] border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             <UserX className="mx-auto mb-2 h-6 w-6 text-primary" />
             No block records found.
           </div>

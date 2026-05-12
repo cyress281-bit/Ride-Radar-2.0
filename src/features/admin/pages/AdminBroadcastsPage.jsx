@@ -39,7 +39,7 @@ export default function AdminBroadcastsPage() {
           </div>
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 w-full" />
+              <Skeleton key={i} className="h-28 w-full rounded-[20px]" />
             ))}
           </div>
         </AdminLayout>
@@ -200,7 +200,7 @@ function AdminBroadcastsContent() {
           return (
             <div
               key={b.id}
-              className="rounded-2xl border border-border bg-surface p-3"
+              className="rounded-[20px] border border-border bg-surface p-3 transition hover:bg-surface-elevated"
             >
               <div className="mb-1 flex flex-wrap items-center gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
@@ -241,7 +241,7 @@ function AdminBroadcastsContent() {
           );
         })}
         {filtered.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-[20px] border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             <Radio className="mx-auto mb-2 h-6 w-6 text-primary" />
             No broadcasts found.
           </div>

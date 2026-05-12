@@ -25,7 +25,7 @@ function TypingIndicator() {
       transition={{ duration: 0.2 }}
       className="flex justify-start"
     >
-      <div className="flex items-center gap-1 px-4 py-2.5 rounded-2xl bg-secondary/70 border border-border/40 rounded-bl-md">
+      <div className="flex items-center gap-1 px-4 py-2.5 rounded-[18px] rounded-bl-[4px] bg-surface-elevated border border-border/30">
         {[0, 1, 2].map((i) => (
           <motion.span
             key={i}
@@ -50,11 +50,11 @@ function TypingIndicator() {
 function ConversationSkeleton() {
   return (
     <div className="flex flex-col h-[calc(100dvh-3.5rem)]">
-      <div className="px-5 py-3 border-b border-border/60 flex items-center gap-3 bg-background/90 backdrop-blur">
-        <div className="h-9 w-9 rounded-full bg-secondary animate-pulse" />
+      <div className="px-5 py-3 border-b border-border/40 flex items-center gap-3 bg-background/80 backdrop-blur-xl">
+        <div className="h-9 w-9 rounded-full bg-surface animate-pulse" />
         <div className="flex-1 space-y-2">
-          <div className="h-4 w-32 bg-secondary rounded animate-pulse" />
-          <div className="h-3 w-20 bg-secondary/60 rounded animate-pulse" />
+          <div className="h-4 w-32 bg-surface rounded animate-pulse" />
+          <div className="h-3 w-20 bg-surface/60 rounded animate-pulse" />
         </div>
       </div>
       <div className="flex-1 px-4 py-4 space-y-3 overflow-hidden">
@@ -62,14 +62,14 @@ function ConversationSkeleton() {
           <div
             key={i}
             className={cn(
-              'h-12 rounded-2xl bg-secondary/40 animate-pulse',
+              'h-12 rounded-2xl bg-surface/60 animate-pulse',
               i % 2 === 0 ? 'w-3/4 ml-auto' : 'w-2/3'
             )}
           />
         ))}
       </div>
-      <div className="p-3 border-t border-border/60 bg-background/90 backdrop-blur">
-        <div className="h-10 rounded-full bg-secondary animate-pulse" />
+      <div className="p-3 border-t border-border/40 bg-background/80 backdrop-blur-xl">
+        <div className="h-10 rounded-full bg-surface animate-pulse" />
       </div>
     </div>
   );
@@ -182,15 +182,15 @@ function ConversationPage() {
 
   if (conversationError || !conversation) {
     return (
-      <div className="flex flex-col h-[calc(100dvh-3.5rem)] items-center justify-center px-6 text-center">
-        <h2 className="text-lg font-semibold mb-2">Conversation not found</h2>
+      <div className="flex flex-col h-[calc(100dvh-3.5rem)] items-center justify-center px-6 text-center max-w-md mx-auto">
+        <h2 className="text-lg font-semibold mb-2 text-foreground">Conversation not found</h2>
         <p className="text-sm text-muted-foreground mb-4">
           {conversationError?.message || 'This conversation may have been deleted or you do not have access.'}
         </p>
         <button
           type="button"
           onClick={() => navigate('/messages')}
-          className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+          className="px-4 py-2 rounded-full bg-brand-kawasaki text-primary-foreground text-sm font-medium hover:bg-brand-kawasaki/90 transition-colors active:scale-95"
         >
           Back to messages
         </button>
@@ -201,14 +201,14 @@ function ConversationPage() {
   return (
     <div className="flex flex-col h-[calc(100dvh-3.5rem)]">
       {/* Header */}
-      <div className="px-5 py-3 border-b border-border/60 flex items-center gap-3 bg-background/90 backdrop-blur shrink-0">
+      <div className="px-5 py-3 border-b border-border/40 flex items-center gap-3 bg-background/80 backdrop-blur-xl shrink-0">
         <button
           type="button"
           onClick={() => navigate('/messages')}
-          className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-secondary/60 rounded-full border border-border/30 transition-colors flex items-center justify-center"
+          className="p-2.5 min-h-[44px] min-w-[44px] hover:bg-surface-elevated rounded-full border border-border/30 transition-colors flex items-center justify-center active:scale-95"
           aria-label="Back"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
 
         {otherProfile ? (
@@ -218,28 +218,28 @@ function ConversationPage() {
                 <img
                   src={otherProfile.avatar_url}
                   alt=""
-                  className="w-9 h-9 rounded-full object-cover border border-primary/20"
+                  className="w-9 h-9 rounded-full object-cover border border-brand-kawasaki/30"
                   loading="lazy"
                 />
-                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary border-2 border-background" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-brand-kawasaki border-2 border-background" />
               </div>
             ) : (
-              <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center font-semibold text-sm border border-border/50">
+              <div className="w-9 h-9 rounded-full bg-surface-elevated flex items-center justify-center font-semibold text-sm text-foreground border border-border/50">
                 {otherProfile.display_name?.[0] || '?'}
               </div>
             )}
             <div className="min-w-0">
-              <div className="font-semibold text-sm truncate">
+              <div className="font-semibold text-sm truncate text-foreground">
                 {otherProfile.display_name}
               </div>
               <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                <Shield className="w-3 h-3" /> Secure channel
+                <Shield className="w-3 h-3 text-brand-yamaha" /> Secure channel
               </div>
             </div>
           </div>
         ) : (
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm truncate">Rider</div>
+            <div className="font-semibold text-sm truncate text-foreground">Rider</div>
           </div>
         )}
       </div>
@@ -259,7 +259,7 @@ function ConversationPage() {
           />
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {messages.map((message) => (
             <MessageBubble
               key={message.id}
@@ -283,4 +283,3 @@ function ConversationPage() {
 }
 
 export default memo(ConversationPage);
-

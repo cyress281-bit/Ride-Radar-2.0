@@ -56,6 +56,13 @@ export async function registerServiceWorker() {
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (refreshing) return;
+        // Rate-limit: don't reload more than once per 10 seconds
+        const lastReload = sessionStorage.getItem('sw-last-reload');
+        const now = Date.now();
+        if (lastReload && now - parseInt(lastReload, 10) < 10000) {
+          return;
+        }
+        sessionStorage.setItem('sw-last-reload', String(now));
         refreshing = true;
         window.location.reload();
       });

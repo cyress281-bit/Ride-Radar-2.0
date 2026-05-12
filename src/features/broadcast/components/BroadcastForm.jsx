@@ -26,28 +26,28 @@ const TYPES = [
 
 const TYPE_STYLE_MAP = {
   solo: {
-    hover: 'hover:border-solo/40 hover:bg-solo/8',
+    hover: 'hover:border-solo/40 hover:bg-solo/5',
     glow: 'bg-solo',
     border: 'border-solo/25',
     text: 'text-solo',
     bg: 'bg-solo/10',
   },
   iso: {
-    hover: 'hover:border-iso/40 hover:bg-iso/8',
+    hover: 'hover:border-iso/40 hover:bg-iso/5',
     glow: 'bg-iso',
     border: 'border-iso/25',
     text: 'text-iso',
     bg: 'bg-iso/10',
   },
   event: {
-    hover: 'hover:border-event/40 hover:bg-event/8',
+    hover: 'hover:border-event/40 hover:bg-event/5',
     glow: 'bg-event',
     border: 'border-event/25',
     text: 'text-event',
     bg: 'bg-event/10',
   },
   alert: {
-    hover: 'hover:border-alert/40 hover:bg-alert/8',
+    hover: 'hover:border-alert/40 hover:bg-alert/5',
     glow: 'bg-alert',
     border: 'border-alert/25',
     text: 'text-alert',
@@ -218,7 +218,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         <ArrowLeft className="w-4 h-4" /> All types
       </button>
 
-      <div className="flex items-center gap-4 mb-5 rr-surface-strong p-5 rounded-[1.45rem] relative overflow-hidden">
+      <div className="flex items-center gap-4 mb-5 rr-surface-strong p-5 rounded-[20px] relative overflow-hidden border-l-[3px] border-l-primary/40">
         <div className={cn('absolute top-0 right-0 w-40 h-40 opacity-[0.07] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2', typeStyles.glow)} />
         <div className={cn('h-14 w-14 rounded-2xl flex items-center justify-center border shrink-0 relative z-10', typeStyles.border, typeStyles.bg)}>
           <SignalIcon type={type} size="lg" />
@@ -229,7 +229,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rr-glass-panel p-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rr-surface rounded-[20px] p-5">
         {type === 'iso' && (
           <div>
             <Label className="rr-kicker text-muted-foreground mb-2 block">Looking for</Label>
@@ -321,7 +321,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             </div>
             <div>
               <Label className="rr-kicker text-muted-foreground mb-2 block">Event poster (optional)</Label>
-              <div className="mt-1.5 rounded-2xl border border-border/70 bg-black/30 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
+              <div className="mt-1.5 rounded-[20px] border border-border/70 bg-black/30 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
                 {eventImage ? (
                   <div className="space-y-3">
                     <div className="flex max-h-72 items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-black/45 p-2">
@@ -392,8 +392,10 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           type="submit"
           disabled={!canPost || post.isPending || !user}
           className={cn(
-            'w-full h-12 rounded-full mt-2 text-base font-bold rr-haptic glow-green',
-            type === 'alert' && 'bg-alert hover:bg-alert/90 text-alert-foreground'
+            'w-full h-14 rounded-full mt-2 text-base font-bold rr-haptic transition-colors',
+            type === 'alert'
+              ? 'bg-alert hover:bg-alert/90 text-alert-foreground glow-honda'
+              : 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
           )}
         >
           {post.isPending ? 'Broadcasting...' : `Publish ${typeMeta.label}`}

@@ -113,7 +113,7 @@ export default function RiderProfilePage() {
 
   if (!hasValidUserId) {
     return (
-      <div className="px-5 pt-5">
+      <div className="mx-auto max-w-2xl px-5 pt-5">
         <button
           onClick={() => navigate(-1)}
           className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
@@ -136,14 +136,14 @@ export default function RiderProfilePage() {
 
   if (isProfileError || !profile) {
     return (
-      <div className="px-5 pt-5">
+      <div className="mx-auto max-w-2xl px-5 pt-5">
         <button
           onClick={() => navigate(-1)}
           className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
-        <div className="rr-surface rounded-2xl p-10 text-center">
+        <div className="rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
           <p className="text-sm text-muted-foreground">Rider profile not found or private.</p>
         </div>
@@ -152,58 +152,63 @@ export default function RiderProfilePage() {
   }
 
   return (
-    <div className="px-5 pt-5 pb-8">
+    <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
-        className="rr-haptic mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
+        className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 active:scale-95 transition-transform"
       >
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
-      {/* Identity Card */}
-      <div className="rr-surface-strong relative mb-4 overflow-hidden rounded-[1.45rem] p-5">
+      {/* Profile Header */}
+      <div className="relative mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6">
         <div className="pointer-events-none absolute right-[-10%] top-[-20%] h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-primary/15" />
         <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
-        <div className="relative z-10 flex items-start gap-4">
-          {canSeeDetails && profile.avatar_url && !avatarError ? (
-            <div className="rr-avatar-ring shrink-0">
-              <OptimizedImage
-                src={profile.avatar_url}
-                alt=""
-                containerClassName="h-[4.5rem] w-[4.5rem] shrink-0 rounded-full border border-primary/30"
-                className="rounded-full"
-                objectFit="cover"
-                loading="eager"
-                fetchPriority="high"
-                fadeInDuration={200}
-                showSkeleton
-                onError={() => setAvatarError(true)}
-              />
-            </div>
-          ) : (
-            <div className="rr-avatar-ring shrink-0">
-              <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-full border border-primary/20 bg-gradient-to-br from-primary to-primary/70 font-display text-2xl font-bold text-primary-foreground">
-                {canSeeDetails ? profile.display_name?.[0]?.toUpperCase() || '?' : '?'}
+        <div className="relative z-10 flex flex-col items-center text-center">
+          {/* Avatar */}
+          <div className="relative mb-4">
+            {canSeeDetails && profile.avatar_url && !avatarError ? (
+              <div className="rounded-full bg-gradient-to-br from-primary/40 to-primary/10 p-[3px] shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+                <OptimizedImage
+                  src={profile.avatar_url}
+                  alt=""
+                  containerClassName="h-24 w-24 shrink-0 rounded-full"
+                  className="rounded-full"
+                  objectFit="cover"
+                  loading="eager"
+                  fetchPriority="high"
+                  fadeInDuration={200}
+                  showSkeleton
+                  onError={() => setAvatarError(true)}
+                />
               </div>
-            </div>
-          )}
-          <div className="min-w-0 flex-1 pt-1">
-            <div className="rr-kicker mb-1">Rider ID</div>
-            <h1 className="min-w-0 break-words font-display text-[clamp(1.15rem,5vw,1.65rem)] font-extrabold leading-tight tracking-[-0.04em] [overflow-wrap:anywhere]">
-              {canSeeDetails ? profile.display_name : 'Private Rider'}
-            </h1>
-            {canSeeDetails && profile.username && (
-              <p className="mt-0.5 text-xs text-muted-foreground">@{profile.username}</p>
+            ) : (
+              <div className="rounded-full bg-gradient-to-br from-primary/40 to-primary/10 p-[3px] shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 font-display text-3xl font-bold text-primary-foreground">
+                  {canSeeDetails ? profile.display_name?.[0]?.toUpperCase() || '?' : '?'}
+                </div>
+              </div>
+            )}
+            {canSeeDetails && (
+              <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-[hsl(220_20%_7%)] bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
             )}
           </div>
+
+          {/* Name & Username */}
+          <h1 className="font-display text-[clamp(1.25rem,5vw,1.75rem)] font-extrabold leading-tight tracking-[-0.04em]">
+            {canSeeDetails ? profile.display_name : 'Private Rider'}
+          </h1>
+          {canSeeDetails && profile.username && (
+            <p className="mt-1 text-sm text-muted-foreground">@{profile.username}</p>
+          )}
         </div>
 
-        {/* Dashboard Gauges */}
+        {/* Stats Row */}
         {canSeeDetails && (
-          <div className="relative z-10 mt-5 grid grid-cols-3 gap-2">
+          <div className="relative z-10 mt-6 grid grid-cols-3 gap-3">
             <RiderMetric icon={Radio} label="Signals" value={activeBroadcasts.length} />
             <RiderMetric icon={Bike} label="Bike" value={bikeLabel || 'Not set'} />
             <RiderMetric
@@ -218,17 +223,17 @@ export default function RiderProfilePage() {
       {canSeeDetails ? (
         <>
           {profile.bio && (
-            <div className="rr-surface mb-3 rounded-2xl p-4">
-              <div className="rr-kicker mb-2 text-muted-foreground">Rider note</div>
+            <div className="mb-4 rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5">
+              <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Rider note</div>
               <p className="text-[15px] leading-relaxed text-foreground/90">{profile.bio}</p>
             </div>
           )}
 
-          {/* Cinematic Bike Photo */}
+          {/* Bike Info Card */}
           {bikeLabel && (
-            <div className="rr-surface mb-4 overflow-hidden rounded-2xl">
+            <div className="mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)]">
               {profile.bike_photo_url && (
-                <div className="relative h-44 border-b border-border/60 bg-black/40">
+                <div className="relative h-48 border-b border-border/60 bg-black/40">
                   <OptimizedImage
                     src={profile.bike_photo_url}
                     alt="Bike"
@@ -237,9 +242,9 @@ export default function RiderProfilePage() {
                     loading="lazy"
                     showSkeleton
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-3 left-4 right-4">
-                    <div className="rr-kicker mb-1 text-primary">Machine</div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute bottom-4 left-5 right-5">
+                    <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Machine</div>
                     <div className="font-display text-lg font-bold text-white drop-shadow-lg">
                       {bikeLabel}
                     </div>
@@ -247,47 +252,51 @@ export default function RiderProfilePage() {
                 </div>
               )}
               {!profile.bike_photo_url && (
-                <div className="flex items-center gap-3 p-4 text-sm">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-                    <Bike className="h-5 w-5 text-primary" />
+                <div className="flex items-center gap-4 p-5">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+                    <Bike className="h-6 w-6 text-primary" />
                   </div>
-                  <span className="font-medium">{bikeLabel}</span>
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Machine</div>
+                    <div className="mt-0.5 font-display text-base font-bold">{bikeLabel}</div>
+                  </div>
                 </div>
               )}
             </div>
           )}
         </>
       ) : (
-        <div className="rr-surface my-6 rounded-2xl p-5 text-center text-sm text-muted-foreground">
-          <Lock className="mx-auto mb-2 h-5 w-5 opacity-60" />
+        <div className="my-6 rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6 text-center text-sm text-muted-foreground">
+          <Lock className="mx-auto mb-3 h-6 w-6 opacity-60" />
           This profile is private. Add them as a friend to see more details.
         </div>
       )}
 
+      {/* Safety Actions */}
       {!isMeRoute && (
-        <div className="mb-4">
+        <div className="mb-5">
           <SafetyActions targetType="user" targetId={profile.user_id} targetProfileId={profile.user_id} />
         </div>
       )}
 
-      {/* Comms Actions */}
+      {/* Connection Actions */}
       {!isMeRoute && !isBlocked && (
         <div className="mb-6">
           {isFriend ? (
             <Button
               onClick={() => openFriendChat.mutate()}
-              className="rr-haptic h-12 w-full rounded-full glow-green"
+              className="h-12 w-full rounded-full bg-primary font-bold text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.35)] transition-all hover:bg-primary/90 active:scale-95"
               disabled={openFriendChat.isPending}
             >
-              <MessageCircle className="mr-1.5 h-4 w-4" /> Open comms channel
+              <MessageCircle className="mr-2 h-4 w-4" /> Message
             </Button>
           ) : isPending ? (
             <Button
               variant="outline"
               disabled
-              className="h-12 w-full rounded-full border-primary/20"
+              className="h-12 w-full rounded-full border-border/60 bg-[hsl(220_20%_7%)]"
             >
-              <Clock className="mr-1.5 h-4 w-4" /> Friend request{' '}
+              <Clock className="mr-2 h-4 w-4" /> Request{' '}
               {connectionRequest?.from_user_id === user?.id ? 'sent' : 'pending'}
             </Button>
           ) : (
@@ -296,9 +305,9 @@ export default function RiderProfilePage() {
                 sendFriendReq.mutate({ from_user_id: user.id, to_user_id: userId })
               }
               disabled={sendFriendReq.isPending}
-              className="rr-haptic h-12 w-full rounded-full glow-green-sm"
+              className="h-12 w-full rounded-full bg-primary font-bold text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.35)] transition-all hover:bg-primary/90 active:scale-95"
             >
-              <UserPlus className="mr-1.5 h-4 w-4" /> Initiate rider connection
+              <UserPlus className="mr-2 h-4 w-4" /> Connect
             </Button>
           )}
         </div>
@@ -307,8 +316,8 @@ export default function RiderProfilePage() {
       {/* Active broadcasts */}
       {canSeeDetails && (
         <>
-          <div className="mb-3 flex items-center justify-between px-1">
-            <h2 className="rr-kicker text-muted-foreground">Active broadcasts</h2>
+          <div className="mb-4 flex items-center justify-between px-1">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Active broadcasts</h2>
             <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
               <span className="h-1.5 w-1.5 animate-pulse-green rounded-full bg-primary" />
               Signal log
@@ -317,7 +326,7 @@ export default function RiderProfilePage() {
           {isBroadcastsLoading ? (
             <div className="space-y-3">
               {[1, 2].map((i) => (
-                <div key={i} className="rr-surface rounded-2xl p-4 space-y-2">
+                <div key={i} className="rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5 space-y-2">
                   <Skeleton className="h-5 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
                   <Skeleton className="h-3 w-1/3" />
@@ -331,15 +340,15 @@ export default function RiderProfilePage() {
               ))}
             </div>
           ) : (
-            <div className="rr-surface rounded-xl border border-dashed border-border/60 bg-transparent py-8 text-center text-sm text-muted-foreground">
-              <RRLogo size="sm" className="mx-auto mb-2 opacity-50" />
+            <div className="rounded-[20px] border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
+              <RRLogo size="sm" className="mx-auto mb-3 opacity-50" />
               No active broadcasts
             </div>
           )}
         </>
       )}
 
-      <div className="mt-6 rounded-2xl border border-border/40 bg-secondary/20 py-4 text-center text-xs text-muted-foreground">
+      <div className="mt-6 rounded-2xl border border-border/40 bg-[hsl(220_20%_7%)] py-4 text-center text-xs text-muted-foreground">
         {isBlocked
           ? 'You have blocked this rider.'
           : 'Limited rider preview. More details visible after connecting.'}
@@ -350,11 +359,11 @@ export default function RiderProfilePage() {
 
 function RiderMetric({ icon: Icon, label, value }) {
   return (
-    <div className="relative min-w-0 overflow-hidden rounded-2xl border border-border/60 bg-black/30 p-3 backdrop-blur-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-black/30 p-3 backdrop-blur-sm">
       <div className="absolute right-2 top-2 h-1.5 w-1.5 animate-pulse-green rounded-full bg-primary/60" />
       <div className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
         <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
-          <Icon className="h-3.5 w-3.5 drop-shadow-[0_0_4px_currentColor]" />
+          <Icon className="h-3.5 w-3.5" />
         </span>
         {label}
       </div>

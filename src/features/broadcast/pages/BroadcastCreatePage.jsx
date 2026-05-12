@@ -15,10 +15,38 @@ const TYPES = [
 ];
 
 const TYPE_STYLE_MAP = {
-  solo: { hover: 'hover:border-solo/40 hover:bg-solo/8', glow: 'bg-solo', border: 'border-solo/25', text: 'text-solo', bg: 'bg-solo/10' },
-  iso: { hover: 'hover:border-iso/40 hover:bg-iso/8', glow: 'bg-iso', border: 'border-iso/25', text: 'text-iso', bg: 'bg-iso/10' },
-  event: { hover: 'hover:border-event/40 hover:bg-event/8', glow: 'bg-event', border: 'border-event/25', text: 'text-event', bg: 'bg-event/10' },
-  alert: { hover: 'hover:border-alert/40 hover:bg-alert/8', glow: 'bg-alert', border: 'border-alert/25', text: 'text-alert', bg: 'bg-alert/10' },
+  solo: {
+    hover: 'hover:border-solo/40 hover:bg-solo/5',
+    glow: 'bg-solo',
+    border: 'border-solo/25',
+    text: 'text-solo',
+    bg: 'bg-solo/10',
+    borderLeft: 'border-l-solo/40 hover:border-l-solo',
+  },
+  iso: {
+    hover: 'hover:border-iso/40 hover:bg-iso/5',
+    glow: 'bg-iso',
+    border: 'border-iso/25',
+    text: 'text-iso',
+    bg: 'bg-iso/10',
+    borderLeft: 'border-l-iso/40 hover:border-l-iso',
+  },
+  event: {
+    hover: 'hover:border-event/40 hover:bg-event/5',
+    glow: 'bg-event',
+    border: 'border-event/25',
+    text: 'text-event',
+    bg: 'bg-event/10',
+    borderLeft: 'border-l-event/40 hover:border-l-event',
+  },
+  alert: {
+    hover: 'hover:border-alert/40 hover:bg-alert/5',
+    glow: 'bg-alert',
+    border: 'border-alert/25',
+    text: 'text-alert',
+    bg: 'bg-alert/10',
+    borderLeft: 'border-l-alert/40 hover:border-l-alert',
+  },
 };
 
 /**
@@ -42,7 +70,7 @@ function BroadcastCreatePage() {
   if (!type) {
     return (
       <div className="px-5 pt-5 pb-8">
-        <div className="mb-4 rr-surface-strong rounded-[1.45rem] p-5 relative overflow-hidden">
+        <div className="mb-4 rr-surface-strong rounded-[20px] p-5 relative overflow-hidden">
           <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full border border-primary/15" />
           <div className="rr-chip mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-green" /> Signal console
@@ -65,8 +93,9 @@ function BroadcastCreatePage() {
                 key={t.id}
                 onClick={() => setType(t.id)}
                 className={cn(
-                  'w-full text-left p-5 rounded-[1.35rem] rr-surface transition-all duration-300 group relative overflow-hidden hover:-translate-y-0.5 rr-haptic',
-                  styles.hover
+                  'w-full text-left p-5 rounded-[20px] rr-surface transition-all duration-300 group relative overflow-hidden hover:-translate-y-0.5 rr-haptic border-l-[3px]',
+                  styles.hover,
+                  styles.borderLeft
                 )}
               >
                 <div className={cn('absolute top-0 right-0 w-32 h-32 opacity-[0.06] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-125', styles.glow)} />

@@ -16,7 +16,8 @@ import {
   Settings,
   X,
 } from 'lucide-react';
-import { cn, timeAgo } from '@/lib/utils.js';
+import { cn } from '@/lib/utils.js';
+import { timeAgo } from '@/lib/utils.js';
 
 /**
  * Icon mapping per notification type.
@@ -129,17 +130,17 @@ const NotificationItem = memo(function NotificationItem({
     <div className="relative overflow-hidden">
       {/* Swipe background */}
       {onDelete && (
-        <div className="absolute inset-y-0 right-0 flex w-full items-center justify-end bg-destructive/10 pr-4">
-          <X className="h-5 w-5 text-destructive" />
+        <div className="absolute inset-y-0 right-0 flex w-full items-center justify-end bg-[#E30613]/10 pr-4">
+          <X className="h-5 w-5 text-[#E30613]" />
         </div>
       )}
 
       <div
         className={cn(
-          'relative flex items-start gap-3 rounded-xl border p-4 transition-all duration-200',
+          'relative flex items-start gap-3 rounded-[20px] border p-4 transition-all duration-200 active:scale-95',
           isUnread
-            ? 'rr-surface cursor-pointer border-l-2 border-l-primary border-y border-r border-border/60 hover:border-primary/40'
-            : 'bg-card/40 border-border/30 opacity-70'
+            ? 'cursor-pointer border-l-2 border-l-[#6BBF00] border-y border-r border-[hsl(220_12%_16%)] bg-[hsl(220_20%_7%)] hover:border-[#6BBF00]/30'
+            : 'border-[hsl(220_12%_16%)]/50 bg-[hsl(220_20%_7%)]/40 opacity-70'
         )}
         style={{
           transform: `translateX(${swipeOffset}px)`,
@@ -155,14 +156,14 @@ const NotificationItem = memo(function NotificationItem({
           className={cn(
             'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
             isUnread
-              ? 'border border-primary/20 bg-primary/10'
-              : 'bg-secondary/50'
+              ? 'border border-[#6BBF00]/20 bg-[#6BBF00]/10'
+              : 'bg-[hsl(220_12%_16%)]/50'
           )}
         >
           <Icon
             className={cn(
               'h-4 w-4',
-              isUnread ? 'text-primary' : 'text-muted-foreground'
+              isUnread ? 'text-[#6BBF00]' : 'text-[hsl(220_8%_52%)]'
             )}
           />
         </div>
@@ -170,19 +171,19 @@ const NotificationItem = memo(function NotificationItem({
         {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold">{notification.title}</span>
+            <span className="text-sm font-semibold text-[hsl(0_0%_96%)]">{notification.title}</span>
             {isUnread && (
-              <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-primary" />
+              <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-[#6BBF00]" />
             )}
           </div>
 
           {notification.body && (
-            <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
+            <p className="mt-0.5 line-clamp-2 text-sm text-[hsl(220_8%_52%)]">
               {notification.body}
             </p>
           )}
 
-          <div className="mt-1 text-[11px] text-muted-foreground">
+          <div className="mt-1 text-[11px] text-[hsl(220_8%_52%)]">
             {timeAgo(notification.created_at)}
           </div>
         </div>

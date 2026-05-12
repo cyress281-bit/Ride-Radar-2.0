@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { cn } from '@/lib/utils.js';
 import { Activity, Users, Radio, ShieldAlert, Trash2, MessageCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { timeAgo } from '@/lib/broadcastUtils.js';
@@ -25,14 +26,14 @@ export default function AdminAnalyticsPage() {
           <Skeleton className="mb-4 h-7 w-32" />
           <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 w-full" />
+              <Skeleton key={i} className="h-28 w-full rounded-[20px]" />
             ))}
           </div>
-          <Skeleton className="mb-6 h-40 w-full" />
-          <Skeleton className="mb-6 h-40 w-full" />
+          <Skeleton className="mb-6 h-40 w-full rounded-[20px]" />
+          <Skeleton className="mb-6 h-40 w-full rounded-[20px]" />
           <div className="space-y-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-16 w-full" />
+              <Skeleton key={i} className="h-16 w-full rounded-[20px]" />
             ))}
           </div>
         </AdminLayout>
@@ -154,7 +155,7 @@ function AdminAnalyticsContent() {
       </div>
 
       {/* User Growth Chart */}
-      <div className="mb-6 rounded-2xl border border-border bg-surface p-4">
+      <div className="mb-6 rounded-[20px] border border-border bg-surface p-4">
         <div className="mb-3 flex items-center gap-2 font-bold">
           <Users className="h-4 w-4 text-primary" />
           User Growth (by month)
@@ -182,7 +183,7 @@ function AdminAnalyticsContent() {
       </div>
 
       {/* Broadcast Activity */}
-      <div className="mb-6 rounded-2xl border border-border bg-surface p-4">
+      <div className="mb-6 rounded-[20px] border border-border bg-surface p-4">
         <div className="mb-3 flex items-center gap-2 font-bold">
           <Radio className="h-4 w-4 text-primary" />
           Broadcast Activity
@@ -194,7 +195,14 @@ function AdminAnalyticsContent() {
                 <span className="w-20 text-xs capitalize text-muted-foreground">{type}</span>
                 <div className="h-3 flex-1 rounded-full bg-foreground/5">
                   <div
-                    className="h-3 rounded-full bg-primary/60"
+                    className={cn(
+                      'h-3 rounded-full',
+                      type === 'alert' && 'bg-brand-honda/60',
+                      type === 'solo' && 'bg-brand-kawasaki/60',
+                      type === 'iso' && 'bg-brand-yamaha/60',
+                      type === 'event' && 'bg-brand-ducati/60',
+                      !['alert', 'solo', 'iso', 'event'].includes(type) && 'bg-primary/60'
+                    )}
                     style={{
                       width: `${Math.max(2, (count / broadcastActivity.max) * 100)}%`,
                     }}
@@ -212,7 +220,7 @@ function AdminAnalyticsContent() {
       </div>
 
       {/* Recent Moderation */}
-      <div className="rounded-2xl border border-border bg-surface p-4">
+      <div className="rounded-[20px] border border-border bg-surface p-4">
         <div className="mb-3 flex items-center gap-2 font-bold">
           <Activity className="h-4 w-4 text-primary" />
           Recent Moderation Actions
@@ -221,7 +229,7 @@ function AdminAnalyticsContent() {
           {recentModeration.map((report) => (
             <div
               key={report.id}
-              className="rounded-2xl border border-border bg-secondary/50 p-3 text-sm"
+              className="rounded-[20px] border border-border bg-secondary/50 p-3 text-sm transition hover:bg-surface-elevated"
             >
               <div className="font-medium capitalize">
                 {report.reason} report · {report.status}

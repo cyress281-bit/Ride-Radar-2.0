@@ -88,17 +88,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-background flex items-center justify-center px-4 py-8">
+    <div className="min-h-dvh bg-background flex items-center justify-center px-4 py-8 relative overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0 radar-grid pointer-events-none opacity-20" />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.14),transparent_32%)]" />
+      <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-cyan/8 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-primary/6 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md">
-        <div className="rr-surface rounded-[20px] p-8 shadow-2xl">
+        <div className="bg-surface rounded-[20px] p-8 border border-border shadow-2xl">
           {/* Branding */}
           <div className="mb-8 flex flex-col items-center">
             <RRLogo size="lg" className="mb-4" />
-            <h1 className="font-display text-center text-3xl font-bold">
+            <h1 className="font-display text-center text-3xl font-bold tracking-tight">
               Ride<span className="text-primary">Radar</span>
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -111,14 +113,16 @@ export default function LoginPage() {
               {recoveryError && (
                 <div
                   role="alert"
-                  className="flex items-start gap-2 rounded-2xl bg-destructive/10 p-4 text-sm font-medium text-destructive shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055)]"
+                  className="flex items-start gap-2 rounded-xl bg-destructive/10 p-4 text-sm font-medium text-destructive border border-destructive/20"
                 >
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   {recoveryError}
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="recovery-password">New password</Label>
+                <Label htmlFor="recovery-password" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  New password
+                </Label>
                 <Input
                   id="recovery-password"
                   type="password"
@@ -127,9 +131,14 @@ export default function LoginPage() {
                   value={recoveryPassword}
                   onChange={(e) => setRecoveryPassword(e.target.value)}
                   disabled={recoveryLoading}
+                  className="h-12 bg-surface border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                 />
               </div>
-              <Button type="submit" disabled={recoveryLoading} className="h-12 w-full rounded-xl font-semibold">
+              <Button
+                type="submit"
+                disabled={recoveryLoading}
+                className="h-12 w-full rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 active:scale-95 transition-all duration-150"
+              >
                 {recoveryLoading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -150,7 +159,7 @@ export default function LoginPage() {
               New to Ride Radar?{' '}
               <button
                 onClick={() => navigate('/landing')}
-                className="font-medium text-primary hover:underline"
+                className="font-medium text-primary hover:underline active:scale-95 transition-transform inline-block"
               >
                 Learn more
               </button>

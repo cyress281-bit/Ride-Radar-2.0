@@ -4,25 +4,20 @@ import { Home, PlusCircle, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TABS = [
-  { to: '/home', icon: Home, label: 'Home', isCreate: false },
-  { to: '/broadcast', icon: PlusCircle, label: 'Create', isCreate: true },
-  { to: '/messages', icon: MessageCircle, label: 'Messages', isCreate: false },
-  { to: '/profile', icon: User, label: 'Profile', isCreate: false },
+  { to: '/home', icon: Home, label: 'Home' },
+  { to: '/messages', icon: MessageCircle, label: 'Chat' },
+  { to: '/profile', icon: User, label: 'You' },
 ];
 
 /**
- * BottomNav — Full-width native-app-style tab bar.
+ * BottomNav — Floating dock-style navigation.
  *
- * Features:
- * - 4 primary tabs: Home, Create, Messages, Profile
- * - Active tab: filled icon, primary glow, scale-up, pill background
- * - Inactive tab: outline icon, muted gray
- * - Create tab: slightly larger icon, cyan accent when active
- * - Fixed to bottom with iOS safe-area inset support (pb-safe)
- * - Radar mode (/home): more transparent bg for map visibility
- *
- * @param {boolean} [isOverlay=false] — When true, uses more transparent bg for overlay mode
- * @returns {JSX.Element}
+ * Design:
+ * - Centered floating pill dock (not full-width bar)
+ * - 3 primary tabs: Home, Chat, You
+ * - Create button: elevated circular button breaking the dock top
+ * - Active state: brand-colored filled icon with subtle glow
+ * - Background: glassmorphism with subtle border
  */
 const BottomNav = memo(function BottomNav({ isOverlay = false }) {
   const { pathname } = useLocation();
@@ -31,14 +26,39 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
   return (
     <nav
       className={cn(
-        'fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur-xl select-none pointer-events-auto will-change-transform',
-        isOverlay || isRadar
-          ? 'bg-black/60 border-white/5'
-          : 'bg-surface/95 border-border'
+        'fixed bottom-0 left-0 right-0 z-50 flex flex-col items-center justify-end pb-safe pointer-events-none',
+        isOverlay || isRadar ? 'h-auto' : 'h-auto'
       )}
       aria-label="Main navigation"
     >
-      <div className="mx-auto flex max-w-lg items-center justify-around h-16 pb-safe">
+      {/* Create button — elevated, breaks out of dock */}
+      <NavLink
+        to="/broadcast"
+        className={cn(
+          'pointer-events-auto relative -mb-3 z-10 flex items-center justify-center',
+          'h-14 w-14 rounded-full',
+          'bg-primary text-primary-foreground',
+          'shadow-[0_4px_20px_hsl(var(--brand-kawasaki)/0.45),0_0_0_4px_hsl(var(--background))]',
+          'transition-all duration-200 ease-out',
+          'active:scale-90 active:shadow-[0_2px_10px_hsl(var(--brand-kawasaki)/0.35)]',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+        )}
+        aria-label="Create broadcast"
+      >
+        <PlusCircle className="h-7 w-7" strokeWidth={2} />
+      </NavLink>
+
+      {/* Dock */}
+      <div
+        className={cn(
+          'pointer-events-auto flex items-center justify-center gap-1',
+          'mx-4 mb-3 px-2 py-2 rounded-2xl',
+          'bg-surface/85 backdrop-blur-2xl',
+          'border border-white/[0.06]',
+          'shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.04)]',
+          'max-w-xs w-full'
+        )}
+      >
         {TABS.map((tab) => {
           const isActive =
             pathname === tab.to ||
@@ -54,55 +74,37 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
               aria-label={tab.label}
               className={cn(
                 'relative flex flex-col items-center justify-center gap-0.5',
-                'min-h-[48px] min-w-[48px] px-3 py-1 rounded-xl',
+                'flex-1 min-h-[44px] px-3 py-1.5 rounded-xl',
                 'transition-all duration-200 select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                'active:scale-95 active:opacity-80',
+                'active:scale-95',
                 isActive
-                  ? tab.isCreate
-                    ? 'text-cyan scale-105'
-                    : 'text-primary scale-105'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:text-foreground/80'
               )}
             >
               {/* Active pill background */}
               {isActive && (
-                <span
-                  className={cn(
-                    'absolute inset-0 rounded-xl pointer-events-none',
-                    tab.isCreate ? 'bg-cyan/10' : 'bg-primary/10'
-                  )}
-                />
+                <span className="absolute inset-0 rounded-xl bg-primary/10 pointer-events-none" />
               )}
 
               <Icon
                 className={cn(
                   'transition-all duration-200',
-                  tab.isCreate ? 'h-[26px] w-[26px]' : 'h-6 w-6',
-                  isActive &&
-                    (tab.isCreate
-                      ? 'drop-shadow-[0_0_8px_hsl(var(--cyan)/0.5)]'
-                      : 'drop-shadow-[0_0_6px_hsl(var(--primary)/0.55)]')
+                  'h-[22px] w-[22px]',
+                  isActive
+                    ? 'drop-shadow-[0_0_6px_hsl(var(--brand-kawasaki)/0.5)]'
+                    : ''
                 )}
                 strokeWidth={isActive ? 2.5 : 1.5}
-                fill={
-                  isActive
-                    ? tab.isCreate
-                      ? 'hsl(var(--cyan) / 0.15)'
-                      : 'hsl(var(--primary) / 0.12)'
-                    : 'none'
-                }
+                fill={isActive ? 'hsl(var(--primary) / 0.12)' : 'none'}
                 aria-hidden="true"
               />
 
               <span
                 className={cn(
-                  'text-[10px] font-medium transition-colors duration-200',
-                  isActive
-                    ? tab.isCreate
-                      ? 'text-cyan'
-                      : 'text-primary'
-                    : 'text-muted-foreground'
+                  'text-[10px] font-semibold transition-colors duration-200',
+                  isActive ? 'text-primary' : 'text-muted-foreground'
                 )}
               >
                 {tab.label}

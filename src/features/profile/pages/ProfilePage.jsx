@@ -84,7 +84,7 @@ function ProfilePage() {
   }
 
   return (
-    <div className="px-5 pt-5 pb-8">
+    <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
       <AnimatePresence mode="wait">
         {editing ? (
           <motion.div
@@ -104,148 +104,156 @@ function ProfilePage() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
           >
-          {/* Identity Card */}
-          <div className="rr-surface-strong relative mb-4 overflow-hidden rounded-[1.45rem] p-5">
-            <div className="pointer-events-none absolute right-[-10%] top-[-20%] h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
-            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-primary/15" />
-            <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+            {/* Profile Header */}
+            <div className="relative mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6">
+              <div className="pointer-events-none absolute right-[-10%] top-[-20%] h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
+              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border border-primary/15" />
+              <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
-            <div className="relative z-10 flex items-start gap-4">
-              {displayProfile?.avatar_url && !avatarError ? (
-                <div className="rr-avatar-ring shrink-0">
-                  <OptimizedImage
-                    src={displayProfile.avatar_url}
-                    alt=""
-                    containerClassName="h-[4.5rem] w-[4.5rem] shrink-0 rounded-full border border-primary/30 shadow-[0_0_18px_rgba(0,0,0,0.48)]"
-                    className="rounded-full"
-                    objectFit="cover"
-                    loading="eager"
-                    fetchPriority="high"
-                    fadeInDuration={200}
-                    showSkeleton
-                    onError={() => setAvatarError(true)}
-                  />
+              <div className="relative z-10 flex flex-col items-center text-center">
+                {/* Avatar */}
+                <div className="relative mb-4">
+                  {displayProfile?.avatar_url && !avatarError ? (
+                    <div className="rounded-full bg-gradient-to-br from-primary/40 to-primary/10 p-[3px] shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+                      <OptimizedImage
+                        src={displayProfile.avatar_url}
+                        alt=""
+                        containerClassName="h-24 w-24 shrink-0 rounded-full"
+                        className="rounded-full"
+                        objectFit="cover"
+                        loading="eager"
+                        fetchPriority="high"
+                        fadeInDuration={200}
+                        showSkeleton
+                        onError={() => setAvatarError(true)}
+                      />
+                    </div>
+                  ) : (
+                    <div className="rounded-full bg-gradient-to-br from-primary/40 to-primary/10 p-[3px] shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+                      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/70 font-display text-3xl font-bold text-primary-foreground">
+                        {displayProfile?.display_name?.[0]?.toUpperCase() || '?'}
+                      </div>
+                    </div>
+                  )}
+                  {/* Online indicator */}
+                  <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-[hsl(220_20%_7%)] bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
                 </div>
-              ) : (
-                <div className="rr-avatar-ring shrink-0">
-                  <div className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-full border border-primary/20 bg-gradient-to-br from-primary to-primary/70 font-display text-2xl font-bold text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.26)]">
-                    {displayProfile?.display_name?.[0]?.toUpperCase() || '?'}
-                  </div>
-                </div>
-              )}
-              <div className="min-w-0 flex-1 pt-1">
-                <div className="rr-kicker mb-1">Rider ID</div>
-                <div className="flex min-w-0 items-start gap-2">
-                  <h1 className="min-w-0 break-words font-display text-[clamp(1.15rem,5vw,1.65rem)] font-extrabold leading-tight tracking-[-0.04em] [overflow-wrap:anywhere]">
-                    {displayProfile?.display_name || user?.email}
-                  </h1>
-                </div>
+
+                {/* Name & Username */}
+                <h1 className="font-display text-[clamp(1.25rem,5vw,1.75rem)] font-extrabold leading-tight tracking-[-0.04em]">
+                  {displayProfile?.display_name || user?.email}
+                </h1>
                 {displayProfile?.username && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">@{displayProfile.username}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">@{displayProfile.username}</p>
+                )}
+
+                {/* Edit button */}
+                <button
+                  onClick={() => setEditing(true)}
+                  className="mt-4 flex items-center gap-2 rounded-full border border-border/60 bg-secondary/50 px-5 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground active:scale-95 min-h-[44px]"
+                >
+                  <Edit2 className="h-4 w-4" />
+                  Edit Profile
+                </button>
+              </div>
+
+              {/* Stats Row */}
+              <div className="relative z-10 mt-6 grid grid-cols-3 gap-3">
+                <RiderMetric icon={Radio} label="Signals" value={active.length} />
+                <RiderMetric icon={Users} label="Pack" value={connectionsCount} />
+                <RiderMetric icon={ShieldCheck} label="Status" value={displayProfile?.is_public === false ? 'Private' : 'Public'} />
+              </div>
+            </div>
+
+            {/* Bio Card */}
+            {displayProfile?.bio && (
+              <div className="mb-4 rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5">
+                <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Rider note</div>
+                <p className="text-[15px] leading-relaxed text-foreground/90">{displayProfile.bio}</p>
+              </div>
+            )}
+
+            {/* Bike Info Card */}
+            {bikeLabel && (
+              <div className="mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)]">
+                {displayProfile.bike_photo_url && (
+                  <div className="relative h-48 border-b border-border/60 bg-background/40">
+                    <OptimizedImage
+                      src={displayProfile.bike_photo_url}
+                      alt="Bike"
+                      containerClassName="h-full w-full"
+                      objectFit="cover"
+                      loading="lazy"
+                      showSkeleton
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                    <div className="absolute bottom-4 left-5 right-5">
+                      <div className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Machine</div>
+                      <div className="font-display text-lg font-bold text-white drop-shadow-lg">{bikeLabel}</div>
+                    </div>
+                  </div>
+                )}
+                {!displayProfile.bike_photo_url && (
+                  <div className="flex items-center gap-4 p-5">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+                      <Bike className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Machine</div>
+                      <div className="mt-0.5 font-display text-base font-bold">{bikeLabel}</div>
+                    </div>
+                  </div>
                 )}
               </div>
-              <button
-                onClick={() => setEditing(true)}
-                className="rr-haptic rounded-full border border-border/50 bg-secondary/50 p-2.5 min-h-[44px] min-w-[44px] text-muted-foreground shadow-sm transition-all hover:bg-secondary hover:text-foreground flex items-center justify-center"
-              >
-                <Edit2 className="h-4 w-4" />
-              </button>
-            </div>
+            )}
 
-            {/* Dashboard Gauges */}
-            <div className="relative z-10 mt-5 grid grid-cols-3 gap-2">
-              <RiderMetric icon={Radio} label="Signals" value={active.length} />
-              <RiderMetric icon={Users} label="Pack" value={connectionsCount} />
-              <RiderMetric icon={ShieldCheck} label="Status" value={displayProfile?.is_public === false ? 'Private' : 'Public'} />
-            </div>
-          </div>
-
-          {/* Bio Card */}
-          {displayProfile?.bio && (
-            <div className="rr-surface mb-3 rounded-2xl p-4">
-              <div className="rr-kicker mb-2 text-muted-foreground">Rider note</div>
-              <p className="text-[15px] leading-relaxed text-foreground/90">{displayProfile.bio}</p>
-            </div>
-          )}
-
-          {/* Cinematic Bike Photo */}
-          {bikeLabel && (
-            <div className="rr-surface mb-4 overflow-hidden rounded-2xl">
-              {displayProfile.bike_photo_url && (
-                <div className="relative h-44 border-b border-border/60 bg-background/40">
-                  <OptimizedImage
-                    src={displayProfile.bike_photo_url}
-                    alt="Bike"
-                    containerClassName="h-full w-full"
-                    objectFit="cover"
-                    loading="lazy"
-                    showSkeleton
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                  <div className="absolute bottom-3 left-4 right-4">
-                    <div className="rr-kicker mb-1 text-primary">Machine</div>
-                    <div className="font-display text-lg font-bold text-white drop-shadow-lg">{bikeLabel}</div>
-                  </div>
-                </div>
-              )}
-              {!displayProfile.bike_photo_url && (
-                <div className="flex items-center gap-3 p-4 text-sm">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
-                    <Bike className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="font-medium">{bikeLabel}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="mb-5 flex gap-2">
-            <Link to="/settings" className="flex-1">
+            {/* Action Buttons */}
+            <div className="mb-6 flex gap-3">
+              <Link to="/settings" className="flex-1">
+                <Button
+                  variant="outline"
+                  className="h-12 w-full rounded-full border-border/60 bg-[hsl(220_20%_7%)] transition-all hover:border-primary/30 hover:bg-primary/5 active:scale-95"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Button>
+              </Link>
               <Button
                 variant="outline"
-                className="h-11 w-full rounded-full border-primary/20 transition-all hover:border-primary/40 hover:bg-primary/5"
+                className="h-12 w-12 rounded-full border-destructive/30 text-destructive transition-all hover:bg-destructive/10 active:scale-95 flex items-center justify-center"
+                onClick={() => signOut()}
               >
-                <Settings className="mr-1.5 h-4 w-4" />
-                Settings
+                <LogOut className="h-4 w-4" />
               </Button>
-            </Link>
-            <Button
-              variant="outline"
-              className="h-11 w-11 rounded-full border-primary/20 transition-all hover:border-primary/40 hover:bg-primary/5 flex items-center justify-center"
-              onClick={() => signOut()}
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
+            </div>
 
-          {/* Signal Log */}
-          <div className="mb-3 flex items-center justify-between px-1">
-            <h2 className="rr-kicker text-muted-foreground">Active broadcasts</h2>
-            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-              <span className="h-1.5 w-1.5 animate-pulse-green rounded-full bg-primary" />
-              Signal log
-            </span>
-          </div>
-          {broadcastsFailed ? (
-            <div className="rr-surface rounded-[20px] p-4 text-sm text-muted-foreground">
-              <h3 className="mb-1 font-display text-base font-bold text-foreground">Broadcasts unavailable</h3>
-              <p>{broadcastsError?.message || 'Your profile is available, but active broadcasts could not be loaded.'}</p>
+            {/* Signal Log */}
+            <div className="mb-4 flex items-center justify-between px-1">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Active broadcasts</h2>
+              <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                <span className="h-1.5 w-1.5 animate-pulse-green rounded-full bg-primary" />
+                Signal log
+              </span>
             </div>
-          ) : active.length === 0 ? (
-            <div className="rr-surface rounded-xl border border-dashed border-border/60 bg-transparent py-8 text-center text-sm text-muted-foreground">
-              <RRLogo size="sm" className="mx-auto mb-2 opacity-50" />
-              No active broadcasts
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {active.map((b) => (
-                <BroadcastCard key={b.id} broadcast={b} author={displayProfile} />
-              ))}
-            </div>
-          )}
-        </motion.div>
-      )}
+            {broadcastsFailed ? (
+              <div className="rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5 text-sm text-muted-foreground">
+                <h3 className="mb-1 font-display text-base font-bold text-foreground">Broadcasts unavailable</h3>
+                <p>{broadcastsError?.message || 'Your profile is available, but active broadcasts could not be loaded.'}</p>
+              </div>
+            ) : active.length === 0 ? (
+              <div className="rounded-[20px] border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
+                <RRLogo size="sm" className="mx-auto mb-3 opacity-50" />
+                No active broadcasts
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {active.map((b) => (
+                  <BroadcastCard key={b.id} broadcast={b} author={displayProfile} />
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
@@ -253,11 +261,11 @@ function ProfilePage() {
 
 const RiderMetric = memo(function RiderMetric({ icon: Icon, label, value }) {
   return (
-    <div className="relative min-w-0 overflow-hidden rounded-2xl border border-border/60 bg-black/30 p-3 backdrop-blur-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-black/30 p-3 backdrop-blur-sm">
       <div className="absolute right-2 top-2 h-1.5 w-1.5 animate-pulse-green rounded-full bg-primary/60" />
       <div className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
         <span className="flex h-6 w-6 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
-          <Icon className="h-3.5 w-3.5 drop-shadow-[0_0_4px_currentColor]" />
+          <Icon className="h-3.5 w-3.5" />
         </span>
         {label}
       </div>
@@ -269,5 +277,3 @@ const RiderMetric = memo(function RiderMetric({ icon: Icon, label, value }) {
 });
 
 export default memo(ProfilePage);
-
-

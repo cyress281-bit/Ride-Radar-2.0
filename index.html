@@ -4,12 +4,14 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://media.base44.com" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- PWA Meta Tags -->
     <meta name="description" content="Social network for motorcyclists - find rides, connect with riders, and stay safe on the road" />
-    <meta name="theme-color" content="#beff00" />
+    <meta name="theme-color" content="#080a0f" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Ride Radar" />
@@ -18,21 +20,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Emergency cache purge: force clear old service workers and caches -->
-    <script>
-      (function () {
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function (regs) {
-            regs.forEach(function (reg) { reg.unregister(); });
-          });
-        }
-        if ('caches' in window) {
-          caches.keys().then(function (names) {
-            names.forEach(function (name) { caches.delete(name); });
-          });
-        }
-      })();
-    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

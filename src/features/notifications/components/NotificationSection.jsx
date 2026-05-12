@@ -11,7 +11,7 @@ import NotificationItem from '@/features/notifications/components/NotificationIt
 export default function NotificationSection({ title, notifications, onMarkRead }) {
   return (
     <div className="mb-6">
-      <div className="rr-kicker mb-2 px-1 text-muted-foreground">{title}</div>
+      <div className="mb-2 px-1 text-[11px] font-medium uppercase tracking-wider text-[hsl(220_8%_52%)]">{title}</div>
       <div className="space-y-2">
         {notifications.map((n, index) => (
           <div

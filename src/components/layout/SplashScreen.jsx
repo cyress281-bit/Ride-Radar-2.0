@@ -4,11 +4,11 @@ import { cn } from '@/lib/utils';
 
 const NEON = 'hsl(var(--primary))';
 const GRID = 'hsl(var(--surface))';
-const TOTAL = 3200;
-const SAFETY = 5000;
+const TOTAL = 2800;
+const SAFETY = 4500;
 const FADE = 400;
 const EKG_PATH = 'M0 60 L50 60 L58 54 L66 66 L74 60 L82 55 L90 65 L100 10 L120 100 L140 60 L300 60';
-const LINES = ['RIDE RADAR v2.0', 'ESTABLISHING UPLINK...', 'PULSE DETECTED'];
+const LINES = ['RIDE RADAR', 'YAMAHA · KAWASAKI · HONDA', 'RIDERS CONNECTED'];
 
 export default function SplashScreen({ visible, onComplete, isReady = true }) {
   const reduceMotion = useReducedMotion();

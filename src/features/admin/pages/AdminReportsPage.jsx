@@ -38,7 +38,7 @@ export default function AdminReportsPage() {
           </div>
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-40 w-full" />
+              <Skeleton key={i} className="h-40 w-full rounded-[20px]" />
             ))}
           </div>
         </AdminLayout>
@@ -242,7 +242,7 @@ function AdminReportsContent() {
           return (
             <div
               key={report.id}
-              className="rounded-2xl border border-border bg-surface p-4"
+              className="rounded-[20px] border border-border bg-surface p-4 transition hover:bg-surface-elevated"
             >
               <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 <span className="rounded-full bg-primary/10 px-2 py-1 font-bold uppercase tracking-wider text-primary">
@@ -265,7 +265,7 @@ function AdminReportsContent() {
               </div>
 
               {report.details && (
-                <p className="mt-3 whitespace-pre-wrap rounded-2xl bg-secondary/50 p-3 text-sm text-muted-foreground">
+                <p className="mt-3 whitespace-pre-wrap rounded-[20px] bg-secondary/50 p-3 text-sm text-muted-foreground">
                   {report.details}
                 </p>
               )}
@@ -274,6 +274,7 @@ function AdminReportsContent() {
                 <Button
                   size="sm"
                   variant="outline"
+                  className="rounded-full"
                   onClick={() =>
                     setStatus.mutate({
                       id: report.id,
@@ -288,6 +289,7 @@ function AdminReportsContent() {
                 <Button
                   size="sm"
                   variant="outline"
+                  className="rounded-full"
                   onClick={() =>
                     setStatus.mutate({
                       id: report.id,
@@ -301,6 +303,7 @@ function AdminReportsContent() {
                 </Button>
                 <Button
                   size="sm"
+                  className="rounded-full"
                   onClick={() =>
                     setStatus.mutate({
                       id: report.id,
@@ -318,6 +321,7 @@ function AdminReportsContent() {
                     <Button
                       size="sm"
                       variant="destructive"
+                      className="rounded-full"
                       disabled={removeContent.isPending || makeProfilePrivate.isPending}
                     >
                       <Trash2 className="mr-1 h-3.5 w-3.5" />
@@ -363,7 +367,7 @@ function AdminReportsContent() {
         })}
 
         {reportsData.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-[20px] border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             <ShieldAlert className="mx-auto mb-2 h-6 w-6 text-primary" />
             No reports submitted.
           </div>

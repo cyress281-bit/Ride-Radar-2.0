@@ -24,9 +24,9 @@ export default function AdminNotificationsPage() {
             <Skeleton className="h-7 w-32" />
           </div>
           <div className="mx-auto max-w-xl space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-11 w-full" />
+            <Skeleton className="h-10 w-full rounded-[20px]" />
+            <Skeleton className="h-32 w-full rounded-[20px]" />
+            <Skeleton className="h-11 w-full rounded-[20px]" />
           </div>
         </AdminLayout>
       }
@@ -95,7 +95,7 @@ function AdminNotificationsContent() {
         </Button>
 
         {broadcast.isSuccess && (
-          <div className="flex items-center gap-2 rounded-xl border border-success/20 bg-success/10 p-3 text-sm text-success">
+          <div className="flex items-center gap-2 rounded-[20px] border border-success/20 bg-success/10 p-3 text-sm text-success">
             <Check className="h-4 w-4" />
             <div>
               <p className="font-medium">Announcement sent successfully.</p>
@@ -110,7 +110,7 @@ function AdminNotificationsContent() {
         )}
 
         {broadcast.isError && (
-          <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="flex items-center gap-2 rounded-[20px] border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
             <AlertCircle className="h-4 w-4" />
             Error: {broadcast.error?.message || 'Failed to send announcement'}
           </div>

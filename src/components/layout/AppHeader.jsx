@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Bell, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -29,19 +29,14 @@ function getPageTitle(pathname) {
 }
 
 /**
- * AppHeader — Premium minimal header bar.
+ * AppHeader — Premium scroll-aware header.
  *
- * Layout:
- * - Left: RRLogo icon only (links to /home), pulse glow on radar
- * - Center: Page title (non-radar) or LIVE indicator (radar)
- * - Right: Admin dot (conditional), Notifications bell with badge, Avatar
- *
- * Modes:
- * - Normal: sticky with bg-surface/80
- * - Radar (/home): transparent bg-black/40
- *
- * @param {boolean} [isOverlay=false]
- * @returns {JSX.Element}
+ * Design:
+ * - Transparent when at top, glassmorphism blur when scrolled
+ * - Compact 56px height
+ * - Left: Logo icon
+ * - Center: Page title or LIVE indicator
+ * - Right: Notifications + Avatar
  */
 const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { pathname } = useLocation();
@@ -52,45 +47,52 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const isTransparent = isOverlay || isRadar;
   const pageTitle = getPageTitle(pathname);
 
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    if (isTransparent) return;
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [isTransparent]);
+
   const avatarUrl = profile?.avatar_url;
   const displayName = profile?.display_name || profile?.username || 'Rider';
 
   return (
     <header
       className={cn(
-        'z-40 pt-safe select-none',
+        'fixed top-0 left-0 right-0 z-40 pt-safe select-none transition-all duration-300',
         isTransparent
-          ? 'bg-black/40 backdrop-blur-xl border-b border-white/5'
-          : 'bg-surface/80 backdrop-blur-xl border-b border-border'
+          ? 'bg-black/30 backdrop-blur-md'
+          : scrolled
+            ? 'bg-background/80 backdrop-blur-xl border-b border-white/[0.04]'
+            : 'bg-transparent'
       )}
     >
-      <div className="mx-auto px-4 h-14 md:h-16 flex items-center justify-between max-w-2xl">
+      <div className="mx-auto px-4 h-14 flex items-center justify-between max-w-2xl">
         {/* Left: Logo */}
         <NavLink
           to="/home"
-          className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 active:opacity-80 transition-all duration-150 will-change-transform"
+          className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 transition-all duration-150 will-change-transform"
           aria-label="Ride Radar home"
         >
-          <RRLogo
-            size="md"
-            glow={isRadar}
-            className={cn(isRadar && 'animate-pulse')}
-          />
+          <RRLogo size="md" glow={isRadar} className={cn(isRadar && 'animate-pulse')} />
         </NavLink>
 
         {/* Center: Page context */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none">
           {isRadar ? (
-            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-red-400">
+            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-honda">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-honda opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-honda" />
               </span>
               LIVE
             </span>
           ) : (
             pageTitle && (
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/60">
+              <span className="text-sm font-bold tracking-tight text-foreground">
                 {pageTitle}
               </span>
             )
@@ -98,11 +100,11 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-3" role="group" aria-label="Header actions">
+        <div className="flex items-center gap-1" role="group" aria-label="Header actions">
           {isAdmin && (
             <NavLink
               to="/admin"
-              className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95 active:opacity-80 will-change-transform"
+              className="flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-95"
               aria-label="Admin panel"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
@@ -113,10 +115,10 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             to="/notifications"
             className={({ isActive }) =>
               cn(
-                'relative flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-all duration-150 will-change-transform',
+                'relative flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                'active:scale-95 active:opacity-80',
-                isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                'active:scale-95',
+                isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
               )
             }
             aria-label="Notifications"
@@ -124,7 +126,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
             {unreadCount > 0 && (
               <span
-                className="absolute top-2.5 right-2.5 h-1.5 w-1.5 rounded-full bg-primary"
+                className="absolute top-2 right-2 h-2 w-2 rounded-full bg-brand-honda ring-2 ring-background"
                 aria-hidden="true"
               />
             )}
@@ -134,19 +136,19 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             to="/profile"
             className={({ isActive }) =>
               cn(
-                'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full transition-all duration-150 will-change-transform',
+                'flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                'active:scale-95 active:opacity-80',
-                isActive && 'ring-1 ring-primary/50'
+                'active:scale-95',
+                isActive && 'ring-1 ring-primary/40'
               )
             }
             aria-label="My profile"
           >
-            <Avatar className="h-7 w-7">
+            <Avatar className="h-7 w-7 border border-white/10">
               {avatarUrl ? (
                 <AvatarImage src={avatarUrl} alt={displayName} />
               ) : null}
-              <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+              <AvatarFallback className="bg-surface text-muted-foreground text-xs font-bold">
                 <User className="h-3.5 w-3.5" />
               </AvatarFallback>
             </Avatar>

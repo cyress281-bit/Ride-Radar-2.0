@@ -22,10 +22,10 @@ export default function AdminHealthPage() {
             <h2 className="font-display text-xl font-bold">System Health</h2>
             <p className="text-sm text-muted-foreground">Running checks...</p>
           </div>
-          <Skeleton className="mb-4 h-32 w-full" />
+          <Skeleton className="mb-4 h-32 w-full rounded-[20px]" />
           <div className="grid gap-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 w-full" />
+              <Skeleton key={i} className="h-20 w-full rounded-[20px]" />
             ))}
           </div>
         </AdminLayout>
@@ -208,7 +208,7 @@ function AdminHealthContent() {
       </div>
 
       {/* Overall status */}
-      <Card className={cn('rr-surface border-l-4', allPass ? 'border-l-success' : 'border-l-destructive')}>
+      <Card className={cn('rr-surface rounded-[20px] border-l-4', allPass ? 'border-l-success' : 'border-l-destructive')}>
         <CardContent className="flex items-center gap-4 py-6">
           {allPass ? (
             <CheckCircle className="h-8 w-8 text-success" />
@@ -229,7 +229,7 @@ function AdminHealthContent() {
       {/* Individual checks */}
       <div className="mt-4 grid gap-3">
         {checks.map((check) => (
-          <Card key={check.name} className="rr-surface">
+          <Card key={check.name} className={cn('rr-surface', 'rounded-[20px]')}>
             <CardContent className="flex items-center justify-between py-4">
               <div className="flex items-center gap-3">
                 {check.status === 'pass' ? (

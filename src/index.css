@@ -1,9 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 /* ================================================================
    RIDE RADAR 2.0 — GLOBAL DESIGN SYSTEM
    Tailwind CSS 3.4 + tailwindcss-animate
-   Dark-only | Neon green tactical/radar aesthetic
+   Dark-only | Premium Motorcycle OEM Aesthetic
+   Yamaha Blue · Kawasaki Green · Honda Red · Ducati Gold
    ================================================================ */
 
 /* ------------------------------------------------------------------
@@ -18,75 +20,85 @@
    ------------------------------------------------------------------ */
 @layer base {
   :root {
-    /* Surfaces — deep charcoal, not pure black */
-    --background: 240 20% 4%;
-    --foreground: 0 0% 98%;
-    --surface: 240 18% 8%;
-    --surface-elevated: 240 16% 11%;
+    /* ============================================================
+       BRAND IDENTITY TOKENS
+       Kawasaki Green · Yamaha Blue · Honda Red · Ducati Gold
+       ============================================================ */
+    --brand-kawasaki: 88 100% 37%;
+    --brand-yamaha: 197 100% 47%;
+    --brand-honda: 356 95% 45%;
+    --brand-ducati: 44 100% 50%;
 
-    /* Primary — electric lime green #39FF14 */
-    --primary: 110 100% 54%;
-    --primary-foreground: 240 20% 4%;
-    --primary-dim: 110 100% 54%;
+    /* Surfaces — deep carbon navy, like a motorcycle TFT dash */
+    --background: 220 25% 4%;
+    --foreground: 0 0% 96%;
+    --surface: 220 20% 7%;
+    --surface-elevated: 220 18% 10%;
+
+    /* Primary — Kawasaki Green (#6BBF00) */
+    --primary: 88 100% 37%;
+    --primary-foreground: 220 25% 4%;
+    --primary-dim: 88 100% 37%;
 
     /* Secondary & muted */
-    --secondary: 240 12% 14%;
+    --secondary: 220 14% 12%;
     --secondary-foreground: 0 0% 85%;
-    --muted: 240 10% 18%;
-    --muted-foreground: 240 5% 55%;
+    --muted: 220 12% 18%;
+    --muted-foreground: 220 8% 52%;
 
     /* Borders & inputs */
-    --border: 240 10% 20%;
-    --input: 240 10% 18%;
-    --ring: 110 100% 54%;
+    --border: 220 12% 16%;
+    --input: 220 12% 18%;
+    --ring: 88 100% 37%;
     --radius: 0.75rem;
 
     /* Extended semantic surfaces */
-    --card: 240 16% 6%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 14% 9%;
-    --popover-foreground: 0 0% 98%;
-    --accent: 240 60% 12%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 340 80% 58%;
-    --destructive-foreground: 0 0% 98%;
+    --card: 220 18% 6%;
+    --card-foreground: 0 0% 96%;
+    --popover: 220 16% 9%;
+    --popover-foreground: 0 0% 96%;
+    --accent: 220 50% 12%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 356 95% 45%;
+    --destructive-foreground: 0 0% 96%;
 
-    /* Radar accent — electric cyan */
-    --cyan: 186 100% 50%;
-    --cyan-foreground: 240 20% 4%;
-    --cyan-dim: 186 100% 50%;
+    /* Yamaha Blue — info, ISO, tech elements (#00AEEF) */
+    --cyan: 197 100% 47%;
+    --cyan-foreground: 220 25% 4%;
+    --cyan-dim: 197 100% 47%;
 
-    /* Event accent — warm amber */
-    --amber: 43 100% 50%;
-    --amber-foreground: 240 20% 4%;
-    --amber-dim: 43 100% 50%;
+    /* Ducati Gold — events, premium, highlights (#FFB800) */
+    --amber: 44 100% 50%;
+    --amber-foreground: 220 25% 4%;
+    --amber-dim: 44 100% 50%;
 
     /* Semantic status colors */
-    --success: 142 71% 45%;
+    --success: 142 76% 36%;
     --success-foreground: 0 0% 4%;
-    --warning: 43 100% 50%;
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 4%;
-    --info: 186 100% 50%;
-    --info-foreground: 240 20% 4%;
+    --info: 197 100% 47%;
+    --info-foreground: 220 25% 4%;
 
-    /* Pulse accent — heartbeat red/pink */
-    --pulse: 345 100% 60%;
-    --pulse-foreground: 0 0% 98%;
-    --pulse-dim: 345 100% 60%;
+    /* Honda Red — alerts, danger, pulse (#E30613) */
+    --pulse: 356 95% 45%;
+    --pulse-foreground: 0 0% 96%;
+    --pulse-dim: 356 95% 45%;
 
     /* Broadcast type colors */
-    --alert: 345 100% 60%;
-    --alert-foreground: 0 0% 98%;
-    --solo: 142 71% 45%;
+    --alert: 356 95% 45%;
+    --alert-foreground: 0 0% 96%;
+    --solo: 88 100% 37%;
     --solo-foreground: 0 0% 4%;
-    --iso: 217 91% 60%;
-    --iso-foreground: 0 0% 98%;
-    --event: 43 100% 50%;
+    --iso: 197 100% 47%;
+    --iso-foreground: 0 0% 96%;
+    --event: 44 100% 50%;
     --event-foreground: 0 0% 4%;
 
     /* Typography */
     --font-sans: Inter, system-ui, sans-serif;
     --font-display: Inter, system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", monospace;
   }
 }
 
@@ -115,6 +127,11 @@
     text-rendering: optimizeLegibility;
     overscroll-behavior-y: none;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Monospace font utility */
+  .font-mono-data {
+    font-family: var(--font-mono);
   }
 
   /* Prevent iOS zoom on input focus — base font-size must be 16px+ */
@@ -343,27 +360,53 @@
     opacity: 0.65;
   }
 
-  .text-gradient-green {
-    background: linear-gradient(135deg, hsl(75 100% 60%), hsl(75 100% 40%));
+  .text-gradient-brand {
+    background: linear-gradient(135deg, hsl(88 100% 45%), hsl(88 100% 30%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .text-glow-green {
-    text-shadow: 0 0 18px hsl(var(--primary) / 0.55), 0 0 40px hsl(var(--primary) / 0.22);
+  .text-glow-kawasaki {
+    text-shadow: 0 0 18px hsl(var(--brand-kawasaki) / 0.55), 0 0 40px hsl(var(--brand-kawasaki) / 0.22);
   }
 
-  .glow-green {
-    box-shadow:
-      0 0 12px 0 hsl(var(--primary) / 0.45),
-      0 0 28px 0 hsl(var(--primary) / 0.18);
+  .text-glow-yamaha {
+    text-shadow: 0 0 18px hsl(var(--brand-yamaha) / 0.55), 0 0 40px hsl(var(--brand-yamaha) / 0.22);
   }
 
-  .glow-green-sm {
+  .text-glow-honda {
+    text-shadow: 0 0 18px hsl(var(--brand-honda) / 0.55), 0 0 40px hsl(var(--brand-honda) / 0.22);
+  }
+
+  .glow-kawasaki {
     box-shadow:
-      0 0 8px 0 hsl(var(--primary) / 0.35),
-      0 0 18px 0 hsl(var(--primary) / 0.12);
+      0 0 12px 0 hsl(var(--brand-kawasaki) / 0.45),
+      0 0 28px 0 hsl(var(--brand-kawasaki) / 0.18);
+  }
+
+  .glow-kawasaki-sm {
+    box-shadow:
+      0 0 8px 0 hsl(var(--brand-kawasaki) / 0.35),
+      0 0 18px 0 hsl(var(--brand-kawasaki) / 0.12);
+  }
+
+  .glow-yamaha {
+    box-shadow:
+      0 0 12px 0 hsl(var(--brand-yamaha) / 0.45),
+      0 0 28px 0 hsl(var(--brand-yamaha) / 0.18);
+  }
+
+  .glow-honda {
+    box-shadow:
+      0 0 12px 0 hsl(var(--brand-honda) / 0.45),
+      0 0 28px 0 hsl(var(--brand-honda) / 0.18);
+  }
+
+  .glow-ducati {
+    box-shadow:
+      0 0 12px 0 hsl(var(--brand-ducati) / 0.45),
+      0 0 28px 0 hsl(var(--brand-ducati) / 0.18);
   }
 
   /* ---------- Scroll hide ---------- */

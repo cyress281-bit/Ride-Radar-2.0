@@ -34,13 +34,13 @@ export default function AdminMonitoringPage() {
           </div>
           <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 w-full" />
+              <Skeleton key={i} className="h-28 w-full rounded-[20px]" />
             ))}
           </div>
-          <Skeleton className="mb-6 h-48 w-full" />
+          <Skeleton className="mb-6 h-48 w-full rounded-[20px]" />
           <div className="space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 w-full" />
+              <Skeleton key={i} className="h-20 w-full rounded-[20px]" />
             ))}
           </div>
         </AdminLayout>
@@ -205,7 +205,15 @@ function MonitoringContent() {
         {statCards.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-2xl border border-border bg-surface p-4"
+            className={cn(
+              'rounded-[20px] border border-border bg-surface p-4 transition hover:bg-surface-elevated',
+              'border-t-2',
+              stat.label === 'Active Users' && 'border-t-brand-kawasaki',
+              stat.label === 'Broadcasts Today' && 'border-t-brand-yamaha',
+              stat.label === 'Messages Today' && 'border-t-brand-kawasaki',
+              stat.label === 'Connections Today' && 'border-t-brand-ducati',
+              stat.label === 'Reports Today' && 'border-t-brand-honda'
+            )}
           >
             <div className="mb-2 flex items-center justify-between">
               <stat.icon className={cn('h-5 w-5', stat.color)} />
@@ -223,7 +231,7 @@ function MonitoringContent() {
 
       {/* Performance Metrics */}
       {perfData && (
-        <div className="mb-6 rounded-2xl border border-border bg-surface p-4">
+        <div className="mb-6 rounded-[20px] border border-border bg-surface p-4">
           <div className="mb-3 flex items-center gap-2">
             <Zap className="h-4 w-4 text-amber" />
             <h2 className="text-sm font-bold">Client Performance</h2>
@@ -282,7 +290,7 @@ function MonitoringContent() {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 transition hover:border-primary/35"
+              className="flex items-center gap-3 rounded-[20px] border border-border bg-surface p-4 transition hover:bg-surface-elevated hover:border-primary/35"
             >
               <ExternalLink className="h-4 w-4 flex-shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
@@ -295,7 +303,7 @@ function MonitoringContent() {
           ))}
       </div>
 
-      <div className="rounded-2xl border border-border bg-secondary/50 p-4 text-xs text-muted-foreground">
+      <div className="rounded-[20px] border border-border bg-secondary/50 p-4 text-xs text-muted-foreground">
         <div className="mb-1 font-bold">About this dashboard</div>
         Real-time metrics are pulled from Supabase every 30 seconds. Performance
         data is measured client-side using the Web Vitals API. External

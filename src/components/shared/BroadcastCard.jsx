@@ -12,28 +12,28 @@ import SafetyActions from '@/components/safety/SafetyActions';
 const typeStyles = {
   alert: {
     card: 'rr-surface border-l-[3px] border-l-alert border-alert/20 hover:border-alert/60 shadow-[0_16px_55px_-20px_hsl(var(--alert)/0.45)] hover:shadow-[0_22px_70px_-22px_hsl(var(--alert)/0.55)]',
-    badge: 'bg-alert text-alert-foreground',
+    badge: 'bg-alert text-white',
     icon: 'bg-alert/10 text-alert shadow-[0_0_15px_hsl(var(--alert)/0.3)]',
     labelColor: 'text-alert',
     leftGlow: 'shadow-[-4px_0_14px_hsl(var(--alert)/0.35)]',
   },
   solo_ride: {
-    card: 'rr-surface border-l-[3px] border-l-solo border-solo/15 hover:border-solo/50 shadow-[0_16px_55px_-20px_hsl(var(--solo)/0.28)] hover:shadow-[0_22px_70px_-24px_hsl(var(--solo)/0.45)]',
-    badge: 'bg-solo text-solo-foreground',
+    card: 'rr-surface border-l-[3px] border-l-solo border-solo/15 hover:border-solo/50 shadow-[0_16px_55px_-20px_hsl(var(--solo)/0.3)] hover:shadow-[0_22px_70px_-24px_hsl(var(--solo)/0.45)]',
+    badge: 'bg-solo text-white',
     icon: 'bg-solo/10 text-solo shadow-[0_0_15px_hsl(var(--solo)/0.3)]',
     labelColor: 'text-solo',
     leftGlow: 'shadow-[-4px_0_14px_hsl(var(--solo)/0.3)]',
   },
   iso: {
-    card: 'rr-surface border-l-[3px] border-l-iso border-iso/15 hover:border-iso/50 shadow-[0_16px_55px_-20px_hsl(var(--iso)/0.25)] hover:shadow-[0_22px_70px_-24px_hsl(var(--iso)/0.4)]',
-    badge: 'bg-iso text-iso-foreground',
+    card: 'rr-surface border-l-[3px] border-l-iso border-iso/15 hover:border-iso/50 shadow-[0_16px_55px_-20px_hsl(var(--iso)/0.28)] hover:shadow-[0_22px_70px_-24px_hsl(var(--iso)/0.42)]',
+    badge: 'bg-iso text-white',
     icon: 'bg-iso/10 text-iso shadow-[0_0_15px_hsl(var(--iso)/0.3)]',
     labelColor: 'text-iso',
     leftGlow: 'shadow-[-4px_0_14px_hsl(var(--iso)/0.3)]',
   },
   event: {
-    card: 'rr-surface border-l-[3px] border-l-event border-event/15 hover:border-event/50 shadow-[0_16px_55px_-20px_hsl(var(--event)/0.25)] hover:shadow-[0_22px_70px_-24px_hsl(var(--event)/0.4)]',
-    badge: 'bg-event text-event-foreground',
+    card: 'rr-surface border-l-[3px] border-l-event border-event/15 hover:border-event/50 shadow-[0_16px_55px_-20px_hsl(var(--event)/0.28)] hover:shadow-[0_22px_70px_-24px_hsl(var(--event)/0.42)]',
+    badge: 'bg-event text-white',
     icon: 'bg-event/10 text-event shadow-[0_0_15px_hsl(var(--event)/0.3)]',
     labelColor: 'text-event',
     leftGlow: 'shadow-[-4px_0_14px_hsl(var(--event)/0.3)]',
@@ -67,14 +67,14 @@ const BroadcastCard = memo(
     const content = (
       <div
         className={cn(
-          'relative rounded-[1.15rem] overflow-hidden transition-all duration-300 rr-scanline active:scale-[0.98] active:opacity-95 will-change-transform',
+          'relative rounded-[20px] overflow-hidden transition-all duration-300 rr-scanline active:scale-[0.98] active:opacity-95 will-change-transform',
           styles.card,
           'hover:' + styles.leftGlow,
           'hover:shadow-lg'
         )}
       >
         {isAlert && <div className="absolute top-0 left-0 right-0 h-[2px] bg-alert animate-pulse-alert" />}
-        {broadcast.type === 'iso' && <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary/60" />}
+        {broadcast.type === 'iso' && <div className="absolute top-0 left-0 right-0 h-[2px] bg-cyan/60" />}
 
         <div
           className={cn(
@@ -88,7 +88,7 @@ const BroadcastCard = memo(
 
         <div className="relative p-4 md:p-5">
           {broadcast.type === 'event' && broadcast.event_image_url && (
-            <div className="mb-4 flex max-h-80 items-center justify-center overflow-hidden rounded-2xl border border-event/25 bg-black/45 p-2 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.05)]">
+            <div className="mb-4 flex max-h-80 items-center justify-center overflow-hidden rounded-[20px] border border-event/25 bg-black/45 p-2 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.05)]">
               <OptimizedImage
                 src={broadcast.event_image_url}
                 alt="Event poster"
@@ -115,15 +115,15 @@ const BroadcastCard = memo(
                       loading="eager"
                       fadeInDuration={200}
                     />
-                    <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-background bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.8)]">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
+                    <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-background bg-solo shadow-[0_0_10px_hsl(var(--solo)/0.8)]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-white" />
                     </span>
                   </div>
                 ) : (
                   <div className="relative">
                     <OfficialMotorcycleIcon frame className="h-16 w-16 rounded-2xl p-1.5" />
-                    <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-background bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.8)]">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
+                    <span className="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-background bg-solo shadow-[0_0_10px_hsl(var(--solo)/0.8)]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-white" />
                     </span>
                   </div>
                 )}
@@ -149,7 +149,7 @@ const BroadcastCard = memo(
               {broadcast.body && <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{broadcast.body}</p>}
 
               {isProminentSolo && author?.bike_photo_url && (
-                <div className="mb-3 overflow-hidden rounded-2xl border border-solo/20 bg-black/35 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
+                <div className="mb-3 overflow-hidden rounded-[20px] border border-solo/20 bg-black/35 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
                   <OptimizedImage
                     src={author.bike_photo_url}
                     alt="Rider bike"
@@ -180,7 +180,7 @@ const BroadcastCard = memo(
                           fadeInDuration={150}
                           showSkeleton
                         />
-                        <span className="absolute -right-0.5 -bottom-0.5 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_4px_hsl(var(--primary)/0.9)]" />
+                        <span className="absolute -right-0.5 -bottom-0.5 h-1.5 w-1.5 rounded-full bg-solo shadow-[0_0_4px_hsl(var(--solo)/0.9)]" />
                       </div>
                     ) : (
                       <div className="w-4 h-4 rounded-full bg-secondary border border-border" />

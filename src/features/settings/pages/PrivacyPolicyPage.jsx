@@ -17,30 +17,31 @@ export default function PrivacyPolicyPage() {
       <div className="mx-auto max-w-2xl">
         <Link
           to="/settings"
-          className="mb-5 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+          className="mb-5 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
         >
           <ArrowLeft className="h-4 w-4" /> Settings
         </Link>
 
-        <div className="rr-surface-strong rounded-2xl p-5">
-          <div className="rr-kicker mb-2">Ride Radar Privacy Policy</div>
-          <div className="flex items-center gap-3 mb-3">
-            <RRLogo size="md" />
-            <h1 className="rr-heading text-3xl">Privacy Policy</h1>
+        <div className="relative mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6">
+          <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-primary/15" />
+          <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+          <div className="relative z-10">
+            <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Ride Radar Privacy Policy</div>
+            <div className="flex items-center gap-3 mb-3">
+              <RRLogo size="md" />
+              <h1 className="font-display text-3xl font-extrabold tracking-[-0.04em]">Privacy Policy</h1>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Ride Radar collects and stores account, profile, content, and app usage information
+              needed to operate the app.
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">Last updated: {LAST_UPDATED}</p>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Ride Radar collects and stores account, profile, content, and app usage information
-            needed to operate the app.
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground">Last updated: {LAST_UPDATED}</p>
         </div>
 
-        <div className="mt-4 space-y-4 rounded-2xl border border-border/70 bg-black/30 p-5 text-sm leading-relaxed text-muted-foreground">
-          <section>
-            <h2 className="mb-1 font-display text-lg font-bold text-foreground">
-              Information we may collect
-            </h2>
-            <ul className="list-disc space-y-1 pl-5">
+        <div className="space-y-4">
+          <PolicySection title="Information we may collect">
+            <ul className="list-disc space-y-2 pl-5">
               <li>
                 Account information such as email and name from login providers
               </li>
@@ -57,55 +58,56 @@ export default function PrivacyPolicyPage() {
                 requests
               </li>
             </ul>
-          </section>
+          </PolicySection>
 
-          <section>
-            <h2 className="mb-1 font-display text-lg font-bold text-foreground">
-              How we use information
-            </h2>
-            <ul className="list-disc space-y-1 pl-5">
+          <PolicySection title="How we use information">
+            <ul className="list-disc space-y-2 pl-5">
               <li>To provide account access and profile features</li>
               <li>To power broadcasts, events, alerts, messaging, and rider discovery</li>
               <li>To improve safety, moderation, and support</li>
               <li>To respond to account, privacy, and deletion requests</li>
             </ul>
-          </section>
+          </PolicySection>
 
-          <section>
-            <h2 className="mb-1 font-display text-lg font-bold text-foreground">
-              Public vs private information
-            </h2>
-            <ul className="list-disc space-y-1 pl-5">
+          <PolicySection title="Public vs private information">
+            <ul className="list-disc space-y-2 pl-5">
               <li>
                 Display name, avatar, bike details, and certain broadcast content may be visible to
                 other users
               </li>
               <li>Email and private account identity information are not public</li>
             </ul>
-          </section>
+          </PolicySection>
 
-          <section>
-            <h2 className="mb-1 font-display text-lg font-bold text-foreground">
-              Account deletion
-            </h2>
+          <PolicySection title="Account deletion">
             <p>
               Users can request deletion from inside the app or through the public account deletion
               page. Data is permanently removed and cannot be recovered.
             </p>
-          </section>
+          </PolicySection>
 
-          <section>
-            <h2 className="mb-1 font-display text-lg font-bold text-foreground">Support</h2>
+          <PolicySection title="Support">
             <p>
               For privacy or support questions, contact:
               <br />
-              <a className="text-primary underline" href={`mailto:${SUPPORT_EMAIL}`}>
+              <a className="text-primary underline hover:text-primary/80 transition-colors" href={`mailto:${SUPPORT_EMAIL}`}>
                 {SUPPORT_EMAIL}
               </a>
             </p>
-          </section>
+          </PolicySection>
         </div>
       </div>
     </div>
+  );
+}
+
+function PolicySection({ title, children }) {
+  return (
+    <section className="rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-5 text-sm leading-relaxed text-muted-foreground">
+      <h2 className="mb-3 font-display text-lg font-bold text-foreground">
+        {title}
+      </h2>
+      {children}
+    </section>
   );
 }

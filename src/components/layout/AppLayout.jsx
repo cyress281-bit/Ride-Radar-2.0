@@ -9,15 +9,10 @@ import OfflineBanner from '@/components/OfflineBanner';
  * AppLayout — Main application shell.
  *
  * Provides the persistent UI frame for all authenticated pages:
- * - Sticky glassmorphism header with branding and actions
- * - Scrollable main content area with bottom padding for the floating nav
- * - Floating dock-style bottom navigation bar
- * - Subtle radar grid background and ambient glow effects
- *
- * Radar mode (/home): map fills the entire viewport, header and nav float
- * as transparent overlays so the map is always visible underneath.
- *
- * @returns {JSX.Element}
+ * - Scroll-aware glassmorphism header
+ * - Scrollable main content area
+ * - Floating dock-style bottom navigation
+ * - Subtle ambient background with brand-colored glows
  */
 const AppLayout = memo(function AppLayout() {
   const { pathname } = useLocation();
@@ -39,20 +34,19 @@ const AppLayout = memo(function AppLayout() {
       {/* Background effects — hidden on radar (map is the background) */}
       {!isRadar && (
         <>
+          {/* Subtle radial glow — top left (Kawasaki Green hint) */}
           <div
-            className="fixed inset-0 radar-grid pointer-events-none opacity-[0.24]"
+            className="fixed top-[-15%] left-[-10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-primary/[0.04] blur-3xl pointer-events-none"
             aria-hidden="true"
           />
+          {/* Subtle radial glow — bottom right (Yamaha Blue hint) */}
           <div
-            className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_-10%,hsl(var(--primary)/0.11),transparent_34%),linear-gradient(180deg,transparent,rgba(0,0,0,0.35))]"
+            className="fixed bottom-[-15%] right-[-10%] w-[55vw] h-[55vw] max-w-[500px] max-h-[500px] rounded-full bg-cyan/[0.03] blur-3xl pointer-events-none"
             aria-hidden="true"
           />
+          {/* Top edge fade for header blending */}
           <div
-            className="fixed top-[-10%] left-[-10%] w-[40vw] h-[40vw] max-w-[400px] max-h-[400px] rounded-full bg-primary/10 blur-3xl"
-            aria-hidden="true"
-          />
-          <div
-            className="fixed bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[500px] max-h-[500px] rounded-full bg-primary/5 blur-3xl"
+            className="fixed top-0 left-0 right-0 h-24 bg-gradient-to-b from-background to-transparent pointer-events-none z-[1]"
             aria-hidden="true"
           />
         </>
@@ -67,14 +61,14 @@ const AppLayout = memo(function AppLayout() {
         className={cn(
           isRadar
             ? 'fixed inset-0 z-0'
-            : 'relative z-10 mx-auto max-w-2xl pb-24 pb-safe'
+            : 'relative z-10 mx-auto max-w-2xl pt-14 pb-28 pb-safe'
         )}
         role="main"
       >
         <Outlet />
       </main>
 
-      {/* Bottom navigation — floats on radar, fixed elsewhere */}
+      {/* Bottom navigation */}
       <BottomNav isOverlay={isRadar} />
     </div>
   );

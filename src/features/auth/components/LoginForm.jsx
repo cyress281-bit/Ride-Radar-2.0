@@ -151,7 +151,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
         <Button
           type="button"
           variant="outline"
-          className="h-12 justify-start gap-3"
+          className="h-12 justify-start gap-3 rounded-full border-border bg-surface hover:bg-surface-elevated active:scale-95 transition-all duration-150"
           onClick={() => handleProvider('google')}
           disabled={loading || !!providerLoading}
         >
@@ -168,7 +168,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
         <Button
           type="button"
           variant="outline"
-          className="h-12 justify-start gap-3"
+          className="h-12 justify-start gap-3 rounded-full border-border bg-surface hover:bg-surface-elevated active:scale-95 transition-all duration-150"
           onClick={() => {
             setShowForgot(false);
             setFormError('');
@@ -188,7 +188,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
         <div
           role="status"
           aria-live="polite"
-          className="rounded-2xl bg-primary/10 p-4 text-sm font-medium text-primary shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055)]"
+          className="rounded-xl bg-primary/10 p-4 text-sm font-medium text-primary border border-primary/20"
         >
           {notice}
         </div>
@@ -198,7 +198,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
       {formError && (
         <div
           role="alert"
-          className="flex items-start gap-2 rounded-2xl bg-destructive/10 p-4 text-sm font-medium text-destructive shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055)]"
+          className="flex items-start gap-2 rounded-xl bg-destructive/10 p-4 text-sm font-medium text-destructive border border-destructive/20"
         >
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           {formError}
@@ -210,7 +210,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {/* Mode toggle */}
           <div
-            className="rr-glass-border grid grid-cols-2 rounded-full bg-black/25 p-1"
+            className="grid grid-cols-2 rounded-full bg-surface border border-border p-1"
             role="tablist"
             aria-label="Authentication mode"
           >
@@ -224,7 +224,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
                 setShowForgot(false);
               }}
               className={cn(
-                'rr-haptic min-h-11 rounded-full text-sm font-bold transition',
+                'min-h-11 rounded-full text-sm font-bold transition-all duration-150 active:scale-95',
                 mode === 'signin'
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
@@ -242,7 +242,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
                 setShowForgot(false);
               }}
               className={cn(
-                'rr-haptic min-h-11 rounded-full text-sm font-bold transition',
+                'min-h-11 rounded-full text-sm font-bold transition-all duration-150 active:scale-95',
                 mode === 'signup'
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
@@ -257,13 +257,16 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Email
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="email"
                     placeholder="rider@example.com"
                     autoComplete="email"
                     disabled={loading}
+                    className="h-12 bg-surface border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                     {...field}
                   />
                 </FormControl>
@@ -277,7 +280,9 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Password
+                </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
@@ -285,14 +290,14 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
                       placeholder="Enter a secure password"
                       autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                       disabled={loading}
-                      className="pr-10"
+                      className="h-12 bg-surface border-border rounded-xl pr-10 focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                       {...field}
                     />
                     <button
                       type="button"
                       tabIndex={-1}
                       onClick={() => setShowPassword((s) => !s)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -310,7 +315,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
               <button
                 type="button"
                 onClick={() => setShowForgot((s) => !s)}
-                className="text-xs font-medium text-primary hover:underline min-h-[44px] px-2"
+                className="text-xs font-medium text-primary hover:underline min-h-[44px] px-2 active:scale-95 transition-transform"
               >
                 Forgot password?
               </button>
@@ -318,14 +323,14 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
           )}
 
           {showForgot && (
-            <div className="rounded-2xl bg-secondary/30 p-4">
+            <div className="rounded-xl bg-surface border border-border p-4">
               <p className="mb-3 text-sm text-muted-foreground">
-                We’ll send a reset link to the email address above.
+                We'll send a reset link to the email address above.
               </p>
               <Button
                 type="button"
                 variant="outline"
-                className="w-full"
+                className="w-full rounded-full border-border active:scale-95 transition-transform"
                 onClick={handleForgotPassword}
                 disabled={loading}
               >
@@ -335,7 +340,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
           )}
 
           {/* Remember device */}
-          <label className="rr-haptic flex items-center gap-3 rounded-2xl bg-black/25 px-4 py-3 text-sm text-muted-foreground shadow-[inset_0_1px_0_hsl(0_0%_100%/0.055)]">
+          <label className="flex items-center gap-3 rounded-xl bg-surface border border-border px-4 py-3 text-sm text-muted-foreground active:scale-95 transition-transform cursor-pointer">
             <input
               type="checkbox"
               checked={rememberDevice}
@@ -348,7 +353,11 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
             Remember this device
           </label>
 
-          <Button type="submit" disabled={loading} className="h-12 w-full rounded-xl font-semibold">
+          <Button
+            type="submit"
+            disabled={loading}
+            className="h-12 w-full rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 active:scale-95 transition-all duration-150"
+          >
             {loading ? (
               <span className="flex items-center gap-2">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />

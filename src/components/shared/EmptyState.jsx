@@ -28,8 +28,8 @@ export const EmptyState = memo(function EmptyState({
       )}
     >
       {Icon && (
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
-          <Icon className="h-7 w-7 text-muted-foreground" />
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/15 bg-primary/8">
+          <Icon className="h-7 w-7 text-primary/70" />
         </div>
       )}
 

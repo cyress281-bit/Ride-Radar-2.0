@@ -10,7 +10,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   LogOut,
-  ExternalLink,
   ShieldCheck,
   Trash2,
   Mail,
@@ -23,6 +22,7 @@ import {
   MapPin,
   Eye,
   AlertCircle,
+  ChevronRight,
 } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import { Switch } from '@/components/ui/switch';
@@ -51,14 +51,14 @@ import { useQueryClient } from '@tanstack/react-query';
  */
 const SettingsSection = memo(function SettingsSection({ title, icon: Icon, children, error }) {
   return (
-    <div className="mb-5 rr-glass-panel overflow-hidden p-1">
-      <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-        {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
-        <div className="rr-kicker text-muted-foreground">{title}</div>
+    <div className="mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)]">
+      <div className="flex items-center gap-2 border-b border-border/40 px-5 py-3">
+        {Icon && <Icon className="h-4 w-4 text-primary" />}
+        <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{title}</div>
       </div>
       {children}
       {error && (
-        <div className="flex items-center gap-2 border-t border-border/40 px-4 py-3 text-sm text-destructive">
+        <div className="flex items-center gap-2 border-t border-border/40 px-5 py-3 text-sm text-destructive">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -72,7 +72,7 @@ const SettingsSection = memo(function SettingsSection({ title, icon: Icon, child
  */
 const ToggleRow = memo(function ToggleRow({ label, description, checked, onChange, disabled }) {
   return (
-    <div className="flex items-center justify-between gap-4 px-4 py-4">
+    <div className="flex items-center justify-between gap-4 px-5 py-4">
       <div className="flex-1">
         <span className="text-sm font-medium leading-snug">{label}</span>
         {description && (
@@ -81,6 +81,34 @@ const ToggleRow = memo(function ToggleRow({ label, description, checked, onChang
       </div>
       <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} />
     </div>
+  );
+});
+
+/**
+ * Link row for navigation items.
+ */
+const LinkRow = memo(function LinkRow({ to, icon: Icon, label, desc, danger }) {
+  return (
+    <Link
+      to={to}
+      className={cn(
+        'flex items-center gap-4 px-5 py-4 transition-colors hover:bg-white/[0.02] active:scale-[0.99]'
+      )}
+    >
+      <div className={cn(
+        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
+        danger ? 'bg-destructive/10' : 'bg-primary/10'
+      )}>
+        <Icon className={cn('h-5 w-5', danger ? 'text-destructive' : 'text-primary')} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className={cn('text-sm font-semibold', danger && 'text-destructive')}>
+          {label}
+        </div>
+        {desc && <div className="mt-0.5 text-xs text-muted-foreground truncate">{desc}</div>}
+      </div>
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+    </Link>
   );
 });
 
@@ -103,6 +131,9 @@ const SETTINGS_LINKS = [
     label: 'Data Safety Summary',
     desc: 'Store review disclosure checklist',
   },
+];
+
+const DANGER_LINKS = [
   {
     to: '/account-deletion',
     icon: Trash2,
@@ -117,10 +148,10 @@ const SETTINGS_LINKS = [
  */
 function SettingsSkeleton() {
   return (
-    <div className="px-5 pt-5 pb-8">
-      <Skeleton className="mb-5 h-40 w-full rounded-[1.45rem]" />
-      <Skeleton className="mb-5 h-64 w-full rounded-2xl" />
-      <Skeleton className="mb-5 h-32 w-full rounded-2xl" />
+    <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
+      <Skeleton className="mb-5 h-40 w-full rounded-[20px]" />
+      <Skeleton className="mb-5 h-64 w-full rounded-[20px]" />
+      <Skeleton className="mb-5 h-32 w-full rounded-[20px]" />
       <Skeleton className="h-12 w-full rounded-full" />
     </div>
   );
@@ -234,8 +265,8 @@ function SettingsPage() {
   // Error state — FIX: uses `settingsError` and `refetchSettings` properly
   if (settingsIsError || settingsError) {
     return (
-      <div className="px-5 pt-5 pb-8">
-        <div className="rr-surface-strong rounded-[1.45rem] p-6 text-center">
+      <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
+        <div className="rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6 text-center">
           <h2 className="font-display mb-2 text-xl font-bold text-destructive">
             Settings unavailable
           </h2>
@@ -259,29 +290,27 @@ function SettingsPage() {
     );
   }
 
-  const links = SETTINGS_LINKS;
-
   return (
-    <div className="px-5 pt-5 pb-8">
+    <div className="mx-auto max-w-2xl px-5 pt-5 pb-8">
       {/* Back link */}
       <Link
         to="/profile"
-        className="rr-haptic mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
+        className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 active:scale-95 transition-transform"
       >
         <ArrowLeft className="h-4 w-4" /> Profile
       </Link>
 
       {/* Header */}
-      <div className="rr-surface-strong relative mb-5 overflow-hidden rounded-[1.45rem] p-5">
+      <div className="relative mb-6 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)] p-6">
         <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-primary/15" />
         <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         <div className="relative z-10">
-          <div className="rr-chip mb-3">
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
             <ShieldCheck className="h-3.5 w-3.5" /> Safety hub
           </div>
           <div className="flex items-center gap-3 mb-2">
             <RRLogo size="md" />
-            <h1 className="rr-heading text-4xl">Settings</h1>
+            <h1 className="font-display text-4xl font-extrabold tracking-[-0.04em]">Settings</h1>
           </div>
           <p className="text-sm text-muted-foreground">
             Privacy, safety, notifications, and account controls.
@@ -310,7 +339,7 @@ function SettingsPage() {
           disabled={isSaving}
         />
         {settings?.live_map_visible && (
-          <div className="flex items-center justify-between gap-4 border-t border-border/40 px-4 py-4">
+          <div className="flex items-center justify-between gap-4 border-t border-border/40 px-5 py-4">
             <div className="flex-1">
               <span className="text-sm font-medium leading-snug">Location precision</span>
               <p className="mt-0.5 text-xs text-muted-foreground">
@@ -321,7 +350,7 @@ function SettingsPage() {
               value={normalizePrecision(settings?.live_map_location_precision)}
               onValueChange={handlePrecisionChange}
             >
-              <SelectTrigger className="rr-premium-input w-36 rounded-xl">
+              <SelectTrigger className="w-36 rounded-xl border-border/60 bg-black/25">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -342,7 +371,7 @@ function SettingsPage() {
           onChange={(v) => handleToggle('analytics_enabled', v)}
           disabled={isSaving}
         />
-        <div className="border-t border-border/40 bg-primary/5">
+        <div className="border-t border-border/40">
           <ToggleRow
             label="Public profile preview"
             checked={profile?.is_public !== false}
@@ -364,7 +393,7 @@ function SettingsPage() {
           {isInstallable && (
             <Button
               onClick={handleInstallApp}
-              className="rr-haptic glow-green h-12 w-full rounded-full bg-primary font-bold text-primary-foreground hover:bg-primary/90"
+              className="h-12 w-full rounded-full bg-primary font-bold text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.35)] transition-all hover:bg-primary/90 active:scale-95"
             >
               <Download className="mr-2 h-4 w-4" />
               Install Ride Radar App
@@ -401,41 +430,42 @@ function SettingsPage() {
         </div>
       </SettingsSection>
 
-      {/* Links */}
-      <div className="rr-surface mb-5 space-y-2 rounded-[1.45rem] p-3">
-        {links.map((item) => (
-          <Link
-            key={item.label}
-            to={item.to}
-            className={cn(
-              'rr-haptic flex items-center gap-3 rounded-xl border border-border/50 bg-black/25 p-3 transition-colors hover:border-primary/35'
-            )}
-          >
-            <item.icon
-              className={cn('h-5 w-5', item.danger ? 'text-destructive' : 'text-primary')}
-            />
-            <div className="flex-1">
-              <div className={cn('text-sm font-bold', item.danger && 'text-destructive')}>
-                {item.label}
-              </div>
-              <div className="text-xs text-muted-foreground">{item.desc}</div>
-            </div>
-            <ExternalLink className="h-4 w-4 text-muted-foreground" />
-          </Link>
+      {/* Support Links */}
+      <div className="mb-5 overflow-hidden rounded-[20px] border border-border/60 bg-[hsl(220_20%_7%)]">
+        <div className="flex items-center gap-2 border-b border-border/40 px-5 py-3">
+          <Mail className="h-4 w-4 text-primary" />
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Support</div>
+        </div>
+        {SETTINGS_LINKS.map((item) => (
+          <LinkRow key={item.label} {...item} />
         ))}
       </div>
 
-      {/* Account */}
-      <Button
-        variant="outline"
-        onClick={handleSignOut}
-        className="rr-haptic h-12 w-full rounded-full border-destructive/30 text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
-      >
-        <LogOut className="mr-2 h-4 w-4" /> Log out securely
-      </Button>
+      {/* Danger Zone */}
+      <div className="mb-6 overflow-hidden rounded-[20px] border border-destructive/20 bg-destructive/[0.03]">
+        <div className="flex items-center gap-2 border-b border-destructive/10 px-5 py-3">
+          <AlertCircle className="h-4 w-4 text-destructive" />
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-destructive">Danger Zone</div>
+        </div>
+        {DANGER_LINKS.map((item) => (
+          <LinkRow key={item.label} {...item} />
+        ))}
+        <button
+          onClick={handleSignOut}
+          className="flex w-full items-center gap-4 px-5 py-4 text-destructive transition-colors hover:bg-destructive/5 active:scale-[0.99]"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
+            <LogOut className="h-5 w-5 text-destructive" />
+          </div>
+          <div className="flex-1 text-left">
+            <div className="text-sm font-semibold">Log out</div>
+            <div className="mt-0.5 text-xs text-destructive/70">Sign out of your account</div>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0 text-destructive/50" />
+        </button>
+      </div>
     </div>
   );
 }
 
 export default memo(SettingsPage);
-

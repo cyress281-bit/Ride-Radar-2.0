@@ -50,8 +50,8 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
   );
 
   return (
-    <div className="p-3 pb-safe border-t border-border/60 bg-background/90 backdrop-blur">
-      <div className="flex gap-2 items-end">
+    <div className="p-3 pb-safe bg-background/60 backdrop-blur-xl border-t border-border/30">
+      <div className="flex gap-2 items-end max-w-2xl mx-auto">
         <div className="relative flex-1">
           <textarea
             ref={textareaRef}
@@ -62,17 +62,17 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
             rows={1}
             disabled={disabled || isSending}
             className={cn(
-              'w-full resize-none rounded-2xl border bg-input px-4 py-2.5 text-sm',
-              'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+              'w-full resize-none rounded-2xl border bg-surface-elevated/80 px-4 py-2.5 text-sm text-foreground',
+              'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-kawasaki/30 focus-visible:border-brand-kawasaki/50',
               'disabled:cursor-not-allowed disabled:opacity-50',
-              isOverLimit && 'border-destructive focus-visible:ring-destructive'
+              isOverLimit && 'border-brand-honda focus-visible:ring-brand-honda focus-visible:border-brand-honda'
             )}
             style={{ minHeight: '40px', maxHeight: '160px' }}
           />
           <div
             className={cn(
               'absolute right-3 bottom-2 text-[10px]',
-              isOverLimit ? 'text-destructive font-semibold' : 'text-muted-foreground'
+              isOverLimit ? 'text-brand-honda font-semibold' : 'text-muted-foreground'
             )}
           >
             {length}/{MAX_MESSAGE_LENGTH}
@@ -85,8 +85,8 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
           disabled={!canSend}
           className={cn(
             'shrink-0 h-11 w-11 rounded-full flex items-center justify-center',
-            'bg-primary text-primary-foreground transition-all duration-200',
-            'hover:bg-primary/90 active:scale-95',
+            'bg-brand-kawasaki text-primary-foreground transition-all duration-200',
+            'hover:bg-brand-kawasaki/90 active:scale-95',
             'disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100'
           )}
           aria-label="Send message"

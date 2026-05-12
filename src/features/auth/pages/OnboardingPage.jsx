@@ -320,11 +320,13 @@ export default function OnboardingPage() {
   const modelSuggestions = getModelSuggestions(watchBikeMake);
 
   return (
-    <div className="rr-carbon-bg min-h-dvh relative overflow-hidden flex flex-col items-center justify-center px-5 py-8">
+    <div className="min-h-dvh bg-background relative overflow-hidden flex flex-col items-center justify-center px-5 py-8">
       <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-20" />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.12),transparent_30%),linear-gradient(180deg,transparent,hsl(var(--background) / 0.58))]" />
+      <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-cyan/8 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-primary/6 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-md rounded-[1.7rem] rr-premium-shell px-6 py-8">
+      <div className="relative z-10 w-full max-w-md rounded-[20px] bg-surface border border-border px-6 py-8 shadow-2xl">
         {/* Logo & Header */}
         <div className="mb-6 flex items-center gap-2.5">
           <span className="rr-led-logo">
@@ -355,7 +357,7 @@ export default function OnboardingPage() {
               {progressPercent}%
             </span>
           </div>
-          <div className="h-1.5 rounded-full bg-secondary/50 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
             <div
               className="h-full bg-primary rounded-full transition-all duration-500 shadow-[0_0_8px_hsl(var(--primary)/0.5)]"
               style={{ width: `${progressPercent}%` }}
@@ -369,7 +371,7 @@ export default function OnboardingPage() {
                   'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all duration-300',
                   step.done
                     ? 'bg-primary/10 border-primary/30 text-primary'
-                    : 'bg-secondary/20 border-border/40 text-muted-foreground'
+                    : 'bg-muted/30 border-border/40 text-muted-foreground'
                 )}
               >
                 <step.icon className="w-3 h-3" />
@@ -383,8 +385,8 @@ export default function OnboardingPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Avatar */}
-            <div className="rr-glass-panel p-4">
-              <Label className="mb-3 block text-xs font-semibold uppercase rr-premium-label">
+            <div className="rounded-xl bg-surface border border-border p-4">
+              <Label className="mb-3 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Profile picture
               </Label>
               <div className="flex flex-wrap items-center gap-4">
@@ -401,7 +403,7 @@ export default function OnboardingPage() {
                     </div>
                   )}
                 </span>
-                <label className="rr-shimmer-button flex min-w-0 flex-1 cursor-pointer justify-center rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-center text-sm font-bold text-primary transition-colors hover:bg-primary/15 hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/80">
+                <label className="flex min-w-0 flex-1 cursor-pointer justify-center rounded-full border border-primary/25 bg-primary/10 px-4 py-2.5 text-center text-sm font-bold text-primary transition-all duration-150 hover:bg-primary/15 hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/80 active:scale-95">
                   <input
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -415,7 +417,7 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => setAvatarLocal(null)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-border/80 text-muted-foreground hover:text-destructive hover:border-destructive/50 transition"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50 transition active:scale-95"
                     aria-label="Remove avatar"
                   >
                     <X className="w-4 h-4" />
@@ -425,13 +427,13 @@ export default function OnboardingPage() {
             </div>
 
             {/* Display Name */}
-            <div className="rr-glass-panel p-4">
+            <div className="rounded-xl bg-surface border border-border p-4">
               <FormField
                 control={form.control}
                 name="display_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold uppercase rr-premium-label">
+                    <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Display name *
                     </FormLabel>
                     <FormControl>
@@ -439,6 +441,7 @@ export default function OnboardingPage() {
                         placeholder="How riders see you"
                         autoComplete="nickname"
                         aria-required="true"
+                        className="h-12 bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         {...field}
                       />
                     </FormControl>
@@ -454,19 +457,20 @@ export default function OnboardingPage() {
             </div>
 
             {/* Username */}
-            <div className="rr-glass-panel p-4">
+            <div className="rounded-xl bg-surface border border-border p-4">
               <FormField
                 control={form.control}
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold uppercase rr-premium-label">
+                    <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Username
                     </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="rider_handle"
                         autoComplete="off"
+                        className="h-12 bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         {...field}
                         onBlur={async () => {
                           await checkUsernameUnique(field.value);
@@ -489,13 +493,13 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bio */}
-            <div className="rr-glass-panel p-4">
+            <div className="rounded-xl bg-surface border border-border p-4">
               <FormField
                 control={form.control}
                 name="bio"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold uppercase rr-premium-label">
+                    <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Bio
                     </FormLabel>
                     <FormControl>
@@ -503,6 +507,7 @@ export default function OnboardingPage() {
                         placeholder="Your riding style, local area, and what kind of rides you like."
                         maxLength={220}
                         rows={3}
+                        className="bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all resize-none"
                         {...field}
                       />
                     </FormControl>
@@ -516,13 +521,13 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Year & Make */}
-            <div className="rr-glass-panel p-4 grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2">
+            <div className="rounded-xl bg-surface border border-border p-4 grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2">
               <FormField
                 control={form.control}
                 name="bike_year"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold uppercase rr-premium-label">
+                    <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Year
                     </FormLabel>
                     <FormControl>
@@ -532,6 +537,7 @@ export default function OnboardingPage() {
                         min={1900}
                         max={currentYear + 1}
                         placeholder="2024"
+                        className="h-12 bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         {...field}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -548,13 +554,14 @@ export default function OnboardingPage() {
                 name="bike_make"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold uppercase rr-premium-label">
+                    <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Bike make
                     </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Yamaha"
                         list="onboarding-bike-make-options"
+                        className="h-12 bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         {...field}
                       />
                     </FormControl>
@@ -570,19 +577,20 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Model */}
-            <div className="rr-glass-panel p-4">
+            <div className="rounded-xl bg-surface border border-border p-4">
               <FormField
                 control={form.control}
                 name="bike_model"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs font-semibold uppercase rr-premium-label">
+                    <FormLabel className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Bike model
                     </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="MT-09"
                         list="onboarding-bike-model-options"
+                        className="h-12 bg-background border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                         {...field}
                       />
                     </FormControl>
@@ -603,14 +611,14 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Photo */}
-            <div className="rr-glass-panel p-4">
-              <Label className="mb-3 block text-xs font-semibold uppercase rr-premium-label">
+            <div className="rounded-xl bg-surface border border-border p-4">
+              <Label className="mb-3 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Bike photo
               </Label>
 
               {getPreviewUrl(bikePhotoLocal) ? (
                 <div className="space-y-3">
-                  <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-secondary/30">
+                  <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-surface">
                     <img
                       src={getPreviewUrl(bikePhotoLocal)}
                       className="h-36 w-full object-cover"
@@ -621,7 +629,7 @@ export default function OnboardingPage() {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <label className="flex h-11 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-secondary/20 text-xs font-bold text-muted-foreground transition hover:border-primary/50 hover:text-primary">
+                    <label className="flex h-11 cursor-pointer items-center justify-center rounded-full border border-border bg-background text-xs font-bold text-muted-foreground transition hover:border-primary/50 hover:text-primary active:scale-95">
                       <input
                         type="file"
                         accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -635,14 +643,14 @@ export default function OnboardingPage() {
                       type="button"
                       variant="outline"
                       onClick={() => setBikePhotoLocal(null)}
-                      className="h-11 rounded-full text-xs text-muted-foreground hover:border-destructive/50 hover:text-destructive"
+                      className="h-11 rounded-full border-border text-xs text-muted-foreground hover:border-destructive/50 hover:text-destructive active:scale-95"
                     >
                       <X className="h-3.5 w-3.5 mr-1" /> Remove
                     </Button>
                   </div>
                 </div>
               ) : (
-                <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-5 text-center transition hover:border-primary/50 hover:bg-primary/10">
+                <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-5 text-center transition hover:border-primary/50 hover:bg-primary/10 active:scale-95">
                   <input
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -688,7 +696,7 @@ export default function OnboardingPage() {
             <Button
               type="submit"
               disabled={saveProfile.isPending}
-              className="rr-shimmer-button h-12 w-full rounded-full text-base font-semibold glow-green rr-haptic"
+              className="h-12 w-full rounded-full bg-primary text-primary-foreground text-base font-semibold hover:bg-primary/90 active:scale-95 transition-all duration-150 glow-green"
             >
               {saveProfile.isPending ? 'Creating profile...' : 'Join the network'}
             </Button>
@@ -698,7 +706,7 @@ export default function OnboardingPage() {
               variant="ghost"
               onClick={handleSkip}
               disabled={saveProfile.isPending}
-              className="h-11 w-full rounded-full"
+              className="h-11 w-full rounded-full text-muted-foreground hover:text-foreground active:scale-95 transition-all duration-150"
             >
               Finish details later
             </Button>

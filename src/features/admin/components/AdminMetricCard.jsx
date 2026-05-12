@@ -1,5 +1,19 @@
 import { cn } from '@/lib/utils.js';
 
+const ACCENT_MAP = {
+  'Total Users': 'border-t-brand-kawasaki',
+  'Active Broadcasts': 'border-t-brand-yamaha',
+  'Pending Reports': 'border-t-brand-honda',
+  "Today's Connections": 'border-t-brand-ducati',
+  'Active Conversations': 'border-t-brand-kawasaki',
+  'User Blocks': 'border-t-brand-honda',
+  'Deletion Requests': 'border-t-brand-honda',
+  'Announcements': 'border-t-brand-yamaha',
+  'Analytics': 'border-t-brand-ducati',
+  'Compliance': 'border-t-brand-kawasaki',
+  'Monitoring': 'border-t-brand-yamaha',
+};
+
 /**
  * Reusable metric card with glassmorphism styling.
  *
@@ -24,8 +38,11 @@ export default function AdminMetricCard({
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full rounded-2xl border border-border bg-surface p-4 text-left backdrop-blur-md transition',
+        'w-full rounded-[20px] border border-border bg-surface p-4 text-left backdrop-blur-md transition',
         'hover:border-primary/30 hover:bg-foreground/[0.07] focus:outline-none focus:ring-2 focus:ring-primary/40',
+        'rr-haptic',
+        'border-t-2',
+        ACCENT_MAP[title] || 'border-t-primary',
         onClick && 'cursor-pointer',
         className
       )}

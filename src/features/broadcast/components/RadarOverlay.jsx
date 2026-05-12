@@ -23,18 +23,18 @@ const RadarOverlay = memo(function RadarOverlay({
     <>
       {/* Top info pill */}
       <div className="absolute top-header-offset left-4 right-4 z-10 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full bg-background/60 backdrop-blur-xl border border-foreground/10 px-4 py-2 rr-shadow-md">
+        <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full bg-surface/70 backdrop-blur-2xl border border-border/30 px-4 py-2 rr-shadow-md">
           <span className="h-2 w-2 rounded-full bg-primary animate-pulse-green" />
           <span className="text-xs font-bold text-foreground">
             {activeCount} {activeCount === 1 ? 'signal' : 'signals'}
           </span>
           {!hasUserLocation && (
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-l border-foreground/10 pl-3">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-l border-border/40 pl-3">
               US overview
             </span>
           )}
           {usingOfflineSnapshot && (
-            <span className="text-[10px] font-bold uppercase tracking-wider text-alert border-l border-foreground/10 pl-3">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-alert border-l border-border/40 pl-3">
               Offline
             </span>
           )}
@@ -45,7 +45,7 @@ const RadarOverlay = memo(function RadarOverlay({
       <div className="absolute bottom-44 right-4 z-[30] flex flex-col gap-3">
         <button
           onClick={() => navigate('/broadcast')}
-          className="rr-haptic flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground rr-shadow-glow rr-shadow-sm transition-transform active:scale-90"
+          className="rr-haptic flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground glow-kawasaki-sm rr-shadow-lg transition-transform active:scale-90"
           aria-label="Create broadcast"
         >
           <Plus className="h-5 w-5" />
@@ -57,8 +57,8 @@ const RadarOverlay = memo(function RadarOverlay({
           className={cn(
             'rr-haptic flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-xl border transition-all active:scale-90',
             hasUserLocation
-              ? 'bg-background/60 border-foreground/10 text-primary rr-shadow-sm'
-              : 'bg-primary text-primary-foreground border-primary rr-shadow-glow rr-shadow-sm'
+              ? 'bg-surface/80 border-border/40 text-primary rr-shadow-md'
+              : 'bg-primary text-primary-foreground border-primary glow-kawasaki-sm rr-shadow-lg'
           )}
           aria-label={hasUserLocation ? 'Center on my location' : 'Enable location'}
         >

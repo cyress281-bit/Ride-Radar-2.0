@@ -12,6 +12,14 @@ const FILTER_TYPES = [
   { id: 'event', label: 'Events' },
 ];
 
+const FILTER_STYLES = {
+  all:    { active: 'bg-primary text-primary-foreground glow-kawasaki-sm' },
+  alert:  { active: 'bg-alert text-alert-foreground glow-honda' },
+  solo_ride: { active: 'bg-solo text-solo-foreground glow-kawasaki-sm' },
+  iso:    { active: 'bg-iso text-iso-foreground glow-yamaha' },
+  event:  { active: 'bg-event text-event-foreground glow-ducati' },
+};
+
 /**
  * Draggable bottom sheet containing filters, sort, and the broadcast list.
  *
@@ -41,7 +49,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
     <div
       ref={sheetRef}
       className={cn(
-        'absolute left-0 right-0 z-20 bg-background/80 backdrop-blur-2xl border-t border-foreground/10 rounded-t-[28px] rr-shadow-up transition-transform duration-300 ease-out min-h-[56px]',
+        'absolute left-0 right-0 z-20 bg-surface/85 backdrop-blur-[28px] border-t border-border/30 rounded-t-[24px] transition-transform duration-300 ease-out min-h-[56px]',
         sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-56px)]'
       )}
       style={{
@@ -57,7 +65,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
         onClick={() => setSheetOpen((v) => !v)}
         className="w-full flex flex-col items-center pt-3 pb-2 min-h-[44px] active:scale-95 active:opacity-80 transition-all duration-150"
       >
-        <span className="h-1 w-10 rounded-full bg-foreground/20" />
+        <span className="h-1 w-10 rounded-full bg-muted-foreground/30" />
         <div className="flex items-center gap-2 mt-2">
           <span className="text-xs font-bold text-foreground">
             {activeCount} {activeCount === 1 ? 'signal' : 'signals'} nearby
@@ -86,21 +94,24 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
       >
         {/* Filters */}
         <div className={cn('flex items-center gap-2 overflow-x-auto pb-3 pt-1 scroll-hide [-webkit-overflow-scrolling:touch]', isPending && 'opacity-60')}>
-          {FILTER_TYPES.map((f) => (
-            <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              disabled={isPending}
-              className={cn(
-                'shrink-0 rounded-full px-4 py-2 min-h-[44px] text-xs font-bold transition-all duration-150 active:scale-95 active:opacity-80 disabled:opacity-50',
-                filter === f.id
-                  ? 'bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]'
-                  : 'bg-white/5 text-muted-foreground hover:bg-white/10'
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
+          {FILTER_TYPES.map((f) => {
+            const fStyle = FILTER_STYLES[f.id];
+            return (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                disabled={isPending}
+                className={cn(
+                  'shrink-0 rounded-full px-4 py-2 min-h-[44px] text-xs font-bold transition-all duration-150 active:scale-95 active:opacity-80 disabled:opacity-50 border border-transparent',
+                  filter === f.id
+                    ? fStyle.active
+                    : 'bg-white/5 text-muted-foreground hover:bg-white/10'
+                )}
+              >
+                {f.label}
+              </button>
+            );
+          })}
           <div className="ml-auto flex items-center gap-1 min-h-[44px] px-2">
             <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             <select

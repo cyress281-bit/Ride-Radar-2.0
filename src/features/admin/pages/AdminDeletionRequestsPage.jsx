@@ -19,7 +19,7 @@ export default function AdminDeletionRequestsPage() {
           </div>
           <div className="space-y-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full" />
+              <Skeleton key={i} className="h-32 w-full rounded-[20px]" />
             ))}
           </div>
         </AdminLayout>
@@ -61,7 +61,7 @@ function AdminDeletionRequestsContent() {
         {requests.map((request) => (
           <div
             key={request.id}
-            className="rounded-2xl border border-border bg-surface p-4"
+            className="rounded-[20px] border border-border bg-surface p-4 transition hover:bg-surface-elevated"
           >
             <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span className="rounded-full bg-primary/10 px-2 py-1 font-bold uppercase tracking-wider text-primary">
@@ -90,14 +90,14 @@ function AdminDeletionRequestsContent() {
                 : 'Not completed'}
             </div>
             {request.note && (
-              <div className="mt-3 whitespace-pre-wrap rounded-2xl bg-secondary/50 p-3 text-sm text-muted-foreground">
+              <div className="mt-3 whitespace-pre-wrap rounded-[20px] bg-secondary/50 p-3 text-sm text-muted-foreground">
                 {request.note}
               </div>
             )}
           </div>
         ))}
         {requests.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-[20px] border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             <Trash2 className="mx-auto mb-2 h-6 w-6 text-primary" />
             No deletion requests found.
           </div>
