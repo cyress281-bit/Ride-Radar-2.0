@@ -2,10 +2,10 @@ import { memo } from 'react';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
-import { Button } from './Button';
+import { Button } from '@/components/ui/primitives/Button';
 
 /**
- * Consistent empty state with icon, title, description, and optional action.
+ * EmptyState — Redesigned with radar/ekg illustration feel.
  *
  * @param {object} props
  * @param {React.ComponentType} [props.icon] - Lucide icon component
@@ -27,17 +27,31 @@ export const EmptyState = memo(function EmptyState({
       justify="center"
       gap={4}
       className={cn(
-        'w-full rounded-[1rem] border border-border bg-surface p-8 text-center',
+        'w-full rounded-[1rem] border border-border bg-surface p-8 text-center relative overflow-hidden',
         className
       )}
     >
+      {/* Subtle radar grid background */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-20"
+        style={{
+          backgroundImage:
+            'linear-gradient(hsl(var(--primary) / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.06) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+        }}
+        aria-hidden="true"
+      />
+
       {Icon && (
-        <div className="flex h-16 w-16 items-center justify-center rounded-full border border-primary/15 bg-primary/10">
-          <Icon className="h-7 w-7 text-primary/80" aria-hidden="true" />
+        <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-primary/15 bg-primary/10">
+          <Icon
+            className="h-7 w-7 text-primary/80 animate-ekg-pulse"
+            aria-hidden="true"
+          />
         </div>
       )}
 
-      <VStack gap={1} align="center">
+      <VStack gap={1} align="center" className="relative z-10">
         <Text as="h3" variant="h3" color="default">
           {title}
         </Text>

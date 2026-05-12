@@ -23,17 +23,6 @@ const ROUTE_TITLES = {
   '/broadcast': 'Broadcast',
 };
 
-/** Map routes to their brand accent color for visual variety */
-const ROUTE_BRANDS = {
-  '/home': 'kawasaki',
-  '/profile': 'ducati',
-  '/notifications': 'honda',
-  '/messages': 'yamaha',
-  '/settings': 'ducati',
-  '/broadcast': 'kawasaki',
-  '/admin': 'honda',
-};
-
 function getPageTitle(pathname) {
   if (ROUTE_TITLES[pathname] !== undefined) return ROUTE_TITLES[pathname];
   if (pathname === '/') return '';
@@ -41,30 +30,15 @@ function getPageTitle(pathname) {
   return segment ? segment.charAt(0).toUpperCase() + segment.slice(1) : '';
 }
 
-function getRouteBrand(pathname) {
-  if (ROUTE_BRANDS[pathname]) return ROUTE_BRANDS[pathname];
-  const segment = pathname.split('/')[1];
-  const segmentMap = {
-    home: 'kawasaki',
-    profile: 'ducati',
-    messages: 'yamaha',
-    notifications: 'honda',
-    broadcast: 'kawasaki',
-    settings: 'ducati',
-    admin: 'honda',
-  };
-  return segmentMap[segment] || 'kawasaki';
-}
-
 /**
- * AppHeader — Multi-brand scroll-aware header.
+ * AppHeader — Scroll-aware header with electric neon aesthetic.
  *
  * Design:
- * - Route-specific brand colors for accents (not just green everywhere)
- * - Transparent at top, gains bg-background/80 backdrop-blur on scroll
+ * - Transparent at top, gains glassmorphism on scroll
  * - Left: Back button (when not on home) OR Logo (on home)
- * - Center: Page title in route brand color
+ * - Center: Page title in neon green when on non-radar pages
  * - Right: Notifications bell + Avatar
+ * - Neon glow effects on active elements
  */
 const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { pathname } = useLocation();
@@ -76,14 +50,6 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const isHome = pathname === '/home';
   const isTransparent = isOverlay || isRadar;
   const pageTitle = getPageTitle(pathname);
-  const brand = getRouteBrand(pathname);
-
-  const brandTextClass = {
-    kawasaki: 'text-brand-kawasaki',
-    yamaha: 'text-brand-yamaha',
-    honda: 'text-brand-honda',
-    ducati: 'text-brand-ducati',
-  }[brand];
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -120,9 +86,9 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             onClick={() => navigate(-1)}
             className={cn(
               'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
-              'text-foreground hover:text-brand-kawasaki',
+              'text-foreground hover:text-primary',
               'transition-all duration-150',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
               'pressable'
             )}
             aria-label="Go back"
@@ -134,7 +100,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             to="/home"
             className={cn(
               'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
               'pressable'
             )}
             aria-label="Ride Radar home"
@@ -150,10 +116,10 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
         {/* Center: Page context */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none">
           {isRadar ? (
-            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-honda">
+            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-emergency">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-honda opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-honda" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-emergency opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-emergency" />
               </span>
               LIVE
             </span>
@@ -162,7 +128,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               <Text
                 variant="h3"
                 color="default"
-                className={cn('text-base font-bold', brandTextClass)}
+                className="text-base font-bold text-primary"
               >
                 {pageTitle}
               </Text>
@@ -178,13 +144,13 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               className={cn(
                 'flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full',
                 'transition-all duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'pressable'
               )}
               aria-label="Admin panel"
             >
               <span
-                className="h-1.5 w-1.5 rounded-full bg-brand-kawasaki"
+                className="h-1.5 w-1.5 rounded-full bg-primary animate-glow-pulse"
                 aria-hidden="true"
               />
             </NavLink>
@@ -196,10 +162,10 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               cn(
                 'relative flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full',
                 'transition-all duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'pressable',
                 isActive
-                  ? 'text-brand-honda bg-brand-honda/10'
+                  ? 'text-brand-emergency bg-brand-emergency/10'
                   : 'text-muted-foreground hover:text-foreground'
               )
             }
@@ -208,7 +174,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
             {unreadCount > 0 && (
               <span
-                className="absolute top-2 right-2 h-2 w-2 rounded-full bg-brand-honda ring-2 ring-background"
+                className="absolute top-2 right-2 h-2 w-2 rounded-full bg-brand-emergency ring-2 ring-background animate-pulse"
                 aria-hidden="true"
               />
             )}
@@ -220,9 +186,9 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               cn(
                 'flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full',
                 'transition-all duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 'pressable',
-                isActive && 'ring-1 ring-brand-ducati/40'
+                isActive && 'ring-1 ring-primary/40'
               )
             }
             aria-label="My profile"

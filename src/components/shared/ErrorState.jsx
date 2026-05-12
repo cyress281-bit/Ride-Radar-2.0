@@ -3,10 +3,10 @@ import { AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
-import { Button } from './Button';
+import { Button } from '@/components/ui/primitives/Button';
 
 /**
- * Consistent error state with retry action.
+ * ErrorState — Redesigned error UI with emergency red accents.
  *
  * @param {object} props
  * @param {string} [props.title='Something went wrong']
@@ -26,15 +26,27 @@ export const ErrorState = memo(function ErrorState({
       justify="center"
       gap={4}
       className={cn(
-        'w-full rounded-[1rem] border border-destructive/20 bg-surface p-8 text-center',
+        'w-full rounded-[1rem] border border-destructive/20 bg-surface p-8 text-center relative overflow-hidden',
         className
       )}
     >
-      <div className="flex h-16 w-16 items-center justify-center rounded-full border border-destructive/20 bg-destructive/10">
-        <AlertCircle className="h-7 w-7 text-destructive animate-pulse" aria-hidden="true" />
+      {/* Subtle emergency glow background */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at 50% 30%, hsl(var(--destructive) / 0.06), transparent 60%)',
+        }}
+        aria-hidden="true"
+      />
+
+      <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-destructive/20 bg-destructive/10">
+        <AlertCircle
+          className="h-7 w-7 text-destructive animate-pulse rr-neon-red"
+          aria-hidden="true"
+        />
       </div>
 
-      <VStack gap={1} align="center">
+      <VStack gap={1} align="center" className="relative z-10">
         <Text as="h3" variant="h3" color="default">
           {title}
         </Text>

@@ -4,6 +4,7 @@ import { Text } from '@/components/ui/primitives/Text';
 
 /**
  * Enhanced loading state with spinner, skeleton, and shimmer variants.
+ * Electric neon edition.
  *
  * @param {object} props
  * @param {'spinner'|'skeleton'|'shimmer'} [props.variant='spinner']
@@ -44,14 +45,25 @@ export const LoadingState = memo(function LoadingState({
     );
   }
 
-  // spinner
+  // spinner — neon green radar spinner
   return (
     <div className={cn('flex flex-col items-center justify-center gap-3 py-12', className)}>
-      <div
-        className="h-8 w-8 animate-spin rounded-full border-4 border-primary/20 border-t-primary"
-        role="status"
-        aria-label="Loading"
-      />
+      <div className="relative" role="status" aria-label="Loading">
+        <div
+          className="h-10 w-10 rounded-full border-2 border-primary/20"
+          style={{
+            borderTopColor: 'hsl(var(--primary))',
+            animation: 'radar-sweep 1s linear infinite',
+          }}
+        />
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            boxShadow: '0 0 12px hsl(var(--primary) / 0.3)',
+            animation: 'glow-pulse 2s ease-in-out infinite',
+          }}
+        />
+      </div>
       {message && (
         <Text variant="bodySm" color="muted">
           {message}

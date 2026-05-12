@@ -6,21 +6,23 @@ import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
 
 const TABS = [
-  { to: '/home', icon: Home, label: 'Home', brandColor: 'text-brand-kawasaki', bgColor: 'bg-brand-kawasaki', fillColor: 'hsl(var(--brand-kawasaki) / 0.12)' },
-  { to: '/messages', icon: MessageCircle, label: 'Messages', brandColor: 'text-brand-yamaha', bgColor: 'bg-brand-yamaha', fillColor: 'hsl(var(--brand-yamaha) / 0.12)' },
-  { to: '/profile', icon: User, label: 'Profile', brandColor: 'text-brand-ducati', bgColor: 'bg-brand-ducati', fillColor: 'hsl(var(--brand-ducati) / 0.12)' },
+  { to: '/home', icon: Home, label: 'Home' },
+  { to: '/messages', icon: MessageCircle, label: 'Messages' },
+  { to: '/profile', icon: User, label: 'Profile' },
 ];
 
 /**
- * BottomNav — Multi-brand full-width bottom tab bar.
+ * BottomNav — Electric neon full-width bottom tab bar.
  *
  * Design:
- * - Full-width bar
- * - 3 primary tabs, each with its own OEM brand color when active:
- *   Home = Kawasaki Green, Messages = Yamaha Blue, Profile = Ducati Gold
- * - Create button: white FAB with multi-color ambient glow
- * - Active state: brand-colored icon + label + indicator pill
- * - Background: surface/90 backdrop-blur-2xl
+ * - Full-width bar (not floating dock)
+ * - 3 primary tabs: Home, Messages, Profile
+ * - Create button: white elevated circular FAB with neon green glow
+ * - Active state: neon green icon + label + glowing indicator pill
+ * - Inactive: muted gray
+ * - Background: surface/90 backdrop-blur-2xl, subtle top border
+ * - Safe area support for iOS
+ * - Press feedback on all tabs
  */
 const BottomNav = memo(function BottomNav({ isOverlay = false }) {
   const { pathname } = useLocation();
@@ -33,7 +35,7 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
       )}
       aria-label="Main navigation"
     >
-      {/* Create button — white FAB with multi-brand ambient glow */}
+      {/* Create button — white elevated circular FAB with neon glow */}
       <NavLink
         to="/broadcast"
         className={cn(
@@ -42,12 +44,12 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
           'bg-white text-background',
           'transition-all duration-200 ease-out',
           'active:scale-90',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           '-mb-3'
         )}
         style={{
           boxShadow:
-            '0 4px 24px rgba(255,255,255,0.15), 0 0 0 4px hsl(var(--background)), 0 0 30px hsl(var(--brand-kawasaki) / 0.25), 0 0 60px hsl(var(--brand-yamaha) / 0.15)',
+            '0 4px 24px rgba(255,255,255,0.15), 0 0 0 4px hsl(var(--background)), 0 0 30px hsl(var(--primary) / 0.35), 0 0 60px hsl(var(--primary) / 0.15)',
         }}
         aria-label="Create broadcast"
       >
@@ -80,10 +82,10 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
                   'relative flex flex-col items-center justify-center',
                   'flex-1 min-h-[56px] px-3 py-1.5',
                   'transition-all duration-200 select-none',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   'pressable',
                   isActive
-                    ? tab.brandColor
+                    ? 'text-primary'
                     : 'text-muted-foreground hover:text-foreground/80'
                 )}
               >
@@ -94,31 +96,30 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
                       'h-[22px] w-[22px]'
                     )}
                     strokeWidth={isActive ? 2.5 : 1.5}
-                    fill={isActive ? tab.fillColor : 'none'}
+                    fill={isActive ? 'hsl(var(--primary) / 0.12)' : 'none'}
                     aria-hidden="true"
                   />
 
                   <Text
                     variant="micro"
-                    color={isActive ? 'default' : 'muted'}
+                    color={isActive ? 'primary' : 'muted'}
                     className={cn(
                       'transition-colors duration-200',
                       isActive && 'font-bold'
                     )}
-                    style={isActive ? { color: `hsl(var(--brand-${tab.label === 'Home' ? 'kawasaki' : tab.label === 'Messages' ? 'yamaha' : 'ducati'}))` } : undefined}
                   >
                     {tab.label}
                   </Text>
                 </VStack>
 
-                {/* Animated active indicator pill — brand colored */}
+                {/* Animated active indicator pill — neon green */}
                 {isActive && (
                   <span
                     className={cn(
                       'absolute bottom-1.5 left-1/2 -translate-x-1/2',
-                      'h-[3px] w-6 rounded-full',
-                      tab.bgColor,
-                      'animate-fade-in'
+                      'h-[3px] w-6 rounded-full bg-primary',
+                      'animate-fade-in',
+                      'shadow-[0_0_8px_hsl(var(--primary)/0.6)]'
                     )}
                     aria-hidden="true"
                   />

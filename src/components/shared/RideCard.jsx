@@ -6,7 +6,7 @@ import { haversineMiles } from '@/lib/broadcastUtils';
 import { AspectRatio } from '@/components/ui/primitives/AspectRatio';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
-import { Avatar } from '@/components/ui/primitives/Avatar';
+import { Avatar } from '@/components/shared/Avatar';
 import { Badge } from './Badge';
 
 /**

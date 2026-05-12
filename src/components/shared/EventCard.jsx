@@ -4,7 +4,7 @@ import { Calendar, MapPin, Users, Clock } from 'lucide-react';
 import { cn, timeAgo } from '@/lib/utils';
 import { AspectRatio } from '@/components/ui/primitives/AspectRatio';
 import { Text } from '@/components/ui/primitives/Text';
-import { HStack, VStack } from '@/components/ui/primitives/Stack';
+import { HStack } from '@/components/ui/primitives/Stack';
 import { Avatar } from '@/components/ui/primitives/Avatar';
 import { Badge } from './Badge';
 
