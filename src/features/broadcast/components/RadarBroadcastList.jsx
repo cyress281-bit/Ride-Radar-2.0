@@ -1,5 +1,5 @@
 import { memo, useCallback } from 'react';
-import BroadcastCard from '@/components/shared/BroadcastCard';
+import { RideCard } from '@/components/shared/RideCard';
 import VirtualList from '@/components/shared/VirtualList';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
 import { VStack } from '@/components/ui/primitives/Stack';
@@ -31,12 +31,12 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
       const isFeatured = index === 0;
       return (
         <div className="will-change-transform transform-gpu">
-          <BroadcastCard
+          <RideCard
             broadcast={broadcast}
             author={getProfile(broadcast.author_id)}
             userLat={userLat}
             userLng={userLng}
-            prominentSoloAvatar={isFeatured && broadcast.type === 'solo_ride'}
+            to={`/broadcast/${broadcast.id}`}
           />
         </div>
       );
@@ -74,12 +74,12 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
       <VStack gap={3}>
         {broadcasts.map((broadcast, index) => (
           <div key={broadcast.id} className="will-change-transform transform-gpu">
-            <BroadcastCard
+            <RideCard
               broadcast={broadcast}
               author={getProfile(broadcast.author_id)}
               userLat={userLat}
               userLng={userLng}
-              prominentSoloAvatar={index === 0 && broadcast.type === 'solo_ride'}
+              to={`/broadcast/${broadcast.id}`}
             />
           </div>
         ))}

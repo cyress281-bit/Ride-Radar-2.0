@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
 import { Edit2, Settings, LogOut, Radio, Users, ShieldCheck, Bike, MapPin, Calendar, Grid3X3, User } from 'lucide-react';
-import BroadcastCard from '@/components/shared/BroadcastCard';
+import { RideCard } from '@/components/shared/RideCard';
 import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { isExpired } from '@/lib/broadcastUtils';
@@ -245,7 +245,7 @@ function ProfilePage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {active.map((b) => (
-                <BroadcastCard key={b.id} broadcast={b} author={displayProfile} />
+                <RideCard key={b.id} broadcast={b} author={displayProfile} to={`/broadcast/${b.id}`} />
               ))}
             </div>
           )}

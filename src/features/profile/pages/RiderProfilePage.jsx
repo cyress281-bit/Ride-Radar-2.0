@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/shared/OptimizedImage';
-import BroadcastCard from '@/components/shared/BroadcastCard';
+import { RideCard } from '@/components/shared/RideCard';
 import { isExpired } from '@/lib/broadcastUtils';
 import { getBroadcastsByAuthor } from '@/features/broadcast/api/broadcast-api.js';
 import { useIsBlocked } from '@/features/safety/hooks/use-blocks.js';
@@ -328,7 +328,7 @@ export default function RiderProfilePage() {
             ) : activeBroadcasts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {activeBroadcasts.map((b) => (
-                  <BroadcastCard key={b.id} broadcast={b} author={profile} />
+                  <RideCard key={b.id} broadcast={b} author={profile} to={`/broadcast/${b.id}`} />
                 ))}
               </div>
             ) : (

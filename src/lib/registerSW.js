@@ -16,6 +16,28 @@ let registration = null;
 export async function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     try {
+      // Force-unregister any old service workers from previous builds
+      // This ensures the new Velocity redesign loads immediately
+      const existing = await navigator.serviceWorker.getRegistration('/');
+      if (existing && existing.scope) {
+        const swUrl = existing.active?.scriptURL || existing.installing?.scriptURL || existing.waiting?.scriptURL;
+        // If the SW URL doesn't contain our version marker, unregister it
+        if (swUrl && !swUrl.includes('v=velocity')) {
+          await existing.unregister();
+          // Clear all caches to ensure no stale assets
+          if ('caches' in window) {
+            const allCaches = await caches.keys();
+            await Promise.all(allCaches.map((name) => caches.delete(name)));
+          }
+          // Reload once to load fresh without any old SW interference
+          if (!window.location.hash.includes('sw-fresh')) {
+            window.location.hash = 'sw-fresh';
+            window.location.reload();
+            return;
+          }
+        }
+      }
+
       // Only clear stale caches from previous app versions
       if ('caches' in window) {
         const cacheNames = await caches.keys();
@@ -27,7 +49,7 @@ export async function registerServiceWorker() {
         );
       }
 
-      registration = await navigator.serviceWorker.register('/sw.js', {
+      registration = await navigator.serviceWorker.register('/sw.js?v=velocity', {
         scope: '/',
       });
 

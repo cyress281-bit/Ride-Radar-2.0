@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { MapPin, Clock } from 'lucide-react';
 import { cn, formatDistance, timeAgo } from '@/lib/utils';
 import { haversineMiles } from '@/lib/broadcastUtils';
@@ -17,9 +18,10 @@ import { Badge } from './Badge';
  * @param {number} [props.userLat] - User latitude for distance calc
  * @param {number} [props.userLng] - User longitude for distance calc
  * @param {() => void} [props.onPress] - Card press handler
+ * @param {string} [props.to] - Router link destination (alternative to onPress)
  */
 export const RideCard = memo(
-  function RideCard({ broadcast, author, userLat, userLng, onPress }) {
+  function RideCard({ broadcast, author, userLat, userLng, onPress, to }) {
     const distance = useMemo(() => {
       if (
         !broadcast ||
@@ -62,17 +64,8 @@ export const RideCard = memo(
 
     const isVideo = mediaUrl && /\.(mp4|webm|mov)(\?.*)?$/i.test(mediaUrl);
 
-    return (
-      <button
-        type="button"
-        onClick={onPress}
-        className={cn(
-          'group relative w-full overflow-hidden surface-card pressable animate-fade-up',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-          'bg-transparent border-0 p-0 text-left'
-        )}
-        aria-label={`${broadcast.type}: ${broadcast.title}`}
-      >
+    const cardContent = (
+      <>
         <AspectRatio ratio={16 / 9}>
           {mediaUrl ? (
             isVideo ? (
@@ -145,6 +138,35 @@ export const RideCard = memo(
             </VStack>
           </HStack>
         </HStack>
+      </>
+    );
+
+    const className = cn(
+      'group relative w-full overflow-hidden surface-card pressable animate-fade-up',
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+      'bg-transparent border-0 p-0 text-left block'
+    );
+
+    if (to) {
+      return (
+        <Link
+          to={to}
+          className={className}
+          aria-label={`${broadcast.type}: ${broadcast.title}`}
+        >
+          {cardContent}
+        </Link>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={onPress}
+        className={className}
+        aria-label={`${broadcast.type}: ${broadcast.title}`}
+      >
+        {cardContent}
       </button>
     );
   },
