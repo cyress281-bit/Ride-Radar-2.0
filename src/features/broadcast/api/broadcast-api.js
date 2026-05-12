@@ -30,7 +30,9 @@ export async function getBroadcasts(options = {}) {
 
   if (type) query = query.eq('type', type);
   if (status) query = query.eq('status', status);
-  if (blockedUserIds.length > 0) query = query.not('author_id', 'in', `(${blockedUserIds.join(',')})`);
+  if (blockedUserIds.length > 0) {
+    query = query.not('author_id', 'in', `(${blockedUserIds.join(',')})`);
+  }
 
   const { data, error } = await query;
   if (error) logger.error('[getBroadcasts] Error:', error);
@@ -69,7 +71,7 @@ export async function getNearbyBroadcasts(lat, lng, radius = 50, limit = 100, bl
     user_lat: lat,
     user_lng: lng,
     radius_miles: radius,
-    limit_count: limit,
+    result_limit: limit,
     exclude_user_ids: blockedUserIds.length > 0 ? blockedUserIds : null,
   });
 
@@ -79,57 +81,21 @@ export async function getNearbyBroadcasts(lat, lng, radius = 50, limit = 100, bl
 
 /**
  * Create a new broadcast.
+ * Throttled to prevent spam.
  *
- * @param {object} broadcast
+ * @param {object} broadcastData
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
-export const createBroadcast = throttle(async function createBroadcast(broadcast) {
+export const createBroadcast = throttle(async function createBroadcast(broadcastData) {
   const { data, error } = await supabase
     .from('broadcasts')
-    .insert(broadcast)
+    .insert(broadcastData)
     .select()
     .single();
 
   if (error) logger.error('[createBroadcast] Error:', error);
   return { data, error };
 }, 10_000);
-
-/**
- * Update an existing broadcast.
- *
- * @param {string} id
- * @param {object} updates
- * @returns {Promise<{data: object|null, error: Error|null}>}
- */
-export async function updateBroadcast(id, updates) {
-  const { data, error } = await supabase
-    .from('broadcasts')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) logger.error('[updateBroadcast] Error:', error);
-  return { data, error };
-}
-
-/**
- * Mark a broadcast as expired.
- *
- * @param {string} id
- * @returns {Promise<{data: object|null, error: Error|null}>}
- */
-export async function expireBroadcast(id) {
-  const { data, error } = await supabase
-    .from('broadcasts')
-    .update({ status: 'expired', expires_at: new Date().toISOString() })
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) logger.error('[expireBroadcast] Error:', error);
-  return { data, error };
-}
 
 /**
  * Soft-delete a broadcast by setting status to 'deleted'.
@@ -150,18 +116,87 @@ export async function deleteBroadcast(id) {
 }
 
 /**
+ * Hard-delete a broadcast by ID (admin only).
+ * @param {string} id
+ * @returns {Promise<{data: null, error: Error|null}>}
+ */
+export async function hardDeleteBroadcast(id) {
+  const { error } = await supabase.from('broadcasts').delete().eq('id', id);
+  return { data: null, error };
+}
+
+/**
  * Fetch all broadcasts by a given author.
  *
  * @param {string} authorId
+ * @param {number} [limit]
  * @returns {Promise<{data: Array|null, error: Error|null}>}
  */
-export async function getBroadcastsByAuthor(authorId) {
-  const { data, error } = await supabase
+export async function getBroadcastsByAuthor(authorId, limit) {
+  let query = supabase
     .from('broadcasts')
     .select('*')
     .eq('author_id', authorId)
     .order('created_at', { ascending: false });
 
+  if (limit) query = query.limit(limit);
+
+  const { data, error } = await query;
   if (error) logger.error('[getBroadcastsByAuthor] Error:', error);
+  return { data, error };
+}
+
+// ------------------------------------------------------------------
+// Event RSVP APIs
+// ------------------------------------------------------------------
+
+/**
+ * Fetch all RSVPs for an event broadcast.
+ * @param {string} broadcastId
+ * @returns {Promise<{data: Array|null, error: Error|null}>}
+ */
+export async function getEventRsvps(broadcastId) {
+  const { data, error } = await supabase
+    .from('event_rsvps')
+    .select('*')
+    .eq('broadcast_id', broadcastId);
+
+  if (error) logger.error('[getEventRsvps] Error:', error);
+  return { data, error };
+}
+
+/**
+ * Fetch the current user's RSVP for an event.
+ * @param {string} broadcastId
+ * @param {string} userId
+ * @returns {Promise<{data: object|null, error: Error|null}>}
+ */
+export async function getMyEventRsvp(broadcastId, userId) {
+  const { data, error } = await supabase
+    .from('event_rsvps')
+    .select('*')
+    .eq('broadcast_id', broadcastId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) logger.error('[getMyEventRsvp] Error:', error);
+  return { data, error };
+}
+
+/**
+ * Set the current user's RSVP status for an event.
+ * @param {string} broadcastId
+ * @param {string} userId
+ * @param {string} status - 'interested' | 'going' | 'maybe' | 'not_going'
+ * @returns {Promise<{data: object|null, error: Error|null}>}
+ */
+export async function setEventRsvp(broadcastId, userId, status) {
+  const { data, error } = await supabase
+    .from('event_rsvps')
+    .upsert({ broadcast_id: broadcastId, user_id: userId, status }, { onConflict: 'broadcast_id,user_id' })
+    .select()
+    .single();
+
+  if (error) logger.error('[setEventRsvp] Error:', error);
   return { data, error };
 }

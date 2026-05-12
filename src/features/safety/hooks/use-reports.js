@@ -1,35 +1,6 @@
-/**
- * @fileoverview TanStack Query hooks for reports.
- */
-
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuthState } from '@/features/auth/hooks/use-auth.js';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/components/ui/use-toast';
-import { getReports, createReport } from '@/features/safety/api/safety-api.js';
-
-/** Query key factory for reports. */
-export const reportKeys = {
-  all: ['reports'],
-  list: (userId) => [...reportKeys.all, 'list', userId],
-};
-
-/**
- * Hook to fetch reports created by the current user.
- * @returns {import('@tanstack/react-query').UseQueryResult<object[]>}
- */
-export function useReports() {
-  const { user } = useAuthState();
-  return useQuery({
-    queryKey: reportKeys.list(user?.id),
-    queryFn: async () => {
-      const { data, error } = await getReports(user.id);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id,
-    staleTime: 60_000,
-  });
-}
+import { createReport } from '@/features/safety/api/safety-api.js';
 
 /**
  * Mutation hook to create a report.
@@ -44,11 +15,8 @@ export function useCreateReport() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: reportKeys.all });
-      toast({
-        title: 'Report submitted',
-        description: 'Thank you for helping keep the community safe.',
-      });
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      toast({ title: 'Report submitted', description: 'Thank you for helping keep the community safe.' });
     },
     onError: (error) => {
       toast({

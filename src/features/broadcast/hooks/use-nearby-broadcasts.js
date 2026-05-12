@@ -92,6 +92,9 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds =
       }, 2000);
     };
 
+    // NOTE: We listen to all broadcast changes (not filtered by status) because
+    // the UPDATE handler needs to see status/expiry transitions to remove stale
+    // items from the cache. Filtering by status=eq.active would miss expiry events.
     const channel = supabase
       .channel(`broadcasts-realtime-${instanceId}`)
       .on(

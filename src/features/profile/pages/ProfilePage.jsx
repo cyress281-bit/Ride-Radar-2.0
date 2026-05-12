@@ -9,7 +9,6 @@ import { useState, useMemo, memo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
 import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Settings, LogOut, Edit2, Radio, Bike, ShieldCheck, Users } from 'lucide-react';
@@ -19,29 +18,8 @@ import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { isExpired } from '@/lib/broadcastUtils';
 import { LoadingState } from '@/components/shared/LoadingState';
-
-async function fetchMyBroadcasts(userId) {
-  const { data, error } = await supabase
-    .from('broadcasts')
-    .select('*')
-    .eq('author_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(50);
-
-  if (error) throw error;
-  return data || [];
-}
-
-async function fetchConnectionsCount(userId) {
-  const { count, error } = await supabase
-    .from('friendships')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'active')
-    .or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`);
-
-  if (error) throw error;
-  return count ?? 0;
-}
+import { getBroadcastsByAuthor } from '@/features/broadcast/api/broadcast-api.js';
+import { getFriendshipsCount } from '@/features/connections/api/connections-api.js';
 
 function ProfilePage() {
   const { user, profile } = useAuthState();
@@ -56,13 +34,21 @@ function ProfilePage() {
   } = useQuery({
     queryKey: ['myBroadcasts', user?.id],
     enabled: !!user,
-    queryFn: () => fetchMyBroadcasts(user.id),
+    queryFn: async () => {
+      const { data, error } = await getBroadcastsByAuthor(user.id, 50);
+      if (error) throw error;
+      return data || [];
+    },
   });
 
   const { data: connectionsCount = 0 } = useQuery({
     queryKey: ['connections-count', user?.id],
     enabled: !!user,
-    queryFn: () => fetchConnectionsCount(user.id),
+    queryFn: async () => {
+      const { data, error } = await getFriendshipsCount(user.id);
+      if (error) throw error;
+      return data;
+    },
   });
 
   const active = useMemo(

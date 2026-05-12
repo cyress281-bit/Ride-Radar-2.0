@@ -10,7 +10,7 @@ import {
   UserX,
   ChevronDown,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase.js';
+
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
@@ -95,18 +95,15 @@ function AdminReportsContent() {
       const targetId = report.target_id;
 
       if (targetType === 'broadcast') {
-        const { error } = await supabase.from('broadcasts').delete().eq('id', targetId);
+        const { error } = await hardDeleteBroadcast(targetId);
         if (error) throw error;
       }
       if (targetType === 'message') {
-        const { error } = await supabase.from('messages').delete().eq('id', targetId);
+        const { error } = await deleteMessage(targetId);
         if (error) throw error;
       }
       if (targetType === 'conversation') {
-        const { error } = await supabase
-          .from('conversations')
-          .update({ status: 'archived' })
-          .eq('id', targetId);
+        const { error } = await archiveConversation(targetId);
         if (error) throw error;
       }
 

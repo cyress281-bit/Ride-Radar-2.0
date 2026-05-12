@@ -6,10 +6,9 @@
  * Supports friend request, chat, and block actions.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { getProfileByUserId } from '@/features/profile/api/profile-api';
 import { getOrCreateConversation } from '@/lib/conversationUtils';
@@ -31,18 +30,10 @@ import OptimizedImage from '@/components/shared/OptimizedImage';
 import BroadcastCard from '@/components/shared/BroadcastCard';
 import { isExpired } from '@/lib/broadcastUtils';
 import { Skeleton } from '@/components/ui/skeleton';
-
-async function fetchRiderBroadcasts(userId) {
-  const { data, error } = await supabase
-    .from('broadcasts')
-    .select('*')
-    .eq('author_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(50);
-
-  if (error) throw error;
-  return data || [];
-}
+import { getBroadcastsByAuthor } from '@/features/broadcast/api/broadcast-api.js';
+import { useIsBlocked } from '@/features/safety/hooks/use-blocks.js';
+import { useIsFriend } from '@/features/connections/hooks/use-friendships.js';
+import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
 
 export default function RiderProfilePage() {
   const { userId } = useParams();
@@ -54,37 +45,12 @@ export default function RiderProfilePage() {
   const hasValidUserId = isValidUuid(userId);
   const isMeRoute = user?.id === userId;
 
-  const { data: blocks = [] } = useQuery({
-    queryKey: ['blocks', user?.id, userId],
-    enabled: !!user && hasValidUserId && !isMeRoute,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_blocks')
-        .select('*')
-        .eq('blocker_user_id', user.id)
-        .eq('blocked_user_id', userId);
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  const { data: isBlocked = false } = useIsBlocked(userId);
+  const { isFriend: isFriendActive, friendship } = useIsFriend(userId);
+  const { data: connectionRequest } = useConnectionRequestWith(userId);
 
-  const { data: friendship } = useQuery({
-    queryKey: ['friendship', user?.id, userId],
-    enabled: !!user && hasValidUserId && !isMeRoute,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('friendships')
-        .select('*')
-        .or(`and(user_a_id.eq.${user.id},user_b_id.eq.${userId}),and(user_a_id.eq.${userId},user_b_id.eq.${user.id})`)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const isFriend = friendship?.status === 'active';
-  const isPending = friendship?.status === 'pending';
-  const isBlocked = blocks.length > 0;
+  const isPending = !!connectionRequest;
+  const isFriend = isFriendActive;
 
   const {
     data: profile,
@@ -104,20 +70,14 @@ export default function RiderProfilePage() {
   const { data: riderBroadcasts = [], isLoading: isBroadcastsLoading } = useQuery({
     queryKey: ['rider-broadcasts', userId],
     enabled: hasValidUserId && !!profile,
-    queryFn: () => fetchRiderBroadcasts(userId),
+    queryFn: async () => {
+      const { data, error } = await getBroadcastsByAuthor(userId, 50);
+      if (error) throw error;
+      return data || [];
+    },
   });
 
-  const sendFriendReq = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('friendships').insert({
-        user_a_id: user.id,
-        user_b_id: userId,
-        status: 'pending',
-      });
-      if (error && error.code !== '23505') throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['friendship'] }),
-  });
+  const sendFriendReq = useSendConnectionRequest();
 
   const openFriendChat = useMutation({
     mutationFn: async () => {
@@ -328,11 +288,13 @@ export default function RiderProfilePage() {
               className="h-12 w-full rounded-full border-primary/20"
             >
               <Clock className="mr-1.5 h-4 w-4" /> Friend request{' '}
-              {friendship?.user_a_id === user?.id ? 'sent' : 'pending'}
+              {connectionRequest?.from_user_id === user?.id ? 'sent' : 'pending'}
             </Button>
           ) : (
             <Button
-              onClick={() => sendFriendReq.mutate()}
+              onClick={() =>
+                sendFriendReq.mutate({ from_user_id: user.id, to_user_id: userId })
+              }
               disabled={sendFriendReq.isPending}
               className="rr-haptic h-12 w-full rounded-full glow-green-sm"
             >

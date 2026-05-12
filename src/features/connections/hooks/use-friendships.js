@@ -93,7 +93,7 @@ export function useIsFriend(userId) {
     staleTime: 60_000,
   });
 
-  return { isFriend: !!friendship, isLoading };
+  return { isFriend: !!friendship, friendship, isLoading };
 }
 
 /**

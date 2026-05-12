@@ -46,6 +46,8 @@ export function useConversations() {
 
     const channel = supabase
       .channel(`conversations-realtime-${userId}-${channelIdRef.current}`)
+      // NOTE: Row-level filtering on participant_ids array is not supported by
+      // Supabase Realtime filter syntax. Client-side filtering is required.
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'conversations' },

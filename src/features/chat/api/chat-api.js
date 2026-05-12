@@ -85,6 +85,32 @@ export async function createConversation(participantIds) {
 }
 
 /**
+ * Hard-delete a message by ID.
+ * @param {string} messageId
+ * @returns {Promise<{data: null, error: Error|null}>}
+ */
+export async function deleteMessage(messageId) {
+  const { error } = await supabase.from('messages').delete().eq('id', messageId);
+  return { data: null, error };
+}
+
+/**
+ * Archive a conversation by updating its status.
+ * @param {string} conversationId
+ * @returns {Promise<{data: object|null, error: Error|null}>}
+ */
+export async function archiveConversation(conversationId) {
+  const { data, error } = await supabase
+    .from('conversations')
+    .update({ status: 'archived' })
+    .eq('id', conversationId)
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+/**
  * Atomically get or create a conversation between participants via RPC.
  * @param {string[]} participantIds
  * @returns {Promise<{data: object|null, error: Error|null}>}

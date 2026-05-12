@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger.js';
  */
 
 /**
- * Fetch all users (limit 1000).
+ * Fetch all users (limit 200).
  * @returns {Promise<ApiResult>}
  */
 export async function getUsers() {
@@ -17,12 +17,12 @@ export async function getUsers() {
     .from('users')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(1000);
+    .limit(200);
   return { data: data || [], error };
 }
 
 /**
- * Fetch all broadcasts (limit 1000).
+ * Fetch all broadcasts (limit 200).
  * @returns {Promise<ApiResult>}
  */
 export async function getBroadcasts() {
@@ -31,12 +31,12 @@ export async function getBroadcasts() {
     .from('broadcasts')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(1000);
+    .limit(200);
   return { data: data || [], error };
 }
 
 /**
- * Fetch all profiles (limit 1000).
+ * Fetch all profiles (limit 200).
  * @returns {Promise<ApiResult>}
  */
 export async function getProfiles() {
@@ -45,12 +45,12 @@ export async function getProfiles() {
     .from('user_profiles')
     .select('*')
     .order('updated_at', { ascending: false })
-    .limit(1000);
+    .limit(200);
   return { data: data || [], error };
 }
 
 /**
- * Fetch all reports (limit 500).
+ * Fetch all reports (limit 200).
  * @returns {Promise<ApiResult>}
  */
 export async function getReports() {
@@ -59,12 +59,12 @@ export async function getReports() {
     .from('reports')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(500);
+    .limit(200);
   return { data: data || [], error };
 }
 
 /**
- * Fetch all blocks (limit 500).
+ * Fetch all blocks (limit 200).
  * @returns {Promise<ApiResult>}
  */
 export async function getBlocks() {
@@ -73,12 +73,12 @@ export async function getBlocks() {
     .from('user_blocks')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(500);
+    .limit(200);
   return { data: data || [], error };
 }
 
 /**
- * Fetch all notifications (limit 500).
+ * Fetch all notifications (limit 200).
  * @returns {Promise<ApiResult>}
  */
 export async function getNotifications() {
@@ -87,12 +87,12 @@ export async function getNotifications() {
     .from('notifications')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(500);
+    .limit(200);
   return { data: data || [], error };
 }
 
 /**
- * Fetch account deletion requests (limit 500).
+ * Fetch account deletion requests (limit 200).
  * @returns {Promise<ApiResult>}
  */
 export async function getDeletionRequests() {
@@ -101,12 +101,12 @@ export async function getDeletionRequests() {
     .from('account_deletion_requests')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(500);
+    .limit(200);
   return { data: data || [], error };
 }
 
 /**
- * Fetch all conversations (limit 1000).
+ * Fetch all conversations (limit 200).
  * @returns {Promise<ApiResult>}
  */
 export async function getConversations() {
@@ -115,7 +115,7 @@ export async function getConversations() {
     .from('conversations')
     .select('*')
     .order('last_message_at', { ascending: false })
-    .limit(1000);
+    .limit(200);
   return { data: data || [], error };
 }
 

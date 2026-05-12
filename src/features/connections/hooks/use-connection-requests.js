@@ -10,6 +10,7 @@ import { toast } from '@/components/ui/use-toast';
 import {
   getConnectionRequests,
   getSentRequests,
+  getConnectionRequestBetween,
   sendConnectionRequest,
   acceptConnectionRequest,
   declineConnectionRequest,
@@ -110,6 +111,25 @@ export function useSentRequests() {
   }, [user?.id, queryClient]);
 
   return query;
+}
+
+/**
+ * Hook to check for a pending connection request between current user and another user.
+ * @param {string|null} userId
+ * @returns {import('@tanstack/react-query').UseQueryResult<object|null>}
+ */
+export function useConnectionRequestWith(userId) {
+  const { user } = useAuthState();
+  return useQuery({
+    queryKey: [...connectionRequestKeys.all, 'between', user?.id, userId],
+    queryFn: async () => {
+      const { data, error } = await getConnectionRequestBetween(user.id, userId);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id && !!userId,
+    staleTime: 30_000,
+  });
 }
 
 /**

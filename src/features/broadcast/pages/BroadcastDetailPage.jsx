@@ -1,6 +1,5 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,10 +14,11 @@ import { isValidUuid } from '@/lib/utils.js';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { toast } from '@/components/ui/use-toast';
+import { getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
+import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
 
 /**
  * Single broadcast detail page.
- * FIX: Uses `broadcast.author_id` (snake_case) everywhere.
  */
 function BroadcastDetailPage() {
   const { id } = useParams();
@@ -31,9 +31,8 @@ function BroadcastDetailPage() {
     queryKey: ['broadcast', id],
     enabled: hasValidBroadcastId,
     queryFn: async () => {
-      const { data, error } = await supabase.from('broadcasts').select('*').eq('id', id).maybeSingle();
+      const { data, error } = await getBroadcastById(id);
       if (error) throw error;
-      if (!data) return null;
       return data;
     },
     staleTime: 60_000,
@@ -50,31 +49,13 @@ function BroadcastDetailPage() {
     staleTime: 5 * 60_000,
   });
 
-  const { data: myRequests = [] } = useQuery({
-    queryKey: ['myRequests', id, user?.id],
-    enabled: !!user && !!broadcast,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('connection_requests')
-        .select('*')
-        .eq('broadcast_id', id)
-        .eq('from_user_id', user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    staleTime: 30_000,
-  });
+  const { data: connectionRequest } = useConnectionRequestWith(broadcast?.author_id);
 
   const { data: myRSVP } = useQuery({
     queryKey: ['myRSVP', id, user?.id],
     enabled: !!user && !!broadcast && broadcast.type === 'event',
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('event_rsvps')
-        .select('*')
-        .eq('broadcast_id', id)
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const { data, error } = await getMyEventRsvp(id, user.id);
       if (error) throw error;
       return data;
     },
@@ -85,7 +66,7 @@ function BroadcastDetailPage() {
     queryKey: ['rsvpCounts', id],
     enabled: !!broadcast && broadcast.type === 'event',
     queryFn: async () => {
-      const { data, error } = await supabase.from('event_rsvps').select('status').eq('broadcast_id', id);
+      const { data, error } = await getEventRsvps(id);
       if (error) throw error;
       return {
         interested: (data || []).filter((r) => r.status === 'interested').length,
@@ -262,7 +243,14 @@ function BroadcastDetailPage() {
       )}
 
       {!isAuthor && !isAlert && user && (
-        <BroadcastActions broadcast={broadcast} user={user} myRSVP={myRSVP} rsvpCounts={rsvpCounts} myRequests={myRequests} id={id} />
+        <BroadcastActions
+          broadcast={broadcast}
+          user={user}
+          myRSVP={myRSVP}
+          rsvpCounts={rsvpCounts}
+          connectionRequest={connectionRequest}
+          id={id}
+        />
       )}
 
       {isAuthor && broadcast.type === 'event' && (
@@ -278,9 +266,7 @@ function BroadcastDetailPage() {
 const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onChange }) {
   const set = useMutation({
     mutationFn: async (status) => {
-      const { error } = await supabase
-        .from('event_rsvps')
-        .upsert({ broadcast_id: broadcast.id, user_id: user.id, status }, { onConflict: 'broadcast_id,user_id' });
+      const { error } = await setEventRsvp(broadcast.id, user.id, status);
       if (error) throw error;
     },
     onSuccess: onChange,
@@ -315,26 +301,20 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
 const ConnectionAction = memo(function ConnectionAction({ broadcast, user, existing, onChange }) {
   const [open, setOpen] = useState(false);
   const [msg, setMsg] = useState('');
+  const sendRequest = useSendConnectionRequest();
 
-  const send = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('connection_requests').insert({
-        broadcast_id: broadcast.id,
-        from_user_id: user.id,
-        to_user_id: broadcast.author_id,
-        message: msg.trim() || null,
-        status: 'pending',
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => { setOpen(false); onChange(); },
-  });
+  const handleSend = useCallback(() => {
+    sendRequest.mutate(
+      { from_user_id: user.id, to_user_id: broadcast.author_id },
+      { onSuccess: () => { setOpen(false); setMsg(''); onChange(); } }
+    );
+  }, [sendRequest, user, broadcast, onChange]);
 
   if (existing) {
     const map = { pending: 'Request sent', accepted: 'Connected', declined: 'Declined' };
     return (
       <Button variant="outline" disabled className="w-full h-12 rounded-full border-primary/20">
-        <Check className="w-4 h-4 mr-1.5" /> {map[existing.status]}
+        <Check className="w-4 h-4 mr-1.5" /> {map[existing.status] || 'Request sent'}
       </Button>
     );
   }
@@ -356,11 +336,11 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
             maxLength={200}
             className="rr-premium-input rounded-xl"
           />
-          {send.isError && <p className="text-xs text-destructive">{send.error?.message || 'Failed to send request'}</p>}
+          {sendRequest.isError && <p className="text-xs text-destructive">{sendRequest.error?.message || 'Failed to send request'}</p>}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 rounded-full h-11 border-primary/20 rr-haptic">Cancel</Button>
-            <Button onClick={() => send.mutate()} disabled={send.isPending} className="flex-1 rounded-full h-11 glow-green-sm rr-haptic">
-              {send.isPending ? 'Sending...' : 'Send request'}
+            <Button onClick={handleSend} disabled={sendRequest.isPending} className="flex-1 rounded-full h-11 glow-green-sm rr-haptic">
+              {sendRequest.isPending ? 'Sending...' : 'Send request'}
             </Button>
           </div>
         </div>
@@ -369,7 +349,7 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
   );
 });
 
-const BroadcastActions = memo(function BroadcastActions({ broadcast, user, myRSVP, rsvpCounts, myRequests, id }) {
+const BroadcastActions = memo(function BroadcastActions({ broadcast, user, myRSVP, rsvpCounts, connectionRequest, id }) {
   const qc = useQueryClient();
 
   const handleRsvpChange = useCallback(() => {
@@ -378,19 +358,18 @@ const BroadcastActions = memo(function BroadcastActions({ broadcast, user, myRSV
   }, [qc, id]);
 
   const handleConnectionChange = useCallback(() => {
-    qc.invalidateQueries({ queryKey: ['myRequests', id] });
-  }, [qc, id]);
+    qc.invalidateQueries({ queryKey: ['connection-requests'] });
+  }, [qc]);
 
   return (
     <div className="mt-5">
       {broadcast.type === 'event' ? (
         <EventRSVP broadcast={broadcast} user={user} myRSVP={myRSVP} counts={rsvpCounts} onChange={handleRsvpChange} />
       ) : (
-        <ConnectionAction broadcast={broadcast} user={user} existing={myRequests[0]} onChange={handleConnectionChange} />
+        <ConnectionAction broadcast={broadcast} user={user} existing={connectionRequest} onChange={handleConnectionChange} />
       )}
     </div>
   );
 });
 
 export default memo(BroadcastDetailPage);
-

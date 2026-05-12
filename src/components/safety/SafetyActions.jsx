@@ -1,12 +1,13 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Flag, ShieldOff, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useIsBlocked, useCreateBlock } from '@/features/safety/hooks/use-blocks.js';
+import { useCreateReport } from '@/features/safety/hooks/use-reports.js';
 
 const reasons = [
   { value: 'safety', label: 'Safety concern' },
@@ -22,22 +23,7 @@ const DETAILS_MAX_LENGTH = 500;
 /**
  * SafetyActions - Report and block UI for community safety.
  *
- * Accessibility:
- * - Modal-like panels trap focus when open
- * - Close button is keyboard accessible (Escape key closes)
- * - Form fields have proper labels and error associations
- * - Loading states use aria-busy
- * - Success/error states announced via aria-live regions
- * - All interactive elements meet 44px touch target minimum
- * - Character count for textarea communicated to screen readers
- *
- * Edge cases:
- * - Prevents double-submission with disabled state during mutation
- * - Handles network errors with user-friendly retry messaging
- * - Guards against self-reporting and self-blocking
- * - Already-blocked state prevents duplicate block entries
- * - Textarea enforces maxLength with visual counter
- * - Graceful degradation when user is not authenticated
+ * Uses safety API hooks instead of direct Supabase queries.
  */
 export default function SafetyActions({ targetType, targetId, targetProfileId, compact = false, className }) {
   const { user } = useAuthState();
@@ -50,10 +36,13 @@ export default function SafetyActions({ targetType, targetId, targetProfileId, c
 
   const canBlock = targetProfileId && targetProfileId !== user?.id;
 
+  const { data: isBlocked = false, isLoading: blocksLoading } = useIsBlocked(targetProfileId);
+  const createBlock = useCreateBlock();
+  const createReport = useCreateReport();
+
   // Focus management - focus panel when opened
   useEffect(() => {
     if (mode === 'report' || mode === 'block') {
-      // Small delay to allow DOM to render
       const timer = setTimeout(() => {
         closeButtonRef.current?.focus();
       }, 50);
@@ -75,89 +64,43 @@ export default function SafetyActions({ targetType, targetId, targetProfileId, c
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [mode]);
 
-  const { data: existingBlocks = [], isLoading: blocksLoading } = useQuery({
-    queryKey: ['block-status', user?.id, targetProfileId],
-    enabled: !!user?.id && !!targetProfileId && targetProfileId !== user?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_blocks')
-        .select('*')
-        .eq('blocker_user_id', user.id)
-        .eq('blocked_user_id', targetProfileId);
-
-      if (error) throw error;
-      return data || [];
-    },
-    staleTime: 30000, // 30s - prevent excessive re-fetching
-  });
-
-  const isBlocked = existingBlocks.length > 0;
-
-  const report = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from('reports')
-        .insert({
+  const handleSubmit = useCallback(() => {
+    if (mode === 'report') {
+      createReport.mutate(
+        {
           reporter_user_id: user.id,
           target_type: targetType,
           target_id: targetId,
           target_user_id: targetProfileId,
           reason,
           details: details.trim() || null,
-          status: 'pending',
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      setMode('reported');
-      setDetails('');
-    },
-  });
-
-  const block = useMutation({
-    mutationFn: async () => {
-      if (isBlocked) return;
-
-      const { error } = await supabase
-        .from('user_blocks')
-        .insert({
+        },
+        { onSuccess: () => setMode('reported') }
+      );
+    } else if (mode === 'block') {
+      createBlock.mutate(
+        {
           blocker_user_id: user.id,
           blocked_user_id: targetProfileId,
           reason: details.trim() || null,
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      // CRITICAL FIX: Invalidate the correct query key that useBlockedProfiles uses
-      qc.invalidateQueries({ queryKey: ['block-status'] });
-      qc.invalidateQueries({ queryKey: ['user-blocks'] }); // THIS is what useBlockedProfiles uses
-      qc.invalidateQueries({ queryKey: ['conversations'] }); // Hide conversations with blocked user
-      qc.invalidateQueries({ queryKey: ['broadcasts'] }); // Refresh feed to hide blocked user's content
-      setMode('blocked');
-      setDetails('');
-    },
-  });
-
-  const handleSubmit = useCallback(() => {
-    if (mode === 'report') {
-      report.mutate();
-    } else if (mode === 'block') {
-      block.mutate();
+        },
+        { onSuccess: () => setMode('blocked') }
+      );
     }
-  }, [mode, report, block]);
+  }, [mode, createReport, createBlock, user, targetType, targetId, targetProfileId, reason, details]);
 
   const handleClose = useCallback(() => {
     setMode(null);
     setDetails('');
-    // Reset errors
-    report.reset?.();
-    block.reset?.();
-  }, [report, block]);
+    createReport.reset?.();
+    createBlock.reset?.();
+  }, [createReport, createBlock]);
 
   // Don't render if not authenticated or targeting self
   if (!user || targetProfileId === user.id) return null;
+
+  const isSubmitting = createReport.isPending || createBlock.isPending;
+  const mutationError = createReport.error || createBlock.error;
 
   // Success confirmation states
   if (mode === 'reported' || mode === 'blocked') {
@@ -179,9 +122,6 @@ export default function SafetyActions({ targetType, targetId, targetProfileId, c
 
   // Report/Block form panel
   if (mode === 'report' || mode === 'block') {
-    const isSubmitting = report.isPending || block.isPending;
-    const mutationError = report.error || block.error;
-
     return (
       <div
         ref={panelRef}

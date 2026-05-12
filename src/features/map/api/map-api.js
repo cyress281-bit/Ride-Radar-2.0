@@ -11,19 +11,12 @@ const PRESENCE_MARKER_LIMIT = 250;
 
 /**
  * Fetch all visible presence markers.
+ * Uses server-side now() to avoid client clock skew.
  *
  * @returns {Promise<{data: Array|null, error: Error|null}>}
  */
 export async function getLiveMapPresence() {
-  const { data, error } = await supabase
-    .from('live_map_presence')
-    .select(
-      'user_id,display_name,avatar_url,vehicle_label,is_visible,location_precision,lat,lng,approximate_radius_miles,last_seen_at,expires_at,updated_at'
-    )
-    .eq('is_visible', true)
-    .gt('expires_at', new Date().toISOString())
-    .order('last_seen_at', { ascending: false })
-    .limit(PRESENCE_MARKER_LIMIT);
+  const { data, error } = await supabase.rpc('get_live_map_presence');
 
   if (error) logger.error('[getLiveMapPresence] Error:', error);
   return { data, error };

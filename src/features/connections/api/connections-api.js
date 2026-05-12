@@ -40,6 +40,29 @@ export async function getSentRequests(userId) {
 }
 
 /**
+ * Check for a pending connection request between two users (in either direction).
+ * @param {string} userAId
+ * @param {string} userBId
+ * @returns {Promise<{data: object|null, error: Error|null}>}
+ */
+export async function getConnectionRequestBetween(userAId, userBId) {
+  if (!isValidUuid(userAId) || !isValidUuid(userBId)) {
+    return { data: null, error: new Error('Invalid userId') };
+  }
+
+  const { data, error } = await supabase
+    .from('connection_requests')
+    .select('*')
+    .eq('status', 'pending')
+    .or(
+      `and(from_user_id.eq.${userAId},to_user_id.eq.${userBId}),and(from_user_id.eq.${userBId},to_user_id.eq.${userAId})`
+    )
+    .maybeSingle();
+
+  return { data, error };
+}
+
+/**
  * Send a connection request.
  * @param {{from_user_id: string, to_user_id: string}} params
  * @returns {Promise<{data: object|null, error: Error|null}>}
@@ -222,6 +245,23 @@ export async function getFriendshipBetween(userAId, userBId) {
     .maybeSingle();
 
   return { data, error };
+}
+
+/**
+ * Count active friendships for a user.
+ * @param {string} userId
+ * @returns {Promise<{data: number, error: Error|null}>}
+ */
+export async function getFriendshipsCount(userId) {
+  if (!isValidUuid(userId)) return { data: 0, error: new Error('Invalid userId') };
+
+  const { count, error } = await supabase
+    .from('friendships')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active')
+    .or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`);
+
+  return { data: count ?? 0, error };
 }
 
 /**
