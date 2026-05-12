@@ -20,7 +20,7 @@ import { getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@
 import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
 
 /**
- * Single broadcast detail page — Electric Neon Edition.
+ * Single broadcast detail page.
  */
 function BroadcastDetailPage() {
   const { id } = useParams();
@@ -80,15 +80,11 @@ function BroadcastDetailPage() {
 
   if (!hasValidBroadcastId) {
     return (
-      <div className="px-5 pt-5 min-h-dvh-safe bg-background">
-        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1 transition-colors">
+      <div className="px-5 pt-5">
+        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="surface-card p-10 text-center relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none opacity-20" style={{
-            backgroundImage: 'linear-gradient(hsl(var(--primary) / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.06) 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-          }} />
+        <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
           <Text variant="bodySm" color="muted">Invalid broadcast link.</Text>
         </div>
@@ -98,11 +94,8 @@ function BroadcastDetailPage() {
 
   if (isBroadcastLoading) {
     return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center text-sm text-muted-foreground bg-background">
-        <div className="relative mb-4">
-          <RRLogo size="md" className="animate-pulse" />
-          <div className="absolute inset-0 rounded-full animate-glow-pulse" style={{ boxShadow: '0 0 20px hsl(var(--primary) / 0.3)' }} />
-        </div>
+      <div className="flex min-h-[50vh] flex-col items-center justify-center text-sm text-muted-foreground">
+        <RRLogo size="md" className="mb-4 animate-pulse" />
         Loading broadcast…
       </div>
     );
@@ -110,15 +103,11 @@ function BroadcastDetailPage() {
 
   if (isBroadcastError) {
     return (
-      <div className="px-5 pt-5 min-h-dvh-safe bg-background">
-        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1 transition-colors">
+      <div className="px-5 pt-5">
+        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="surface-card p-10 text-center relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none opacity-20" style={{
-            backgroundImage: 'linear-gradient(hsl(var(--primary) / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.06) 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-          }} />
+        <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
           <Text variant="bodySm" color="muted">Unable to load this broadcast.</Text>
         </div>
@@ -128,15 +117,11 @@ function BroadcastDetailPage() {
 
   if (!broadcast) {
     return (
-      <div className="px-5 pt-5 min-h-dvh-safe bg-background">
-        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1 transition-colors">
+      <div className="px-5 pt-5">
+        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
-        <div className="surface-card p-10 text-center relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none opacity-20" style={{
-            backgroundImage: 'linear-gradient(hsl(var(--primary) / 0.06) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.06) 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-          }} />
+        <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
           <Text variant="bodySm" color="muted">Broadcast not found.</Text>
         </div>
@@ -150,25 +135,25 @@ function BroadcastDetailPage() {
 
   const typeAccentClass = {
     solo_ride: 'border-l-[3px] border-l-primary shadow-[-3px_0_14px_hsl(var(--primary)/0.25)]',
-    iso: 'border-l-[3px] border-l-cyan shadow-[-3px_0_14px_hsl(var(--cyan)/0.25)]',
-    event: 'border-l-[3px] border-l-amber shadow-[-3px_0_14px_hsl(var(--amber)/0.25)]',
-    alert: 'border-l-[3px] border-l-destructive shadow-[-3px_0_14px_hsl(var(--destructive)/0.3)]',
+    iso: 'border-l-[3px] border-l-brand-radar shadow-[-3px_0_14px_hsl(var(--brand-radar)/0.25)]',
+    event: 'border-l-[3px] border-l-brand-amber shadow-[-3px_0_14px_hsl(var(--brand-amber)/0.25)]',
+    alert: 'border-l-[3px] border-l-brand-emergency shadow-[-3px_0_14px_hsl(var(--brand-emergency)/0.3)]',
   }[broadcast.type] || 'border-l-[3px] border-l-border/60';
 
-  const typeBadgeClass = {
+  const badgeClass = {
     solo_ride: 'bg-primary/10 text-primary border-primary/30',
-    iso: 'bg-cyan/10 text-cyan border-cyan/30',
-    event: 'bg-amber/10 text-amber border-amber/30',
-    alert: 'bg-destructive/10 text-destructive border-destructive/30',
-  }[broadcast.type] || 'bg-muted text-muted-foreground border-border/60';
+    iso: 'bg-brand-radar/10 text-brand-radar border-brand-radar/30',
+    event: 'bg-brand-amber/10 text-brand-amber border-brand-amber/30',
+    alert: 'bg-brand-emergency/10 text-brand-emergency border-brand-emergency/30',
+  }[broadcast.type] || 'bg-muted text-muted-foreground border-border/50';
 
   const hasHeroImage = broadcast.type === 'event' && broadcast.event_image_url;
 
   return (
-    <div className="px-5 pt-5 pb-8 min-h-dvh-safe bg-background">
+    <div className="px-5 pt-5 pb-8">
       {/* Top nav */}
-      <HStack justify="between" align="center" className="mb-4">
-        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 transition-colors">
+      <HStack justify="between" align="center" className="mb-5">
+        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <button
@@ -180,7 +165,7 @@ function BroadcastDetailPage() {
               toast({ title: 'Copy failed', description: 'Unable to copy link.', variant: 'destructive' });
             }
           }}
-          className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 transition-colors"
+          className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
           aria-label="Copy broadcast link"
         >
           <Share2 className="w-4 h-4" /> Share
@@ -189,43 +174,36 @@ function BroadcastDetailPage() {
 
       {/* Hero image with gradient overlay */}
       {hasHeroImage && (
-        <div className="relative -mx-5 mb-5 overflow-hidden">
+        <div className="relative -mx-5 mb-6 overflow-hidden">
           <img
             src={broadcast.event_image_url}
-            className="w-full h-64 object-cover"
+            className="w-full h-72 object-cover"
             alt="Event poster"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5">
             <div className={cn(
-              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-3 border backdrop-blur-sm',
-              typeBadgeClass
+              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-3 border backdrop-blur-md',
+              badgeClass
             )}>
               {meta.label}
             </div>
-            <Text as="h1" variant="h1" className="text-white drop-shadow-lg rr-heading">
+            <Text as="h1" variant="h1" className="text-2xl sm:text-3xl font-extrabold text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] tracking-tight">
               {broadcast.title}
             </Text>
           </div>
         </div>
       )}
 
-      {/* Main content card */}
-      <div className={cn('rounded-[20px] border p-5 relative overflow-hidden rr-surface', !hasHeroImage && typeAccentClass)}>
-        {/* Ambient glow */}
-        <div className={cn(
-          'absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-[0.04] blur-3xl',
-          broadcast.type === 'alert' && 'bg-destructive',
-          broadcast.type === 'solo_ride' && 'bg-primary',
-          broadcast.type === 'iso' && 'bg-cyan',
-          broadcast.type === 'event' && 'bg-amber'
-        )} />
+      <div className={cn('rounded-[24px] border p-5 relative overflow-hidden backdrop-blur-xl bg-surface/80 border-white/[0.06]', !hasHeroImage && typeAccentClass)}>
+        {/* Subtle ambient glow */}
+        <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/[0.04] blur-3xl pointer-events-none" />
 
         {!hasHeroImage && (
           <div
             className={cn(
-              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-4 border backdrop-blur-sm',
-              typeBadgeClass
+              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-4 border backdrop-blur-md',
+              badgeClass
             )}
           >
             {broadcast.type === 'solo_ride' && <OfficialMotorcycleIcon className="h-5 w-6 rounded-md" />}
@@ -235,13 +213,13 @@ function BroadcastDetailPage() {
         )}
 
         {!hasHeroImage && (
-          <Text as="h1" variant="h2" className="mb-2 rr-heading">
+          <Text as="h1" variant="h2" className="text-xl sm:text-2xl font-extrabold tracking-tight mb-3 text-white/95">
             {broadcast.title}
           </Text>
         )}
 
         {broadcast.body && (
-          <Text variant="body" className="text-foreground/80 leading-relaxed mb-4 whitespace-pre-wrap">
+          <Text variant="body" className="text-foreground/75 leading-[1.7] mb-5 whitespace-pre-wrap text-[15px]">
             {broadcast.body}
           </Text>
         )}
@@ -249,7 +227,7 @@ function BroadcastDetailPage() {
         {isAlert && <AlertPhotoGrid images={(broadcast.alert_photos || broadcast.alert_image_urls) || []} variant="detail" />}
 
         {/* Metadata */}
-        <HStack gap={4} wrap className="text-sm text-muted-foreground mt-4">
+        <HStack gap={4} wrap className="text-sm text-muted-foreground mt-5">
           {(broadcast.type === 'event' || isAlert) && broadcast.exact_location_text && (
             <span className="flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-primary" />
@@ -268,31 +246,32 @@ function BroadcastDetailPage() {
           </span>
         </HStack>
 
-        {/* Author card */}
+        {/* Author card — glassmorphism */}
         {author && (
           <Link
             to={`/profile/${author.user_id}`}
-            className="flex items-center gap-3 mt-5 pt-4 border-t border-border/60 pressable transition-colors hover:bg-white/[0.02] -mx-2 px-2 py-1 rounded-xl"
+            className="flex items-center gap-3 mt-6 pt-5 border-t border-white/[0.06] pressable"
           >
             {author.avatar_url ? (
               <div className="rr-avatar-ring shrink-0" style={{ padding: '3px' }}>
-                <img src={author.avatar_url} className="w-10 h-10 rounded-full object-cover border border-primary/30" alt={author.display_name || 'Rider'} />
+                <img src={author.avatar_url} className="w-11 h-11 rounded-full object-cover border border-primary/30" alt={author.display_name || 'Rider'} />
               </div>
             ) : (
-              <div className="w-10 h-10 rounded-full bg-surface-elevated flex items-center justify-center font-semibold text-sm border border-border/50 text-primary">
+              <div className="w-11 h-11 rounded-full bg-surface-elevated flex items-center justify-center font-semibold text-sm border border-white/[0.08] text-foreground/80">
                 {author.displayName?.[0] || '?'}
               </div>
             )}
             <VStack gap={0.5}>
-              <Text variant="bodySm" className="font-semibold">{author.display_name}</Text>
+              <Text variant="bodySm" className="font-semibold text-foreground/90">{author.display_name}</Text>
               <Text variant="caption" color="muted">{timeAgo(broadcast.created_at)}</Text>
             </VStack>
           </Link>
         )}
       </div>
 
+      {/* SafetyActions — glassmorphism panel */}
       {!isAuthor && user && (
-        <div className="mt-4">
+        <div className="mt-4 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-4">
           <SafetyActions targetType="broadcast" targetId={broadcast.id} targetProfileId={broadcast.author_id} />
         </div>
       )}
@@ -313,36 +292,45 @@ function BroadcastDetailPage() {
 
       {/* Author event stats */}
       {isAuthor && broadcast.type === 'event' && (
-        <div className="mt-5 p-5 rounded-[20px] rr-glass-panel border border-primary/15 relative overflow-hidden">
-          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/[0.03] blur-2xl" />
-          <Text variant="micro" color="muted" className="mb-2">Your event</Text>
-          <Text variant="h3" className="rr-heading">
-            <span className="text-primary">{rsvpCounts.going}</span> going · <span className="text-amber">{rsvpCounts.interested}</span> interested
+        <div className="mt-5 p-5 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06]">
+          <Text variant="micro" color="muted" className="mb-2 uppercase tracking-widest text-[10px] font-bold">Your event</Text>
+          <Text variant="h3" className="text-lg font-bold text-white/90">
+            <span className="text-primary">{rsvpCounts.going}</span> going · <span className="text-brand-radar">{rsvpCounts.interested}</span> interested
           </Text>
         </div>
       )}
 
-      {/* Comments section placeholder */}
-      <div className="mt-5 surface-card p-5 relative overflow-hidden">
-        <div className="absolute -right-6 -bottom-6 h-20 w-20 rounded-full bg-primary/[0.02] blur-2xl" />
-        <Text variant="micro" color="muted" className="mb-3">Comments</Text>
-        <VStack gap={3} align="center" className="py-6 text-center">
-          <div className="relative">
-            <MessageCircle className="w-8 h-8 text-muted-foreground/30" />
-            <div className="absolute inset-0 animate-glow-pulse rounded-full" style={{ boxShadow: '0 0 12px hsl(var(--primary) / 0.1)' }} />
+      {/* Comments section */}
+      <div className="mt-5 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-5">
+        <Text variant="micro" color="muted" className="mb-3 uppercase tracking-widest text-[10px] font-bold">Comments</Text>
+        <VStack gap={3} align="center" className="py-8 text-center">
+          <div className="h-12 w-12 rounded-full bg-surface-elevated border border-white/[0.06] flex items-center justify-center">
+            <MessageCircle className="w-5 h-5 text-muted-foreground/40" />
           </div>
           <Text variant="bodySm" color="muted">Comments coming soon</Text>
         </VStack>
       </div>
 
-      {/* Related rides section placeholder */}
-      <div className="mt-5 surface-card p-5 relative overflow-hidden">
-        <div className="absolute -right-6 -bottom-6 h-20 w-20 rounded-full bg-cyan/[0.02] blur-2xl" />
-        <Text variant="micro" color="muted" className="mb-3">Related rides</Text>
-        <VStack gap={3} align="center" className="py-6 text-center">
-          <Radio className="w-8 h-8 text-muted-foreground/30" />
-          <Text variant="bodySm" color="muted">Nearby broadcasts will appear here</Text>
-        </VStack>
+      {/* Related broadcasts — horizontal scroll with RideCards */}
+      <div className="mt-5">
+        <Text variant="micro" color="muted" className="mb-3 uppercase tracking-widest text-[10px] font-bold px-1">Related rides</Text>
+        <div className="-mx-5 px-5">
+          <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="min-w-[260px] max-w-[260px] snap-start rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-4 flex-shrink-0"
+              >
+                <div className="h-28 rounded-2xl bg-surface-elevated border border-white/[0.04] mb-3 flex items-center justify-center">
+                  <Radio className="w-6 h-6 text-muted-foreground/20" />
+                </div>
+                <div className="h-3 w-20 rounded-full bg-primary/20 mb-2" />
+                <div className="h-2.5 w-full rounded-full bg-white/[0.04] mb-1.5" />
+                <div className="h-2.5 w-2/3 rounded-full bg-white/[0.04]" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -363,10 +351,10 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
         <Button
           variant={myRSVP?.status === 'interested' ? 'default' : 'outline'}
           className={cn(
-            'h-14 rounded-full text-base font-bold pressable transition-all duration-200',
+            'h-14 rounded-full text-base font-bold pressable transition-colors',
             myRSVP?.status === 'interested'
-              ? 'bg-amber hover:bg-amber/90 text-amber-foreground glow-ducati'
-              : 'border-amber/30 text-amber hover:bg-amber/10 hover:border-amber/50'
+              ? 'bg-brand-radar hover:bg-brand-radar/90 text-white glow-yamaha'
+              : 'border-brand-radar/30 text-brand-radar hover:bg-brand-radar/10 hover:border-brand-radar/50'
           )}
           onClick={() => set.mutate('interested')}
           disabled={set.isPending}
@@ -377,7 +365,7 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
         <Button
           variant={myRSVP?.status === 'going' ? 'default' : 'outline'}
           className={cn(
-            'h-14 rounded-full text-base font-bold pressable transition-all duration-200',
+            'h-14 rounded-full text-base font-bold pressable transition-colors',
             myRSVP?.status === 'going'
               ? 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
               : 'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50'
@@ -408,8 +396,8 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
   if (existing) {
     const map = { pending: 'Request sent', accepted: 'Connected', declined: 'Declined' };
     return (
-      <Button variant="outline" disabled className="w-full h-14 rounded-full border-primary/20 bg-surface-elevated/50">
-        <Check className="w-4 h-4 mr-1.5 text-primary" /> {map[existing.status] || 'Request sent'}
+      <Button variant="outline" disabled className="w-full h-14 rounded-full border-primary/20">
+        <Check className="w-4 h-4 mr-1.5" /> {map[existing.status] || 'Request sent'}
       </Button>
     );
   }
@@ -417,13 +405,12 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
   return (
     <div>
       {!open ? (
-        <Button onClick={() => setOpen(true)} className="w-full h-14 rounded-full glow-kawasaki-sm pressable text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200">
+        <Button onClick={() => setOpen(true)} className="w-full h-14 rounded-full glow-kawasaki-sm pressable text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
           <Users className="w-4 h-4 mr-1.5" /> Initiate connection
         </Button>
       ) : (
-        <div className="p-5 rounded-[20px] rr-glass-panel space-y-3 relative overflow-hidden">
-          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/[0.03] blur-2xl" />
-          <Text variant="micro" color="muted" className="mb-1">Connection request</Text>
+        <div className="p-4 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] space-y-3">
+          <Text variant="micro" color="muted" className="mb-1 uppercase tracking-widest text-[10px] font-bold">Connection request</Text>
           <Textarea
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
@@ -434,8 +421,8 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
           />
           {sendRequest.isError && <p className="text-xs text-destructive">{sendRequest.error?.message || 'Failed to send request'}</p>}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 rounded-full h-11 border-primary/20 pressable hover:bg-white/[0.03]">Cancel</Button>
-            <Button onClick={handleSend} disabled={sendRequest.isPending} className="flex-1 rounded-full h-11 glow-kawasaki-sm pressable bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200">
+            <Button variant="outline" onClick={() => setOpen(false)} className="flex-1 rounded-full h-11 border-white/[0.08] pressable hover:bg-white/[0.04]">Cancel</Button>
+            <Button onClick={handleSend} disabled={sendRequest.isPending} className="flex-1 rounded-full h-11 glow-kawasaki-sm pressable bg-primary hover:bg-primary/90 text-primary-foreground transition-colors">
               {sendRequest.isPending ? 'Sending...' : 'Send request'}
             </Button>
           </div>
