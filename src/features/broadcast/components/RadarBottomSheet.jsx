@@ -16,11 +16,11 @@ const FILTER_TYPES = [
 ];
 
 const FILTER_STYLES = {
-  all:    { active: 'bg-primary text-primary-foreground glow-kawasaki-sm', inactive: 'hover:bg-primary/10 hover:text-primary hover:border-primary/20' },
-  alert:  { active: 'bg-destructive text-destructive-foreground glow-honda', inactive: 'hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20' },
-  solo_ride: { active: 'bg-primary text-primary-foreground glow-kawasaki-sm', inactive: 'hover:bg-primary/10 hover:text-primary hover:border-primary/20' },
-  iso:    { active: 'bg-cyan text-cyan-foreground glow-yamaha', inactive: 'hover:bg-cyan/10 hover:text-cyan hover:border-cyan/20' },
-  event:  { active: 'bg-amber text-amber-foreground glow-ducati', inactive: 'hover:bg-amber/10 hover:text-amber hover:border-amber/20' },
+  all:    { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'hover:bg-primary/10 hover:text-primary hover:border-primary/20' },
+  alert:  { active: 'bg-destructive text-destructive-foreground shadow-[0_0_20px_hsl(var(--destructive)/0.3)]', inactive: 'hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20' },
+  solo_ride: { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'hover:bg-primary/10 hover:text-primary hover:border-primary/20' },
+  iso:    { active: 'bg-cyan text-cyan-foreground shadow-[0_0_20px_hsl(var(--cyan)/0.3)]', inactive: 'hover:bg-cyan/10 hover:text-cyan hover:border-cyan/20' },
+  event:  { active: 'bg-amber text-amber-foreground shadow-[0_0_20px_hsl(var(--amber)/0.3)]', inactive: 'hover:bg-amber/10 hover:text-amber hover:border-amber/20' },
 };
 
 const STORY_RING_STYLES = {
@@ -175,8 +175,8 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
               </button>
             );
           })}
-          <div className="ml-auto flex items-center gap-1 min-h-[44px] px-2 rounded-full border border-white/[0.06] bg-white/[0.03]">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          <div className="ml-auto flex items-center gap-1 min-h-[44px] px-2 rounded-full border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-primary shrink-0" />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}

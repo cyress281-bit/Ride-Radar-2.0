@@ -154,7 +154,7 @@ function BroadcastFeedPage() {
   const activeCount = filteredBroadcasts.length;
 
   return (
-    <div className="fixed inset-0">
+    <div className="fixed inset-0 bg-background">
       {/* Full-screen map */}
       <div className="absolute inset-0 z-0">
         <LiveMap
