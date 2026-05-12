@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react';
+import { logger } from './logger';
 import { useEffect } from 'react';
 import {
   createRoutesFromChildren,
@@ -161,7 +162,7 @@ export function setSentryContext(key, value) {
  */
 export function captureError(error, context = {}) {
   if (!import.meta.env.PROD || !import.meta.env.VITE_SENTRY_DSN) {
-    console.error('[Sentry] Error captured (dev mode):', error, context);
+    logger.error('[Sentry] Error captured (dev mode):', error, context);
     return;
   }
 

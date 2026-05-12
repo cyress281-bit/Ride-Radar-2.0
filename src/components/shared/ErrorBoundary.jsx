@@ -2,6 +2,7 @@ import { Component } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { captureError } from '@/lib/sentry';
+import { logger } from '@/lib/logger';
 import { AlertTriangle } from 'lucide-react';
 import { RIDE_RADAR_LOGO_URL } from '@/components/splash/logoAsset';
 
@@ -44,7 +45,7 @@ export class ErrorBoundary extends Component {
 
   componentDidCatch(error, errorInfo) {
     try {
-      console.error('[ErrorBoundary] Caught error:', error, errorInfo);
+      logger.error('[ErrorBoundary] Caught error:', error, errorInfo);
       this.setState({ errorInfo });
 
       captureError(error, {
@@ -53,7 +54,7 @@ export class ErrorBoundary extends Component {
       });
     } catch (boundaryError) {
       // Prevent infinite error loops if Sentry or setState itself throws
-      console.error('[ErrorBoundary] Failed to process error:', boundaryError);
+      logger.error('[ErrorBoundary] Failed to process error:', boundaryError);
     }
   }
 
@@ -72,12 +73,15 @@ export class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       const isDev = import.meta.env.DEV;
+      const errorMessage = this.state.error?.message || 'An unexpected error occurred';
+      const stackTrace = this.state.error?.stack || '';
+      const componentStack = this.state.errorInfo?.componentStack || '';
 
       return (
         <div className="fixed inset-0 flex items-center justify-center bg-background/95 backdrop-blur-sm px-6 z-50">
           <div
             className={cn(
-              'w-full max-w-md rounded-[24px] p-8 text-center',
+              'w-full max-w-lg rounded-[24px] p-8 text-center',
               'rr-surface-strong',
               'shadow-[0_28px_90px_rgba(0,0,0,0.62)]',
               'border border-primary/15'
@@ -102,20 +106,33 @@ export class ErrorBoundary extends Component {
               System Error
             </h1>
             <p className="text-sm text-muted-foreground mb-1">
-              {this.state.error?.message || 'An unexpected error occurred'}
+              {errorMessage}
             </p>
 
-            {/* Dev-only stack trace */}
-            {isDev && this.state.errorInfo && (
-              <details className="mb-5 mt-3 text-left text-xs bg-black/40 border border-border/50 p-3 rounded-xl overflow-auto max-h-40">
-                <summary className="cursor-pointer font-semibold mb-2 text-muted-foreground hover:text-foreground transition-colors">
-                  Error details
-                </summary>
-                <pre className="whitespace-pre-wrap text-muted-foreground/80">
-                  {this.state.errorInfo.componentStack}
-                </pre>
-              </details>
-            )}
+            {/* Always show error details */}
+            <details className="mb-5 mt-3 text-left text-xs bg-black/40 border border-border/50 p-3 rounded-xl overflow-auto max-h-48">
+              <summary className="cursor-pointer font-semibold mb-2 text-muted-foreground hover:text-foreground transition-colors">
+                Error details (copy this)
+              </summary>
+              <div className="space-y-2 text-muted-foreground/80">
+                <div>
+                  <strong className="text-foreground/60">Message:</strong>
+                  <pre className="whitespace-pre-wrap mt-1">{errorMessage}</pre>
+                </div>
+                {stackTrace && (
+                  <div>
+                    <strong className="text-foreground/60">Stack:</strong>
+                    <pre className="whitespace-pre-wrap mt-1">{stackTrace}</pre>
+                  </div>
+                )}
+                {componentStack && (
+                  <div>
+                    <strong className="text-foreground/60">Component Stack:</strong>
+                    <pre className="whitespace-pre-wrap mt-1">{componentStack}</pre>
+                  </div>
+                )}
+              </div>
+            </details>
 
             <div className="flex gap-3 justify-center">
               <Button

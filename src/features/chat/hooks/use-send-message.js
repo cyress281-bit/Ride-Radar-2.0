@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { sendMessage as apiSendMessage } from '@/features/chat/api/chat-api.js';
-import { supabase } from '@/lib/supabase.js';
 import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 
@@ -30,16 +29,6 @@ export function useSendMessage(conversationId) {
       if (messageError) {
         logger.error('[useSendMessage] Error creating message:', messageError);
         throw messageError;
-      }
-
-      // Update conversation's last_message_at
-      const { error: conversationError } = await supabase
-        .from('conversations')
-        .update({ last_message_at: new Date().toISOString() })
-        .eq('id', conversationId);
-
-      if (conversationError) {
-        logger.error('[useSendMessage] Error updating conversation:', conversationError);
       }
 
       return message;

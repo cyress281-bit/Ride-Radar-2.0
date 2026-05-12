@@ -3,7 +3,7 @@ import { Activity, Users, Radio, ShieldAlert, Trash2, MessageCircle } from 'luci
 import { useQuery } from '@tanstack/react-query';
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
-import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
+import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
 import {
   getUserCount,
   getActiveBroadcastCount,
@@ -18,34 +18,29 @@ import { Skeleton } from '@/components/ui/skeleton';
  * AdminAnalyticsPage - Operational metrics, moderation log, and simple charts.
  */
 export default function AdminAnalyticsPage() {
-  const { isAdmin, isLoading: roleLoading } = useAdminRole();
-  if (roleLoading) {
-    return (
-      <AdminLayout>
-        <Skeleton className="mb-4 h-7 w-32" />
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 w-full" />
-          ))}
-        </div>
-        <Skeleton className="mb-6 h-40 w-full" />
-        <Skeleton className="mb-6 h-40 w-full" />
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full" />
-          ))}
-        </div>
-      </AdminLayout>
-    );
-  }
-  if (!isAdmin) {
-    return (
-      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
-        Admin access required.
-      </div>
-    );
-  }
-  return <AdminAnalyticsContent />;
+  return (
+    <AdminPageShell
+      skeleton={
+        <AdminLayout>
+          <Skeleton className="mb-4 h-7 w-32" />
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-28 w-full" />
+            ))}
+          </div>
+          <Skeleton className="mb-6 h-40 w-full" />
+          <Skeleton className="mb-6 h-40 w-full" />
+          <div className="space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full" />
+            ))}
+          </div>
+        </AdminLayout>
+      }
+    >
+      <AdminAnalyticsContent />
+    </AdminPageShell>
+  );
 }
 
 function AdminAnalyticsContent() {

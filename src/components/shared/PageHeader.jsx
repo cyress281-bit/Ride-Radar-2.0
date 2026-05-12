@@ -24,7 +24,7 @@ export const PageHeader = memo(function PageHeader({
   return (
     <div
       className={cn(
-        'rr-surface-strong relative mb-5 overflow-hidden rounded-[1.25rem] p-5',
+        'rr-surface-strong relative mb-5 overflow-hidden rounded-[1.45rem] p-5',
         className
       )}
     >

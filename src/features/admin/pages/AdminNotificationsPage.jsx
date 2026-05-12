@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Bell, Check, AlertCircle } from 'lucide-react';
 import { sendAnnouncement } from '@/features/admin/api/admin-api.js';
-import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
+import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,29 +16,24 @@ import { Skeleton } from '@/components/ui/skeleton';
  * Tries Edge Function first, falls back to batch insert (500 rows at a time).
  */
 export default function AdminNotificationsPage() {
-  const { isAdmin, isLoading: roleLoading } = useAdminRole();
-  if (roleLoading) {
-    return (
-      <AdminLayout>
-        <div className="mb-4 flex items-center justify-between">
-          <Skeleton className="h-7 w-32" />
-        </div>
-        <div className="mx-auto max-w-xl space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-11 w-full" />
-        </div>
-      </AdminLayout>
-    );
-  }
-  if (!isAdmin) {
-    return (
-      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
-        Admin access required.
-      </div>
-    );
-  }
-  return <AdminNotificationsContent />;
+  return (
+    <AdminPageShell
+      skeleton={
+        <AdminLayout>
+          <div className="mb-4 flex items-center justify-between">
+            <Skeleton className="h-7 w-32" />
+          </div>
+          <div className="mx-auto max-w-xl space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-11 w-full" />
+          </div>
+        </AdminLayout>
+      }
+    >
+      <AdminNotificationsContent />
+    </AdminPageShell>
+  );
 }
 
 function AdminNotificationsContent() {

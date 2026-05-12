@@ -145,10 +145,7 @@ if (supabaseUrl && supabaseAnonKey) {
 /** Supabase client for Ride Radar 2.0. */
 export const supabase = _client;
 
-// Expose for debugging in development
-if (import.meta.env.DEV && typeof window !== 'undefined' && supabase) {
-  window.supabase = supabase;
-}
+// Supabase client is NOT exposed on window to prevent accidental leakage in staging builds
 
 /**
  * Get the current auth token, if any.

@@ -1,5 +1,4 @@
 import React, { memo } from 'react';
-import { motion } from 'framer-motion';
 import { cn, timeAgo } from '@/lib/utils.js';
 
 /**
@@ -8,17 +7,20 @@ import { cn, timeAgo } from '@/lib/utils.js';
  * Own messages are green and right-aligned.
  * Other messages are dark surface and left-aligned.
  *
+ * Uses CSS transitions instead of Framer Motion to avoid per-message
+ * animation engine overhead in long threads.
+ *
  * @param {Object} props
  * @param {object} props.message
  * @param {boolean} props.isMine
  */
 const MessageBubble = memo(function MessageBubble({ message, isMine }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
-      className={cn('flex will-change-transform transform-gpu', isMine ? 'justify-end' : 'justify-start')}
+    <div
+      className={cn(
+        'flex will-change-transform transform-gpu animate-message-in',
+        isMine ? 'justify-end' : 'justify-start'
+      )}
     >
       <div className="max-w-[80%]">
         <div
@@ -40,7 +42,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
           {timeAgo(message.created_at)}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 });
 

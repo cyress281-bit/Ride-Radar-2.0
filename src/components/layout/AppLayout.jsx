@@ -1,6 +1,5 @@
 import { memo } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import AppHeader from './AppHeader';
 import BottomNav from './BottomNav';
@@ -72,18 +71,7 @@ const AppLayout = memo(function AppLayout() {
         )}
         role="main"
       >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="will-change-transform transform-gpu"
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
+        <Outlet />
       </main>
 
       {/* Bottom navigation — floats on radar, fixed elsewhere */}

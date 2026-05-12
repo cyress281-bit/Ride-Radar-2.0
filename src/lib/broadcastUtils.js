@@ -15,10 +15,16 @@ export const BROADCAST_META = {
 
 export function computeExpiresAt(broadcast) {
   const now = Date.now();
-  if (broadcast.type === 'solo_ride') return new Date(now + 90 * 60 * 1000).toISOString();
-  if (broadcast.type === 'alert') return new Date(now + 240 * 60 * 1000).toISOString();
+  if (broadcast.type === 'solo_ride') {
+    return new Date(now + EXPIRY_MINUTES.solo_ride * 60 * 1000).toISOString();
+  }
+  if (broadcast.type === 'alert') {
+    return new Date(now + EXPIRY_MINUTES.alert * 60 * 1000).toISOString();
+  }
   if (broadcast.type === 'iso') {
-    const mins = broadcast.isoSubtype === 'mechanic' ? 720 : 1440;
+    const mins = broadcast.isoSubtype === 'mechanic'
+      ? EXPIRY_MINUTES.iso_mechanic
+      : EXPIRY_MINUTES.iso_bike_crew;
     return new Date(now + mins * 60 * 1000).toISOString();
   }
   if (broadcast.type === 'event' && broadcast.eventEndTime) {
@@ -51,21 +57,8 @@ export function haversineMiles(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export function formatDistance(miles) {
-  if (miles == null) return null;
-  if (miles > 50) return '50+ mi';
-  if (miles < 10) return `${Math.max(1, Math.round(miles))} mi`;
-  if (miles < 25) return `${Math.round(miles / 2) * 2} mi`;
-  return `${Math.round(miles / 5) * 5} mi`;
-}
-
-export function timeAgo(iso) {
-  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-}
+// Re-export canonical implementations from utils.js to avoid duplication
+export { formatDistance, timeAgo } from './utils.js';
 
 export function timeUntilExpiry(iso) {
   const diff = (new Date(iso).getTime() - Date.now()) / 1000;

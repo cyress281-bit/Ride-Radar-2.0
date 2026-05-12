@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
@@ -20,17 +20,20 @@ registerServiceWorker();
 
 // Catch async errors that error boundaries cannot capture
 window.addEventListener('unhandledrejection', (event) => {
-  console.error('[Unhandled Rejection]', event.reason);
   // Sentry will auto-capture in production via its default integration
 });
 
-window.addEventListener('error', (event) => {
-  console.error('[Global Error]', event.error);
+window.addEventListener('error', () => {
+  // Sentry will auto-capture in production via its default integration
 });
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  console.error('[main.jsx] Root element not found. Unable to mount React app.');
+  // Root element not found — app cannot mount
 } else {
-  ReactDOM.createRoot(rootElement).render(<App />);
+  ReactDOM.createRoot(rootElement).render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  );
 }

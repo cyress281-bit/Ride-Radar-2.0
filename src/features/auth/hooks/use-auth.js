@@ -21,7 +21,7 @@ import {
 } from 'react';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
-import { queryClient } from '@/lib/query-client.js';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   signInWithEmail,
   signUpWithEmail,
@@ -52,6 +52,7 @@ const AuthActionsContext = createContext(null);
  * @returns {{ state: object, actions: object }}
  */
 export function useAuthProvider() {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -6,6 +6,7 @@
 
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
+import { throttle } from '@/lib/throttle.js';
 
 /**
  * List broadcasts with optional filters.
@@ -15,10 +16,11 @@ import { logger } from '@/lib/logger.js';
  * @param {string} [options.status='active'] - Status filter
  * @param {number} [options.limit=100] - Max results
  * @param {number} [options.offset=0] - Pagination offset
+ * @param {string[]} [options.blockedUserIds] - User IDs to exclude
  * @returns {Promise<{data: Array|null, error: Error|null}>}
  */
 export async function getBroadcasts(options = {}) {
-  const { type, status = 'active', limit = 100, offset = 0 } = options;
+  const { type, status = 'active', limit = 100, offset = 0, blockedUserIds = [] } = options;
 
   let query = supabase
     .from('broadcasts')
@@ -28,6 +30,7 @@ export async function getBroadcasts(options = {}) {
 
   if (type) query = query.eq('type', type);
   if (status) query = query.eq('status', status);
+  if (blockedUserIds.length > 0) query = query.not('author_id', 'in', `(${blockedUserIds.join(',')})`);
 
   const { data, error } = await query;
   if (error) logger.error('[getBroadcasts] Error:', error);
@@ -58,14 +61,16 @@ export async function getBroadcastById(id) {
  * @param {number} lng
  * @param {number} [radius=50] - Radius in miles
  * @param {number} [limit=100] - Max results
+ * @param {string[]} [blockedUserIds] - User IDs to exclude
  * @returns {Promise<{data: Array|null, error: Error|null}>}
  */
-export async function getNearbyBroadcasts(lat, lng, radius = 50, limit = 100) {
+export async function getNearbyBroadcasts(lat, lng, radius = 50, limit = 100, blockedUserIds = []) {
   const { data, error } = await supabase.rpc('get_nearby_broadcasts', {
     user_lat: lat,
     user_lng: lng,
     radius_miles: radius,
     limit_count: limit,
+    exclude_user_ids: blockedUserIds.length > 0 ? blockedUserIds : null,
   });
 
   if (error) logger.error('[getNearbyBroadcasts] Error:', error);
@@ -78,7 +83,7 @@ export async function getNearbyBroadcasts(lat, lng, radius = 50, limit = 100) {
  * @param {object} broadcast
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
-export async function createBroadcast(broadcast) {
+export const createBroadcast = throttle(async function createBroadcast(broadcast) {
   const { data, error } = await supabase
     .from('broadcasts')
     .insert(broadcast)
@@ -87,7 +92,7 @@ export async function createBroadcast(broadcast) {
 
   if (error) logger.error('[createBroadcast] Error:', error);
   return { data, error };
-}
+}, 10_000);
 
 /**
  * Update an existing broadcast.

@@ -52,24 +52,27 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
       if (error) throw error;
 
       if (!data) {
-        const { data: created, error: createError } = await supabase
+        const { data: upserted, error: upsertError } = await supabase
           .from('user_settings')
-          .insert({
-            user_id: userId,
-            notify_on_connection: true,
-            notify_on_message: true,
-            notify_on_rsvp: true,
-            notify_on_alert: true,
-            show_location: true,
-            live_map_visible: false,
-            live_map_location_precision: 'approximate',
-            analytics_enabled: true,
-          })
+          .upsert(
+            {
+              user_id: userId,
+              notify_on_connection: true,
+              notify_on_message: true,
+              notify_on_rsvp: true,
+              notify_on_alert: true,
+              show_location: true,
+              live_map_visible: false,
+              live_map_location_precision: 'approximate',
+              analytics_enabled: true,
+            },
+            { onConflict: 'user_id' }
+          )
           .select('id,user_id,live_map_visible,live_map_location_precision')
           .single();
 
-        if (createError) throw createError;
-        return created;
+        if (upsertError) throw upsertError;
+        return upserted;
       }
 
       return data;

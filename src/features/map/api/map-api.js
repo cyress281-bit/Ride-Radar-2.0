@@ -48,14 +48,47 @@ export async function getMyPresence(userId) {
 
 /**
  * Upsert a presence record.
+ * Only whitelisted fields are written to prevent client-side spoofing.
  *
  * @param {object} data
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
 export async function publishPresence(data) {
+  const {
+    user_id,
+    display_name,
+    avatar_url,
+    vehicle_label,
+    is_visible,
+    location_precision,
+    lat,
+    lng,
+    accuracy_meters,
+    approximate_radius_miles,
+    source,
+    last_seen_at,
+    expires_at,
+  } = data || {};
+
+  const sanitized = {
+    user_id,
+    display_name,
+    avatar_url,
+    vehicle_label,
+    is_visible,
+    location_precision,
+    lat,
+    lng,
+    accuracy_meters,
+    approximate_radius_miles,
+    source,
+    last_seen_at,
+    expires_at,
+  };
+
   const { data: result, error } = await supabase
     .from('live_map_presence')
-    .upsert(data, { onConflict: 'user_id' })
+    .upsert(sanitized, { onConflict: 'user_id' })
     .select()
     .single();
 

@@ -14,7 +14,7 @@ import {
   Database,
 } from 'lucide-react';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
-import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
+import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
 import {
   getTodaysStats,
   getUserCount,
@@ -30,28 +30,21 @@ import { Skeleton } from '@/components/ui/skeleton';
  * AdminDashboardPage - Overview page with metric cards linking to sub-pages.
  */
 export default function AdminDashboardPage() {
-  const { isAdmin, isLoading: roleLoading } = useAdminRole();
-  if (roleLoading) {
-    return (
-      <AdminLayout>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {Array.from({ length: 11 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 w-full" />
-          ))}
-        </div>
-      </AdminLayout>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
-        Admin access required.
-      </div>
-    );
-  }
-
-  return <AdminDashboardContent />;
+  return (
+    <AdminPageShell
+      skeleton={
+        <AdminLayout>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {Array.from({ length: 11 }).map((_, i) => (
+              <Skeleton key={i} className="h-28 w-full" />
+            ))}
+          </div>
+        </AdminLayout>
+      }
+    >
+      <AdminDashboardContent />
+    </AdminPageShell>
+  );
 }
 
 function AdminDashboardContent() {

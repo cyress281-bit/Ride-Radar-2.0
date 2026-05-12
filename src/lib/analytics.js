@@ -1,4 +1,5 @@
 import Plausible from 'plausible-tracker';
+import { logger } from './logger';
 
 /**
  * Privacy-focused analytics using Plausible
@@ -64,7 +65,7 @@ export function trackPageView(url = null) {
       url: url || window.location.pathname,
     });
   } catch (error) {
-    console.error('[Analytics] Failed to track page view:', error);
+    logger.error('[Analytics] Failed to track page view:', error);
   }
 }
 
@@ -81,7 +82,7 @@ export function trackEvent(eventName, props = {}) {
 
     plausible.trackEvent(eventName, { props: sanitizedProps });
   } catch (error) {
-    console.error('[Analytics] Failed to track event:', error);
+    logger.error('[Analytics] Failed to track event:', error);
   }
 }
 

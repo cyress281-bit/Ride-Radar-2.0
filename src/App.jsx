@@ -187,8 +187,7 @@ function ValidateUUIDParam({ param, children }) {
 // ------------------------------------------------------------------
 
 const NotFoundPage = memo(function NotFoundPage() {
-  const { isAuthenticated } = useAuthState();
-  return <Navigate to={isAuthenticated ? '/home' : '/landing'} replace />;
+  return <Navigate to="/home" replace />;
 });
 
 // ------------------------------------------------------------------
@@ -204,6 +203,40 @@ const ErrorBoundaryWithReset = memo(function ErrorBoundaryWithReset({ children }
   );
 });
 
+/**
+ * LoginRoute - Handles auth redirect for /login so AppContent
+ * doesn't need to subscribe to auth state.
+ */
+const LoginRoute = memo(function LoginRoute() {
+  const { isAuthenticated, isLoading } = useAuthState();
+  const location = useLocation();
+
+  if (!isLoading && isAuthenticated) {
+    return <Navigate to={getSafeAuthRedirectFromSearch(location.search)} replace />;
+  }
+  return <LoginPage />;
+});
+
+// ------------------------------------------------------------------
+// Granular suspense wrappers for heavy route groups
+// ------------------------------------------------------------------
+
+const AdminPageLoader = memo(function AdminPageLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+    </div>
+  );
+});
+
+const AdminLayout = memo(function AdminLayout() {
+  return (
+    <Suspense fallback={<AdminPageLoader />}>
+      <Outlet />
+    </Suspense>
+  );
+});
+
 // ------------------------------------------------------------------
 // App content
 // ------------------------------------------------------------------
@@ -215,25 +248,13 @@ const ErrorBoundaryWithReset = memo(function ErrorBoundaryWithReset({ children }
  * and are wrapped in AppLayout. Admin routes add an additional role check.
  */
 const AppContent = memo(function AppContent() {
-  const { isAuthenticated, isLoading } = useAuthState();
-  const location = useLocation();
-
   return (
     <Suspense fallback={<PageLoader />}>
       <ScrollToTop />
       <Routes>
         {/* Public routes */}
         <Route path="/landing" element={<LandingPage />} />
-        <Route
-          path="/login"
-          element={
-            !isLoading && isAuthenticated ? (
-              <Navigate to={getSafeAuthRedirectFromSearch(location.search)} replace />
-            ) : (
-              <LoginPage />
-            )
-          }
-        />
+        <Route path="/login" element={<LoginRoute />} />
         <Route path="/account-deletion" element={<AccountDeletionPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/support" element={<SupportPage />} />
@@ -272,17 +293,19 @@ const AppContent = memo(function AppContent() {
 
           {/* Admin routes */}
           <Route element={<AdminRoute />}>
-            <Route path="/admin" element={<AdminDashboardPage />} />
-            <Route path="/admin/reports" element={<AdminReportsPage />} />
-            <Route path="/admin/broadcasts" element={<AdminBroadcastsPage />} />
-            <Route path="/admin/users" element={<AdminUsersPage />} />
-            <Route path="/admin/blocks" element={<AdminBlocksPage />} />
-            <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
-            <Route path="/admin/deletions" element={<AdminDeletionRequestsPage />} />
-            <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-            <Route path="/admin/compliance" element={<AdminCompliancePage />} />
-            <Route path="/admin/monitoring" element={<AdminMonitoringPage />} />
-            <Route path="/admin/health" element={<AdminHealthPage />} />
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/admin/reports" element={<AdminReportsPage />} />
+              <Route path="/admin/broadcasts" element={<AdminBroadcastsPage />} />
+              <Route path="/admin/users" element={<AdminUsersPage />} />
+              <Route path="/admin/blocks" element={<AdminBlocksPage />} />
+              <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
+              <Route path="/admin/deletions" element={<AdminDeletionRequestsPage />} />
+              <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+              <Route path="/admin/compliance" element={<AdminCompliancePage />} />
+              <Route path="/admin/monitoring" element={<AdminMonitoringPage />} />
+              <Route path="/admin/health" element={<AdminHealthPage />} />
+            </Route>
           </Route>
         </Route>
 

@@ -7,6 +7,7 @@
 
 import { supabase } from '@/lib/supabase.js';
 import { isValidUuid } from '@/lib/utils.js';
+import { throttle } from '@/lib/throttle.js';
 
 /**
  * Create a report.
@@ -19,7 +20,7 @@ import { isValidUuid } from '@/lib/utils.js';
  * @param {string} [params.details]
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
-export async function createReport({
+export const createReport = throttle(async function createReport({
   reporter_user_id,
   target_type,
   target_id,
@@ -52,7 +53,7 @@ export async function createReport({
     .single();
 
   return { data, error };
-}
+}, 30_000);
 
 /**
  * Fetch reports created by a user.

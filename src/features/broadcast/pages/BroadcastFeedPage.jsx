@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, useCallback, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Crosshair, Plus, SlidersHorizontal, ChevronUp, Navigation } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import { useNearbyBroadcasts } from '@/features/broadcast/hooks/use-nearby-broadcasts.js';
@@ -126,17 +125,18 @@ function BroadcastFeedPage() {
   const effectiveLoc = hasUserLocation ? userLoc : US_CENTER;
 
   // Fetch broadcasts around effective location
+  const { blockedIds } = useBlockedIds();
+
   const { data: nearbyBroadcasts = [], isLoading: isLoadingNearby } = useNearbyBroadcasts(
     effectiveLoc.lat,
     effectiveLoc.lng,
-    hasUserLocation ? 50 : 500
+    hasUserLocation ? 50 : 500,
+    Array.from(blockedIds)
   );
 
   const usingOfflineSnapshot = !isOnline && !!offlineSnapshot;
   const sourceBroadcasts = usingOfflineSnapshot ? offlineSnapshot.broadcasts : nearbyBroadcasts;
   const isLoadingBroadcasts = hasUserLocation ? isLoadingNearby : false;
-
-  const { blockedIds } = useBlockedIds();
 
   const { markers: riderMarkers } = useLiveMapPresence(
     { lat: userLoc.lat, lng: userLoc.lng, accuracyMeters: userLoc.accuracyMeters },
@@ -433,22 +433,15 @@ function BroadcastFeedPage() {
         </button>
 
         {/* Pull indicator */}
-        <AnimatePresence>
-          {pullOffset > 10 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: Math.min(pullOffset / 40, 1) }}
-              exit={{ opacity: 0 }}
-              className="flex justify-center pt-2 pb-1"
-            >
-              <RRLogo
-                size="sm"
-                className={cn('opacity-60', pullOffset > 40 && 'animate-spin')}
-                glow={false}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {pullOffset > 10 && (
+          <div className="flex justify-center pt-2 pb-1">
+            <RRLogo
+              size="sm"
+              className={cn('opacity-60', pullOffset > 40 && 'animate-spin')}
+              glow={false}
+            />
+          </div>
+        )}
 
         {/* Sheet content */}
         <div
@@ -489,20 +482,7 @@ function BroadcastFeedPage() {
           </div>
 
           {/* Broadcast list */}
-          <motion.div
-            className="space-y-3"
-            initial="hidden"
-            animate="visible"
-            key={`${filter}-${sortBy}`}
-            variants={{
-              hidden: {},
-              visible: {
-                transition: {
-                  staggerChildren: 0.04,
-                },
-              },
-            }}
-          >
+          <div className="space-y-3">
             {isLoadingBroadcasts && filteredBroadcasts.length === 0 && (
               <div className="py-12 flex flex-col items-center gap-4">
                 <RRLogo size="sm" className="opacity-40 animate-pulse" glow={false} />
@@ -512,16 +492,8 @@ function BroadcastFeedPage() {
               </div>
             )}
             {filteredBroadcasts.map((broadcast) => (
-              <motion.div
+              <div
                 key={broadcast.id}
-                variants={{
-                  hidden: { opacity: 0, y: 16 },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    transition: { duration: 0.3, ease: 'easeOut' },
-                  },
-                }}
                 className="will-change-transform transform-gpu"
               >
                 <BroadcastCard
@@ -530,21 +502,16 @@ function BroadcastFeedPage() {
                   userLat={effectiveLoc.lat}
                   userLng={effectiveLoc.lng}
                 />
-              </motion.div>
+              </div>
             ))}
             {filteredBroadcasts.length === 0 && !isLoadingBroadcasts && (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="py-12 text-center"
-              >
+              <div className="py-12 text-center">
                 <RRLogo size="sm" className="mx-auto mb-4 opacity-50" glow={false} />
                 <p className="text-sm font-medium text-muted-foreground">No signals in this area.</p>
                 <p className="text-xs text-muted-foreground/60 mt-2">Tap the + button to create one.</p>
-              </motion.div>
+              </div>
             )}
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

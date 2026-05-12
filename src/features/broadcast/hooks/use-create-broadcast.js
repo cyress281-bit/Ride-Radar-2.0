@@ -11,6 +11,7 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { BROADCAST_EXPIRY_MS } from '@/lib/constants.js';
 import { geocodeAddress, approximateLocation } from '@/lib/geocoding.js';
 import { logger } from '@/lib/logger.js';
+import { toast } from '@/components/ui/use-toast';
 import { broadcastKeys } from './use-broadcasts.js';
 
 function normalizeLocationText(text) {

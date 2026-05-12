@@ -6,19 +6,7 @@
  */
 
 import { supabase } from '@/lib/supabase.js';
-
-const REMEMBER_DEVICE_KEY = 'rr_remember_device';
-
-/**
- * Set the "remember device" preference in localStorage.
- * The custom auth storage in supabase.js reads this key.
- * @param {boolean} value
- */
-function setRememberDevicePreference(value) {
-  if (typeof window !== 'undefined') {
-    window.localStorage.setItem(REMEMBER_DEVICE_KEY, String(value));
-  }
-}
+import { setRememberDevicePreference } from '@/lib/supabase.js';
 
 /**
  * Sign in with email and password.

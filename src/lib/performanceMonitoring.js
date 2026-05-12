@@ -1,4 +1,4 @@
-import { onCLS, onFID, onLCP, onTTFB, onINP } from 'web-vitals';
+import { onCLS, onLCP, onTTFB, onINP } from 'web-vitals';
 import { captureError, setSentryContext } from './sentry';
 import { trackEvent } from './analytics';
 import { logger } from './logger';
@@ -17,7 +17,6 @@ import { logger } from './logger';
 // Performance thresholds (based on Core Web Vitals recommendations)
 const THRESHOLDS = {
   LCP: { good: 2500, poor: 4000 },
-  FID: { good: 100, poor: 300 },
   CLS: { good: 0.1, poor: 0.25 },
   TTFB: { good: 800, poor: 1800 },
   INP: { good: 200, poor: 500 },
@@ -35,11 +34,6 @@ export function initializeWebVitals() {
   // Largest Contentful Paint (loading performance)
   onLCP((metric) => {
     reportWebVital('LCP', metric);
-  });
-
-  // First Input Delay (interactivity)
-  onFID((metric) => {
-    reportWebVital('FID', metric);
   });
 
   // Cumulative Layout Shift (visual stability)

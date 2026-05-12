@@ -16,6 +16,17 @@ let registration = null;
 export async function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     try {
+      // Only clear stale caches from previous app versions
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        const stalePrefixes = ['radar-map-tile-cache', 'supabase-storage-cache'];
+        await Promise.all(
+          cacheNames
+            .filter((name) => stalePrefixes.some((p) => name.includes(p)))
+            .map((name) => caches.delete(name))
+        );
+      }
+
       registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
       });
@@ -50,7 +61,7 @@ export async function registerServiceWorker() {
       });
 
     } catch (error) {
-      console.error('[PWA] Service Worker registration failed:', error);
+      // Service Worker registration failed — logged silently
     }
   }
 }
@@ -92,7 +103,7 @@ export async function promptInstall() {
 
     return outcome === 'accepted';
   } catch (error) {
-    console.error('[PWA] Install prompt error:', error);
+    // Install prompt error — logged silently
     return false;
   }
 }

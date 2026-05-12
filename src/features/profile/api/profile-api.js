@@ -149,6 +149,7 @@ export async function checkUsernameAvailability(username) {
 
 /**
  * Text search across display_name and username.
+ * Uses two separate queries to avoid structure injection in .or()
  * @param {string} query
  * @returns {Promise<{data: object[], error: Error|null}>}
  */
@@ -157,12 +158,21 @@ export async function searchProfiles(query) {
   if (!trimmed) return { data: [], error: null };
 
   const pattern = `%${trimmed}%`;
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('*')
-    .or(`display_name.ilike.${pattern},username.ilike.${pattern}`)
-    .eq('is_public', true)
-    .limit(20);
+  const [displayNameResult, usernameResult] = await Promise.all([
+    supabase.from('user_profiles').select('*').ilike('display_name', pattern).eq('is_public', true).limit(20),
+    supabase.from('user_profiles').select('*').ilike('username', pattern).eq('is_public', true).limit(20),
+  ]);
 
-  return { data: data || [], error };
+  const error = displayNameResult.error || usernameResult.error;
+  if (error) return { data: [], error };
+
+  const merged = [...(displayNameResult.data || []), ...(usernameResult.data || [])];
+  const seen = new Set();
+  const deduped = merged.filter((p) => {
+    if (!p?.id || seen.has(p.id)) return false;
+    seen.add(p.id);
+    return true;
+  });
+
+  return { data: deduped.slice(0, 20), error: null };
 }

@@ -62,13 +62,16 @@ export function useOfflineQueue(options = {}) {
     }
   }, [storageKey]);
 
-  // Persist queue to localStorage
+  // Persist queue to localStorage (debounced to avoid blocking main thread)
   useEffect(() => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(queue));
-    } catch (error) {
-      logger.error('[useOfflineQueue] Failed to save queue:', error);
-    }
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(queue));
+      } catch (error) {
+        logger.error('[useOfflineQueue] Failed to save queue:', error);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
   }, [queue, storageKey]);
 
   /**

@@ -1,7 +1,7 @@
 import { Trash2 } from 'lucide-react';
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
-import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
+import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -9,30 +9,25 @@ import { Skeleton } from '@/components/ui/skeleton';
  * AdminDeletionRequestsPage - Read-only view of account_deletion_requests.
  */
 export default function AdminDeletionRequestsPage() {
-  const { isAdmin, isLoading: roleLoading } = useAdminRole();
-  if (roleLoading) {
-    return (
-      <AdminLayout>
-        <div className="mb-4 flex items-center justify-between">
-          <Skeleton className="h-7 w-40" />
-          <Skeleton className="h-4 w-16" />
-        </div>
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-32 w-full" />
-          ))}
-        </div>
-      </AdminLayout>
-    );
-  }
-  if (!isAdmin) {
-    return (
-      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
-        Admin access required.
-      </div>
-    );
-  }
-  return <AdminDeletionRequestsContent />;
+  return (
+    <AdminPageShell
+      skeleton={
+        <AdminLayout>
+          <div className="mb-4 flex items-center justify-between">
+            <Skeleton className="h-7 w-40" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+          <div className="space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-32 w-full" />
+            ))}
+          </div>
+        </AdminLayout>
+      }
+    >
+      <AdminDeletionRequestsContent />
+    </AdminPageShell>
+  );
 }
 
 function AdminDeletionRequestsContent() {

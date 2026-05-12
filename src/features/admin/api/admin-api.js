@@ -12,6 +12,7 @@ import { logger } from '@/lib/logger.js';
  * @returns {Promise<ApiResult>}
  */
 export async function getUsers() {
+  await assertAdmin();
   const { data, error } = await supabase
     .from('users')
     .select('*')
@@ -25,6 +26,7 @@ export async function getUsers() {
  * @returns {Promise<ApiResult>}
  */
 export async function getBroadcasts() {
+  await assertAdmin();
   const { data, error } = await supabase
     .from('broadcasts')
     .select('*')
@@ -38,6 +40,7 @@ export async function getBroadcasts() {
  * @returns {Promise<ApiResult>}
  */
 export async function getProfiles() {
+  await assertAdmin();
   const { data, error } = await supabase
     .from('user_profiles')
     .select('*')
@@ -51,6 +54,7 @@ export async function getProfiles() {
  * @returns {Promise<ApiResult>}
  */
 export async function getReports() {
+  await assertAdmin();
   const { data, error } = await supabase
     .from('reports')
     .select('*')
@@ -64,6 +68,7 @@ export async function getReports() {
  * @returns {Promise<ApiResult>}
  */
 export async function getBlocks() {
+  await assertAdmin();
   const { data, error } = await supabase
     .from('user_blocks')
     .select('*')
@@ -77,6 +82,7 @@ export async function getBlocks() {
  * @returns {Promise<ApiResult>}
  */
 export async function getNotifications() {
+  await assertAdmin();
   const { data, error } = await supabase
     .from('notifications')
     .select('*')
@@ -90,6 +96,7 @@ export async function getNotifications() {
  * @returns {Promise<ApiResult>}
  */
 export async function getDeletionRequests() {
+  await assertAdmin();
   const { data, error } = await supabase
     .from('account_deletion_requests')
     .select('*')
@@ -103,6 +110,7 @@ export async function getDeletionRequests() {
  * @returns {Promise<ApiResult>}
  */
 export async function getConversations() {
+  await assertAdmin();
   const { data, error } = await supabase
     .from('conversations')
     .select('*')
@@ -123,6 +131,7 @@ async function assertAdmin() {
  * @returns {Promise<ApiResult>}
  */
 export async function getUserCount() {
+  await assertAdmin();
   const { count, error } = await supabase.from('users').select('*', { count: 'exact', head: true });
   return { data: count ?? 0, error };
 }
@@ -132,6 +141,7 @@ export async function getUserCount() {
  * @returns {Promise<ApiResult>}
  */
 export async function getActiveBroadcastCount() {
+  await assertAdmin();
   const { count, error } = await supabase
     .from('broadcasts')
     .select('*', { count: 'exact', head: true })
@@ -144,6 +154,7 @@ export async function getActiveBroadcastCount() {
  * @returns {Promise<ApiResult>}
  */
 export async function getPendingReportCount() {
+  await assertAdmin();
   const { count, error } = await supabase
     .from('reports')
     .select('*', { count: 'exact', head: true })
@@ -156,6 +167,7 @@ export async function getPendingReportCount() {
  * @returns {Promise<ApiResult>}
  */
 export async function getActiveConversationCount() {
+  await assertAdmin();
   const { count, error } = await supabase
     .from('conversations')
     .select('*', { count: 'exact', head: true })
@@ -168,8 +180,9 @@ export async function getActiveConversationCount() {
  * @returns {Promise<ApiResult>}
  */
 export async function getTodaysStats() {
+  await assertAdmin();
   const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
 
   const readCount = async (table, label) => {
     const { count, error } = await supabase
@@ -222,6 +235,10 @@ export async function updateReportStatus(id, status) {
  */
 export async function updateUserRole(id, role) {
   await assertAdmin();
+  const ALLOWED_ROLES = ['user', 'admin', 'moderator'];
+  if (!ALLOWED_ROLES.includes(role)) {
+    return { data: null, error: new Error(`Invalid role. Must be one of: ${ALLOWED_ROLES.join(', ')}`) };
+  }
   logger.info(`[admin] Updating user ${id} role to ${role}`);
   const { data, error } = await supabase
     .from('users')
@@ -293,10 +310,11 @@ export async function sendAnnouncement(title, body) {
     // Fall through to batch insert
   }
 
-  // Fallback: batch insert notifications
+  // Fallback: batch insert notifications (capped at 10k users)
   const { data: users, error: usersError } = await supabase
     .from('users')
-    .select('id');
+    .select('id')
+    .limit(10000);
 
   if (usersError) return { data: null, error: usersError };
 

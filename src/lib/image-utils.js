@@ -154,7 +154,7 @@ export async function uploadImage(file, bucket, path) {
     .upload(filePath, blob, {
       contentType,
       cacheControl: '31536000',
-      upsert: true,
+      upsert: false,
     });
 
   if (error) {
@@ -223,9 +223,8 @@ export async function uploadImageIfNeeded(value, bucket = 'images', path = 'uplo
     const file = value.file;
     const ext = file.name.split('.').pop() || 'jpg';
     const filePath = `${path}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-    const { data, error } = await uploadImage(file, bucket, filePath);
-    if (error) throw error;
-    return getPublicUrl(bucket, data?.path || filePath);
+    const publicUrl = await uploadImage(file, bucket, filePath);
+    return publicUrl;
   }
   return String(value);
 }

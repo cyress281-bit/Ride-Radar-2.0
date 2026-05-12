@@ -9,7 +9,7 @@
  * - Offline fallback from localStorage snapshot
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useId } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase.js';
 import { getNearbyBroadcasts } from '@/features/broadcast/api/broadcast-api.js';
@@ -50,20 +50,21 @@ export function cacheOfflineSnapshot(broadcasts) {
  * @param {number|null} lng
  * @param {number} [radiusMiles=50]
  */
-export function useNearbyBroadcasts(lat, lng, radiusMiles = 50) {
+export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds = []) {
   const queryClient = useQueryClient();
   const invalidateTimerRef = useRef(null);
+  const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const hasCoordinates = lat != null && lng != null;
   // Round coordinates to avoid cache fragmentation from GPS jitter
   const roundedLat = lat != null ? Math.round(lat * 1000) / 1000 : null;
   const roundedLng = lng != null ? Math.round(lng * 1000) / 1000 : null;
-  const nearbyQueryKey = ['broadcasts', 'nearby', roundedLat, roundedLng, radiusMiles];
+  const nearbyQueryKey = ['broadcasts', 'nearby', roundedLat, roundedLng, radiusMiles, blockedUserIds];
 
   const query = useQuery({
     queryKey: nearbyQueryKey,
     queryFn: async () => {
       if (!hasCoordinates) return [];
-      const { data, error } = await getNearbyBroadcasts(lat, lng, radiusMiles, 100);
+      const { data, error } = await getNearbyBroadcasts(lat, lng, radiusMiles, 100, blockedUserIds);
       if (error) {
         logger.error('[useNearbyBroadcasts] Error:', error);
         throw error;
@@ -92,7 +93,7 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50) {
     };
 
     const channel = supabase
-      .channel('broadcasts-realtime')
+      .channel(`broadcasts-realtime-${instanceId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'broadcasts' },
@@ -145,7 +146,7 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50) {
       if (invalidateTimerRef.current) clearTimeout(invalidateTimerRef.current);
       supabase.removeChannel(channel);
     };
-  }, [hasCoordinates, lat, lng, radiusMiles, queryClient]);
+  }, [hasCoordinates, roundedLat, roundedLng, radiusMiles, queryClient]);
 
   return query;
 }

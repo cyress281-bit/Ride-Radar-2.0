@@ -73,13 +73,13 @@ async function getOrCreateConversationFallback({ participantIds, type, threadExp
   // Normalize participant order for consistent querying
   const sortedIds = [...participantIds].sort();
 
-  // Step 1: Check for existing conversation
+  // Step 1: Check for existing conversation (exact participant match)
   const { data: existing, error: fetchError } = await supabase
     .from('conversations')
     .select('*')
     .eq('type', type)
     .eq('status', 'active')
-    .contains('participant_ids', sortedIds)
+    .eq('participant_ids', sortedIds)
     .maybeSingle();
 
   if (fetchError) throw fetchError;
@@ -114,7 +114,7 @@ async function getOrCreateConversationFallback({ participantIds, type, threadExp
         .select('*')
         .eq('type', type)
         .eq('status', 'active')
-        .contains('participant_ids', sortedIds)
+        .eq('participant_ids', sortedIds)
         .maybeSingle();
 
       if (retryError) throw retryError;

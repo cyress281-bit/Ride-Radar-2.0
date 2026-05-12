@@ -6,6 +6,42 @@ import { ImageIcon } from 'lucide-react';
 const MAX_RETRIES = 3;
 const DEFAULT_FADE_MS = 300;
 
+// Shared IntersectionObserver to avoid spawning dozens/hundreds of observers
+const observerCallbacks = new Map();
+let sharedObserver = null;
+
+function getSharedObserver() {
+  if (!sharedObserver) {
+    sharedObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const cb = observerCallbacks.get(entry.target);
+          if (cb && entry.isIntersecting) {
+            cb();
+            observerCallbacks.delete(entry.target);
+            if (observerCallbacks.size === 0) {
+              sharedObserver?.disconnect();
+              sharedObserver = null;
+            }
+          }
+        });
+      },
+      { rootMargin: '200px' }
+    );
+  }
+  return sharedObserver;
+}
+
+function observeElement(el, callback) {
+  observerCallbacks.set(el, callback);
+  getSharedObserver().observe(el);
+}
+
+function unobserveElement(el) {
+  observerCallbacks.delete(el);
+  sharedObserver?.unobserve(el);
+}
+
 /**
  * @typedef {object} OptimizedImageProps
  * @property {string} src - Primary image URL
@@ -54,23 +90,14 @@ const OptimizedImage = memo(function OptimizedImage({
   const containerRef = useRef(null);
   const [isIntersecting, setIsIntersecting] = useState(loading !== 'lazy');
 
-  // Intersection Observer for lazy loading
+  // Intersection Observer for lazy loading (shared module-level observer)
   useEffect(() => {
     if (loading !== 'lazy') return;
-    if (!containerRef.current) return;
+    const el = containerRef.current;
+    if (!el) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsIntersecting(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '200px' }
-    );
-
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
+    observeElement(el, () => setIsIntersecting(true));
+    return () => unobserveElement(el);
   }, [loading]);
 
   // Reset state when src changes

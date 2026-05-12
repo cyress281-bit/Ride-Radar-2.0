@@ -20,10 +20,11 @@ import { useAuthActions } from '@/features/auth/hooks/use-auth.js';
 import { deleteAccount } from '@/features/settings/api/settings-api.js';
 import { trackAccountDeleted } from '@/lib/analytics.js';
 import { logger } from '@/lib/logger.js';
-import { queryClient } from '@/lib/query-client.js';
+import { useQueryClient } from '@tanstack/react-query';
 import RRLogo from '@/components/RRLogo';
 
 export default function AccountDeletionPage() {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { signOut } = useAuthActions();
 

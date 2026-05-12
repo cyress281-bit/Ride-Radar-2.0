@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useMemo, useRef, useEffect } from 'react';
-import { useOfflineQueue } from './useOfflineQueue.js';
+import { useOfflineQueue } from './use-offline-queue.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { sendMessage } from '@/features/chat/api/chat-api.js';
 import { logger } from '@/lib/logger.js';

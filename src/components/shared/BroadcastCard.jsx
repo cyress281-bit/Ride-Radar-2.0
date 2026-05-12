@@ -1,6 +1,5 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Clock, Wrench, MapPin, Calendar } from 'lucide-react';
 import SignalIcon from '@/components/brand/SignalIcon';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
@@ -66,9 +65,7 @@ const BroadcastCard = memo(
           : null;
 
     const content = (
-      <motion.div
-        whileHover={{ y: -2 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
+      <div
         className={cn(
           'relative rounded-[1.15rem] overflow-hidden transition-all duration-300 rr-scanline active:scale-[0.98] active:opacity-95 will-change-transform',
           styles.card,
@@ -227,7 +224,7 @@ const BroadcastCard = memo(
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     );
 
     return (

@@ -4,7 +4,7 @@ import { Radio, Trash2, Search, Filter } from 'lucide-react';
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { BROADCAST_META } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
-import { useAdminRole } from '@/features/auth/hooks/use-admin-role.js';
+import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
 import { expireBroadcast, deleteBroadcast } from '@/features/admin/api/admin-api.js';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Button } from '@/components/ui/button';
@@ -16,43 +16,38 @@ import { Skeleton } from '@/components/ui/skeleton';
  * AdminBroadcastsPage - View and manage all broadcast posts.
  */
 export default function AdminBroadcastsPage() {
-  const { isAdmin, isLoading: roleLoading } = useAdminRole();
-  if (roleLoading) {
-    return (
-      <AdminLayout>
-        <div className="mb-4 flex items-center justify-between">
-          <Skeleton className="h-7 w-32" />
-          <Skeleton className="h-4 w-16" />
-        </div>
-        <div className="mb-4 space-y-2">
-          <Skeleton className="h-10 w-full" />
-          <div className="flex flex-wrap gap-2">
-            <Skeleton className="h-6 w-16" />
-            <Skeleton className="h-6 w-16" />
-            <Skeleton className="h-6 w-16" />
+  return (
+    <AdminPageShell
+      skeleton={
+        <AdminLayout>
+          <div className="mb-4 flex items-center justify-between">
+            <Skeleton className="h-7 w-32" />
+            <Skeleton className="h-4 w-16" />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Skeleton className="h-6 w-16" />
-            <Skeleton className="h-6 w-16" />
-            <Skeleton className="h-6 w-16" />
+          <div className="mb-4 space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <div className="flex flex-wrap gap-2">
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-16" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-16" />
+            </div>
           </div>
-        </div>
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 w-full" />
-          ))}
-        </div>
-      </AdminLayout>
-    );
-  }
-  if (!isAdmin) {
-    return (
-      <div className="px-4 pt-6 text-center text-sm text-muted-foreground">
-        Admin access required.
-      </div>
-    );
-  }
-  return <AdminBroadcastsContent />;
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-28 w-full" />
+            ))}
+          </div>
+        </AdminLayout>
+      }
+    >
+      <AdminBroadcastsContent />
+    </AdminPageShell>
+  );
 }
 
 function AdminBroadcastsContent() {

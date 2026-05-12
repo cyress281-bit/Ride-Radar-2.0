@@ -44,7 +44,7 @@ import { setAnalyticsOptIn, trackNotificationToggle } from '@/lib/analytics.js';
 import { normalizePrecision } from '@/lib/geocoding.js';
 import { logger } from '@/lib/logger.js';
 import { supabase } from '@/lib/supabase.js';
-import { queryClient } from '@/lib/query-client.js';
+import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Section wrapper with title and optional error state.
@@ -127,6 +127,7 @@ function SettingsSkeleton() {
 }
 
 function SettingsPage() {
+  const queryClient = useQueryClient();
   const { user, profile } = useAuthState();
   const { signOut, refreshProfile } = useAuthActions();
   const navigate = useNavigate();

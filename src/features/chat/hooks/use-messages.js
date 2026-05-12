@@ -54,14 +54,10 @@ export function useMessages(conversationId) {
         (payload) => {
           const newMessage = payload.new;
 
-          if (newMessage.from_user_id === user.id) {
-            seenIdsRef.current.add(newMessage.id);
-            return;
-          }
-
+          // Deduplicate across all sources (optimistic updates, realtime, other devices)
           if (seenIdsRef.current.has(newMessage.id)) return;
-
           seenIdsRef.current.add(newMessage.id);
+
           queryClient.setQueryData(['messages', conversationId], (old = []) => {
             if (old.some((m) => m.id === newMessage.id)) return old;
             return [...old, newMessage];

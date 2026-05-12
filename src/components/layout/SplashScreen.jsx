@@ -13,6 +13,7 @@ const LINES = ['RIDE RADAR v2.0', 'ESTABLISHING UPLINK...', 'PULSE DETECTED'];
 export default function SplashScreen({ visible, onComplete, isReady = true }) {
   const reduceMotion = useReducedMotion();
   const doneRef = useRef(false);
+  const hasTypedRef = useRef(false);
   const [phase, setPhase] = useState(0);
   const [typed, setTyped] = useState(['', '', '']);
 
@@ -46,17 +47,20 @@ export default function SplashScreen({ visible, onComplete, isReady = true }) {
   }, [visible, reduceMotion, finish]);
 
   useEffect(() => {
-    if (phase < 3) return;
+    if (phase < 3 || hasTypedRef.current) return;
+    hasTypedRef.current = true;
     let line = 0, char = 0;
     const iv = setInterval(() => {
-      if (line >= LINES.length) { clearInterval(iv); return; }
+      if (line >= LINES.length || line < 0) { clearInterval(iv); return; }
       setTyped(prev => {
         const next = [...prev];
-        next[line] = LINES[line].slice(0, char + 1);
+        if (line >= 0 && line < LINES.length) {
+          next[line] = LINES[line].slice(0, char + 1);
+        }
         return next;
       });
       char++;
-      if (char >= LINES[line].length) { line++; char = 0; }
+      if (line >= 0 && line < LINES.length && char >= LINES[line].length) { line++; char = 0; }
     }, 18);
     return () => clearInterval(iv);
   }, [phase]);
@@ -160,7 +164,7 @@ export default function SplashScreen({ visible, onComplete, isReady = true }) {
                     transition={{ delay: phase >= 4 ? i * 0.1 : 0, duration: 0.25 }}
                   >
                     <span>{t}</span>
-                    {phase >= 3 && phase < 4 && t.length < LINES[i].length && (i === 0 || typed[i - 1].length === LINES[i - 1].length) && (
+                    {phase >= 3 && phase < 4 && i >= 0 && i < LINES.length && t.length < LINES[i].length && (i === 0 || (i > 0 && i - 1 < LINES.length && typed[i - 1]?.length === LINES[i - 1].length)) && (
                       <span className="ml-0.5 inline-block w-1.5 h-3.5 bg-current animate-pulse" />
                     )}
                   </motion.div>
