@@ -15,7 +15,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-*/
 *.local
+
+# Session/verification artifacts
+*.patch
 
 # Editor directories and files
 .vscode/*
