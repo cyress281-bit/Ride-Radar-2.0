@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import VirtualList from '@/components/shared/VirtualList.jsx';
 import ConversationItem from './ConversationItem.jsx';
@@ -14,7 +14,7 @@ import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
  * @param {Map<string, number>} [props.unreadMap]
  * @param {boolean} [props.isLoading]
  */
-export default function ConversationList({
+function ConversationList({
   conversations,
   profiles,
   currentUserId,
@@ -43,7 +43,8 @@ export default function ConversationList({
           conversation={conversation}
           profile={profile}
           unreadCount={unreadCount}
-          onClick={() => handleClick(conversation.id)}
+          conversationId={conversation.id}
+          onNavigate={handleClick}
         />
       );
     },
@@ -73,13 +74,12 @@ export default function ConversationList({
     return (
       <div className="space-y-2">
         {conversations.map((conversation, index) => (
-          <div
+          <ConversationRow
             key={conversation.id}
-            className="will-change-transform transform-gpu animate-notification-in"
-            style={{ animationDelay: `${index * 40}ms` }}
-          >
-            {renderItem(conversation)}
-          </div>
+            conversation={conversation}
+            index={index}
+            renderItem={renderItem}
+          />
         ))}
       </div>
     );
@@ -98,3 +98,20 @@ export default function ConversationList({
     />
   );
 }
+
+/**
+ * Stable wrapper so the animation-delay style object is isolated per row,
+ * preventing the parent list re-render from recreating it needlessly.
+ */
+const ConversationRow = memo(function ConversationRow({ conversation, index, renderItem }) {
+  return (
+    <div
+      className="will-change-transform transform-gpu animate-notification-in"
+      style={{ animationDelay: `${index * 40}ms` }}
+    >
+      {renderItem(conversation)}
+    </div>
+  );
+});
+
+export default memo(ConversationList);

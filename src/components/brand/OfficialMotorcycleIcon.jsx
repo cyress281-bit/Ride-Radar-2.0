@@ -21,6 +21,10 @@ const OfficialMotorcycleIcon = memo(function OfficialMotorcycleIcon({ className,
         src={MOTORCYCLE_ICON_URL}
         alt="Ride Radar motorcycle silhouette"
         className="h-[128%] w-[128%] object-contain mix-blend-screen brightness-150 contrast-150 saturate-150 opacity-95"
+        loading="lazy"
+        decoding="async"
+        width="32"
+        height="32"
       />
     </span>
   );

@@ -40,7 +40,9 @@ export function useConnectionRequests() {
       return data;
     },
     enabled: !!user?.id,
-    staleTime: 30_000,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
@@ -89,7 +91,9 @@ export function useSentRequests() {
       return data;
     },
     enabled: !!user?.id,
-    staleTime: 30_000,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
@@ -137,7 +141,9 @@ export function useConnectionRequestWith(userId) {
       return data;
     },
     enabled: !!user?.id && !!userId,
-    staleTime: 30_000,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 

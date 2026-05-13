@@ -38,6 +38,7 @@ export function useBroadcasts(filters = {}) {
     },
     select: (data) => data.filter((b) => !b.expires_at || new Date(b.expires_at) > new Date()),
     staleTime: 60_000,
+    gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
 }
@@ -58,6 +59,7 @@ export function useBroadcast(id) {
     },
     enabled: !!id,
     staleTime: 60_000,
+    gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
 }
@@ -77,6 +79,7 @@ export function useBroadcastsByAuthor(authorId) {
     },
     enabled: !!authorId,
     staleTime: 60_000,
+    gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
 }

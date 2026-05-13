@@ -487,6 +487,7 @@
   }
   .animate-glow-pulse {
     animation: glow-pulse 2s ease-in-out infinite;
+    will-change: box-shadow;
   }
   .animate-shimmer {
     animation: shimmer 2.5s ease-in-out infinite;
@@ -727,6 +728,8 @@
   .animate-glow-pulse,
   .animate-shimmer,
   .animate-float,
+  .radar-grid-animated,
+  .rr-shimmer-button::before,
   .rr-map-marker::before,
   .rr-premium-input:focus,
   .rr-premium-input:focus-visible {

@@ -44,6 +44,7 @@ export function useNotifications(userId) {
     },
     enabled: !!userId,
     staleTime: 60_000,
+    gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
 
@@ -137,7 +138,8 @@ export function useUnreadCount(userId) {
       return data;
     },
     enabled: !!userId,
-    staleTime: 30_000,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
 }

@@ -52,7 +52,7 @@ function unobserveElement(el) {
  * @property {string} [placeholder] - Base64 data URI or tiny image URL for blur-up effect
  * @property {'lazy'|'eager'} [loading='lazy'] - Native loading strategy
  * @property {'cover'|'contain'|'fill'|'none'} [objectFit='cover'] - Object-fit behavior
- * @property {number} [fadeInDuration=300] - Fade-in transition duration in ms
+ * @property {number} [fadeInDuration=300] - Fade-in transition duration in ms (applies to both CSS and Framer Motion paths)
  * @property {boolean} [disableAnimation=false] - When true, uses a plain <img> with CSS transition instead of Framer Motion (reduces JS overhead in long lists)
  * @property {() => void} [onLoad] - Callback when image successfully loads
  * @property {() => void} [onError] - Callback on load error
@@ -77,7 +77,7 @@ const OptimizedImage = memo(function OptimizedImage({
   placeholder,
   loading = 'lazy',
   objectFit = 'cover',
-  _fadeInDuration = DEFAULT_FADE_MS,
+  fadeInDuration = DEFAULT_FADE_MS,
   disableAnimation = false,
   onLoad,
   onError,
@@ -221,7 +221,7 @@ const OptimizedImage = memo(function OptimizedImage({
             style={{
               opacity: isLoaded ? 1 : 0,
               transform: isLoaded ? 'scale(1)' : 'scale(1.02)',
-              transition: 'opacity 0.4s ease-out, transform 0.4s ease-out',
+              transition: `opacity ${fadeInDuration}ms ease-out, transform ${fadeInDuration}ms ease-out`,
             }}
             width={width}
             height={height}
@@ -239,7 +239,7 @@ const OptimizedImage = memo(function OptimizedImage({
             onError={handleError}
             initial={{ opacity: 0, scale: 1.02 }}
             animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 1.02 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
+            transition={{ duration: fadeInDuration / 1000, ease: 'easeOut' }}
             className={cn(
               'w-full h-full',
               objectFitClass,

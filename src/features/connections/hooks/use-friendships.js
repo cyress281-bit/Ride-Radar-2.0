@@ -35,6 +35,8 @@ export function useFriendships() {
     },
     enabled: !!user?.id,
     staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
@@ -96,6 +98,8 @@ export function useIsFriend(userId) {
     },
     enabled: !!user?.id && !!userId,
     staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   return { isFriend: !!friendship, friendship, isLoading };
