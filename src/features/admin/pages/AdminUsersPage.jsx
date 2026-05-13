@@ -135,7 +135,7 @@ function AdminUsersContent() {
                     variant={u.role === role ? 'default' : 'ghost'}
                     size="sm"
                     className={cn(
-                      'h-7 rounded-full px-3 text-xs capitalize',
+                      'h-9 min-h-[44px] rounded-full px-3 text-xs capitalize',
                       u.role === role && 'font-semibold'
                     )}
                     onClick={() => setRole.mutate({ id: u.id, role })}

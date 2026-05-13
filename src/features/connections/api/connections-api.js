@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase.js';
 import { getOrCreateConversation } from '@/lib/conversationUtils.js';
 import { isValidUuid } from '@/lib/utils.js';
-import { throttle } from '@/lib/throttle.js';
+
 
 /**
  * Fetch pending connection requests for a user.
@@ -64,10 +64,10 @@ export async function getConnectionRequestBetween(userAId, userBId) {
 
 /**
  * Send a connection request.
- * @param {{from_user_id: string, to_user_id: string}} params
+ * @param {{from_user_id: string, to_user_id: string, message?: string}} params
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
-export const sendConnectionRequest = throttle(async function sendConnectionRequest({ from_user_id, to_user_id }) {
+export async function sendConnectionRequest({ from_user_id, to_user_id, message }) {
   if (!isValidUuid(from_user_id) || !isValidUuid(to_user_id)) {
     return { data: null, error: new Error('Invalid user IDs') };
   }
@@ -125,7 +125,7 @@ export const sendConnectionRequest = throttle(async function sendConnectionReque
     .single();
 
   return { data, error };
-}, 10_000);
+}
 
 /**
  * Accept a connection request, create a friendship, and create a conversation.

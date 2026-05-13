@@ -44,7 +44,7 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-background px-4 py-6 text-foreground">
+    <div className="min-h-dvh bg-background px-4 py-6 pb-safe text-foreground">
       <VStack gap={5} className="mx-auto max-w-2xl animate-fade-up">
         <Link
           to="/settings"

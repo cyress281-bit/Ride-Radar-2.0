@@ -34,7 +34,7 @@ export function useSettings(userId) {
     },
     enabled: !!userId,
     staleTime: 30_000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 }
 

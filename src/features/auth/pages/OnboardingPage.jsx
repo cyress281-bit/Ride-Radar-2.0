@@ -322,7 +322,7 @@ export default function OnboardingPage() {
   const modelSuggestions = getModelSuggestions(watchBikeMake);
 
   return (
-    <div className="min-h-dvh bg-background relative overflow-hidden flex flex-col items-center justify-center px-5 py-8">
+    <div className="min-h-dvh bg-background relative overflow-hidden flex flex-col items-center justify-center px-5 py-8 pb-safe">
       <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-[0.08]" />
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_30%),linear-gradient(180deg,transparent,hsl(var(--background) / 0.58))]" />
       <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-brand-radar/[0.04] rounded-full blur-[120px] pointer-events-none" />

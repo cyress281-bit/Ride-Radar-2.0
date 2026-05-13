@@ -25,7 +25,6 @@ import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/c
 function BroadcastDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const { user } = useAuthState();
   const hasValidBroadcastId = isValidUuid(id);
 
@@ -153,7 +152,7 @@ function BroadcastDetailPage() {
     <div className="px-5 pt-5 pb-8">
       {/* Top nav */}
       <HStack justify="between" align="center" className="mb-5">
-        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1">
+        <button onClick={() => navigate(-1)} aria-label="Go back" className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <button
@@ -258,7 +257,7 @@ function BroadcastDetailPage() {
               </div>
             ) : (
               <div className="w-11 h-11 rounded-full bg-surface-elevated flex items-center justify-center font-semibold text-sm border border-white/[0.08] text-foreground/80">
-                {author.displayName?.[0] || '?'}
+                {author.display_name?.[0] || '?'}
               </div>
             )}
             <VStack gap={0.5}>
@@ -343,6 +342,13 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
       if (error) throw error;
     },
     onSuccess: onChange,
+    onError: (error) => {
+      toast({
+        title: 'RSVP failed',
+        description: error?.message || 'Could not update your RSVP. Try again.',
+        variant: 'destructive',
+      });
+    },
   });
 
   return (
@@ -388,7 +394,7 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
 
   const handleSend = useCallback(() => {
     sendRequest.mutate(
-      { from_user_id: user.id, to_user_id: broadcast.author_id },
+      { from_user_id: user.id, to_user_id: broadcast.author_id, message: msg.trim() || undefined },
       { onSuccess: () => { setOpen(false); setMsg(''); onChange(); } }
     );
   }, [sendRequest, user, broadcast, onChange]);

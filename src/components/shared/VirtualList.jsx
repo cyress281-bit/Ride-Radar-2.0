@@ -79,6 +79,7 @@ const VirtualList = memo(function VirtualList({
           key={virtualRow.key}
           data-index={virtualRow.index}
           ref={virtualizer.measureElement}
+          role="listitem"
           className={cn('absolute left-0 w-full', itemClassName)}
           style={{
             top: 0,
@@ -99,6 +100,7 @@ const VirtualList = memo(function VirtualList({
   return (
     <div
       ref={internalRef}
+      role="list"
       className={cn('overflow-auto', className)}
       style={{ contain: 'strict', height: height || undefined }}
     >

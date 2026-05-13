@@ -28,8 +28,7 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
   scrollElementRef,
 }) {
   const renderItem = useCallback(
-    (broadcast, index) => {
-      const isFeatured = index === 0;
+    (broadcast, _index) => {
       return (
         <div className="will-change-transform transform-gpu">
           <RideCard
@@ -73,7 +72,7 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
   if (!shouldVirtualize) {
     return (
       <VStack gap={3}>
-        {broadcasts.map((broadcast, index) => (
+        {broadcasts.map((broadcast, _index) => (
           <div key={broadcast.id} className="will-change-transform transform-gpu">
             <RideCard
               broadcast={broadcast}

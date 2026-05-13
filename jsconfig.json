@@ -9,7 +9,7 @@
     "moduleResolution": "bundler",
     "lib": ["esnext", "dom"],
     "target": "esnext",
-    "checkJs": false,
+    "checkJs": false, // Kept false: codebase is .js/.jsx without JSDoc types; enabling true produces hundreds of TS errors
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

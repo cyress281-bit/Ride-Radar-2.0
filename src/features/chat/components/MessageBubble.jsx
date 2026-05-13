@@ -69,9 +69,9 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
           {isMine && (
             <span className={cn('transition-colors duration-300', isRead ? 'text-primary' : 'text-muted-foreground/50')}>
               {isRead ? (
-                <CheckCheck className="w-3 h-3" />
+                <CheckCheck className="w-3 h-3" aria-hidden="true" />
               ) : (
-                <Check className="w-3 h-3" />
+                <Check className="w-3 h-3" aria-hidden="true" />
               )}
             </span>
           )}
@@ -84,6 +84,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
               <button
                 key={emoji}
                 onClick={() => setShowReactions(false)}
+                aria-label={`React with ${emoji}`}
                 className="text-lg p-1 hover:bg-surface-elevated rounded-lg transition-colors"
               >
                 {emoji}
@@ -91,6 +92,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
             ))}
             <button
               onClick={() => setShowReactions(false)}
+              aria-label="More reactions"
               className="p-1 hover:bg-surface-elevated rounded-lg transition-colors text-muted-foreground"
             >
               <Smile className="w-4 h-4" />

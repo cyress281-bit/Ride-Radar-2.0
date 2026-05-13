@@ -7,7 +7,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
 import { toast } from '@/components/ui/use-toast';
-import { getFriendships, removeFriendship } from '@/features/connections/api/connections-api.js';
+import { logger } from '@/lib/logger.js';
+import { getFriendships, getFriendshipBetween, removeFriendship } from '@/features/connections/api/connections-api.js';
 import { connectionRequestKeys } from '@/features/connections/hooks/use-connection-requests.js';
 
 /** Query key factory for friendships. */
@@ -65,7 +66,11 @@ export function useFriendships() {
           queryClient.invalidateQueries({ queryKey: friendshipKeys.all });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          logger.error('[useFriendships] Realtime subscription error:', err);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

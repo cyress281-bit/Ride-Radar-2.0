@@ -50,6 +50,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const isHome = pathname === '/home';
   const isTransparent = isOverlay || isRadar;
   const pageTitle = getPageTitle(pathname);
+  const isBeta = import.meta.env.VITE_BETA_MODE === 'true';
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -125,13 +126,20 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             </span>
           ) : (
             pageTitle && (
-              <Text
-                variant="h3"
-                color="default"
-                className="text-base font-bold text-primary"
-              >
-                {pageTitle}
-              </Text>
+              <HStack align="center" gap={2}>
+                <Text
+                  variant="h3"
+                  color="default"
+                  className="text-base font-bold text-primary"
+                >
+                  {pageTitle}
+                </Text>
+                {isBeta && (
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/30">
+                    Beta
+                  </span>
+                )}
+              </HStack>
             )
           )}
         </div>

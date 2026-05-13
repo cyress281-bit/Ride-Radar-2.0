@@ -59,7 +59,7 @@ export default function AccountDeletionPage() {
       queryClient.clear();
 
       // Sign out and redirect after a short delay
-      setTimeout(async () => {
+      const deletionTimeout = setTimeout(async () => {
         try {
           await signOut();
         } catch (e) {
@@ -67,6 +67,8 @@ export default function AccountDeletionPage() {
         }
         navigate('/landing');
       }, 2000);
+
+      return () => clearTimeout(deletionTimeout);
     } catch (err) {
       logger.error('[AccountDeletion] Error:', err);
       setError(err.message || 'Failed to delete account. Please try again or contact support.');
@@ -76,7 +78,7 @@ export default function AccountDeletionPage() {
   }, [canDelete, signOut, navigate]);
 
   return (
-    <div className="min-h-dvh bg-background px-4 py-6 text-foreground">
+    <div className="min-h-dvh bg-background px-4 py-6 pb-safe text-foreground">
       <VStack gap={5} className="mx-auto max-w-2xl animate-fade-up">
         <Link
           to="/settings"
@@ -141,6 +143,7 @@ export default function AccountDeletionPage() {
                 onChange={(e) => setConfirmText(e.target.value)}
                 placeholder="DELETE"
                 autoComplete="off"
+                aria-label="Type DELETE to confirm account deletion"
                 className={cn(
                   'w-full rounded-xl border bg-surface-elevated/60 px-4 py-3 text-sm text-foreground',
                   'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-emergency/40 focus-visible:border-brand-emergency/50',

@@ -6,12 +6,14 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRef } from 'react';
 import { supabase } from '@/lib/supabase.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { BROADCAST_EXPIRY_MS } from '@/lib/constants.js';
 import { geocodeAddress, approximateLocation } from '@/lib/geocoding.js';
 import { logger } from '@/lib/logger.js';
 import { toast } from '@/components/ui/use-toast';
+import { uploadImageIfNeeded } from '@/lib/image-utils.js';
 import { broadcastKeys } from './use-broadcasts.js';
 
 function normalizeLocationText(text) {
@@ -24,10 +26,17 @@ function normalizeLocationText(text) {
 export function useCreateBroadcast() {
   const { user } = useAuthState();
   const queryClient = useQueryClient();
+  const lastRunRef = useRef(0);
 
   return useMutation({
     mutationFn: async (broadcastData) => {
       if (!user) throw new Error('Must be authenticated to create a broadcast');
+
+      const throttleNow = Date.now();
+      if (throttleNow - lastRunRef.current < 10_000) {
+        throw new Error('Please wait a moment before trying again.');
+      }
+      lastRunRef.current = throttleNow;
 
       const { data: settings, error: settingsError } = await supabase
         .from('user_settings')
@@ -142,9 +151,17 @@ export function useCreateBroadcast() {
         exact_location_text: exactLocationText || null,
         event_date: broadcastData.eventDate ? new Date(broadcastData.eventDate).toISOString() : null,
         event_end_time: broadcastData.eventEndTime ? new Date(broadcastData.eventEndTime).toISOString() : null,
-        event_image_url: broadcastData.eventImage || null,
 
-        alert_image_urls: broadcastData.alertImages || [],
+        // Upload images to Supabase Storage before inserting (blob URLs are session-only)
+        event_image_url: broadcastData.eventImage
+          ? await uploadImageIfNeeded(broadcastData.eventImage, 'uploads', 'events')
+          : null,
+
+        alert_image_urls: broadcastData.alertImages?.length
+          ? await Promise.all(
+              broadcastData.alertImages.map((img) => uploadImageIfNeeded(img, 'uploads', 'alerts'))
+            )
+          : [],
       };
 
       const { data, error } = await supabase

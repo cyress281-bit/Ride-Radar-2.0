@@ -173,7 +173,7 @@ function AdminBroadcastsContent() {
           </div>
           <ToggleGroup type="single" value={typeFilter} onValueChange={(v) => v && setTypeFilter(v)}>
             {broadcastTypes.map((type) => (
-              <ToggleGroupItem key={type} value={type} className="text-xs capitalize">
+              <ToggleGroupItem key={type} value={type} className="min-h-[44px] text-xs capitalize">
                 {type === 'all' ? 'All' : BROADCAST_META[type]?.label || type}
               </ToggleGroupItem>
             ))}
@@ -186,7 +186,7 @@ function AdminBroadcastsContent() {
           </div>
           <ToggleGroup type="single" value={statusFilter} onValueChange={(v) => v && setStatusFilter(v)}>
             {broadcastStatuses.map((status) => (
-              <ToggleGroupItem key={status} value={status} className="text-xs capitalize">
+              <ToggleGroupItem key={status} value={status} className="min-h-[44px] text-xs capitalize">
                 {status === 'all' ? 'All' : status}
               </ToggleGroupItem>
             ))}

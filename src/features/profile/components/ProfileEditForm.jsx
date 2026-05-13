@@ -220,6 +220,7 @@ export default function ProfileEditForm({ profile, onDone }) {
               type="button"
               variant="ghost"
               size="icon"
+              aria-label="Cancel editing"
               onClick={() => {
                 form.reset(defaultValues);
                 onDone();
@@ -231,6 +232,7 @@ export default function ProfileEditForm({ profile, onDone }) {
             <Button
               type="submit"
               size="icon"
+              aria-label="Save changes"
               disabled={updateMutation.isPending || isUploading || checkingUsername || (shouldCheckUsername && usernameAvailable === false)}
               className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_16px_hsl(var(--primary)/0.4)] animate-glow-pulse"
             >

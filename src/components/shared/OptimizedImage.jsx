@@ -53,6 +53,7 @@ function unobserveElement(el) {
  * @property {'lazy'|'eager'} [loading='lazy'] - Native loading strategy
  * @property {'cover'|'contain'|'fill'|'none'} [objectFit='cover'] - Object-fit behavior
  * @property {number} [fadeInDuration=300] - Fade-in transition duration in ms
+ * @property {boolean} [disableAnimation=false] - When true, uses a plain <img> with CSS transition instead of Framer Motion (reduces JS overhead in long lists)
  * @property {() => void} [onLoad] - Callback when image successfully loads
  * @property {() => void} [onError] - Callback on load error
  * @property {string} [fallbackSrc] - Fallback image URL on error
@@ -76,7 +77,8 @@ const OptimizedImage = memo(function OptimizedImage({
   placeholder,
   loading = 'lazy',
   objectFit = 'cover',
-  fadeInDuration = DEFAULT_FADE_MS,
+  _fadeInDuration = DEFAULT_FADE_MS,
+  disableAnimation = false,
   onLoad,
   onError,
   fallbackSrc,
@@ -201,27 +203,53 @@ const OptimizedImage = memo(function OptimizedImage({
 
       {/* Main image */}
       {shouldLoad && !isError && (
-        <motion.img
-          ref={imgRef}
-          src={src}
-          alt={alt}
-          sizes={sizes}
-          loading={loading}
-          decoding="async"
-          onLoad={handleLoad}
-          onError={handleError}
-          initial={{ opacity: 0, scale: 1.02 }}
-          animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 1.02 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-          className={cn(
-            'w-full h-full',
-            objectFitClass,
-            className
-          )}
-          width={width}
-          height={height}
-          {...rest}
-        />
+        disableAnimation ? (
+          <img
+            ref={imgRef}
+            src={src}
+            alt={alt}
+            sizes={sizes}
+            loading={loading}
+            decoding="async"
+            onLoad={handleLoad}
+            onError={handleError}
+            className={cn(
+              'w-full h-full',
+              objectFitClass,
+              className
+            )}
+            style={{
+              opacity: isLoaded ? 1 : 0,
+              transform: isLoaded ? 'scale(1)' : 'scale(1.02)',
+              transition: 'opacity 0.4s ease-out, transform 0.4s ease-out',
+            }}
+            width={width}
+            height={height}
+            {...rest}
+          />
+        ) : (
+          <motion.img
+            ref={imgRef}
+            src={src}
+            alt={alt}
+            sizes={sizes}
+            loading={loading}
+            decoding="async"
+            onLoad={handleLoad}
+            onError={handleError}
+            initial={{ opacity: 0, scale: 1.02 }}
+            animate={isLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 1.02 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className={cn(
+              'w-full h-full',
+              objectFitClass,
+              className
+            )}
+            width={width}
+            height={height}
+            {...rest}
+          />
+        )
       )}
 
       {/* Fallback source swap on final error */}

@@ -7,8 +7,6 @@
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
 
-const PRESENCE_MARKER_LIMIT = 250;
-
 /**
  * Fetch all visible presence markers.
  * Uses server-side now() to avoid client clock skew.

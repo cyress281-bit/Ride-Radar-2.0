@@ -14,6 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase.js';
 import { getNearbyBroadcasts } from '@/features/broadcast/api/broadcast-api.js';
 import { logger } from '@/lib/logger.js';
+import { captureError } from '@/lib/sentry.js';
 
 const OFFLINE_SNAPSHOT_KEY = 'rr:radar-offline-snapshot';
 const OFFLINE_SNAPSHOT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -31,6 +32,9 @@ function readOfflineSnapshot() {
     return null;
   }
 }
+
+// Read once at module init to avoid parsing localStorage on every render
+const initialOfflineSnapshot = readOfflineSnapshot();
 
 export function cacheOfflineSnapshot(broadcasts) {
   try {
@@ -75,10 +79,7 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds =
     staleTime: 60_000,
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
-    placeholderData: () => {
-      const snapshot = readOfflineSnapshot();
-      return snapshot?.broadcasts || [];
-    },
+    placeholderData: () => initialOfflineSnapshot?.broadcasts || [],
   });
 
   // Real-time subscription
@@ -143,7 +144,12 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds =
           );
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          logger.error('[useNearbyBroadcasts] Realtime subscription error:', err);
+          captureError(err, { source: 'useNearbyBroadcasts', status });
+        }
+      });
 
     return () => {
       if (invalidateTimerRef.current) clearTimeout(invalidateTimerRef.current);

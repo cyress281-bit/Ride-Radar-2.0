@@ -97,6 +97,7 @@ const BroadcastCard = memo(
                 objectFit="contain"
                 loading="lazy"
                 showSkeleton
+                disableAnimation
               />
             </div>
           )}
@@ -157,6 +158,7 @@ const BroadcastCard = memo(
                     objectFit="cover"
                     loading="lazy"
                     showSkeleton
+                    disableAnimation
                   />
                 </div>
               )}
@@ -179,6 +181,7 @@ const BroadcastCard = memo(
                           loading="lazy"
                           fadeInDuration={150}
                           showSkeleton
+                          disableAnimation
                         />
                         <span className="absolute -right-0.5 -bottom-0.5 h-1.5 w-1.5 rounded-full bg-solo shadow-[0_0_4px_hsl(var(--solo)/0.9)]" />
                       </div>

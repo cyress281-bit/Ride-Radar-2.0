@@ -2,11 +2,12 @@
  * @fileoverview TanStack Query hooks for connection requests.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
 import { toast } from '@/components/ui/use-toast';
+import { logger } from '@/lib/logger.js';
 import {
   getConnectionRequests,
   getSentRequests,
@@ -58,7 +59,11 @@ export function useConnectionRequests() {
           queryClient.invalidateQueries({ queryKey: connectionRequestKeys.incoming(user.id) });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          logger.error('[useConnectionRequests] Incoming subscription error:', err);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -103,7 +108,11 @@ export function useSentRequests() {
           queryClient.invalidateQueries({ queryKey: connectionRequestKeys.sent(user.id) });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          logger.error('[useConnectionRequests] Sent subscription error:', err);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -138,8 +147,15 @@ export function useConnectionRequestWith(userId) {
  */
 export function useSendConnectionRequest() {
   const queryClient = useQueryClient();
+  const lastRunRef = useRef(0);
+
   return useMutation({
     mutationFn: async ({ from_user_id, to_user_id }) => {
+      const now = Date.now();
+      if (now - lastRunRef.current < 10_000) {
+        throw new Error('Please wait a moment before trying again.');
+      }
+      lastRunRef.current = now;
       const { data, error } = await sendConnectionRequest({ from_user_id, to_user_id });
       if (error) throw error;
       return data;

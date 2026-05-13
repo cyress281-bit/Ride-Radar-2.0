@@ -6,7 +6,7 @@
 
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
-import { throttle } from '@/lib/throttle.js';
+
 
 /**
  * List broadcasts with optional filters.
@@ -86,7 +86,7 @@ export async function getNearbyBroadcasts(lat, lng, radius = 50, limit = 100, bl
  * @param {object} broadcastData
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
-export const createBroadcast = throttle(async function createBroadcast(broadcastData) {
+export async function createBroadcast(broadcastData) {
   const { data, error } = await supabase
     .from('broadcasts')
     .insert(broadcastData)
@@ -95,7 +95,7 @@ export const createBroadcast = throttle(async function createBroadcast(broadcast
 
   if (error) logger.error('[createBroadcast] Error:', error);
   return { data, error };
-}, 10_000);
+}
 
 /**
  * Soft-delete a broadcast by setting status to 'deleted'.

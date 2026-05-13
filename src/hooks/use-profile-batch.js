@@ -43,6 +43,7 @@ export function useProfileBatch(userIds) {
       },
       enabled: chunk.length > 0,
       staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
     })),
   });
 

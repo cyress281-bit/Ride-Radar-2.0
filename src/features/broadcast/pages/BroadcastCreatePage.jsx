@@ -83,7 +83,7 @@ function BroadcastCreatePage() {
 
   if (!type) {
     return (
-      <div className="px-5 pt-5 pb-8 min-h-dvh-safe bg-background">
+      <div className="px-5 pt-5 pb-8 bg-background">
         {/* Header — glassmorphism hero */}
         <div className="mb-8 backdrop-blur-xl bg-surface/80 border border-white/[0.06] rounded-[24px] p-6 relative overflow-hidden">
           {/* Ambient glows */}

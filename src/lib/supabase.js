@@ -138,7 +138,6 @@ if (supabaseUrl && supabaseAnonKey) {
     },
   });
 } else {
-  // eslint-disable-next-line no-console
   console.error('[Supabase] Client could not be created: missing URL or anon key');
 }
 

@@ -10,6 +10,9 @@ import VirtualList from '@/components/shared/VirtualList.jsx';
 import { supabase } from '@/lib/supabase.js';
 import { cn } from '@/lib/utils.js';
 import { ArrowLeft, Shield, MoreVertical, ChevronDown } from 'lucide-react';
+import { useCreateBlock } from '@/features/safety/hooks/use-blocks.js';
+import { useCreateReport } from '@/features/safety/hooks/use-reports.js';
+import { toast } from '@/components/ui/use-toast';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
@@ -40,7 +43,7 @@ function TypingIndicator() {
  */
 function ConversationSkeleton() {
   return (
-    <VStack className="h-[calc(100dvh-3.5rem)]">
+    <VStack className="h-[calc(100dvh-3.5rem-env(safe-area-inset-top)-6rem-env(safe-area-inset-bottom))]">
       <HStack align="center" gap={3} className="px-4 py-3 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl shrink-0">
         <Skeleton className="h-10 w-10 rounded-full" />
         <VStack gap={1.5} flex={1}>
@@ -105,6 +108,8 @@ function ConversationPage() {
   const { data: messages = [], isLoading: isMessagesLoading } = useMessages(id);
   const send = useSendMessage(id);
   const { mutate: markRead } = useMarkRead(id);
+  const { mutate: blockUser } = useCreateBlock();
+  const { mutate: reportUser } = useCreateReport();
 
   // Mark as read when viewing conversation and when new messages arrive from others
   useEffect(() => {
@@ -134,13 +139,50 @@ function ConversationPage() {
     staleTime: 5 * 60_000,
   });
 
+  const typingTimeoutRef = useRef(null);
+
+  const handleBlockUser = useCallback(() => {
+    if (!otherId || !user?.id) return;
+    blockUser({ blocker_user_id: user.id, blocked_user_id: otherId });
+    setShowActions(false);
+  }, [otherId, user?.id, blockUser]);
+
+  const handleReportUser = useCallback(() => {
+    if (!otherId || !user?.id) return;
+    reportUser({
+      reporter_user_id: user.id,
+      target_type: 'user',
+      target_id: otherId,
+      target_user_id: otherId,
+      reason: 'inappropriate_behavior',
+    });
+    setShowActions(false);
+  }, [otherId, user?.id, reportUser]);
+
+  const handleDeleteConversation = useCallback(() => {
+    toast({
+      title: 'Coming soon',
+      description: 'Conversation deletion is not yet available.',
+    });
+    setShowActions(false);
+  }, []);
+
   const handleSend = useCallback(
     (body) => {
       if (send.isPending) return;
       send.mutate(body);
       // Demo: simulate typing indicator from other user after a short delay
-      setTimeout(() => setIsTyping(true), 800);
-      setTimeout(() => setIsTyping(false), 3000);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      const t1 = setTimeout(() => setIsTyping(true), 800);
+      const t2 = setTimeout(() => setIsTyping(false), 3000);
+      typingTimeoutRef.current = t2;
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
     },
     [send]
   );
@@ -209,7 +251,7 @@ function ConversationPage() {
   }
 
   return (
-    <VStack className="h-[calc(100dvh-3.5rem)] bg-background relative">
+    <VStack className="h-[calc(100dvh-3.5rem-env(safe-area-inset-top)-6rem-env(safe-area-inset-bottom))] bg-background relative">
       {/* Header */}
       <HStack
         align="center"
@@ -272,19 +314,19 @@ function ConversationPage() {
           <div className="absolute top-16 right-4 z-50 bg-surface/95 backdrop-blur-xl border border-white/[0.06] p-2 min-w-[160px] rounded-xl shadow-depth-4 animate-scale-in">
             <button
               className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors"
-              onClick={() => setShowActions(false)}
+              onClick={handleBlockUser}
             >
               Block user
             </button>
             <button
               className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors"
-              onClick={() => setShowActions(false)}
+              onClick={handleReportUser}
             >
               Report
             </button>
             <button
               className="w-full text-left px-3 py-2 text-sm text-brand-emergency hover:bg-brand-emergency/10 rounded-lg transition-colors"
-              onClick={() => setShowActions(false)}
+              onClick={handleDeleteConversation}
             >
               Delete conversation
             </button>
@@ -313,6 +355,9 @@ function ConversationPage() {
           className="overflow-y-auto px-4 py-4 scroll-smooth"
           ref={scrollContainerRef}
           onScroll={handleScroll}
+          role="log"
+          aria-live="polite"
+          aria-label="Message history"
         >
           {messages.map((message, index) => {
             const showTimestamp = index === 0 || (

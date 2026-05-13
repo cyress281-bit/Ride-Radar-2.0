@@ -58,7 +58,7 @@ export default function RiderProfilePage() {
   const isMeRoute = user?.id === userId;
 
   const { data: isBlocked = false } = useIsBlocked(userId);
-  const { isFriend: isFriendActive, friendship } = useIsFriend(userId);
+  const { isFriend: isFriendActive, friendship: _friendship } = useIsFriend(userId);
   const { data: connectionRequest } = useConnectionRequestWith(userId);
 
   const isPending = !!connectionRequest;
@@ -178,6 +178,7 @@ export default function RiderProfilePage() {
       {/* Back Button */}
       <button
         onClick={() => navigate(-1)}
+        aria-label="Go back"
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 pressable self-start"
       >
         <ArrowLeft className="h-4 w-4" /> Back

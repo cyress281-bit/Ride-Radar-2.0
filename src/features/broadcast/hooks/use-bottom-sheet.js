@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 /**
@@ -92,6 +92,24 @@ export function useBottomSheet() {
     }
   }, [sheetOpen]);
 
+  const sheetTouchHandlers = useMemo(
+    () => ({
+      onTouchStart: handleSheetTouchStart,
+      onTouchMove: handleSheetTouchMove,
+      onTouchEnd: handleSheetTouchEnd,
+    }),
+    [handleSheetTouchStart, handleSheetTouchMove, handleSheetTouchEnd]
+  );
+
+  const contentTouchHandlers = useMemo(
+    () => ({
+      onTouchStart: handleContentTouchStart,
+      onTouchMove: handleContentTouchMove,
+      onTouchEnd: handleContentTouchEnd,
+    }),
+    [handleContentTouchStart, handleContentTouchMove, handleContentTouchEnd]
+  );
+
   return {
     sheetOpen,
     setSheetOpen,
@@ -99,15 +117,7 @@ export function useBottomSheet() {
     sheetContentRef,
     pullOffset,
     isPulling,
-    sheetTouchHandlers: {
-      onTouchStart: handleSheetTouchStart,
-      onTouchMove: handleSheetTouchMove,
-      onTouchEnd: handleSheetTouchEnd,
-    },
-    contentTouchHandlers: {
-      onTouchStart: handleContentTouchStart,
-      onTouchMove: handleContentTouchMove,
-      onTouchEnd: handleContentTouchEnd,
-    },
+    sheetTouchHandlers,
+    contentTouchHandlers,
   };
 }

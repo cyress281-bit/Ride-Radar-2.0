@@ -274,7 +274,7 @@ function AdminReportsContent() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="rounded-full"
+                  className="min-h-[44px] rounded-full"
                   onClick={() =>
                     setStatus.mutate({
                       id: report.id,
@@ -289,7 +289,7 @@ function AdminReportsContent() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="rounded-full"
+                  className="min-h-[44px] rounded-full"
                   onClick={() =>
                     setStatus.mutate({
                       id: report.id,
@@ -303,7 +303,7 @@ function AdminReportsContent() {
                 </Button>
                 <Button
                   size="sm"
-                  className="rounded-full"
+                  className="min-h-[44px] rounded-full"
                   onClick={() =>
                     setStatus.mutate({
                       id: report.id,
@@ -321,7 +321,7 @@ function AdminReportsContent() {
                     <Button
                       size="sm"
                       variant="destructive"
-                      className="rounded-full"
+                      className="min-h-[44px] rounded-full"
                       disabled={removeContent.isPending || makeProfilePrivate.isPending}
                     >
                       <Trash2 className="mr-1 h-3.5 w-3.5" />

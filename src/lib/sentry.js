@@ -19,6 +19,62 @@ import {
  * - React Router integration
  * - User context from Supabase auth
  */
+// PII patterns to scrub from all Sentry event data
+const SENSITIVE_PATTERNS = [
+  /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, // emails
+  /eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*/g, // JWT tokens
+  /[a-f0-9]{32,}/gi, // long hex strings (API keys, hashes)
+];
+
+function scrubString(str) {
+  if (typeof str !== 'string') return str;
+  return SENSITIVE_PATTERNS.reduce(
+    (s, pattern) => s.replace(pattern, '[REDACTED]'),
+    str
+  );
+}
+
+function scrubEvent(event) {
+  // Scrub message
+  if (event.message) {
+    event.message = scrubString(event.message);
+  }
+  // Scrub exception values
+  if (event.exception?.values) {
+    event.exception.values.forEach((ex) => {
+      if (ex.value) ex.value = scrubString(ex.value);
+      if (ex.stacktrace?.frames) {
+        ex.stacktrace.frames.forEach((frame) => {
+          if (frame.vars) {
+            Object.keys(frame.vars).forEach((k) => {
+              frame.vars[k] = scrubString(frame.vars[k]);
+            });
+          }
+        });
+      }
+    });
+  }
+  // Scrub breadcrumbs
+  if (event.breadcrumbs) {
+    event.breadcrumbs.forEach((bc) => {
+      if (bc.message) bc.message = scrubString(bc.message);
+      if (bc.data) {
+        Object.keys(bc.data).forEach((k) => {
+          bc.data[k] = scrubString(bc.data[k]);
+        });
+      }
+    });
+  }
+  // Scrub user context (keep id but not email/name)
+  if (event.user) {
+    delete event.user.email;
+    delete event.user.username;
+    delete event.user.name;
+    delete event.user.ip_address;
+  }
+  return event;
+}
+
 export function initializeSentry() {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   const environment = import.meta.env.VITE_SENTRY_ENVIRONMENT || 'production';
@@ -35,6 +91,14 @@ export function initializeSentry() {
 
     // Release tracking (from package.json version)
     release: `ride-radar@${import.meta.env.VITE_APP_VERSION || '2.0.0'}`,
+
+    // Global tags for crash reporting metadata
+    initialScope: {
+      tags: {
+        'app.version': import.meta.env.VITE_APP_VERSION || '2.0.0',
+        'app.environment': environment,
+      },
+    },
 
     // Performance monitoring
     integrations: [
@@ -91,7 +155,7 @@ export function initializeSentry() {
         return null;
       }
 
-      return event;
+      return scrubEvent(event);
     },
 
     // Ignore specific errors

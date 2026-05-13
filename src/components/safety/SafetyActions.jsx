@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +26,6 @@ const DETAILS_MAX_LENGTH = 500;
  */
 export default function SafetyActions({ targetType, targetId, targetProfileId, compact = false, className }) {
   const { user } = useAuthState();
-  const qc = useQueryClient();
   const [mode, setMode] = useState(null);
   const [reason, setReason] = useState('safety');
   const [details, setDetails] = useState('');

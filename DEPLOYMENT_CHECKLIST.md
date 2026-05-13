@@ -57,6 +57,16 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
+### Recommended for Production:
+
+```bash
+VITE_SENTRY_DSN=https://xxx@o123456.ingest.sentry.io/123456
+VITE_SENTRY_ENVIRONMENT=production
+VITE_PLAUSIBLE_DOMAIN=rideradar.app
+VITE_ENABLE_ANALYTICS=true
+VITE_SUPPORT_EMAIL=support@rideradar.app
+```
+
 **⚠️ NEVER commit `.env` files to git!**
 
 ### Verify Environment:
@@ -81,6 +91,12 @@ npm run preview  # Test production build locally
 ```bash
 npm run lint      # Should pass with no critical errors
 npm run typecheck # Should complete (warnings OK)
+npm run test      # Should pass all smoke tests
+```
+
+### Analyze Bundle:
+```bash
+npm run analyze   # Review bundle size before deploying
 ```
 
 ### Manual Testing Checklist:
@@ -425,6 +441,47 @@ DROP FUNCTION IF EXISTS is_admin();
 
 ---
 
+## 📋 Release Checklist
+
+Before every production release:
+
+- [ ] All tests pass (`npm run test`)
+- [ ] Lint passes (`npm run lint`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] Bundle size reviewed (`npm run analyze`)
+- [ ] Environment variables verified on hosting platform
+- [ ] Sentry DSN configured for production
+- [ ] Database migrations applied (if any)
+- [ ] No breaking API changes unannounced
+- [ ] CHANGELOG or release notes drafted
+- [ ] Rollback plan confirmed
+
+---
+
+## 🔄 Rollback Checklist
+
+If critical issues are detected post-release:
+
+1. **Immediate:**
+   - [ ] Pause marketing / user announcements
+   - [ ] Assess severity (data loss, security, complete outage)
+
+2. **Frontend Rollback:**
+   - [ ] Vercel: Promote previous deployment in dashboard
+   - [ ] Netlify: `netlify deploy --prod --alias=previous-version`
+   - [ ] Custom: restore previous `dist/` artifact
+
+3. **Verification:**
+   - [ ] Confirm production URL serves the previous version
+   - [ ] Re-run smoke tests (auth, radar, chat)
+   - [ ] Check Sentry for error volume drop
+
+4. **Communication:**
+   - [ ] Notify team / stakeholders
+   - [ ] Update status page if applicable
+
+---
+
 ## ✅ Launch Confirmation
 
 After successful deployment, verify:
@@ -436,6 +493,8 @@ After successful deployment, verify:
 - [ ] Real-time updates work (test with 2 browsers)
 - [ ] Mobile responsive (test on phone)
 - [ ] Admin panel accessible (if admin)
+- [ ] Sentry receiving errors (check dashboard)
+- [ ] Plausible tracking page views
 
 ---
 

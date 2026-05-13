@@ -190,8 +190,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
       exactLocationText: values.exactLocationText || '',
       eventDate: values.eventDate || '',
       eventEndTime: values.eventEndTime || '',
-      eventImage: eventImage?.previewUrl || eventImage || '',
-      alertImages: alertImages.map((img) => img.previewUrl || img),
+      eventImage: eventImage || '',
+      alertImages: alertImages,
       isoSubtype: values.isoSubtype,
       lookingTo: values.lookingTo,
       lat: coords.lat,
@@ -223,7 +223,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
 
   return (
-    <div className="px-5 pt-5 pb-8 min-h-dvh-safe bg-background">
+    <div className="px-5 pt-5 pb-8 pb-safe bg-background scroll-smooth">
       <button onClick={onBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1 transition-colors">
         <ArrowLeft className="w-4 h-4" /> All types
       </button>
@@ -248,8 +248,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {/* ISO subtype selector */}
         {type === 'iso' && (
           <VStack gap={2}>
-            <Label className="rr-kicker text-muted-foreground mb-1 block">Looking for</Label>
-            <div className="grid grid-cols-2 gap-2">
+            <Label htmlFor="isoSubtype" className="rr-kicker text-muted-foreground mb-1 block">Looking for</Label>
+            <div id="isoSubtype" role="radiogroup" aria-label="Looking for" className="grid grid-cols-2 gap-2">
               {[
                 { value: 'mechanic', label: 'Mechanic', icon: ShieldAlert },
                 { value: 'bike_crew', label: 'Bike Crew', icon: Users },
@@ -275,9 +275,9 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
         {type === 'iso' && isoSubtype === 'bike_crew' ? (
           <VStack gap={2}>
-            <Label className="rr-kicker text-muted-foreground mb-1 block">Looking to</Label>
+            <Label htmlFor="lookingTo" className="rr-kicker text-muted-foreground mb-1 block">Looking to</Label>
             <Select value={watch('lookingTo')} onValueChange={(v) => setValue('lookingTo', v)}>
-              <SelectTrigger className="rr-premium-input rounded-xl mt-1.5">
+              <SelectTrigger id="lookingTo" className="rr-premium-input rounded-xl mt-1.5">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -288,8 +288,9 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           </VStack>
         ) : (
           <VStack gap={2}>
-            <Label className="rr-kicker text-muted-foreground mb-1 block">Title *</Label>
+            <Label htmlFor="title" className="rr-kicker text-muted-foreground mb-1 block">Title *</Label>
             <Input
+              id="title"
               {...register('title')}
               placeholder={
                 type === 'alert'
@@ -312,8 +313,9 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
         {/* Details */}
         <VStack gap={2}>
-          <Label className="rr-kicker text-muted-foreground mb-1 block">Details</Label>
+          <Label htmlFor="details" className="rr-kicker text-muted-foreground mb-1 block">Details</Label>
           <Textarea
+            id="details"
             {...register('body')}
             placeholder={
               type === 'iso' && isoSubtype === 'mechanic'
@@ -335,8 +337,9 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {type === 'event' && (
           <VStack gap={5}>
             <VStack gap={2}>
-              <Label className="rr-kicker text-muted-foreground mb-1 block">Location *</Label>
+              <Label htmlFor="location" className="rr-kicker text-muted-foreground mb-1 block">Location *</Label>
               <Input
+                id="location"
                 {...register('exactLocationText')}
                 placeholder="Red Rocks Park, parking lot 2"
                 className="rr-premium-input rounded-xl mt-1.5"
@@ -345,21 +348,21 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             </VStack>
             <div className="grid grid-cols-2 gap-3">
               <VStack gap={2}>
-                <Label className="rr-kicker text-muted-foreground mb-1 block">Start *</Label>
-                <Input type="datetime-local" {...register('eventDate')} className="rr-premium-input rounded-xl mt-1.5" />
+                <Label htmlFor="start" className="rr-kicker text-muted-foreground mb-1 block">Start *</Label>
+                <Input id="start" type="datetime-local" {...register('eventDate')} className="rr-premium-input rounded-xl mt-1.5" />
                 {errors.eventDate && <p className="mt-1 text-xs text-destructive">{errors.eventDate.message}</p>}
               </VStack>
               <VStack gap={2}>
-                <Label className="rr-kicker text-muted-foreground mb-1 block">End *</Label>
-                <Input type="datetime-local" {...register('eventEndTime')} className="rr-premium-input rounded-xl mt-1.5" />
+                <Label htmlFor="end" className="rr-kicker text-muted-foreground mb-1 block">End *</Label>
+                <Input id="end" type="datetime-local" {...register('eventEndTime')} className="rr-premium-input rounded-xl mt-1.5" />
                 {errors.eventEndTime && <p className="mt-1 text-xs text-destructive">{errors.eventEndTime.message}</p>}
               </VStack>
             </div>
 
             {/* Event poster upload */}
             <VStack gap={2}>
-              <Label className="rr-kicker text-muted-foreground mb-1 block">Event poster (optional)</Label>
-              <div className="mt-1.5 rounded-[20px] border border-border/70 bg-black/30 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
+              <Label htmlFor="eventPoster" className="rr-kicker text-muted-foreground mb-1 block">Event poster (optional)</Label>
+              <div id="eventPoster" className="mt-1.5 rounded-[20px] border border-border/70 bg-black/30 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
                 {eventImage ? (
                   <VStack gap={3}>
                     <div className="flex max-h-72 items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-black/45 p-2">
@@ -401,8 +404,9 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {type === 'alert' && (
           <VStack gap={5}>
             <VStack gap={2}>
-              <Label className="rr-kicker text-muted-foreground mb-1 block">Approximate area *</Label>
+              <Label htmlFor="approximateArea" className="rr-kicker text-muted-foreground mb-1 block">Approximate area *</Label>
               <Input
+                id="approximateArea"
                 {...register('exactLocationText')}
                 placeholder="I-70 westbound near Idaho Springs"
                 className="rr-premium-input rounded-xl mt-1.5"

@@ -54,6 +54,9 @@ export function useMessages(conversationId) {
         (payload) => {
           const newMessage = payload.new;
 
+          // Skip own messages — handled by optimistic updates in useSendMessage
+          if (newMessage.from_user_id === user.id) return;
+
           // Deduplicate across all sources (optimistic updates, realtime, other devices)
           if (seenIdsRef.current.has(newMessage.id)) return;
           seenIdsRef.current.add(newMessage.id);

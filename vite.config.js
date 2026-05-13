@@ -29,8 +29,8 @@ export default defineConfig({
         short_name: 'Ride Radar',
         description: 'Social network for motorcyclists - find rides, connect with riders, and stay safe on the road',
         id: '/',
-        theme_color: '#0c0c0e',
-        background_color: '#0c0c0e',
+        theme_color: '#39FF14',
+        background_color: '#050508',
         display: 'standalone',
         orientation: 'portrait-primary',
         start_url: '/home',
@@ -184,10 +184,11 @@ export default defineConfig({
             return 'vendor-leaflet';
           }
 
-          // Recharts (only used in admin/charts)
-          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) {
-            return 'vendor-recharts';
-          }
+          // Note: recharts was removed as a dead dependency.
+          // If charts are re-added, restore this chunk:
+          // if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) {
+          //   return 'vendor-recharts';
+          // }
 
           // Framer Motion (animation library, moderate size)
           if (id.includes('node_modules/framer-motion')) {

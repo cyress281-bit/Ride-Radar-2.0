@@ -184,7 +184,7 @@ function MonitoringContent() {
             size="sm"
             variant="outline"
             onClick={() => setAutoRefresh((v) => !v)}
-            className="h-8 text-xs"
+            className="min-h-[44px] text-xs"
           >
             {autoRefresh ? 'Pause' : 'Resume'}
           </Button>
@@ -192,7 +192,7 @@ function MonitoringContent() {
             size="sm"
             variant="outline"
             onClick={() => refetch()}
-            className="h-8 text-xs"
+            className="min-h-[44px] text-xs"
           >
             <RefreshCw className="mr-1 h-3 w-3" />
             Refresh

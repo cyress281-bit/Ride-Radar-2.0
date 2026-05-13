@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState, useTransition, memo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useState, useTransition, memo, useRef } from 'react';
 import { useNearbyBroadcasts } from '@/features/broadcast/hooks/use-nearby-broadcasts.js';
 import { useLiveMapPresence } from '@/features/map/hooks/use-live-map.js';
 import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
@@ -59,7 +58,6 @@ function getAuthorId(broadcast) {
  * the user taps "Locate me" to grant permission.
  */
 function BroadcastFeedPage() {
-  const queryClient = useQueryClient();
   const { user } = useAuthState();
   const isOnline = useOnlineStatus();
 
@@ -102,9 +100,10 @@ function BroadcastFeedPage() {
       sourceBroadcasts.filter((b) => {
         if (blockedIds.has(getAuthorId(b))) return false;
         if (b.expires_at && new Date(b.expires_at) <= new Date()) return false;
+        if (getAuthorId(b) === user?.id) return false;
         return true;
       }),
-    [sourceBroadcasts, blockedIds]
+    [sourceBroadcasts, blockedIds, user?.id]
   );
 
   const rawRiderMarkers = usingOfflineSnapshot ? offlineSnapshot.riderMarkers : riderMarkers;
@@ -143,12 +142,19 @@ function BroadcastFeedPage() {
   const authorIds = useMemo(() => filteredBroadcasts.map(getAuthorId).filter(Boolean), [filteredBroadcasts]);
   const { getProfile } = useProfileBatch(authorIds);
 
-  // Cache offline snapshot
+  // Cache offline snapshot (debounced to avoid main-thread jank)
+  const snapshotTimerRef = useRef(null);
   useEffect(() => {
     if (!isOnline || !hasUserLocation || isLoadingBroadcasts) return;
     if (visibleBroadcasts.length === 0 && visibleRiderMarkers.length === 0) return;
-    cacheRadarOfflineSnapshot({ broadcasts: visibleBroadcasts, riderMarkers: visibleRiderMarkers });
-    setOfflineSnapshot(readRadarOfflineSnapshot());
+    if (snapshotTimerRef.current) clearTimeout(snapshotTimerRef.current);
+    snapshotTimerRef.current = setTimeout(() => {
+      cacheRadarOfflineSnapshot({ broadcasts: visibleBroadcasts, riderMarkers: visibleRiderMarkers });
+      setOfflineSnapshot(readRadarOfflineSnapshot());
+    }, 2000);
+    return () => {
+      if (snapshotTimerRef.current) clearTimeout(snapshotTimerRef.current);
+    };
   }, [hasUserLocation, isLoadingBroadcasts, isOnline, visibleBroadcasts, visibleRiderMarkers]);
 
   const activeCount = filteredBroadcasts.length;

@@ -14,6 +14,8 @@ import {
   deleteNotification,
 } from '@/features/notifications/api/notifications-api.js';
 import { toast } from '@/components/ui/use-toast';
+import { logger } from '@/lib/logger.js';
+import { captureError } from '@/lib/sentry.js';
 
 /**
  * Query key factory for notifications.
@@ -62,7 +64,8 @@ export function useNotifications(userId) {
         (payload) => {
           qc.setQueryData(notificationKeys.list(userId), (old = []) => {
             const next = normalizeNotification(payload.new);
-            if (!next || old.some((n) => n.id === next.id)) return old;
+            // Defensive: skip self-notifications where the actor is the current user
+            if (!next || next.actor_id === userId || old.some((n) => n.id === next.id)) return old;
             return [next, ...old];
           });
           // Also invalidate unread count
@@ -101,7 +104,12 @@ export function useNotifications(userId) {
           qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          logger.error('[useNotifications] List subscription error:', err);
+          captureError(err, { source: 'useNotifications', status });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -112,14 +120,16 @@ export function useNotifications(userId) {
 }
 
 /**
- * Hook to fetch the unread notification count with real-time updates.
+ * Hook to fetch the unread notification count.
+ *
+ * Derives from the notifications list cache; realtime updates are
+ * handled by the single channel in useNotifications() to avoid
+ * duplicate subscriptions.
  *
  * @param {string|null} userId
  */
 export function useUnreadCount(userId) {
-  const qc = useQueryClient();
-
-  const query = useQuery({
+  return useQuery({
     queryKey: notificationKeys.unread(userId),
     queryFn: async () => {
       const { data, error } = await getUnreadCount(userId);
@@ -130,33 +140,6 @@ export function useUnreadCount(userId) {
     staleTime: 30_000,
     refetchOnWindowFocus: false,
   });
-
-  // Re-sync unread count on real-time events
-  useEffect(() => {
-    if (!userId) return;
-
-    const channel = supabase
-      .channel(`notifications-unread-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId, qc]);
-
-  return query;
 }
 
 /**

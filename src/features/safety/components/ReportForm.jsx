@@ -83,7 +83,6 @@ export default function ReportForm({ targetType, targetId, targetUserId, onSucce
     if (createReport.isSuccess || createReport.isError) {
       createReport.reset();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetType, targetId, targetUserId]);
 
   if (!user) {

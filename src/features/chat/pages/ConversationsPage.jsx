@@ -88,7 +88,7 @@ function ConversationsPage() {
   const hasUnread = unreadMap.size > 0;
 
   return (
-    <VStack gap={4} className="px-4 pt-4 pb-8 max-w-2xl mx-auto min-h-dvh">
+    <VStack gap={4} className="px-4 pt-4 pb-8 max-w-2xl mx-auto">
       {/* Header */}
       <HStack justify="between" align="center" className="px-1">
         <div className="flex items-center gap-3">

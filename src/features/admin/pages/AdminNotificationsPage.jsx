@@ -70,7 +70,7 @@ function AdminNotificationsContent() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g., New feature available"
-            className="mt-1.5"
+            className="mt-1.5 min-h-[44px]"
           />
         </div>
         <div>

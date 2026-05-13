@@ -198,6 +198,7 @@ function ProfilePage() {
               </button>
               <Link to="/settings" className="shrink-0">
                 <button
+                  aria-label="Settings"
                   className={cn(
                     'h-11 w-11 rounded-full border border-brand-radar/30 bg-brand-radar/10',
                     'flex items-center justify-center text-brand-radar',
@@ -210,11 +211,12 @@ function ProfilePage() {
               </Link>
               <button
                 onClick={() => signOut()}
+                aria-label="Sign out"
                 className={cn(
                   'h-11 w-11 rounded-full border border-brand-emergency/30 bg-brand-emergency/10',
                   'flex items-center justify-center text-brand-emergency',
                   'transition-all hover:bg-brand-emergency/20 active:scale-95',
-                  'shadow-[0_0_12px_hsl(var(--brand-emergency)/0.15)]'
+                    'shadow-[0_0_12px_hsl(var(--brand-emergency)/0.15)]'
                 )}
               >
                 <LogOut className="h-4 w-4" />

@@ -21,6 +21,7 @@ import {
 } from 'react';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
+import { captureError } from '@/lib/sentry.js';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   signInWithEmail,
@@ -30,6 +31,7 @@ import {
   getSession,
   onAuthStateChange,
   updatePassword as apiUpdatePassword,
+  resetPassword as apiResetPassword,
 } from '@/features/auth/api/auth-api.js';
 
 // ------------------------------------------------------------------
@@ -56,6 +58,9 @@ export function useAuthProvider() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  // KNOWN ISSUE: authEvent is in the state context and triggers re-renders on every
+  // token refresh. Do NOT remove it from the context as it may break the password
+  // recovery flow. Components that don't need authEvent should use useAuthActions().
   const [authEvent, setAuthEvent] = useState(null);
   const profileLoadSeq = useRef(0);
   const profileTimeoutRef = useRef(null);
@@ -84,15 +89,16 @@ export function useAuthProvider() {
 
   // Race-safe timeout wrapper
   const withTimeout = useCallback((promise, label, timeoutMs = 8000) => {
-    return Promise.race([
-      promise,
-      new Promise((_, reject) => {
-        window.setTimeout(
-          () => reject(new Error(`${label} timed out after ${timeoutMs / 1000}s`)),
-          timeoutMs
-        );
-      }),
-    ]);
+    let timer;
+    const timeoutPromise = new Promise((_, reject) => {
+      timer = window.setTimeout(
+        () => reject(new Error(`${label} timed out after ${timeoutMs / 1000}s`)),
+        timeoutMs
+      );
+    });
+    return Promise.race([promise, timeoutPromise]).finally(() => {
+      if (timer) window.clearTimeout(timer);
+    });
   }, []);
 
   // Load or create the user row in public.users
@@ -120,8 +126,17 @@ export function useAuthProvider() {
           'Create user record'
         );
 
-        if (createError && createError.code !== '23505') {
+        if (createError?.code === '23505') {
+          const { data: refetchUser } = await withTimeout(
+            supabase.from('users').select('*').eq('id', userId).single(),
+            'Refetch user record after conflict'
+          );
+          return refetchUser || null;
+        }
+
+        if (createError) {
           logger.error('[AuthProvider] Error creating user:', createError);
+          captureError(createError, { context: 'ensureUserRow', userId });
           return null;
         }
         return newUser;
@@ -173,6 +188,7 @@ export function useAuthProvider() {
 
         if (profileCreateError) {
           logger.error('[AuthProvider] Error creating profile:', profileCreateError);
+          captureError(profileCreateError, { context: 'ensureProfileRow', userId });
           return null;
         }
 
@@ -253,7 +269,10 @@ export function useAuthProvider() {
       }
 
       try {
-        const { data, error } = await supabase.auth.getUser();
+        const { data, error } = await Promise.race([
+          supabase.auth.getUser(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Session validation timed out')), 10000)),
+        ]);
         if (error || !data?.user) {
           logger.warn('[AuthProvider] Cached session invalid; clearing state', error);
           await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
@@ -264,6 +283,7 @@ export function useAuthProvider() {
         handleSession({ ...session, user: data.user });
       } catch (err) {
         logger.error('[AuthProvider] Error validating session:', err);
+        captureError(err, { context: 'validateCachedSession' });
         handleSession(null);
       }
     },
@@ -364,6 +384,12 @@ export function useAuthProvider() {
     return data;
   }, []);
 
+  const resetUserPassword = useCallback(async (email) => {
+    const { data, error } = await apiResetPassword(email);
+    if (error) throw error;
+    return data;
+  }, []);
+
   const refreshProfile = useCallback(async () => {
     if (user?.id) {
       const { data: { session } } = await supabase.auth.getSession();
@@ -397,9 +423,10 @@ export function useAuthProvider() {
       signInWithProvider,
       signOut: signOutUser,
       updatePassword: updateUserPassword,
+      resetPassword: resetUserPassword,
       refreshProfile,
     }),
-    [signIn, signUp, signInWithProvider, signOutUser, updateUserPassword, refreshProfile]
+    [signIn, signUp, signInWithProvider, signOutUser, updateUserPassword, resetUserPassword, refreshProfile]
   );
 
   return { state, actions };
@@ -423,7 +450,7 @@ export function useAuthState() {
 
 /**
  * Consume the auth actions context (stable; does not trigger on state changes).
- * @returns {{ signIn: Function, signUp: Function, signInWithProvider: Function, signOut: Function, updatePassword: Function, refreshProfile: Function }}
+ * @returns {{ signIn: Function, signUp: Function, signInWithProvider: Function, signOut: Function, updatePassword: Function, resetPassword: Function, refreshProfile: Function }}
  */
 export function useAuthActions() {
   const context = useContext(AuthActionsContext);

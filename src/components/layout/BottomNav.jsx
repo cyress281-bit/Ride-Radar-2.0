@@ -24,9 +24,9 @@ const TABS = [
  * - Safe area support for iOS
  * - Press feedback on all tabs
  */
-const BottomNav = memo(function BottomNav({ isOverlay = false }) {
+const BottomNav = memo(function BottomNav({ _isOverlay = false }) {
   const { pathname } = useLocation();
-  const isRadar = pathname === '/home';
+  const _isRadar = pathname === '/home';
 
   return (
     <nav

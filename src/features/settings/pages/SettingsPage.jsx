@@ -195,8 +195,8 @@ function SettingsPage() {
                 .upsert(
                   {
                     user_id: user.id,
-                    display_name: profile?.display_name || profile?.displayName || 'Rider',
-                    avatar_url: profile?.avatar_url || profile?.avatar || null,
+                    display_name: profile?.display_name || 'Rider',
+                    avatar_url: profile?.avatar_url || null,
                     is_visible: false,
                     location_precision: normalizePrecision(settings.live_map_location_precision),
                     lat: null,
@@ -414,6 +414,26 @@ function SettingsPage() {
             </ol>
           </div>
         )}
+        <div className="border-t border-border/40">
+          <SettingsRow
+            icon={Smartphone}
+            label="App Version"
+            value={import.meta.env.VITE_APP_VERSION || 'dev'}
+          />
+        </div>
+        <div className="border-t border-border/40">
+          <SettingsRow
+            icon={Smartphone}
+            label="Environment"
+            value={
+              import.meta.env.PROD
+                ? 'Production'
+                : import.meta.env.DEV
+                  ? 'Development'
+                  : 'Staging'
+            }
+          />
+        </div>
       </SettingsSection>
 
       {/* Support */}
@@ -430,6 +450,17 @@ function SettingsPage() {
           <Link to="/review-readiness" className="block">
             <SettingsRow icon={Database} label="Data Safety Summary" desc="Store review disclosure checklist" />
           </Link>
+        </div>
+        <div className="border-t border-border/40">
+          <SettingsRow
+            icon={Mail}
+            label="Send Feedback"
+            desc="Report bugs or suggest features"
+            onClick={() => {
+              const email = import.meta.env.VITE_SUPPORT_EMAIL || SUPPORT_EMAIL;
+              window.location.href = `mailto:${email}?subject=${encodeURIComponent('[Ride Radar Beta Feedback]')}`;
+            }}
+          />
         </div>
       </SettingsSection>
 

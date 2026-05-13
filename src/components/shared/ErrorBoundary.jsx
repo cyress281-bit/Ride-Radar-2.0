@@ -72,7 +72,6 @@ export class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
-      const isDev = import.meta.env.DEV;
       const errorMessage = this.state.error?.message || 'An unexpected error occurred';
       const stackTrace = this.state.error?.stack || '';
       const componentStack = this.state.errorInfo?.componentStack || '';

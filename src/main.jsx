@@ -20,11 +20,41 @@ registerServiceWorker();
 
 // Catch async errors that error boundaries cannot capture
 window.addEventListener('unhandledrejection', (event) => {
-  // Sentry will auto-capture in production via its default integration
+  // Ignore benign errors
+  const msg = event.reason?.message || String(event.reason);
+  if (
+    msg.includes('ResizeObserver loop limit exceeded') ||
+    msg.includes('NetworkError') ||
+    msg.includes('Failed to fetch dynamically imported module') ||
+    msg.includes('Auth session missing') ||
+    msg.includes('chunk load')
+  ) {
+    event.preventDefault();
+    return;
+  }
+  // Log to console; Sentry auto-captures unhandled rejections in production
+  if (import.meta.env.DEV) {
+    console.error('[Global] Unhandled rejection:', event.reason);
+  }
 });
 
-window.addEventListener('error', () => {
-  // Sentry will auto-capture in production via its default integration
+window.addEventListener('error', (event) => {
+  // Ignore browser extension errors and Leaflet tile 404s
+  const msg = event.message || '';
+  const src = event.filename || '';
+  if (
+    src.includes('chrome-extension://') ||
+    src.includes('moz-extension://') ||
+    src.includes('safari-extension://') ||
+    msg.includes('ResizeObserver loop limit exceeded') ||
+    msg.includes('NetworkError')
+  ) {
+    event.preventDefault();
+    return;
+  }
+  if (import.meta.env.DEV) {
+    console.error('[Global] Uncaught error:', event.error);
+  }
 });
 
 const rootElement = document.getElementById('root');

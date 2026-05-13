@@ -11,6 +11,7 @@ import { getLiveMapPresence } from '@/features/map/api/map-api.js';
 import { buildPresenceLocation, isValidCoordinate } from '@/lib/geocoding.js';
 
 import { logger } from '@/lib/logger.js';
+import { captureError } from '@/lib/sentry.js';
 import { HEARTBEAT_INTERVAL_MS, PRESENCE_REFRESH_MS } from '@/lib/constants.js';
 
 export const presenceKeys = {
@@ -39,6 +40,11 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
   const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const userId = user?.id;
 
+  // Keep a stable ref to the latest profile to avoid effect churn
+  // when auth context returns new object references.
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
+
   const settingsQuery = useQuery({
     queryKey: ['settings', userId],
     enabled: !!userId,
@@ -52,32 +58,20 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
       if (error) throw error;
 
       if (!data) {
-        const { data: upserted, error: upsertError } = await supabase
-          .from('user_settings')
-          .upsert(
-            {
-              user_id: userId,
-              notify_on_connection: true,
-              notify_on_message: true,
-              notify_on_rsvp: true,
-              notify_on_alert: true,
-              show_location: true,
-              live_map_visible: false,
-              live_map_location_precision: 'approximate',
-              analytics_enabled: true,
-            },
-            { onConflict: 'user_id' }
-          )
-          .select('id,user_id,live_map_visible,live_map_location_precision')
-          .single();
-
-        if (upsertError) throw upsertError;
-        return upserted;
+        // Return defaults without writing — settings row is created during onboarding
+        // or when the user first changes a setting.
+        return {
+          user_id: userId,
+          live_map_visible: false,
+          live_map_location_precision: 'approximate',
+          show_location: true,
+        };
       }
 
       return data;
     },
     staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const presenceQuery = useQuery({
@@ -126,7 +120,12 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
           }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          logger.error('[useLiveMapPresence] Realtime subscription error:', err);
+          captureError(err, { source: 'useLiveMapPresence', status });
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -154,9 +153,9 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
       const { error } = await supabase.from('live_map_presence').upsert(
         {
           user_id: userId,
-          display_name: profile?.display_name || 'Rider',
-          avatar_url: profile?.avatar_url || null,
-          vehicle_label: getVehicleLabel(profile),
+          display_name: profileRef.current?.display_name || 'Rider',
+          avatar_url: profileRef.current?.avatar_url || null,
+          vehicle_label: getVehicleLabel(profileRef.current),
           is_visible: true,
           location_precision: markerLocation.locationPrecision,
           lat: markerLocation.lat,
@@ -191,7 +190,6 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     settingsQuery.data?.live_map_visible,
     settingsQuery.data?.live_map_location_precision,
     userId,
-    profile,
     queryClient,
   ]);
 
@@ -216,9 +214,9 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         .upsert(
           {
             user_id: userId,
-            display_name: profile?.display_name || 'Rider',
-            avatar_url: profile?.avatar_url || null,
-            vehicle_label: getVehicleLabel(profile),
+            display_name: profileRef.current?.display_name || 'Rider',
+            avatar_url: profileRef.current?.avatar_url || null,
+            vehicle_label: getVehicleLabel(profileRef.current),
             is_visible: true,
             location_precision: markerLocation.locationPrecision,
             lat: markerLocation.lat,
@@ -250,7 +248,6 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     settingsQuery.data?.live_map_visible,
     settingsQuery.data?.live_map_location_precision,
     userId,
-    profile,
     queryClient,
   ]);
 
