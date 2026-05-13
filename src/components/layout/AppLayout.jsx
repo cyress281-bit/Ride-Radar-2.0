@@ -88,7 +88,7 @@ const AppLayout = memo(function AppLayout() {
         className={cn(
           isRadar
             ? 'fixed inset-0 z-0'
-            : 'relative z-10 mx-auto max-w-xl pt-16 pb-24 pb-safe'
+            : 'relative z-10 mx-auto max-w-xl pt-16 pb-nav-safe'
         )}
         role="main"
       >

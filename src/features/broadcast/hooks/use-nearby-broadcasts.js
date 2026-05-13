@@ -9,7 +9,7 @@
  * - Offline fallback from localStorage snapshot
  */
 
-import { useEffect, useRef, useId } from 'react';
+import { useEffect, useRef, useId, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase.js';
 import { getNearbyBroadcasts } from '@/features/broadcast/api/broadcast-api.js';
@@ -62,7 +62,15 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds =
   // Round coordinates to avoid cache fragmentation from GPS jitter
   const roundedLat = lat != null ? Math.round(lat * 1000) / 1000 : null;
   const roundedLng = lng != null ? Math.round(lng * 1000) / 1000 : null;
-  const nearbyQueryKey = ['broadcasts', 'nearby', roundedLat, roundedLng, radiusMiles, blockedUserIds];
+  const nearbyQueryKey = useMemo(
+    () => ['broadcasts', 'nearby', roundedLat, roundedLng, radiusMiles, blockedUserIds],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [roundedLat, roundedLng, radiusMiles, JSON.stringify(blockedUserIds)]
+  );
+  // Keep a ref so the realtime UPDATE handler always targets the current key
+  // without needing to tear down and recreate the subscription on blockedUserIds change.
+  const nearbyQueryKeyRef = useRef(nearbyQueryKey);
+  nearbyQueryKeyRef.current = nearbyQueryKey;
 
   const query = useQuery({
     queryKey: nearbyQueryKey,
@@ -119,7 +127,7 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds =
             (updated.expires_at && new Date(updated.expires_at) < new Date())
           ) {
             queryClient.setQueryData(
-              nearbyQueryKey,
+              nearbyQueryKeyRef.current,
               (old = []) => old.filter((b) => b.id !== updated.id)
             );
             return;
@@ -139,7 +147,7 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds =
           }
 
           queryClient.setQueryData(
-            nearbyQueryKey,
+            nearbyQueryKeyRef.current,
             (old = []) => old.map((b) => (b.id === updated.id ? { ...b, ...updated } : b))
           );
         }

@@ -430,6 +430,11 @@
   .pt-safe {
     padding-top: env(safe-area-inset-top, 0px);
   }
+  /* Combined safe-area + fixed spacing utilities for nav-aware layouts */
+  .pb-nav-safe {
+    /* 6rem (96px) bottom nav height + safe area inset */
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
 
   /* ---------- Standardized Shadows ---------- */
 }

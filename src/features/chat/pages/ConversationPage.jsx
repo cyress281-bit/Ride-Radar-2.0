@@ -43,7 +43,7 @@ function TypingIndicator() {
  */
 function ConversationSkeleton() {
   return (
-    <VStack className="h-[calc(100dvh-3.5rem-env(safe-area-inset-top)-6rem-env(safe-area-inset-bottom))]">
+    <VStack className="h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px)-6rem-env(safe-area-inset-bottom,0px))] min-h-0 overflow-hidden">
       <HStack align="center" gap={3} className="px-4 py-3 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl shrink-0">
         <Skeleton className="h-10 w-10 rounded-full" />
         <VStack gap={1.5} flex={1}>
@@ -143,20 +143,42 @@ function ConversationPage() {
 
   const handleBlockUser = useCallback(() => {
     if (!otherId || !user?.id) return;
-    blockUser({ blocker_user_id: user.id, blocked_user_id: otherId });
     setShowActions(false);
+    blockUser(
+      { blocker_user_id: user.id, blocked_user_id: otherId },
+      {
+        onError: (error) => {
+          toast({
+            title: 'Block failed',
+            description: error?.message || 'Could not block this user. Please try again.',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
   }, [otherId, user?.id, blockUser]);
 
   const handleReportUser = useCallback(() => {
     if (!otherId || !user?.id) return;
-    reportUser({
-      reporter_user_id: user.id,
-      target_type: 'user',
-      target_id: otherId,
-      target_user_id: otherId,
-      reason: 'inappropriate_behavior',
-    });
     setShowActions(false);
+    reportUser(
+      {
+        reporter_user_id: user.id,
+        target_type: 'user',
+        target_id: otherId,
+        target_user_id: otherId,
+        reason: 'inappropriate_behavior',
+      },
+      {
+        onError: (error) => {
+          toast({
+            title: 'Report failed',
+            description: error?.message || 'Could not submit report. Please try again.',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
   }, [otherId, user?.id, reportUser]);
 
   const handleDeleteConversation = useCallback(() => {
@@ -251,7 +273,7 @@ function ConversationPage() {
   }
 
   return (
-    <VStack className="h-[calc(100dvh-3.5rem-env(safe-area-inset-top)-6rem-env(safe-area-inset-bottom))] bg-background relative">
+    <VStack className="h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px)-6rem-env(safe-area-inset-bottom,0px))] min-h-0 bg-background relative overflow-hidden">
       {/* Header */}
       <HStack
         align="center"
@@ -313,19 +335,19 @@ function ConversationPage() {
         {showActions && (
           <div className="absolute top-16 right-4 z-50 bg-surface/95 backdrop-blur-xl border border-white/[0.06] p-2 min-w-[160px] rounded-xl shadow-depth-4 animate-scale-in">
             <button
-              className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors"
+              className="w-full text-left px-3 py-2 min-h-[44px] text-sm text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors flex items-center"
               onClick={handleBlockUser}
             >
               Block user
             </button>
             <button
-              className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors"
+              className="w-full text-left px-3 py-2 min-h-[44px] text-sm text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors flex items-center"
               onClick={handleReportUser}
             >
               Report
             </button>
             <button
-              className="w-full text-left px-3 py-2 text-sm text-brand-emergency hover:bg-brand-emergency/10 rounded-lg transition-colors"
+              className="w-full text-left px-3 py-2 min-h-[44px] text-sm text-brand-emergency hover:bg-brand-emergency/10 rounded-lg transition-colors flex items-center"
               onClick={handleDeleteConversation}
             >
               Delete conversation
@@ -352,7 +374,7 @@ function ConversationPage() {
         <VStack
           gap={3}
           flex
-          className="overflow-y-auto px-4 py-4 scroll-smooth"
+          className="overflow-y-auto [-webkit-overflow-scrolling:touch] overscroll-contain min-h-0 px-4 py-4 scroll-smooth"
           ref={scrollContainerRef}
           onScroll={handleScroll}
           role="log"
@@ -392,7 +414,7 @@ function ConversationPage() {
           onClick={scrollToBottom}
           className={cn(
             'absolute bottom-24 left-1/2 -translate-x-1/2 z-30',
-            'h-9 w-9 rounded-full flex items-center justify-center',
+            'h-11 w-11 rounded-full flex items-center justify-center',
             'bg-surface-elevated/90 backdrop-blur-xl border border-white/[0.08] text-primary',
             'shadow-depth-3 hover:bg-surface-elevated transition-all pressable animate-fade-up'
           )}

@@ -397,7 +397,7 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
       { from_user_id: user.id, to_user_id: broadcast.author_id, message: msg.trim() || undefined },
       { onSuccess: () => { setOpen(false); setMsg(''); onChange(); } }
     );
-  }, [sendRequest, user, broadcast, onChange]);
+  }, [sendRequest, user, broadcast, msg, onChange]);
 
   if (existing) {
     const map = { pending: 'Request sent', accepted: 'Connected', declined: 'Declined' };

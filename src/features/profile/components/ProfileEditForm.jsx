@@ -122,6 +122,8 @@ export default function ProfileEditForm({ profile, onDone }) {
     return null;
   };
 
+  const [isUploading, setIsUploading] = useState(false);
+
   const onSubmit = useCallback(
     async (values) => {
       if (!user?.id) return;
@@ -165,9 +167,11 @@ export default function ProfileEditForm({ profile, onDone }) {
           await refreshProfile();
           qc.invalidateQueries({ queryKey: ['myBroadcasts'] });
           onDone();
-        } catch {
-          // Rollback on error
+        } catch (mutationErr) {
+          // Rollback optimistic update on error
           qc.setQueryData(['profile', user.id], previous);
+          // Re-throw so updateMutation.isError is set and the error banner shows
+          throw mutationErr;
         }
       } finally {
         setIsUploading(false);
@@ -175,8 +179,6 @@ export default function ProfileEditForm({ profile, onDone }) {
     },
     [user, checkingUsername, shouldCheckUsername, usernameAvailable, form, updateMutation, qc, refreshProfile, onDone]
   );
-
-  const [isUploading, setIsUploading] = useState(false);
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];

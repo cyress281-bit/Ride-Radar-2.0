@@ -323,7 +323,11 @@ function SettingsPage() {
                 .from('user_profiles')
                 .update({ is_public: v })
                 .eq('user_id', user.id);
-              if (!error) await refreshProfile();
+              if (error) {
+                logger.warn('[Settings] Failed to update profile visibility:', error);
+              } else {
+                await refreshProfile();
+              }
             }}
             disabled={isSaving}
           />

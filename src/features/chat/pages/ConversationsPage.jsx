@@ -13,6 +13,7 @@ import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { LoadingState } from '@/components/shared/LoadingState';
 import { ErrorState } from '@/components/shared/ErrorState';
+import { toast } from '@/components/ui/use-toast';
 
 /**
  * Conversations list page.
@@ -169,7 +170,7 @@ function ConversationsPage() {
               icon={MessageCircle}
               title="No open comms"
               description="Start a conversation with another rider to see it here."
-              action={{ label: 'Start a conversation', onClick: () => navigate('/messages/new'), variant: 'default' }}
+              action={{ label: 'Find a rider', onClick: () => navigate('/home'), variant: 'default' }}
               className="w-full"
             />
           )}
@@ -188,7 +189,13 @@ function ConversationsPage() {
       {/* New message FAB */}
       <button
         type="button"
-        onClick={() => navigate('/messages/new')}
+        onClick={() => {
+          toast({
+            title: 'Start a conversation',
+            description: 'Visit a rider\'s profile from the home feed to message them.',
+          });
+          navigate('/home');
+        }}
         className={cn(
           'fixed bottom-28 right-5 z-50 h-14 w-14 rounded-full',
           'bg-primary text-primary-foreground',

@@ -81,15 +81,16 @@ export function useBottomSheet() {
     e.stopPropagation();
   }, [pullOffset, queryClient]);
 
-  // Prevent body scroll when bottom sheet is open
+  // Prevent body scroll when bottom sheet is open.
+  // Always restore on cleanup so unmounting with an open sheet doesn't leave
+  // overflow:hidden stuck on the body.
   useEffect(() => {
-    if (sheetOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
-    }
+    if (!sheetOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
   }, [sheetOpen]);
 
   const sheetTouchHandlers = useMemo(
