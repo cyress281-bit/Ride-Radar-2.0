@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, MessageCircle, User } from 'lucide-react';
+import { Home, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
@@ -11,55 +11,17 @@ const TABS = [
   { to: '/profile', icon: User, label: 'Profile' },
 ];
 
-/**
- * BottomNav — Electric neon full-width bottom tab bar.
- *
- * Design:
- * - Full-width bar (not floating dock)
- * - 3 primary tabs: Home, Messages, Profile
- * - Create button: white elevated circular FAB with neon green glow
- * - Active state: neon green icon + label + glowing indicator pill
- * - Inactive: muted gray
- * - Background: surface/90 backdrop-blur-2xl, subtle top border
- * - Safe area support for iOS
- * - Press feedback on all tabs
- */
-const BottomNav = memo(function BottomNav({ _isOverlay = false }) {
+const BottomNav = memo(function BottomNav() {
   const { pathname } = useLocation();
-  const _isRadar = pathname === '/home';
 
   return (
     <nav
-      className={cn(
-        'fixed bottom-0 left-0 right-0 z-50 flex flex-col items-center pointer-events-none'
-      )}
+      className="fixed bottom-0 left-0 right-0 z-50"
       aria-label="Main navigation"
     >
-      {/* Create button — white elevated circular FAB with neon glow */}
-      <NavLink
-        to="/broadcast"
-        className={cn(
-          'pointer-events-auto relative z-10 flex items-center justify-center',
-          'h-14 w-14 rounded-full',
-          'bg-white text-background',
-          'transition-all duration-200 ease-out',
-          'active:scale-90',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-          '-mb-3'
-        )}
-        style={{
-          boxShadow:
-            '0 4px 24px rgba(255,255,255,0.15), 0 0 0 4px hsl(var(--background)), 0 0 30px hsl(var(--primary) / 0.35), 0 0 60px hsl(var(--primary) / 0.15)',
-        }}
-        aria-label="Create broadcast"
-      >
-        <PlusCircle className="h-7 w-7" strokeWidth={2.5} />
-      </NavLink>
-
-      {/* Full-width tab bar */}
       <div
         className={cn(
-          'pointer-events-auto w-full',
+          'w-full',
           'bg-surface/90 backdrop-blur-2xl',
           'border-t border-white/[0.06]'
         )}
