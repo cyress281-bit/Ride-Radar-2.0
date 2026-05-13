@@ -167,6 +167,28 @@ function BroadcastFeedPage() {
 
   const activeCount = filteredBroadcasts.length;
 
+  // Phase 4: honest collapsed peek — uses unfiltered data so it never lies about what's nearby
+  const peekLabel = useMemo(() => {
+    const alerts = visibleBroadcasts.filter((b) => b.type === 'alert').length;
+    const help = visibleBroadcasts.filter(
+      (b) => b.type === 'iso' && ((b.isoSubtype || b.iso_subtype) === 'mechanic')
+    ).length;
+    const rides = visibleBroadcasts.filter(
+      (b) => b.type === 'solo_ride' || (b.type === 'iso' && ((b.isoSubtype || b.iso_subtype) === 'bike_crew'))
+    ).length;
+    const events = visibleBroadcasts.filter((b) => b.type === 'event').length;
+    const riders = visibleRiderMarkers.length;
+    const total = visibleBroadcasts.length;
+
+    if (alerts > 0) return alerts === 1 ? 'Warning nearby' : `${alerts} warnings nearby`;
+    if (help > 0) return help === 1 ? 'Help request nearby' : `${help} help requests nearby`;
+    if (rides > 0) return rides === 1 ? 'Ride forming nearby' : `${rides} rides nearby`;
+    if (events > 0) return 'Events nearby this week';
+    if (riders > 0) return riders === 1 ? '1 rider nearby' : `${riders} riders nearby`;
+    if (total > 0) return total === 1 ? '1 signal nearby' : `${total} signals nearby`;
+    return 'Radar clear nearby';
+  }, [visibleBroadcasts, visibleRiderMarkers]);
+
   return (
     <div className="fixed inset-0 bg-background">
       {/* Full-screen map */}
@@ -219,6 +241,8 @@ function BroadcastFeedPage() {
         userLng={effectiveLoc.lng}
         isLoading={isLoadingBroadcasts}
         activeCount={activeCount}
+        peekLabel={peekLabel}
+        totalCount={visibleBroadcasts.length}
       />
     </div>
   );
