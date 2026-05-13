@@ -454,12 +454,11 @@ function LiveMap({
           role="application"
           aria-label={`Interactive map showing ${items.length} active ${items.length === 1 ? 'broadcast' : 'broadcasts'}`}
         >
-          {variant === 'radar' && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[435] h-[2px] overflow-hidden">
-              <div className="h-full w-full animate-ekg bg-primary/40 shadow-[0_0_16px_hsl(var(--primary)/0.6)]" />
-              <div className="absolute inset-0 animate-ekg bg-primary/20 shadow-[0_0_24px_hsl(var(--primary)/0.5)] blur-[1px]" />
-            </div>
-          )}
+          {/* Phase 1: removed always-on EKG strip (two stacked animate-ekg layers)
+              to calm the radar screen. The animate-ekg keyframes/classes are kept
+              in index.css for reuse elsewhere (e.g. EmptyState uses animate-ekg-pulse).
+              A future phase will reintroduce this as an event-driven heartbeat that
+              fires only when a real signal arrives (see .rr-ekg in index.css). */}
 
           <a href={variant === 'full' ? '#live-map-list' : '#map-legend'} className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[500] focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:shadow-lg">Skip map</a>
 
