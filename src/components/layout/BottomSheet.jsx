@@ -119,7 +119,7 @@ const BottomSheet = memo(function BottomSheet({
   return (
     <DialogPrimitive.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogPrimitive.Portal>
-        {/* Backdrop overlay */}
+        {/* Backdrop overlay — Radix onOpenChange already closes on outside click */}
         <DialogPrimitive.Overlay
           className={cn(
             'fixed inset-0 z-50 bg-black/60 backdrop-blur-sm',
@@ -127,7 +127,6 @@ const BottomSheet = memo(function BottomSheet({
             'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
             'transition-all duration-200'
           )}
-          onClick={onClose}
         />
 
         {/* Sheet content */}
@@ -150,6 +149,7 @@ const BottomSheet = memo(function BottomSheet({
             height: heightStyle,
           }}
           onOpenAutoFocus={(e) => e.preventDefault()}
+          aria-describedby={undefined}
         >
           {/* Drag handle */}
           <div

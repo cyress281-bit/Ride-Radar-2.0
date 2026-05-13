@@ -12,7 +12,7 @@ import { timeAgo } from '@/lib/utils.js';
  * @param {(req: object) => void} props.onDecline
  * @param {boolean} [props.isAccepting]
  */
-export default function ConnectionRequestCard({ request, fromProfile, onAccept, onDecline, isAccepting }) {
+export default function ConnectionRequestCard({ request, fromProfile, onAccept, onDecline, isAccepting, isDeclining }) {
   return (
     <div className="rounded-[20px] border border-primary/10 bg-surface/80 p-5 transition-colors hover:border-primary/25 backdrop-blur-sm">
       <div className="mb-3 flex items-center gap-3">
@@ -45,8 +45,8 @@ export default function ConnectionRequestCard({ request, fromProfile, onAccept, 
         <Button
           size="sm"
           onClick={() => onAccept(request)}
-          disabled={isAccepting}
-          className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 min-h-[44px] animate-glow-pulse"
+          disabled={isAccepting || isDeclining}
+          className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 min-h-[44px] animate-glow-pulse disabled:opacity-50"
         >
           <Check className="mr-1 h-3.5 w-3.5" /> Accept
         </Button>
@@ -54,7 +54,8 @@ export default function ConnectionRequestCard({ request, fromProfile, onAccept, 
           size="sm"
           variant="outline"
           onClick={() => onDecline(request)}
-          className="rounded-full border-brand-emergency/30 text-brand-emergency hover:bg-brand-emergency/10 active:scale-95"
+          disabled={isDeclining || isAccepting}
+          className="rounded-full border-brand-emergency/30 text-brand-emergency hover:bg-brand-emergency/10 active:scale-95 disabled:opacity-50"
         >
           <X className="mr-1 h-3.5 w-3.5" /> Decline
         </Button>

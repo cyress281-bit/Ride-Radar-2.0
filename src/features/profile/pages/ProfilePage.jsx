@@ -5,7 +5,7 @@
  * and supports inline editing via ProfileEditForm.
  */
 
-import { useState, useMemo, memo } from 'react';
+import { useState, useMemo, memo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
@@ -30,6 +30,16 @@ function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const [activeTab, setActiveTab] = useState('broadcasts');
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = useCallback(async () => {
+    setIsSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setIsSigningOut(false);
+    }
+  }, [signOut]);
 
   const {
     data: myBroadcasts = [],
@@ -210,13 +220,15 @@ function ProfilePage() {
                 </button>
               </Link>
               <button
-                onClick={() => signOut()}
+                onClick={handleSignOut}
+                disabled={isSigningOut}
                 aria-label="Sign out"
                 className={cn(
                   'h-11 w-11 rounded-full border border-brand-emergency/30 bg-brand-emergency/10',
                   'flex items-center justify-center text-brand-emergency',
                   'transition-all hover:bg-brand-emergency/20 active:scale-95',
-                    'shadow-[0_0_12px_hsl(var(--brand-emergency)/0.15)]'
+                  'shadow-[0_0_12px_hsl(var(--brand-emergency)/0.15)]',
+                  'disabled:opacity-50 disabled:cursor-not-allowed'
                 )}
               >
                 <LogOut className="h-4 w-4" />

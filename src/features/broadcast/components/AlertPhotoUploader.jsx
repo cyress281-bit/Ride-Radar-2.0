@@ -104,6 +104,7 @@ export default function AlertPhotoUploader({ images = [], onChange, disabled = f
                     className="max-h-28 w-full object-contain"
                     alt={`Alert photo ${index + 1} preview`}
                     loading="lazy"
+                    decoding="async"
                     onError={(e) => {
                       e.currentTarget.src = '';
                       e.currentTarget.alt = 'Image failed to load';

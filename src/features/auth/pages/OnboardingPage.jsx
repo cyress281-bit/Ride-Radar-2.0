@@ -106,6 +106,7 @@ export default function OnboardingPage() {
   const [uploadError, setUploadError] = useState('');
   const [usernameChecking, setUsernameChecking] = useState(false);
   const [usernameError, setUsernameError] = useState('');
+  const [skipLoading, setSkipLoading] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(onboardingSchema),
@@ -265,6 +266,7 @@ export default function OnboardingPage() {
   const handleSkip = useCallback(async () => {
     if (!user?.id) return;
     setUploadError('');
+    setSkipLoading(true);
     try {
       const { error } = await supabase
         .from('user_profiles')
@@ -285,6 +287,8 @@ export default function OnboardingPage() {
     } catch (err) {
       logger.error('[Onboarding] Skip failed:', err);
       setUploadError('Failed to skip onboarding. Please try again.');
+    } finally {
+      setSkipLoading(false);
     }
   }, [user, refreshProfile, navigate]);
 
@@ -706,10 +710,10 @@ export default function OnboardingPage() {
               type="button"
               variant="ghost"
               onClick={handleSkip}
-              disabled={saveProfile.isPending}
+              disabled={saveProfile.isPending || skipLoading}
               className="h-11 w-full rounded-full text-muted-foreground hover:text-foreground active:scale-[0.96] transition-all duration-150"
             >
-              Finish details later
+              {skipLoading ? 'Saving...' : 'Finish details later'}
             </Button>
           </form>
         </Form>

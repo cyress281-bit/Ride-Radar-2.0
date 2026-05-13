@@ -430,6 +430,11 @@
   .pt-safe {
     padding-top: env(safe-area-inset-top, 0px);
   }
+  /* Combined safe-area + fixed spacing utilities for nav-aware layouts */
+  .pb-nav-safe {
+    /* 6rem (96px) bottom nav height + safe area inset */
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
 
   /* ---------- Standardized Shadows ---------- */
 }
@@ -482,6 +487,7 @@
   }
   .animate-glow-pulse {
     animation: glow-pulse 2s ease-in-out infinite;
+    will-change: box-shadow;
   }
   .animate-shimmer {
     animation: shimmer 2.5s ease-in-out infinite;
@@ -722,6 +728,8 @@
   .animate-glow-pulse,
   .animate-shimmer,
   .animate-float,
+  .radar-grid-animated,
+  .rr-shimmer-button::before,
   .rr-map-marker::before,
   .rr-premium-input:focus,
   .rr-premium-input:focus-visible {

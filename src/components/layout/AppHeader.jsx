@@ -28,6 +28,44 @@ function getPageTitle(pathname) {
 }
 
 /**
+ * Derive a safe fallback route for pages that may be deep-linked or
+ * refreshed with no browser history to go back to.
+ *
+ * Rules (most-specific first):
+ *  /broadcast/:id  → /home
+ *  /messages/:id   → /messages
+ *  /profile/:id    → /home
+ *  /admin/*        → /admin
+ *  anything else   → /home
+ *
+ * @param {string} pathname
+ * @returns {string}
+ */
+function getFallbackRoute(pathname) {
+  if (/^\/broadcast\/.+/.test(pathname)) return '/home';
+  if (/^\/messages\/.+/.test(pathname)) return '/messages';
+  if (/^\/profile\/.+/.test(pathname)) return '/home';
+  if (pathname.startsWith('/admin/')) return '/admin';
+  return '/home';
+}
+
+/**
+ * Smart back navigation: uses browser history when available, otherwise
+ * falls back to a sensible parent route so deep-linked/refreshed pages
+ * don't trap the user.
+ *
+ * @param {import('react-router-dom').NavigateFunction} navigate
+ * @param {string} pathname
+ */
+function goBack(navigate, pathname) {
+  if (window.history.length > 1) {
+    navigate(-1);
+  } else {
+    navigate(getFallbackRoute(pathname), { replace: true });
+  }
+}
+
+/**
  * AppHeader — Scroll-aware header with electric neon aesthetic.
  *
  * Design:
@@ -81,7 +119,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
         {/* Left: Back button or Logo */}
         {showBackButton ? (
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => goBack(navigate, pathname)}
             className={cn(
               'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
               'text-foreground hover:text-primary',

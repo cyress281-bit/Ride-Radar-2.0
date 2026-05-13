@@ -7,7 +7,7 @@
  * Electric Neon Green redesign.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
@@ -46,7 +46,7 @@ import { LoadingState } from '@/components/shared/LoadingState';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorState } from '@/components/shared/ErrorState';
 
-export default function RiderProfilePage() {
+function RiderProfilePage() {
   const { userId } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -447,7 +447,7 @@ const BRAND_STYLES = {
   amber:  { border: 'border-brand-amber/20', bg: 'bg-brand-amber/10', text: 'text-brand-amber', glow: 'shadow-[0_0_12px_hsl(var(--brand-amber)/0.15)]' },
 };
 
-function StatPill({ icon: Icon, label, value, isLoading, brand = 'green' }) {
+const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading, brand = 'green' }) {
   const style = BRAND_STYLES[brand];
   return (
     <div className="flex-1 surface-card p-3 text-center">
@@ -462,4 +462,6 @@ function StatPill({ icon: Icon, label, value, isLoading, brand = 'green' }) {
       <Text variant="micro" color="muted">{label}</Text>
     </div>
   );
-}
+});
+
+export default memo(RiderProfilePage);

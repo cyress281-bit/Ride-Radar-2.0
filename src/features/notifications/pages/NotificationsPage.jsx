@@ -166,7 +166,7 @@ export default function NotificationsPage() {
   // Connection requests (use shared hook)
   const { data: pendingRequests = [] } = useConnectionRequests();
   const { mutate: acceptConn, isPending: isAccepting } = useAcceptConnectionRequest();
-  const { mutate: declineConn } = useDeclineConnectionRequest();
+  const { mutate: declineConn, isPending: isDeclining } = useDeclineConnectionRequest();
 
   const userIds = useMemo(() => pendingRequests.map((r) => r.from_user_id), [pendingRequests]);
   const { getProfile } = useProfileBatch(userIds);
@@ -228,6 +228,7 @@ export default function NotificationsPage() {
                 onAccept={handleAccept}
                 onDecline={handleDecline}
                 isAccepting={isAccepting}
+                isDeclining={isDeclining}
               />
             ))}
           </div>

@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils.js';
 import { MAX_MESSAGE_LENGTH } from '@/lib/constants.js';
 import { Send, Paperclip } from 'lucide-react';
 import { HStack } from '@/components/ui/primitives/Stack';
+import { toast } from '@/components/ui/use-toast';
 
 /**
  * Auto-resizing message textarea with glassmorphism input bar design.
@@ -71,7 +72,9 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
             'disabled:opacity-40 disabled:cursor-not-allowed pressable shadow-depth-1'
           )}
           aria-label="Attach file"
-          onClick={() => { /* placeholder */ }}
+          onClick={() => {
+            toast({ title: 'Attachments coming soon', description: 'File sharing will be available in a future update.' });
+          }}
         >
           <Paperclip className="w-5 h-5" />
         </button>

@@ -68,6 +68,9 @@ export const Avatar = forwardRef(function Avatar(
           onLoad={() => setLoaded(true)}
           onError={() => setError(true)}
           loading="lazy"
+          decoding="async"
+          width={dim}
+          height={dim}
         />
       )}
       {(!showImg || !loaded) && (

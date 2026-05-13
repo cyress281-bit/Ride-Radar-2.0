@@ -107,11 +107,15 @@ const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, var
 
 const CenterOnUserButton = memo(function CenterOnUserButton({ userLat, userLng }) {
   const map = useMap();
+  const handleClick = useCallback(() => {
+    map.setView([userLat, userLng], 15, { animate: true, duration: 0.45 });
+  }, [map, userLat, userLng]);
+
   if (!isValidCoordinate(userLat, userLng)) return null;
   return (
     <button
       type="button"
-      onClick={() => map.setView([userLat, userLng], 15, { animate: true, duration: 0.45 })}
+      onClick={handleClick}
       className="rr-haptic absolute bottom-3 right-3 z-[430] flex h-11 w-11 items-center justify-center rounded-full bg-background/80 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.28),0_0_24px_hsl(var(--primary)/0.18)] rr-shadow-md backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       aria-label="Center map on my location"
     >
@@ -163,11 +167,14 @@ const Stat = memo(function Stat({ label, value, className }) {
 
 const MapSummary = memo(function MapSummary({ items, userLat, userLng, variant }) {
   if (variant === 'radar') return null;
-  const alertCount = items.filter((i) => i.type === 'alert').length;
-  const riderCount = items.filter((i) => i.type === 'solo_ride').length;
-  const eventCount = items.filter((i) => i.type === 'event').length;
-  const isoCount = items.filter((i) => i.type === 'iso').length;
-  const presenceCount = items.filter((i) => i.type === 'rider_presence').length;
+  let alertCount = 0, riderCount = 0, eventCount = 0, isoCount = 0, presenceCount = 0;
+  for (const i of items) {
+    if (i.type === 'alert') alertCount++;
+    else if (i.type === 'solo_ride') riderCount++;
+    else if (i.type === 'event') eventCount++;
+    else if (i.type === 'iso') isoCount++;
+    else if (i.type === 'rider_presence') presenceCount++;
+  }
 
   return (
     <div className={cn('pointer-events-none absolute left-3 top-3 z-[420] rounded-2xl border border-white/[0.06] bg-surface/80 p-3 rr-shadow-lg backdrop-blur-xl', variant === 'full' ? 'right-3 sm:right-auto sm:min-w-72' : 'right-3')}>

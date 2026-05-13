@@ -154,19 +154,24 @@ export default defineConfig({
     },
   },
   build: {
+    // Warn when any chunk exceeds 500KB (gzipped chunks above this hurt TTI)
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         manualChunks(id) {
           // --- Vendor chunk splitting for better caching ---
 
           // React core (rarely changes — very cacheable)
+          // Kept separate from react-router so a router version bump doesn't bust
+          // the React cache entry (React itself almost never changes).
           if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
             return 'vendor-react';
           }
 
-          // React Router (loaded on every route)
+          // React Router — separated from React core so router upgrades don't
+          // invalidate the more-stable React chunk.
           if (id.includes('node_modules/react-router')) {
-            return 'vendor-react';
+            return 'vendor-router';
           }
 
           // Supabase client (needed for auth, loaded early)
@@ -177,6 +182,11 @@ export default defineConfig({
           // TanStack Query (needed for data fetching)
           if (id.includes('node_modules/@tanstack/react-query')) {
             return 'vendor-query';
+          }
+
+          // TanStack Virtual (list virtualization — smaller, loaded only on demand)
+          if (id.includes('node_modules/@tanstack/react-virtual')) {
+            return 'vendor-virtual';
           }
 
           // Leaflet + react-leaflet (heavy, only for map view)
@@ -190,7 +200,8 @@ export default defineConfig({
           //   return 'vendor-recharts';
           // }
 
-          // Framer Motion (animation library, moderate size)
+          // Framer Motion (animation library, moderate size — isolated so it is
+          // only loaded when a page that uses motion is visited)
           if (id.includes('node_modules/framer-motion')) {
             return 'vendor-framer';
           }
@@ -200,8 +211,41 @@ export default defineConfig({
             return 'vendor-radix';
           }
 
-          // All admin pages in one chunk
-          if (id.includes('/src/features/admin/pages/')) {
+          // Form validation stack: react-hook-form + zod + @hookform/resolvers.
+          // These are shared by LoginForm, OnboardingPage, ProfileEditForm, and
+          // BroadcastForm. Giving them an explicit chunk name produces a stable
+          // cache entry and avoids Rollup's auto-named "types-*" hash chunk.
+          if (
+            id.includes('node_modules/react-hook-form') ||
+            id.includes('node_modules/zod') ||
+            id.includes('node_modules/@hookform/')
+          ) {
+            return 'vendor-forms';
+          }
+
+          // Lucide icons — large icon set, isolate for better cache granularity
+          if (id.includes('node_modules/lucide-react')) {
+            return 'vendor-icons';
+          }
+
+          // Sonner toast notifications — small but isolating avoids it landing
+          // in the main index chunk
+          if (id.includes('node_modules/sonner')) {
+            return 'vendor-toast';
+          }
+
+          // Utility libraries (clsx, tailwind-merge, class-variance-authority)
+          if (
+            id.includes('node_modules/clsx') ||
+            id.includes('node_modules/tailwind-merge') ||
+            id.includes('node_modules/class-variance-authority')
+          ) {
+            return 'vendor-utils';
+          }
+
+          // All admin pages in one chunk (they all share AdminLayout/AdminPageShell
+          // so Rollup naturally merges them; the explicit rule keeps the name stable)
+          if (id.includes('/src/features/admin/pages/') || id.includes('/src/features/admin/')) {
             return 'pages-admin';
           }
         },

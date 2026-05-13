@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { cn, timeAgo } from '@/lib/utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
@@ -11,25 +11,41 @@ import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
  * timestamp, neon green unread count badge. Glassmorphism card with
  * subtle border and depth shadow.
  *
+ * Accepts either `onClick` (legacy) or `conversationId` + `onNavigate` (preferred).
+ * Using `conversationId` + `onNavigate` avoids creating a new inline arrow on
+ * every parent render, which is important for keeping React.memo effective.
+ *
  * @param {Object} props
  * @param {object} props.conversation
  * @param {object|null} props.profile
  * @param {number} props.unreadCount
- * @param {Function} props.onClick
+ * @param {Function} [props.onClick] - Legacy: direct click handler
+ * @param {string} [props.conversationId] - Preferred: stable id for navigation
+ * @param {Function} [props.onNavigate] - Preferred: stable navigate(id) callback
  */
 const ConversationItem = memo(function ConversationItem({
   conversation,
   profile,
   unreadCount,
   onClick,
+  conversationId,
+  onNavigate,
 }) {
+  const handleClick = useCallback(() => {
+    if (onNavigate && conversationId) {
+      onNavigate(conversationId);
+    } else if (onClick) {
+      onClick();
+    }
+  }, [onNavigate, conversationId, onClick]);
+
   const hasUnread = unreadCount > 0;
   const lastMessage = conversation.last_message?.body || conversation.last_message_preview || '';
 
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={handleClick}
       className={cn(
         'w-full text-left pressable group',
         'p-3.5 transition-all duration-200',

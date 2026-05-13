@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useEffect } from 'react';
 import { SlidersHorizontal, ChevronUp, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import RRLogo from '@/components/RRLogo';
@@ -56,6 +56,19 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
   activeCount,
   isPending,
 }) {
+  // Close the sheet with Escape key when open
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setSheetOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [sheetOpen, setSheetOpen]);
+
   // Build unique author stories from broadcasts
   const stories = useMemo(() => {
     const seen = new Set();
@@ -120,7 +133,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
         ref={sheetContentRef}
         {...contentTouchHandlers}
         className={cn(
-          'overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] px-4 pb-6 pb-safe',
+          'overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] px-4 pb-6',
           sheetOpen ? 'max-h-[55vh]' : 'max-h-0'
         )}
       >

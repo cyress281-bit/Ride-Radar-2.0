@@ -76,10 +76,6 @@ export function useSendMessage(conversationId) {
         )
       );
 
-      queryClient.setQueryData(['conversation', conversationId], (old) =>
-        old ? { ...old, last_message_at: serverMessage.created_at } : old
-      );
-
       queryClient.setQueryData(['conversations', user?.id], (old = []) => {
         const updated = old.map((conv) =>
           conv.id === conversationId
@@ -99,7 +95,6 @@ export function useSendMessage(conversationId) {
         queryClient.setQueryData(['messages', conversationId], context.previousMessages);
       }
       queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] });
 
       toast({
         title: 'Failed to send message',

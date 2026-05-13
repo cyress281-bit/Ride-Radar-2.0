@@ -75,7 +75,7 @@ export default function AccountDeletionPage() {
     } finally {
       setIsDeleting(false);
     }
-  }, [canDelete, signOut, navigate]);
+  }, [canDelete, signOut, navigate, queryClient]);
 
   return (
     <div className="min-h-dvh bg-background px-4 py-6 pb-safe text-foreground">
@@ -144,6 +144,7 @@ export default function AccountDeletionPage() {
                 placeholder="DELETE"
                 autoComplete="off"
                 aria-label="Type DELETE to confirm account deletion"
+                aria-required="true"
                 className={cn(
                   'w-full rounded-xl border bg-surface-elevated/60 px-4 py-3 text-sm text-foreground',
                   'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-emergency/40 focus-visible:border-brand-emergency/50',

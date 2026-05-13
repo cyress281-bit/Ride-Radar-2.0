@@ -77,10 +77,21 @@ function BroadcastDetailPage() {
     staleTime: 30_000,
   });
 
+  const handleGoBack = useCallback(() => navigate(-1), [navigate]);
+
+  const handleShare = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast({ title: 'Link copied', description: 'Broadcast link copied to clipboard.' });
+    } catch {
+      toast({ title: 'Copy failed', description: 'Unable to copy link.', variant: 'destructive' });
+    }
+  }, []);
+
   if (!hasValidBroadcastId) {
     return (
       <div className="px-5 pt-5">
-        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
+        <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <div className="surface-card p-10 text-center">
@@ -103,7 +114,7 @@ function BroadcastDetailPage() {
   if (isBroadcastError) {
     return (
       <div className="px-5 pt-5">
-        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
+        <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <div className="surface-card p-10 text-center">
@@ -117,7 +128,7 @@ function BroadcastDetailPage() {
   if (!broadcast) {
     return (
       <div className="px-5 pt-5">
-        <button onClick={() => navigate(-1)} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
+        <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <div className="surface-card p-10 text-center">
@@ -152,18 +163,11 @@ function BroadcastDetailPage() {
     <div className="px-5 pt-5 pb-8">
       {/* Top nav */}
       <HStack justify="between" align="center" className="mb-5">
-        <button onClick={() => navigate(-1)} aria-label="Go back" className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1">
+        <button onClick={handleGoBack} aria-label="Go back" className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
         <button
-          onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(window.location.href);
-              toast({ title: 'Link copied', description: 'Broadcast link copied to clipboard.' });
-            } catch {
-              toast({ title: 'Copy failed', description: 'Unable to copy link.', variant: 'destructive' });
-            }
-          }}
+          onClick={handleShare}
           className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
           aria-label="Copy broadcast link"
         >
@@ -397,7 +401,7 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
       { from_user_id: user.id, to_user_id: broadcast.author_id, message: msg.trim() || undefined },
       { onSuccess: () => { setOpen(false); setMsg(''); onChange(); } }
     );
-  }, [sendRequest, user, broadcast, onChange]);
+  }, [sendRequest, user, broadcast, msg, onChange]);
 
   if (existing) {
     const map = { pending: 'Request sent', accepted: 'Connected', declined: 'Declined' };

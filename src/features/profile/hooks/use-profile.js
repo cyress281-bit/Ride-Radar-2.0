@@ -27,7 +27,9 @@ export function useProfile(userId, options = {}) {
       return data;
     },
     enabled: !!userId,
-    staleTime: 30_000,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
     ...options,
   });
 }
@@ -74,6 +76,8 @@ export function useUsernameAvailability(username, options = {}) {
     },
     enabled: trimmed.length >= 3 && options.enabled !== false,
     staleTime: 30 * 1000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
     ...options,
   });
 }

@@ -123,6 +123,7 @@ export default function BikePhotoUploader({ image, onChange, disabled = false })
                 className="h-36 w-full object-cover"
                 alt="Your bike photo preview"
                 loading="lazy"
+                decoding="async"
                 onError={() => setImageLoadError(true)}
               />
               <div

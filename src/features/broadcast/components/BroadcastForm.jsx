@@ -374,7 +374,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <label className="pressable flex h-11 min-h-[44px] cursor-pointer items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-xs font-bold text-primary transition hover:bg-primary/15">
-                        <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                        <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={handleImageUpload} className="hidden" />
                         {uploading ? 'Preparing...' : 'Replace'}
                       </label>
                       <button
@@ -388,7 +388,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                   </VStack>
                 ) : (
                   <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-6 text-center transition hover:border-primary/50 hover:bg-primary/10 pressable">
-                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                    <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={handleImageUpload} className="hidden" />
                     <Upload className="mb-2 h-6 w-6 text-primary" />
                     <Text variant="bodySm" className="font-bold">{uploading ? 'Preparing preview...' : 'Upload event poster'}</Text>
                     <Text variant="caption" color="muted" className="mt-1">Drag and drop or tap to browse</Text>
@@ -427,9 +427,13 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         )}
 
         {/* Errors */}
-        {post.isError && <p className="text-sm text-destructive">{post.error?.message || 'Failed to create broadcast'}</p>}
+        {post.isError && (
+          <p role="alert" className="text-sm text-destructive">
+            {post.error?.message || 'Failed to create broadcast'}
+          </p>
+        )}
         {geoError && (
-          <p className="text-sm text-destructive">
+          <p role="alert" className="text-sm text-destructive">
             Location access is required for this signal type. Enable location or try again.
           </p>
         )}

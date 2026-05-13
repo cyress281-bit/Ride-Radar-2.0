@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useCreateReport } from '@/features/safety/hooks/use-reports.js';
 import { toast } from '@/components/ui/use-toast';
@@ -41,6 +41,11 @@ export default function ReportForm({ targetType, targetId, targetUserId, onSucce
   const isSelf = user?.id === targetUserId;
   const isSubmitting = createReport.isPending;
 
+  // Stable ref to the reset function so the target-change effect doesn't
+  // need createReport in its dependency array (which would cause extra resets).
+  const resetRef = useRef(createReport.reset);
+  resetRef.current = createReport.reset;
+
   const handleSubmit = () => {
     if (isSelf || !user) return;
     if (!reason) {
@@ -78,11 +83,10 @@ export default function ReportForm({ targetType, targetId, targetUserId, onSucce
     }
   }, [createReport.isSuccess, onSuccess]);
 
-  // Reset mutation state when target changes so the form works for multiple reports
+  // Reset mutation state when target changes so the form works for multiple reports.
+  // Use resetRef so we don't need createReport in the dep array (would cause extra resets).
   useEffect(() => {
-    if (createReport.isSuccess || createReport.isError) {
-      createReport.reset();
-    }
+    resetRef.current();
   }, [targetType, targetId, targetUserId]);
 
   if (!user) {
