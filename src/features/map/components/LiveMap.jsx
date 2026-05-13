@@ -14,7 +14,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
-import { getMarkerIcon, getRiderMarkerIcon, getSelfMarkerIcon } from './MapMarker';
+import { getMarkerIcon, getRiderMarkerIcon, getSelfMarkerIcon, getSelfMarkerIconLive } from './MapMarker';
 import MapPopup from './MapPopup';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils.js';
@@ -348,6 +348,7 @@ function LiveMap({
   showSelfLocation = false,
   offlineMode = false,
   offlineSnapshotAt,
+  isLiveMapVisible = false,
 }) {
   const [mapError, setMapError] = useState(false);
   const [autoFitDisabled, setAutoFitDisabled] = useState(false);
@@ -509,12 +510,16 @@ function LiveMap({
             />
             <FitMapToItems items={items} userLat={userLat} userLng={userLng} variant={variant} disabled={variant === 'radar' && autoFitDisabled} focusUserLocation={focusUserLocation} fitKey={fitKey} />
             {showSelfLocation && hasUserLocation && (
-              <Marker position={[userLat, userLng]} icon={getSelfMarkerIcon()}>
+              <Marker position={[userLat, userLng]} icon={isLiveMapVisible ? getSelfMarkerIconLive() : getSelfMarkerIcon()}>
                 <Popup>
                   <div className="min-w-48 text-foreground">
                     <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Private location</div>
                     <div className="mt-1 font-display text-base font-bold leading-tight">You are here</div>
-                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">This exact pin is only shown on your device.</p>
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      {isLiveMapVisible
+                        ? 'You are visible to nearby riders on the live map.'
+                        : 'This exact pin is only shown on your device.'}
+                    </p>
                     {Number.isFinite(Number(userAccuracyMeters)) && (
                       <div className="mt-2 text-xs text-muted-foreground font-mono tracking-tight">Accuracy ~{Math.round(Number(userAccuracyMeters))}m</div>
                     )}
@@ -557,6 +562,7 @@ export default memo(LiveMap, (prev, next) => {
     prev.focusUserLocation === next.focusUserLocation &&
     prev.showSelfLocation === next.showSelfLocation &&
     prev.offlineMode === next.offlineMode &&
-    prev.offlineSnapshotAt === next.offlineSnapshotAt
+    prev.offlineSnapshotAt === next.offlineSnapshotAt &&
+    prev.isLiveMapVisible === next.isLiveMapVisible
   );
 });

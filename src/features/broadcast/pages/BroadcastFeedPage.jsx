@@ -98,9 +98,9 @@ function BroadcastFeedPage() {
   const sourceBroadcasts = usingOfflineSnapshot ? offlineSnapshot.broadcasts : nearbyBroadcasts;
   const isLoadingBroadcasts = hasUserLocation ? isLoadingNearby : false;
 
-  const { markers: riderMarkers } = useLiveMapPresence(
+  const { markers: riderMarkers, isLiveMapVisible } = useLiveMapPresence(
     { lat: userLoc.lat, lng: userLoc.lng, accuracyMeters: userLoc.accuracyMeters },
-    { autoPublish: false, source: 'radar' }
+    { autoPublish: true, source: 'radar' }
   );
 
   const visibleBroadcasts = useMemo(
@@ -208,6 +208,7 @@ function BroadcastFeedPage() {
           showSelfLocation={hasUserLocation}
           offlineMode={usingOfflineSnapshot}
           offlineSnapshotAt={offlineSnapshot?.cachedAt}
+          isLiveMapVisible={isLiveMapVisible}
         />
       </div>
 
@@ -218,6 +219,7 @@ function BroadcastFeedPage() {
         requestLocation={requestLocation}
         locating={locating}
         geoError={geoError}
+        isLiveMapVisible={isLiveMapVisible}
       />
 
       <RadarTuneInCurtain isVisible={showCurtain} />
