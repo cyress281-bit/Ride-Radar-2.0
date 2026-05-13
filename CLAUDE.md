@@ -33,9 +33,9 @@ npm install
 npm run dev
 
 # Build for production
-npm build
+npm run build
 
-# Lint code (targets src/components and src/pages only)
+# Lint code (targets src/, excludes src/lib/ and src/components/ui/)
 npm run lint
 
 # Auto-fix lint issues
@@ -134,7 +134,7 @@ Images are uploaded to Supabase Storage bucket `uploads`:
 Use `src/lib/localImageUpload.js` for upload logic with validation from `src/lib/uploadValidation.js`.
 
 ## Linting Configuration
-ESLint only runs on `src/components/**` and `src/pages/**` (excludes `src/lib/` and `src/components/ui/`). Rules enforce:
+ESLint runs on `src/components/**`, `src/features/**`, `src/hooks/**`, `src/providers/**`, `src/utils/**`, `src/App.jsx`, and `src/main.jsx` (excludes `src/lib/` and `src/components/ui/`). Rules enforce:
 - No unused imports (auto-removed with `eslint-plugin-unused-imports`)
 - React hooks rules
 - No prop-types required (uses JSDoc for types)
@@ -168,7 +168,7 @@ The app includes comprehensive analytics and monitoring:
 See `ANALYTICS_SETUP.md` for configuration instructions.
 
 ## Important Notes
-- **No tests configured** - There is no test suite in this project
+- **Test suite** - Vitest + jsdom + RTL: `npm run test` (5 tests across 2 test files)
 - **Geospatial queries** - Always use `get_nearby_broadcasts` RPC function, never calculate distance client-side
 - **Real-time** - All feeds (home, messages, notifications) use Supabase subscriptions
 - **Row-Level Security** - All Supabase queries respect RLS policies, ensure user is authenticated
@@ -237,7 +237,6 @@ Ride Radar is a fully functional PWA with offline support, installability, and b
 - `public/manifest.json` - PWA manifest (name, icons, theme)
 - `src/lib/registerSW.js` - Service worker registration and install prompt
 - `src/hooks/useOnlineStatus.js` - Online/offline detection
-- `src/hooks/useOfflineQueue.js` - Offline mutation queue
 - `src/components/OfflineBanner.jsx` - Offline status UI
 
 **Documentation:**

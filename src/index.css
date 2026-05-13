@@ -167,8 +167,7 @@
   [role="button"],
   [role="tab"],
   nav,
-  header,
-  .select-none-ui {
+  header {
     user-select: none;
     -webkit-user-select: none;
   }
@@ -265,24 +264,6 @@
       0 18px 48px hsl(0 0% 0% / 0.35);
     backdrop-filter: blur(24px) saturate(160%);
     -webkit-backdrop-filter: blur(24px) saturate(160%);
-  }
-
-  .rr-carbon-bg {
-    background:
-      radial-gradient(circle at 20% 0%, hsl(var(--primary) / 0.06), transparent 40%),
-      linear-gradient(180deg, hsl(var(--background)), hsl(240 20% 1%));
-  }
-
-  .rr-premium-shell {
-    background:
-      linear-gradient(145deg, hsl(var(--card) / 0.95), hsl(240 20% 2% / 0.96)),
-      hsl(240 20% 2% / 0.85);
-    border: 1px solid hsl(var(--primary) / 0.12);
-    box-shadow:
-      0 24px 64px hsl(0 0% 0% / 0.5),
-      inset 0 1px 0 hsl(0 0% 100% / 0.06);
-    backdrop-filter: blur(24px) saturate(170%);
-    -webkit-backdrop-filter: blur(24px) saturate(170%);
   }
 
   /* ---------- Headings ---------- */
@@ -398,25 +379,6 @@
     opacity: 0.65;
   }
 
-  .text-gradient-brand {
-    background: linear-gradient(135deg, hsl(107 100% 60%), hsl(107 100% 40%));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .text-glow-kawasaki {
-    text-shadow: 0 0 18px hsl(var(--brand-kawasaki) / 0.55), 0 0 40px hsl(var(--brand-kawasaki) / 0.22);
-  }
-
-  .text-glow-yamaha {
-    text-shadow: 0 0 18px hsl(var(--brand-yamaha) / 0.55), 0 0 40px hsl(var(--brand-yamaha) / 0.22);
-  }
-
-  .text-glow-honda {
-    text-shadow: 0 0 18px hsl(var(--brand-honda) / 0.55), 0 0 40px hsl(var(--brand-honda) / 0.22);
-  }
-
   .glow-kawasaki {
     box-shadow:
       0 0 12px 0 hsl(var(--brand-kawasaki) / 0.45),
@@ -468,41 +430,8 @@
   .pt-safe {
     padding-top: env(safe-area-inset-top, 0px);
   }
-  .px-safe {
-    padding-left: env(safe-area-inset-left, 0px);
-    padding-right: env(safe-area-inset-right, 0px);
-  }
-
-  .pl-safe {
-    padding-left: env(safe-area-inset-left, 0px);
-  }
-
-  .pr-safe {
-    padding-right: env(safe-area-inset-right, 0px);
-  }
-
-  .min-h-dvh-safe {
-    min-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  }
-
-  .h-dvh-safe {
-    height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  }
 
   /* ---------- Standardized Shadows ---------- */
-  .rr-shadow-sm { box-shadow: 0 4px 12px hsl(var(--background) / 0.25); }
-  .rr-shadow { box-shadow: 0 8px 24px hsl(var(--background) / 0.35); }
-  .rr-shadow-lg { box-shadow: 0 16px 48px hsl(var(--background) / 0.45); }
-  .rr-shadow-xl { box-shadow: 0 24px 80px hsl(var(--background) / 0.55); }
-
-  .rr-glow-sm { box-shadow: 0 0 8px hsl(var(--primary) / 0.35); }
-  .rr-glow { box-shadow: 0 0 16px hsl(var(--primary) / 0.25); }
-  .rr-glow-lg { box-shadow: 0 0 32px hsl(var(--primary) / 0.15); }
-  .rr-glow-cyan { box-shadow: 0 0 12px hsl(var(--cyan) / 0.30); }
-
-  .rr-rounded-card { border-radius: 1rem; }      /* 16px — standard cards */
-  .rr-rounded-shell { border-radius: 1.25rem; }  /* 20px — page shells */
-  .rr-rounded-pill { border-radius: 9999px; }
 }
 
 /* ------------------------------------------------------------------
@@ -551,9 +480,6 @@
     animation: ekg-pulse 2.4s ease-in-out infinite;
     will-change: opacity, transform;
   }
-  .animate-neon-flicker {
-    animation: neon-flicker 3s infinite alternate;
-  }
   .animate-glow-pulse {
     animation: glow-pulse 2s ease-in-out infinite;
   }
@@ -561,15 +487,6 @@
     animation: shimmer 2.5s ease-in-out infinite;
     will-change: background-position;
   }
-  .animate-float {
-    animation: float 4s ease-in-out infinite;
-    will-change: transform;
-  }
-
-  .animate-snap { animation-duration: 150ms; }
-  .animate-fluid { animation-duration: 300ms; }
-  .animate-dramatic { animation-duration: 600ms; }
-  .animate-heartbeat { animation: heartbeat 1.2s ease-in-out infinite; }
 }
 
 @keyframes pulse-green-glow {
@@ -600,20 +517,6 @@
   75% { opacity: 1; transform: scaleY(1.08); }
 }
 
-@keyframes neon-flicker {
-  0%, 18%, 22%, 25%, 53%, 57%, 100% {
-    opacity: 1;
-    text-shadow:
-      0 0 8px hsl(var(--primary) / 0.8),
-      0 0 24px hsl(var(--primary) / 0.5),
-      0 0 48px hsl(var(--primary) / 0.25);
-  }
-  20%, 24%, 55% {
-    opacity: 0.6;
-    text-shadow: none;
-  }
-}
-
 @keyframes glow-pulse {
   0%, 100% {
     box-shadow: 0 0 12px hsl(var(--primary) / 0.4), 0 0 28px hsl(var(--primary) / 0.15);
@@ -626,11 +529,6 @@
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
 }
 
 @keyframes rr-neon-focus-pulse {
@@ -649,14 +547,6 @@
 @keyframes rr-map-ping {
   0% { transform: scale(0.72); opacity: 0.42; }
   72%, 100% { transform: scale(1.6); opacity: 0; }
-}
-
-@keyframes heartbeat {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  15% { transform: scale(1.05); opacity: 1; }
-  30% { transform: scale(1); opacity: 0.9; }
-  45% { transform: scale(1.08); opacity: 1; }
-  60% { transform: scale(1); opacity: 0.8; }
 }
 
 /* ------------------------------------------------------------------
@@ -806,19 +696,6 @@
     padding-top: max(env(safe-area-inset-top, 0px), 0px);
   }
 
-  .px-safe {
-    padding-left: max(env(safe-area-inset-left, 0px), 0px);
-    padding-right: max(env(safe-area-inset-right, 0px), 0px);
-  }
-
-  .pl-safe {
-    padding-left: max(env(safe-area-inset-left, 0px), 0px);
-  }
-
-  .pr-safe {
-    padding-right: max(env(safe-area-inset-right, 0px), 0px);
-  }
-
   .top-header-offset {
     top: calc(56px + env(safe-area-inset-top, 0px) + 8px);
   }
@@ -842,7 +719,6 @@
   .animate-radar,
   .animate-ekg,
   .animate-ekg-pulse,
-  .animate-neon-flicker,
   .animate-glow-pulse,
   .animate-shimmer,
   .animate-float,
@@ -902,12 +778,9 @@
    10b. SHADOW UTILITIES
    ------------------------------------------------------------------ */
 @layer utilities {
-  .rr-shadow-sm { box-shadow: 0 8px 24px hsl(0 0% 0% / 0.35); }
   .rr-shadow-md { box-shadow: 0 12px 40px hsl(0 0% 0% / 0.45); }
   .rr-shadow-lg { box-shadow: 0 18px 55px hsl(0 0% 0% / 0.42); }
   .rr-shadow-xl { box-shadow: 0 22px 70px hsl(0 0% 0% / 0.42); }
-  .rr-shadow-up { box-shadow: 0 -12px 40px hsl(0 0% 0% / 0.45); }
-  .rr-shadow-glow { box-shadow: 0 0 20px hsl(var(--primary) / 0.4); }
 
   /* Message bubble entrance animation */
   .animate-message-in {
@@ -969,35 +842,12 @@
   .shadow-depth-4 { box-shadow: 0 20px 25px rgba(0,0,0,0.35), 0 10px 10px rgba(0,0,0,0.15); }
   .shadow-depth-5 { box-shadow: 0 25px 50px rgba(0,0,0,0.45), 0 10px 20px rgba(0,0,0,0.2); }
 
-  /* Inner highlight for card depth */
-  .shadow-inner-highlight { box-shadow: inset 0 1px 0 rgba(255,255,255,0.04); }
-
-  /* ---------- Gradient Accents ---------- */
-  .gradient-primary { background: linear-gradient(135deg, hsl(107 100% 54%), hsl(107 100% 40%)); }
-  .gradient-radar { background: linear-gradient(135deg, hsl(191 100% 50%), hsl(191 100% 38%)); }
-  .gradient-emergency { background: linear-gradient(135deg, hsl(0 100% 59%), hsl(0 100% 45%)); }
-  .gradient-amber { background: linear-gradient(135deg, hsl(43 100% 50%), hsl(43 100% 40%)); }
-  .gradient-hero { background: linear-gradient(180deg, transparent 0%, hsl(240 20% 2%) 100%); }
-  .gradient-surface { background: linear-gradient(180deg, hsl(240 14% 6%) 0%, hsl(240 20% 2%) 100%); }
-
   /* ---------- Card Surfaces ---------- */
   .surface-card {
     background: hsl(240 14% 6%);
     border: 1px solid hsl(240 8% 12%);
     border-radius: 1.25rem;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.03);
-  }
-  .surface-card-elevated {
-    background: hsl(240 14% 9%);
-    border: 1px solid hsl(240 10% 14%);
-    border-radius: 1.25rem;
-    box-shadow: 0 10px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
-  }
-  .surface-card-pressed {
-    background: hsl(240 10% 10%);
-    border: 1px solid hsl(240 8% 12%);
-    border-radius: 1.25rem;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
   }
 
   /* ---------- Press Feedback ---------- */
