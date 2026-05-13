@@ -16,10 +16,7 @@ const ROUTE_TITLES = {
   '/notifications': 'Notifications',
   '/admin': 'Admin',
   '/settings': 'Settings',
-  '/rides': 'Rides',
   '/messages': 'Messages',
-  '/chat': 'Chat',
-  '/safety': 'Safety',
   '/broadcast': 'Broadcast',
 };
 

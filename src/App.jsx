@@ -286,8 +286,6 @@ const AppContent = memo(function AppContent() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:userId" element={<ValidateUUIDParam param="userId"><RiderProfilePage /></ValidateUUIDParam>} />
           <Route path="/review-readiness" element={<ReviewReadinessPage />} />
-          <Route path="/live-map" element={<Navigate to="/home" replace />} />
-
           {/* Admin routes */}
           <Route element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
