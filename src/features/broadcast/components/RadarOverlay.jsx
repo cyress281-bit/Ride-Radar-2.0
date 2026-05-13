@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Crosshair, Plus, Navigation } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
@@ -20,6 +20,31 @@ const RadarOverlay = memo(function RadarOverlay({
   const navigate = useNavigate();
 
   const handleCreateBroadcast = useCallback(() => navigate('/broadcast'), [navigate]);
+
+  // Phase 3: track lock motion + user-initiated haptic on first fix.
+  const [justLocked, setJustLocked] = useState(false);
+  const prevLocatingRef = useRef(locating);
+  const hasInitiatedRequestRef = useRef(false);
+
+  const handleRequestLocation = useCallback(() => {
+    hasInitiatedRequestRef.current = true;
+    requestLocation?.();
+  }, [requestLocation]);
+
+  useEffect(() => {
+    const wasLocating = prevLocatingRef.current;
+    prevLocatingRef.current = locating;
+    if (wasLocating && !locating && hasUserLocation && !geoError) {
+      setJustLocked(true);
+      if (hasInitiatedRequestRef.current) {
+        hasInitiatedRequestRef.current = false;
+        try { navigator.vibrate?.(15); } catch {}
+      }
+      const timer = setTimeout(() => setJustLocked(false), 700);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [locating, hasUserLocation, geoError]);
 
   return (
     <>
@@ -54,13 +79,14 @@ const RadarOverlay = memo(function RadarOverlay({
         </button>
 
         <button
-          onClick={requestLocation}
+          onClick={handleRequestLocation}
           disabled={locating}
           className={cn(
             'rr-haptic flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-xl border transition-all active:scale-90',
             hasUserLocation
               ? 'bg-surface/80 border-white/[0.06] text-primary shadow-[0_0_20px_hsl(var(--primary)/0.3)]'
-              : 'bg-surface/80 border-primary/30 text-primary shadow-[0_0_20px_hsl(var(--primary)/0.3)]'
+              : 'bg-surface/80 border-primary/30 text-primary shadow-[0_0_20px_hsl(var(--primary)/0.3)]',
+            justLocked && 'rr-lock'
           )}
           aria-label={hasUserLocation ? 'Center on my location' : 'Enable location'}
         >

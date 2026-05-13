@@ -76,7 +76,15 @@ const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, var
     const rafId = window.requestAnimationFrame(() => map.invalidateSize());
 
     if (focusUserLocation && isValidCoordinate(userLat, userLng)) {
-      map.setView([userLat, userLng], 15, { animate: false });
+      const prefersReducedMotion =
+        typeof window !== 'undefined' &&
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      map.setView(
+        [userLat, userLng],
+        15,
+        prefersReducedMotion ? { animate: false } : { animate: true, duration: 0.6 }
+      );
       return () => window.cancelAnimationFrame(rafId);
     }
     if (items.length === 0) {
