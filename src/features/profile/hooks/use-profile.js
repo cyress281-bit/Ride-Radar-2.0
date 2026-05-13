@@ -3,7 +3,6 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuthState } from '@/features/auth/hooks/use-auth';
 import {
   getProfileByUserId,
   updateProfile,
@@ -30,17 +29,6 @@ export function useProfile(userId, options = {}) {
     enabled: !!userId,
     staleTime: 30_000,
     ...options,
-  });
-}
-
-/**
- * Query hook for the currently authenticated user's profile.
- */
-export function useMyProfile(options = {}) {
-  const { user } = useAuthState();
-  return useProfile(user?.id, {
-    ...options,
-    enabled: !!user?.id && options.enabled !== false,
   });
 }
 

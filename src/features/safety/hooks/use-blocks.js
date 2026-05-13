@@ -133,5 +133,4 @@ export function useRemoveBlock() {
   });
 }
 
-// Re-export shared useBlockedIds for backward compatibility
-export { useBlockedIds } from '@/hooks/use-blocked-ids.js';
+

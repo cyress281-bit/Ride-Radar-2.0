@@ -12,9 +12,12 @@ export default [
   {
     files: [
       "src/components/**/*.{js,mjs,cjs,jsx}",
-      "src/pages/**/*.{js,mjs,cjs,jsx}",
       "src/features/**/*.{js,mjs,cjs,jsx}",
-      "src/Layout.jsx",
+      "src/hooks/**/*.{js,mjs,cjs,jsx}",
+      "src/providers/**/*.{js,mjs,cjs,jsx}",
+      "src/utils/**/*.{js,mjs,cjs,jsx}",
+      "src/App.jsx",
+      "src/main.jsx",
     ],
     ignores: ["src/lib/**/*", "src/components/ui/**/*"],
     ...pluginJs.configs.recommended,

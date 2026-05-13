@@ -147,26 +147,6 @@ export const supabase = _client;
 // Supabase client is NOT exposed on window to prevent accidental leakage in staging builds
 
 /**
- * Get the current auth token, if any.
- * @returns {Promise<string|null>}
- */
-export async function getAuthToken() {
-  if (!supabase) return null;
-  const { data } = await supabase.auth.getSession();
-  return data?.session?.access_token ?? null;
-}
-
-/**
- * Get the current user's ID, if authenticated.
- * @returns {Promise<string|null>}
- */
-export async function getCurrentUserId() {
-  if (!supabase) return null;
-  const { data } = await supabase.auth.getSession();
-  return data?.session?.user?.id ?? null;
-}
-
-/**
  * Set the "remember device" preference in localStorage.
  * @param {boolean} value
  */
@@ -175,12 +155,4 @@ export function setRememberDevicePreference(value) {
   storage?.setItem(REMEMBER_DEVICE_KEY, String(value));
 }
 
-/**
- * Check whether a user is currently authenticated.
- * @returns {Promise<boolean>}
- */
-export async function isAuthenticated() {
-  if (!supabase) return false;
-  const { data } = await supabase.auth.getSession();
-  return !!data?.session;
-}
+
