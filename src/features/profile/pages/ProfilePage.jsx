@@ -259,13 +259,13 @@ function ProfilePage() {
           ) : broadcastsFailed ? (
             <ErrorState
               title="Broadcasts unavailable"
-              message={broadcastsError?.message || 'Your profile is available, but active broadcasts could not be loaded.'}
+              message={broadcastsError?.message || 'Your profile is available, but active signals could not be loaded.'}
               onRetry={refetchBroadcasts}
             />
           ) : active.length === 0 ? (
             <EmptyState
               icon={Radio}
-              title="No active broadcasts"
+              title="No active signals"
               description="Your active ride signals will appear here."
             />
           ) : (

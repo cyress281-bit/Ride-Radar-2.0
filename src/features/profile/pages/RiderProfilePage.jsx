@@ -347,7 +347,7 @@ function RiderProfilePage() {
                 ))}
               </div>
             ) : (
-              <EmptyState icon={Radio} title="No active broadcasts" description="This rider has no active signals." />
+              <EmptyState icon={Radio} title="No active signals" description="This rider has no active signals." />
             )}
           </TabsContent>
 
