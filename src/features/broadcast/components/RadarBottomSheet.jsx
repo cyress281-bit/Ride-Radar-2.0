@@ -90,9 +90,9 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
         sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-56px)]'
       )}
       style={{
-        bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))',
+        bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))',
         maxHeight: sheetOpen
-          ? 'calc(100svh - 80px - env(safe-area-inset-bottom, 0px))'
+          ? 'calc(100svh - 64px - env(safe-area-inset-bottom, 0px))'
           : '70vh',
       }}
       {...sheetTouchHandlers}
@@ -127,7 +127,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
         {...contentTouchHandlers}
         className={cn(
           'overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] px-4 pb-6',
-          sheetOpen ? 'max-h-[75vh]' : 'max-h-0'
+          sheetOpen ? 'max-h-[75svh]' : 'max-h-0'
         )}
       >
         {/* Expanded category summary */}
