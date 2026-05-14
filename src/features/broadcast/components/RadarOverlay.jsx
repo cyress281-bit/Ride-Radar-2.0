@@ -98,7 +98,7 @@ const RadarOverlay = memo(function RadarOverlay({
       </div>
 
       {/* Floating action buttons */}
-      <div className="absolute bottom-44 right-4 z-[30] flex flex-col gap-3">
+      <div className="absolute bottom-44 right-4 z-[15] flex flex-col gap-3">
         {/* Ride Now toggle */}
         <button
           onClick={handleToggleLive}
