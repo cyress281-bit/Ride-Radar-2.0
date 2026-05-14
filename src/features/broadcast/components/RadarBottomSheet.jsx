@@ -127,7 +127,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
         {...contentTouchHandlers}
         className={cn(
           'overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] px-4 pb-6',
-          sheetOpen ? 'max-h-[55vh]' : 'max-h-0'
+          sheetOpen ? 'max-h-[75vh]' : 'max-h-0'
         )}
       >
         {/* Expanded category summary */}
