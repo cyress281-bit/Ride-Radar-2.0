@@ -169,7 +169,7 @@ function BroadcastDetailPage() {
         <button
           onClick={handleShare}
           className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
-          aria-label="Copy broadcast link"
+          aria-label="Copy signal link"
         >
           <Share2 className="w-4 h-4" /> Share
         </button>

@@ -25,7 +25,7 @@ const DEFAULT_LABELS = {
  */
 export const Badge = memo(function Badge({ type, label, className }) {
   const config = TYPE_MAP[type] || TYPE_MAP.solo_ride;
-  const displayLabel = label || DEFAULT_LABELS[type] || 'Broadcast';
+  const displayLabel = label || DEFAULT_LABELS[type] || 'Signal';
 
   return (
     <span
