@@ -70,6 +70,28 @@ export async function getOrCreateSettings(userId) {
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
 export async function updateSettings(userId, updates) {
+  const {
+    data: { user: authUser },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !authUser?.id) {
+    logger.error('[updateSettings] Auth validation error:', authError);
+    return {
+      data: null,
+      error: authError || new Error('Session expired. Please log in again.'),
+    };
+  }
+
+  if (authUser.id !== userId) {
+    const mismatchError = new Error('Authenticated user does not match settings owner.');
+    logger.error('[updateSettings] User mismatch:', {
+      authUserId: authUser.id,
+      requestedUserId: userId,
+    });
+    return { data: null, error: mismatchError };
+  }
+
   const { data: existing, error: fetchError } = await getSettings(userId);
   if (fetchError) return { data: null, error: fetchError };
 
