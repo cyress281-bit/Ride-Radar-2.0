@@ -66,7 +66,7 @@ const TYPE_STYLE_MAP = {
 };
 
 const baseSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters').max(120),
+  title: z.string().trim().min(3, 'Title must be at least 3 characters').max(120),
   body: z.string().max(500).optional(),
 });
 
