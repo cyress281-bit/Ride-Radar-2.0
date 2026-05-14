@@ -31,7 +31,7 @@ function BroadcastCreatePage() {
     timerRef.current = setTimeout(() => {
       setShowCelebration(false);
       navigate('/home');
-    }, 800);
+    }, 1500);
   }, [navigate]);
 
   if (!type) {
