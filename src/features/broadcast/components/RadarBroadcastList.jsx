@@ -64,27 +64,27 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
     const emptyStates = {
       all: {
         title: 'Radar is quiet nearby.',
-        description: "You'll see rides, events, help requests, and warnings here.",
-        action: { label: 'Send a signal', onClick: () => navigate('/broadcast') },
+        description: "You'll see nearby rides, events, help requests, and warnings here.",
+        action: { label: 'Start a signal', onClick: () => navigate('/broadcast') },
       },
       alert: {
         title: 'No warnings nearby.',
-        description: "That's good news.",
+        description: 'Roads are clear. Ride safe.',
       },
       solo_ride: {
         title: 'No riders nearby right now.',
-        description: "Start a signal when you're ready to ride.",
-        action: { label: 'Ride now', onClick: () => navigate('/broadcast') },
+        description: "Start a ride signal when you're out.",
+        action: { label: 'Ride Now', onClick: () => navigate('/broadcast') },
       },
       iso: {
-        title: 'No help requests or crew rides nearby.',
-        description: 'Check back later or create one.',
-        action: { label: 'Request help', onClick: () => navigate('/broadcast') },
+        title: 'No help requests nearby.',
+        description: 'Find crew or mechanical support when you need it.',
+        action: { label: 'Request Help', onClick: () => navigate('/broadcast') },
       },
       event: {
         title: 'No events nearby this week.',
-        description: 'Check back soon or create one.',
-        action: { label: 'Create event', onClick: () => navigate('/broadcast') },
+        description: 'Plan a meetup, bike night, or group ride.',
+        action: { label: 'Plan a Meetup', onClick: () => navigate('/broadcast') },
       },
     };
     const emptyConfig = emptyStates[filter] || emptyStates.all;

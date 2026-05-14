@@ -186,7 +186,7 @@ function BroadcastFeedPage() {
     if (events > 0) return 'Events nearby this week';
     if (riders > 0) return riders === 1 ? '1 rider nearby' : `${riders} riders nearby`;
     if (total > 0) return total === 1 ? '1 signal nearby' : `${total} signals nearby`;
-    return 'Radar clear nearby';
+    return 'Radar is quiet nearby';
   }, [visibleBroadcasts, visibleRiderMarkers]);
 
   return (
