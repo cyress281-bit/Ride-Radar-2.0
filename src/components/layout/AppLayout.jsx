@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import AppHeader from './AppHeader';
 import BottomNav from './BottomNav';
 import OfflineBanner from '@/components/OfflineBanner';
-import { useSupabaseConnection } from '@/hooks/use-supabase-connection.js';
+
 
 /**
  * AppLayout — Main application shell with electric neon aesthetic.
@@ -19,8 +19,6 @@ import { useSupabaseConnection } from '@/hooks/use-supabase-connection.js';
 const AppLayout = memo(function AppLayout() {
   const { pathname } = useLocation();
   const isRadar = pathname === '/home';
-  const { isConnected } = useSupabaseConnection();
-
   return (
     <div
       className={cn(
@@ -30,13 +28,6 @@ const AppLayout = memo(function AppLayout() {
     >
       {/* Offline status banner */}
       <OfflineBanner />
-
-      {/* Realtime connection indicator */}
-      {!isConnected && (
-        <div className="fixed top-0 left-0 right-0 z-[90] bg-yellow-500/90 text-black text-xs font-bold text-center py-1 px-4">
-          Reconnecting to live updates…
-        </div>
-      )}
 
       {/* Skip to main content — keyboard accessibility */}
       <a
