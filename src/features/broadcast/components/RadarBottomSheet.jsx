@@ -10,7 +10,7 @@ const FILTER_TYPES = [
   { id: 'all', label: 'All' },
   { id: 'alert', label: 'Alerts' },
   { id: 'solo_ride', label: 'Riders' },
-  { id: 'iso', label: 'ISO' },
+  { id: 'iso', label: 'Help' },
   { id: 'event', label: 'Events' },
 ];
 
@@ -75,8 +75,8 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
     else if (alerts > 1) parts.push(`${alerts} warnings`);
     if (rides === 1) parts.push('1 ride');
     else if (rides > 1) parts.push(`${rides} rides`);
-    if (iso === 1) parts.push('1 ISO');
-    else if (iso > 1) parts.push(`${iso} ISOs`);
+    if (iso === 1) parts.push('1 help request');
+    else if (iso > 1) parts.push(`${iso} help requests`);
     if (events === 1) parts.push('1 event');
     else if (events > 1) parts.push(`${events} events`);
     return parts.length > 0 ? parts.join(', ') + ' nearby' : null;
