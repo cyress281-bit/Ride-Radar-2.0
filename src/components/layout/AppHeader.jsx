@@ -18,7 +18,7 @@ const ROUTE_TITLES = {
   '/admin': 'Admin',
   '/settings': 'Settings',
   '/messages': 'Messages',
-  '/broadcast': 'Broadcast',
+  '/broadcast': 'Send a Signal',
 };
 
 function getPageTitle(pathname) {

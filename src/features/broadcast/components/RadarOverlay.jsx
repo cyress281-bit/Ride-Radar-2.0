@@ -131,7 +131,7 @@ const RadarOverlay = memo(function RadarOverlay({
         <button
           onClick={handleCreateBroadcast}
           className="rr-haptic flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-xl bg-surface/80 border border-white/[0.06] text-primary shadow-[0_0_20px_hsl(var(--primary)/0.3)] rr-shadow-lg transition-transform active:scale-90"
-          aria-label="Create broadcast"
+          aria-label="Send a Signal"
         >
           <Plus className="h-5 w-5" />
         </button>

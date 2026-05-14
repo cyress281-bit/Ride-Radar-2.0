@@ -289,7 +289,7 @@ const SignalListItem = memo(function SignalListItem({ item, userLat, userLng }) 
   const distance = isValidCoordinate(userLat, userLng) ? formatDistance(haversineMiles(userLat, userLng, item.lat, item.lng)) : null;
   const signalAge = item.created_at ? timeAgo(item.created_at) : 'live';
   const isPresence = item.type === 'rider_presence';
-  const title = isPresence ? item.display_name || 'Live rider' : item.title || BROADCAST_META[item.type]?.label || 'Broadcast';
+  const title = isPresence ? item.display_name || 'Live rider' : item.title || BROADCAST_META[item.type]?.label || 'Signal';
   const detail = isPresence ? item.vehicle_label || null : item.exact_location_text || null;
   const riderPrecision = isPresence ? item.location_precision || 'approximate' : null;
 
@@ -445,7 +445,7 @@ function LiveMap({
         variant === 'full' ? 'lg:p-4' : variant !== 'radar' ? 'p-4' : '',
         className
       )}
-      aria-label="Live map of active rider broadcasts"
+      aria-label="Live map of active rider signals"
     >
       {variant !== 'full' && variant !== 'radar' && (
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -461,7 +461,7 @@ function LiveMap({
         <div
           className={cn('relative overflow-hidden rounded-[1.1rem] border border-border/60 bg-background', variant === 'full' ? 'min-h-[560px] h-[calc(100svh-15rem)] max-h-[760px]' : variant === 'radar' ? 'h-full min-h-0 rounded-none border-0 bg-transparent' : 'h-[320px]')}
           role="application"
-          aria-label={`Interactive map showing ${items.length} active ${items.length === 1 ? 'broadcast' : 'broadcasts'}`}
+          aria-label={`Interactive map showing ${items.length} active ${items.length === 1 ? 'signal' : 'signals'}`}
         >
           {/* Phase 1: removed always-on EKG strip (two stacked animate-ekg layers)
               to calm the radar screen. The animate-ekg keyframes/classes are kept
