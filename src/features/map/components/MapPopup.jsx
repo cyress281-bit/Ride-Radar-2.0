@@ -5,9 +5,9 @@ import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpir
 import { cn } from '@/lib/utils.js';
 
 const typeConfig = {
-  alert: { label: 'Alert', text: 'text-alert', leftStripe: 'bg-alert' },
+  alert: { label: 'Road Warning', text: 'text-alert', leftStripe: 'bg-alert' },
   solo_ride: { label: 'Rider', text: 'text-solo', leftStripe: 'bg-solo' },
-  iso: { label: 'ISO', text: 'text-iso', leftStripe: 'bg-iso' },
+  iso: { label: 'Help', text: 'text-iso', leftStripe: 'bg-iso' },
   event: { label: 'Event', text: 'text-event', leftStripe: 'bg-event' },
   rider_presence: { label: 'Rider', text: 'text-cyan', leftStripe: 'bg-cyan' },
 };

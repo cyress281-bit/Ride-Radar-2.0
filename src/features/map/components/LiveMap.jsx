@@ -25,9 +25,9 @@ const US_CENTER = [39.8283, -98.5795];
 const DARK_TILE_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
 const typeConfig = {
-  alert: { label: 'Alert', Icon: ShieldAlert, text: 'text-alert', border: 'border-alert/45', bg: 'bg-alert/10', leftStripe: 'bg-alert', glow: 'shadow-[0_0_20px_hsl(var(--alert)/0.35)]' },
+  alert: { label: 'Road Warning', Icon: ShieldAlert, text: 'text-alert', border: 'border-alert/45', bg: 'bg-alert/10', leftStripe: 'bg-alert', glow: 'shadow-[0_0_20px_hsl(var(--alert)/0.35)]' },
   solo_ride: { label: 'Rider', Icon: OfficialMotorcycleIcon, text: 'text-solo', border: 'border-solo/45', bg: 'bg-solo/10', leftStripe: 'bg-solo', glow: 'shadow-[0_0_20px_hsl(var(--solo)/0.3)]' },
-  iso: { label: 'ISO', Icon: Search, text: 'text-iso', border: 'border-iso/45', bg: 'bg-iso/10', leftStripe: 'bg-iso', glow: 'shadow-[0_0_20px_hsl(var(--iso)/0.3)]' },
+  iso: { label: 'Help', Icon: Search, text: 'text-iso', border: 'border-iso/45', bg: 'bg-iso/10', leftStripe: 'bg-iso', glow: 'shadow-[0_0_20px_hsl(var(--iso)/0.3)]' },
   event: { label: 'Event', Icon: CalendarClock, text: 'text-event', border: 'border-event/45', bg: 'bg-event/10', leftStripe: 'bg-event', glow: 'shadow-[0_0_20px_hsl(var(--event)/0.3)]' },
   rider_presence: { label: 'Rider', Icon: OfficialMotorcycleIcon, text: 'text-cyan', border: 'border-cyan/40', bg: 'bg-cyan/10', leftStripe: 'bg-cyan', glow: 'shadow-[0_0_20px_hsl(var(--cyan)/0.3)]' },
 };
@@ -196,9 +196,9 @@ const MapSummary = memo(function MapSummary({ items, userLat, userLng, variant }
         </div>
       </div>
       <div className="mt-3 grid grid-cols-4 gap-1.5 text-center text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-        <Stat label="Alerts" value={alertCount} className="text-alert" />
+        <Stat label="Warnings" value={alertCount} className="text-alert" />
         <Stat label="Riders" value={riderCount} className="text-solo" />
-        <Stat label="ISO" value={isoCount} className="text-iso" />
+        <Stat label="Help" value={isoCount} className="text-iso" />
         <Stat label="Events" value={eventCount} className="text-event" />
       </div>
       {presenceCount > 0 && (
