@@ -86,7 +86,7 @@ export async function registerServiceWorker() {
         }
         sessionStorage.setItem('sw-last-reload', String(now));
         refreshing = true;
-        window.location.reload();
+        window.location.replace('/home');
       });
 
     } catch (error) {
