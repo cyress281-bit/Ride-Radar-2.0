@@ -149,11 +149,13 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             )}
             aria-label="Ride Radar home"
           >
-            <RRLogo
-              size="md"
-              glow={isRadar}
-              className={cn(isRadar && 'animate-pulse')}
-            />
+            {isRadar ? (
+              <span className="text-sm font-extrabold uppercase tracking-[0.18em] text-primary rr-neon-green drop-shadow-[0_0_10px_hsl(var(--primary)/0.65)]">
+                Ride Radar
+              </span>
+            ) : (
+              <RRLogo size="md" glow={false} />
+            )}
           </NavLink>
         )}
 
