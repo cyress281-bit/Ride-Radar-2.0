@@ -1,4 +1,4 @@
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
@@ -17,10 +17,18 @@ function BroadcastCreatePage() {
   const validTypes = ['solo_ride', 'event', 'iso', 'alert'];
   const [type, setType] = useState(validTypes.includes(urlType) ? urlType : null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const handlePosted = useCallback(() => {
     setShowCelebration(true);
-    setTimeout(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
       setShowCelebration(false);
       navigate('/home');
     }, 800);
