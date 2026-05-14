@@ -72,8 +72,7 @@ export async function getOrCreateSettings(userId) {
 export async function updateSettings(userId, updates) {
   const { data, error } = await supabase
     .from('user_settings')
-    .update(updates)
-    .eq('user_id', userId)
+    .upsert({ ...updates, user_id: userId }, { onConflict: 'user_id' })
     .select()
     .maybeSingle();
 
