@@ -179,7 +179,7 @@ function ProfilePage() {
               />
               <StatPill
                 icon={Users}
-                label="Pack"
+                label="Crew"
                 value={connectionsCount}
                 isLoading={connectionsLoading}
                 brand="radar"
@@ -325,7 +325,7 @@ function ProfilePage() {
             {!bikeLabel && !displayProfile?.location && !joinDate && (
               <EmptyState
                 icon={User}
-                title="About section empty"
+                title="About you"
                 description="Edit your profile to add bike info, location, and more."
                 action={{ label: 'Edit Profile', onClick: () => setEditing(true) }}
               />
