@@ -76,11 +76,7 @@ const ProtectedRoute = memo(function ProtectedRoute({ children }) {
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="h-8 w-8 rounded-full border border-primary/50 shadow-[0_0_18px_hsl(var(--primary)/0.22)]" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!isAuthenticated) {
@@ -101,11 +97,7 @@ const AdminRoute = memo(function AdminRoute() {
   const { isAdmin, isLoading } = useAdminRole();
 
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="h-8 w-8 rounded-full border border-primary/50 shadow-[0_0_18px_hsl(var(--primary)/0.22)]" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!isAdmin) {
