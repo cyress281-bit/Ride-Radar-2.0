@@ -39,7 +39,7 @@ export function useCreateBroadcast() {
 
       const { data: settings, error: settingsError } = await supabase
         .from('user_settings')
-        .select('show_location')
+        .select('live_map_visible')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -48,7 +48,7 @@ export function useCreateBroadcast() {
         throw settingsError;
       }
 
-      const showApproximateLocation = settings?.show_location !== false;
+      const showApproximateLocation = settings?.live_map_visible !== false;
       const now = new Date();
 
       // Calculate expiration
