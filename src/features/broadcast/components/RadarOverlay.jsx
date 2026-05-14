@@ -25,6 +25,13 @@ const RadarOverlay = memo(function RadarOverlay({
   const { user } = useAuthState();
   const updateSettings = useUpdateSettings();
   const [justActivated, setJustActivated] = useState(false);
+  const justActivatedTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (justActivatedTimerRef.current) clearTimeout(justActivatedTimerRef.current);
+    };
+  }, []);
 
   const handleCreateBroadcast = useCallback(() => navigate('/broadcast'), [navigate]);
 
@@ -48,7 +55,8 @@ const RadarOverlay = memo(function RadarOverlay({
       });
       if (turningOn) {
         setJustActivated(true);
-        setTimeout(() => setJustActivated(false), 700);
+        if (justActivatedTimerRef.current) clearTimeout(justActivatedTimerRef.current);
+        justActivatedTimerRef.current = setTimeout(() => setJustActivated(false), 700);
       }
     } catch (err) {
       toast.error('Could not update live status', {
