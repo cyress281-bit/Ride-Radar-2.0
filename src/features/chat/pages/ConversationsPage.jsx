@@ -168,9 +168,9 @@ function ConversationsPage() {
           ) : (
             <EmptyState
               icon={MessageCircle}
-              title="No open comms"
-              description="Start a conversation with another rider to see it here."
-              action={{ label: 'Find a rider', onClick: () => navigate('/home'), variant: 'default' }}
+              title="No rider messages yet."
+              description="Find a rider or start a signal to open a conversation."
+              action={{ label: 'Find a Rider', onClick: () => navigate('/home'), variant: 'default' }}
               className="w-full"
             />
           )}
@@ -192,7 +192,7 @@ function ConversationsPage() {
         onClick={() => {
           toast({
             title: 'Start a conversation',
-            description: 'Visit a rider\'s profile from the home feed to message them.',
+            description: 'Browse the home feed, tap a rider\'s profile, then tap Message.',
           });
           navigate('/home');
         }}
