@@ -228,7 +228,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   return (
     <div className="px-5 pt-5 pb-8 pb-safe bg-background scroll-smooth">
       <button onClick={onBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 min-h-[44px] px-1 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Send a signal
+        <ArrowLeft className="w-4 h-4" /> Send a Signal
       </button>
 
       {/* Type header */}
