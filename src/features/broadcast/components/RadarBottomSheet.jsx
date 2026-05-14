@@ -8,7 +8,7 @@ import RadarBroadcastList from './RadarBroadcastList';
 
 const FILTER_TYPES = [
   { id: 'all', label: 'All' },
-  { id: 'alert', label: 'Alerts' },
+  { id: 'alert', label: 'Warnings' },
   { id: 'solo_ride', label: 'Riders' },
   { id: 'iso', label: 'Help' },
   { id: 'event', label: 'Events' },
