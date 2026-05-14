@@ -228,7 +228,7 @@ const LoadingState = memo(function LoadingState({ variant }) {
         <>
           <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           <p className="text-sm font-semibold text-foreground">Loading live map...</p>
-          <p className="mt-1 text-xs text-muted-foreground">Syncing broadcasts and rider markers</p>
+          <p className="mt-1 text-xs text-muted-foreground">Syncing signals and rider markers</p>
         </>
       )}
     </div>
@@ -479,8 +479,8 @@ function LiveMap({
             <div className={cn('pointer-events-none absolute inset-x-4 z-[430] flex justify-center', variant === 'radar' ? 'bottom-24' : 'bottom-4')}>
               <div className={cn('max-w-sm rounded-2xl border border-border/65 bg-background/78 text-center rr-shadow-lg backdrop-blur-xl', variant === 'radar' ? 'px-4 py-3' : 'p-4')}>
                 <MapPin className={cn('mx-auto text-muted-foreground', variant === 'radar' ? 'mb-1 h-5 w-5' : 'mb-2 h-6 w-6')} aria-hidden="true" />
-                <h2 className={cn('font-display font-bold', variant === 'radar' ? 'text-base' : 'text-lg')}>No mapped broadcasts</h2>
-                {variant !== 'radar' && <p className="mt-1 text-xs text-muted-foreground">Active broadcasts with recognizable locations will appear here as soon as they hit the network.</p>}
+                <h2 className={cn('font-display font-bold', variant === 'radar' ? 'text-base' : 'text-lg')}>No mapped signals</h2>
+                {variant !== 'radar' && <p className="mt-1 text-xs text-muted-foreground">Active signals with recognizable locations will appear here as soon as they hit the network.</p>}
               </div>
             </div>
           )}

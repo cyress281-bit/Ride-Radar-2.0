@@ -66,7 +66,7 @@ function BroadcastCreatePage() {
               className="flex flex-col items-center gap-3"
             >
               <CheckCircle2 className="w-12 h-12 text-primary animate-glow-pulse" />
-              <span className="text-sm font-bold text-primary rr-neon-green">Signal broadcasted</span>
+              <span className="text-sm font-bold text-primary rr-neon-green">Signal sent</span>
             </motion.div>
           </motion.div>
         )}
