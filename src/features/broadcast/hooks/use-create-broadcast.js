@@ -156,7 +156,7 @@ export function useCreateBroadcast() {
           ? await uploadImageIfNeeded(broadcastData.eventImage, 'uploads', 'events')
           : null,
 
-        alert_image_urls: broadcastData.alertImages?.length
+        alert_photos: broadcastData.alertImages?.length
           ? await Promise.all(
               broadcastData.alertImages.map((img) => uploadImageIfNeeded(img, 'uploads', 'alerts'))
             )
