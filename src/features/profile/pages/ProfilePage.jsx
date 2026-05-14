@@ -248,7 +248,7 @@ function ProfilePage() {
             <User className="w-3.5 h-3.5" /> About
           </TabsTrigger>
           <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-            <Grid3X3 className="w-3.5 h-3.5" /> Media
+            <Grid3X3 className="w-3.5 h-3.5" /> Photos
           </TabsTrigger>
         </TabsList>
 
@@ -287,7 +287,7 @@ function ProfilePage() {
                     <Bike className="h-5 w-5 text-primary" />
                   </div>
                   <VStack gap={0.5}>
-                    <Text variant="micro" className="text-primary font-bold uppercase tracking-wider">Machine</Text>
+                    <Text variant="micro" className="text-primary font-bold uppercase tracking-wider">Bike</Text>
                     <Text variant="bodySm" className="font-semibold">{bikeLabel}</Text>
                   </VStack>
                 </HStack>
@@ -356,7 +356,7 @@ function ProfilePage() {
           ) : (
             <EmptyState
               icon={Grid3X3}
-              title="No media yet"
+              title="No photos yet"
               description="Upload a bike photo to see it here."
               action={{ label: 'Add Photo', onClick: () => setEditing(true) }}
             />
