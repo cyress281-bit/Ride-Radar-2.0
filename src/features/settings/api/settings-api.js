@@ -70,9 +70,28 @@ export async function getOrCreateSettings(userId) {
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
 export async function updateSettings(userId, updates) {
+  const { data: existing, error: fetchError } = await getSettings(userId);
+  if (fetchError) return { data: null, error: fetchError };
+
+  if (!existing) {
+    const { data: created, error: createError } = await supabase
+      .from('user_settings')
+      .insert({ ...DEFAULT_SETTINGS, ...updates, user_id: userId })
+      .select()
+      .single();
+
+    if (createError) {
+      logger.error('[updateSettings] Create error:', createError);
+      return { data: null, error: createError };
+    }
+
+    return { data: created, error: null };
+  }
+
   const { data, error } = await supabase
     .from('user_settings')
-    .upsert({ ...updates, user_id: userId }, { onConflict: 'user_id' })
+    .update(updates)
+    .eq('user_id', userId)
     .select()
     .maybeSingle();
 
