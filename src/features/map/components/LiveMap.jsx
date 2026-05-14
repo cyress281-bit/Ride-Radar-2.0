@@ -70,25 +70,29 @@ function getCenter(items, userLat, userLng) {
 const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, variant, disabled, focusUserLocation, fitKey }) {
   const map = useMap();
   const hasFittedRef = useRef(false);
+  const userLatRef = useRef(userLat);
+  const userLngRef = useRef(userLng);
+  userLatRef.current = userLat;
+  userLngRef.current = userLng;
 
   useEffect(() => {
     if (disabled) return;
     const rafId = window.requestAnimationFrame(() => map.invalidateSize());
 
-    if (focusUserLocation && isValidCoordinate(userLat, userLng)) {
+    if (focusUserLocation && isValidCoordinate(userLatRef.current, userLngRef.current)) {
       const prefersReducedMotion =
         typeof window !== 'undefined' &&
         typeof window.matchMedia === 'function' &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       map.setView(
-        [userLat, userLng],
+        [userLatRef.current, userLngRef.current],
         15,
         prefersReducedMotion ? { animate: false } : { animate: true, duration: 0.6 }
       );
       return () => window.cancelAnimationFrame(rafId);
     }
     if (items.length === 0) {
-      map.setView(getCenter(items, userLat, userLng), variant === 'full' ? 4 : 12);
+      map.setView(getCenter(items, userLatRef.current, userLngRef.current), variant === 'full' ? 4 : 12);
       return () => window.cancelAnimationFrame(rafId);
     }
     if (items.length === 1) {
@@ -108,7 +112,9 @@ const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, var
       hasFittedRef.current = true;
     }
     return () => window.cancelAnimationFrame(rafId);
-  }, [fitKey, disabled, focusUserLocation, items.length, map, userLat, userLng, variant]);
+    // NOTE: userLat/userLng intentionally excluded — we read latest via refs
+    // to avoid re-centering on every GPS watch update.
+  }, [fitKey, disabled, focusUserLocation, items.length, map, variant]);
 
   return null;
 });
