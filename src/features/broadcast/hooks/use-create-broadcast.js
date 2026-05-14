@@ -36,7 +36,6 @@ export function useCreateBroadcast() {
       if (throttleNow - lastRunRef.current < 10_000) {
         throw new Error('Please wait a moment before trying again.');
       }
-      lastRunRef.current = throttleNow;
 
       const { data: settings, error: settingsError } = await supabase
         .from('user_settings')
@@ -175,6 +174,7 @@ export function useCreateBroadcast() {
         throw error;
       }
 
+      lastRunRef.current = Date.now();
       return data;
     },
     onSuccess: (data) => {
