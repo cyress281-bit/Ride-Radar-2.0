@@ -172,7 +172,7 @@ function ProfilePage() {
             <HStack gap={2} className="w-full mt-1">
               <StatPill
                 icon={Radio}
-                label="Broadcasts"
+                label="Signals"
                 value={active.length}
                 isLoading={broadcastsLoading}
                 brand="green"
@@ -242,7 +242,7 @@ function ProfilePage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full grid grid-cols-3 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
           <TabsTrigger value="broadcasts" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-            <Radio className="w-3.5 h-3.5" /> Broadcasts
+            <Radio className="w-3.5 h-3.5" /> Signals
           </TabsTrigger>
           <TabsTrigger value="about" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
             <User className="w-3.5 h-3.5" /> About
@@ -255,10 +255,10 @@ function ProfilePage() {
         {/* Broadcasts Tab */}
         <TabsContent value="broadcasts" className="mt-4">
           {broadcastsLoading ? (
-            <LoadingState variant="section" message="Loading broadcasts..." />
+            <LoadingState variant="section" message="Loading signals..." />
           ) : broadcastsFailed ? (
             <ErrorState
-              title="Broadcasts unavailable"
+              title="Signals unavailable"
               message={broadcastsError?.message || 'Your profile is available, but active signals could not be loaded.'}
               onRetry={refetchBroadcasts}
             />

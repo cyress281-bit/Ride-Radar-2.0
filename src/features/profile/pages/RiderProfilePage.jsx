@@ -251,7 +251,7 @@ function RiderProfilePage() {
             {/* Stats Row — neon brand colors */}
             {canSeeDetails && (
               <HStack gap={2} className="w-full mt-1">
-                <StatPill icon={Radio} label="Broadcasts" value={activeBroadcasts.length} isLoading={isBroadcastsLoading} brand="green" />
+                <StatPill icon={Radio} label="Signals" value={activeBroadcasts.length} isLoading={isBroadcastsLoading} brand="green" />
                 <StatPill icon={Bike} label="Bike" value={bikeLabel || 'Not set'} brand="radar" />
                 <StatPill icon={ShieldCheck} label="Status" value={profile.is_public === false ? 'Private' : 'Public'} brand="amber" />
               </HStack>
@@ -325,7 +325,7 @@ function RiderProfilePage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full grid grid-cols-3 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
             <TabsTrigger value="broadcasts" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-              <Radio className="w-3.5 h-3.5" /> Broadcasts
+              <Radio className="w-3.5 h-3.5" /> Signals
             </TabsTrigger>
             <TabsTrigger value="about" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
               <User className="w-3.5 h-3.5" /> About
@@ -337,9 +337,9 @@ function RiderProfilePage() {
 
           <TabsContent value="broadcasts" className="mt-4">
             {isBroadcastsLoading ? (
-              <LoadingState variant="section" message="Loading broadcasts..." />
+              <LoadingState variant="section" message="Loading signals..." />
             ) : broadcastsError ? (
-              <ErrorState title="Broadcasts unavailable" onRetry={refetchBroadcasts} />
+              <ErrorState title="Signals unavailable" onRetry={refetchBroadcasts} />
             ) : activeBroadcasts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {activeBroadcasts.map((b) => (
