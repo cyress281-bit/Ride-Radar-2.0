@@ -47,11 +47,8 @@ const RadarOverlay = memo(function RadarOverlay({
         updates: { live_map_visible: turningOn },
       });
       if (turningOn) {
-        toast.success("You're live on the radar");
         setJustActivated(true);
         setTimeout(() => setJustActivated(false), 700);
-      } else {
-        toast('Ride signal ended');
       }
     } catch (err) {
       toast.error('Could not update live status', {
