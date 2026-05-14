@@ -11,6 +11,7 @@ import LiveMap from '@/features/map/components/LiveMap';
 import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
 import RadarOverlay from '@/features/broadcast/components/RadarOverlay';
 import RadarBottomSheet from '@/features/broadcast/components/RadarBottomSheet';
+import RadarTuneInCurtain from '@/features/broadcast/components/RadarTuneInCurtain';
 
 const RADAR_OFFLINE_SNAPSHOT_KEY = 'rr:radar-offline-snapshot';
 const RADAR_OFFLINE_SNAPSHOT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -76,6 +77,13 @@ function BroadcastFeedPage() {
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('rank');
   const [isPending, startTransition] = useTransition();
+  const [showCurtain, setShowCurtain] = useState(true);
+
+  // Phase 3: cold-start tune-in curtain. Stays opaque ~600ms, then fades.
+  useEffect(() => {
+    const timer = setTimeout(() => setShowCurtain(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const { blockedIds } = useBlockedIds();
 
@@ -90,9 +98,9 @@ function BroadcastFeedPage() {
   const sourceBroadcasts = usingOfflineSnapshot ? offlineSnapshot.broadcasts : nearbyBroadcasts;
   const isLoadingBroadcasts = hasUserLocation ? isLoadingNearby : false;
 
-  const { markers: riderMarkers } = useLiveMapPresence(
+  const { markers: riderMarkers, isLiveMapVisible } = useLiveMapPresence(
     { lat: userLoc.lat, lng: userLoc.lng, accuracyMeters: userLoc.accuracyMeters },
-    { autoPublish: false, source: 'radar' }
+    { autoPublish: true, source: 'radar' }
   );
 
   const visibleBroadcasts = useMemo(
@@ -159,6 +167,28 @@ function BroadcastFeedPage() {
 
   const activeCount = filteredBroadcasts.length;
 
+  // Phase 4: honest collapsed peek — uses unfiltered data so it never lies about what's nearby
+  const peekLabel = useMemo(() => {
+    const alerts = visibleBroadcasts.filter((b) => b.type === 'alert').length;
+    const help = visibleBroadcasts.filter(
+      (b) => b.type === 'iso' && ((b.isoSubtype || b.iso_subtype) === 'mechanic')
+    ).length;
+    const rides = visibleBroadcasts.filter(
+      (b) => b.type === 'solo_ride' || (b.type === 'iso' && ((b.isoSubtype || b.iso_subtype) === 'bike_crew'))
+    ).length;
+    const events = visibleBroadcasts.filter((b) => b.type === 'event').length;
+    const riders = visibleRiderMarkers.length;
+    const total = visibleBroadcasts.length;
+
+    if (alerts > 0) return alerts === 1 ? 'Warning nearby' : `${alerts} warnings nearby`;
+    if (help > 0) return help === 1 ? 'Help request nearby' : `${help} help requests nearby`;
+    if (rides > 0) return rides === 1 ? 'Ride forming nearby' : `${rides} rides nearby`;
+    if (events > 0) return 'Events nearby this week';
+    if (riders > 0) return riders === 1 ? '1 rider nearby' : `${riders} riders nearby`;
+    if (total > 0) return total === 1 ? '1 signal nearby' : `${total} signals nearby`;
+    return 'Radar is quiet nearby';
+  }, [visibleBroadcasts, visibleRiderMarkers]);
+
   return (
     <div className="fixed inset-0 bg-background">
       {/* Full-screen map */}
@@ -178,6 +208,7 @@ function BroadcastFeedPage() {
           showSelfLocation={hasUserLocation}
           offlineMode={usingOfflineSnapshot}
           offlineSnapshotAt={offlineSnapshot?.cachedAt}
+          isLiveMapVisible={isLiveMapVisible}
         />
       </div>
 
@@ -188,7 +219,10 @@ function BroadcastFeedPage() {
         requestLocation={requestLocation}
         locating={locating}
         geoError={geoError}
+        isLiveMapVisible={isLiveMapVisible}
       />
+
+      <RadarTuneInCurtain isVisible={showCurtain} />
 
       <RadarBottomSheet
         sheetOpen={sheetOpen}
@@ -209,6 +243,8 @@ function BroadcastFeedPage() {
         userLng={effectiveLoc.lng}
         isLoading={isLoadingBroadcasts}
         activeCount={activeCount}
+        peekLabel={peekLabel}
+        totalCount={visibleBroadcasts.length}
       />
     </div>
   );

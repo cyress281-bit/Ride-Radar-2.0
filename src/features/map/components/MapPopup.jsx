@@ -5,9 +5,9 @@ import { BROADCAST_META, formatDistance, haversineMiles, timeAgo, timeUntilExpir
 import { cn } from '@/lib/utils.js';
 
 const typeConfig = {
-  alert: { label: 'Alert', text: 'text-alert', leftStripe: 'bg-alert' },
+  alert: { label: 'Road Warning', text: 'text-alert', leftStripe: 'bg-alert' },
   solo_ride: { label: 'Rider', text: 'text-solo', leftStripe: 'bg-solo' },
-  iso: { label: 'ISO', text: 'text-iso', leftStripe: 'bg-iso' },
+  iso: { label: 'Help', text: 'text-iso', leftStripe: 'bg-iso' },
   event: { label: 'Event', text: 'text-event', leftStripe: 'bg-event' },
   rider_presence: { label: 'Rider', text: 'text-cyan', leftStripe: 'bg-cyan' },
 };
@@ -26,7 +26,7 @@ const MapPopup = memo(function MapPopup({ item, userLat, userLng }) {
   const distance = hasCoords ? formatDistance(haversineMiles(userLat, userLng, item.lat, item.lng)) : null;
   const signalAge = item.created_at ? timeAgo(item.created_at) : 'live';
   const isPresence = item.type === 'rider_presence';
-  const title = isPresence ? item.display_name || 'Live rider' : item.title || BROADCAST_META[item.type]?.label || 'Broadcast';
+  const title = isPresence ? item.display_name || 'Live rider' : item.title || BROADCAST_META[item.type]?.label || 'Signal';
   const detail = isPresence ? item.vehicle_label || null : item.exact_location_text || null;
   const riderPrecision = isPresence ? item.location_precision || 'approximate' : null;
 

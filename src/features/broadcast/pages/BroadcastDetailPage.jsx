@@ -82,7 +82,7 @@ function BroadcastDetailPage() {
   const handleShare = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast({ title: 'Link copied', description: 'Broadcast link copied to clipboard.' });
+      toast({ title: 'Link copied', description: 'Signal link copied to clipboard.' });
     } catch {
       toast({ title: 'Copy failed', description: 'Unable to copy link.', variant: 'destructive' });
     }
@@ -96,7 +96,7 @@ function BroadcastDetailPage() {
         </button>
         <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
-          <Text variant="bodySm" color="muted">Invalid broadcast link.</Text>
+          <Text variant="bodySm" color="muted">Invalid signal link.</Text>
         </div>
       </div>
     );
@@ -106,7 +106,7 @@ function BroadcastDetailPage() {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center text-sm text-muted-foreground">
         <RRLogo size="md" className="mb-4 animate-pulse" />
-        Loading broadcast…
+        Loading signal…
       </div>
     );
   }
@@ -119,7 +119,7 @@ function BroadcastDetailPage() {
         </button>
         <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
-          <Text variant="bodySm" color="muted">Unable to load this broadcast.</Text>
+          <Text variant="bodySm" color="muted">Unable to load this signal.</Text>
         </div>
       </div>
     );
@@ -133,7 +133,7 @@ function BroadcastDetailPage() {
         </button>
         <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
-          <Text variant="bodySm" color="muted">Broadcast not found.</Text>
+          <Text variant="bodySm" color="muted">Signal not found.</Text>
         </div>
       </div>
     );
@@ -169,7 +169,7 @@ function BroadcastDetailPage() {
         <button
           onClick={handleShare}
           className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
-          aria-label="Copy broadcast link"
+          aria-label="Copy signal link"
         >
           <Share2 className="w-4 h-4" /> Share
         </button>

@@ -2,7 +2,6 @@ import { memo, useMemo, useEffect } from 'react';
 import { SlidersHorizontal, ChevronUp, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import RRLogo from '@/components/RRLogo';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack } from '@/components/ui/primitives/Stack';
 import RadarBroadcastList from './RadarBroadcastList';
@@ -11,7 +10,7 @@ const FILTER_TYPES = [
   { id: 'all', label: 'All' },
   { id: 'alert', label: 'Alerts' },
   { id: 'solo_ride', label: 'Riders' },
-  { id: 'iso', label: 'ISO' },
+  { id: 'iso', label: 'Help' },
   { id: 'event', label: 'Events' },
 ];
 
@@ -21,13 +20,6 @@ const FILTER_STYLES = {
   solo_ride: { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'hover:bg-primary/10 hover:text-primary hover:border-primary/20' },
   iso:    { active: 'bg-cyan text-cyan-foreground shadow-[0_0_20px_hsl(var(--cyan)/0.3)]', inactive: 'hover:bg-cyan/10 hover:text-cyan hover:border-cyan/20' },
   event:  { active: 'bg-amber text-amber-foreground shadow-[0_0_20px_hsl(var(--amber)/0.3)]', inactive: 'hover:bg-amber/10 hover:text-amber hover:border-amber/20' },
-};
-
-const STORY_RING_STYLES = {
-  alert: 'from-destructive/70 to-destructive/20 shadow-[0_0_10px_hsl(var(--destructive)/0.3)]',
-  solo_ride: 'from-primary/70 to-primary/20 shadow-[0_0_10px_hsl(var(--primary)/0.3)]',
-  iso: 'from-cyan/70 to-cyan/20 shadow-[0_0_10px_hsl(var(--cyan)/0.3)]',
-  event: 'from-amber/70 to-amber/20 shadow-[0_0_10px_hsl(var(--amber)/0.3)]',
 };
 
 /**
@@ -55,6 +47,8 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
   isLoading,
   activeCount,
   isPending,
+  peekLabel,
+  totalCount,
 }) {
   // Close the sheet with Escape key when open
   useEffect(() => {
@@ -69,25 +63,24 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [sheetOpen, setSheetOpen]);
 
-  // Build unique author stories from broadcasts
-  const stories = useMemo(() => {
-    const seen = new Set();
-    const list = [];
-    for (const b of broadcasts) {
-      const author = getProfile(b.author_id);
-      if (!author || !author.avatar_url) continue;
-      if (seen.has(b.author_id)) continue;
-      seen.add(b.author_id);
-      list.push({
-        id: b.author_id,
-        name: author.display_name || 'Rider',
-        avatar: author.avatar_url,
-        type: b.type,
-      });
-      if (list.length >= 10) break;
-    }
-    return list;
-  }, [broadcasts, getProfile]);
+  // Phase 4: honest category summary for expanded state
+  const categorySummary = useMemo(() => {
+    if (!sheetOpen || totalCount === 0) return null;
+    const alerts = broadcasts.filter((b) => b.type === 'alert').length;
+    const rides = broadcasts.filter((b) => b.type === 'solo_ride').length;
+    const iso = broadcasts.filter((b) => b.type === 'iso').length;
+    const events = broadcasts.filter((b) => b.type === 'event').length;
+    const parts = [];
+    if (alerts === 1) parts.push('1 warning');
+    else if (alerts > 1) parts.push(`${alerts} warnings`);
+    if (rides === 1) parts.push('1 ride');
+    else if (rides > 1) parts.push(`${rides} rides`);
+    if (iso === 1) parts.push('1 help request');
+    else if (iso > 1) parts.push(`${iso} help requests`);
+    if (events === 1) parts.push('1 event');
+    else if (events > 1) parts.push(`${events} events`);
+    return parts.length > 0 ? parts.join(', ') + ' nearby' : null;
+  }, [broadcasts, sheetOpen, totalCount]);
 
   return (
     <div
@@ -111,9 +104,9 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
       >
         <span className="h-1 w-10 rounded-full bg-white/20" />
         <HStack gap={2} align="center" className="mt-2">
-          <Radio className="w-3 h-3 text-primary animate-glow-pulse" />
+          <Radio className="w-3 h-3 text-primary" />
           <Text variant="micro" className="text-foreground font-semibold">
-            {activeCount} {activeCount === 1 ? 'signal' : 'signals'} nearby
+            {peekLabel}
           </Text>
           <ChevronUp
             className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform', sheetOpen && 'rotate-180')}
@@ -137,34 +130,12 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
           sheetOpen ? 'max-h-[55vh]' : 'max-h-0'
         )}
       >
-        {/* Stories / Highlights */}
-        {stories.length > 0 && (
-          <div className="mb-4 -mx-4 px-4">
-            <HStack gap={2} align="center" className="mb-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse-green" />
-              <Text variant="micro" color="muted" className="font-semibold uppercase tracking-wider">Active riders</Text>
-            </HStack>
-            <div className="flex gap-3 overflow-x-auto scroll-hide pb-1">
-              {stories.map((story) => (
-                <button
-                  key={story.id}
-                  className="shrink-0 flex flex-col items-center gap-1.5 active:scale-[0.96] transition-transform"
-                >
-                  <div className={cn(
-                    'relative p-[2.5px] rounded-full bg-gradient-to-br',
-                    STORY_RING_STYLES[story.type] || STORY_RING_STYLES.solo_ride
-                  )}>
-                    <Avatar className="h-12 w-12 border-2 border-background">
-                      <AvatarImage src={story.avatar} alt={story.name} />
-                      <AvatarFallback>{story.name[0]}</AvatarFallback>
-                    </Avatar>
-                  </div>
-                  <Text variant="caption" color="muted" className="max-w-[64px] truncate font-medium">
-                    {story.name}
-                  </Text>
-                </button>
-              ))}
-            </div>
+        {/* Expanded category summary */}
+        {sheetOpen && categorySummary && (
+          <div className="px-4 pt-2 pb-1">
+            <Text variant="micro" color="muted" className="font-medium">
+              {categorySummary}
+            </Text>
           </div>
         )}
 
@@ -211,6 +182,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
           userLng={userLng}
           isLoading={isLoading}
           scrollElementRef={sheetContentRef}
+          filter={filter}
         />
       </div>
     </div>

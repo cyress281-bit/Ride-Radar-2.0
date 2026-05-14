@@ -9,10 +9,10 @@ const TYPE_MAP = {
 };
 
 const DEFAULT_LABELS = {
-  alert: 'Alert',
-  solo_ride: 'Solo Ride',
-  iso: 'ISO',
-  event: 'Event',
+  alert: 'Road Warning',
+  solo_ride: 'Ride Now',
+  iso: 'Need Help',
+  event: 'Plan a Meetup',
 };
 
 /**
@@ -25,7 +25,7 @@ const DEFAULT_LABELS = {
  */
 export const Badge = memo(function Badge({ type, label, className }) {
   const config = TYPE_MAP[type] || TYPE_MAP.solo_ride;
-  const displayLabel = label || DEFAULT_LABELS[type] || 'Broadcast';
+  const displayLabel = label || DEFAULT_LABELS[type] || 'Signal';
 
   return (
     <span

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { useUnreadCount } from '@/features/notifications/hooks/use-notifications';
+import { useSupabaseConnection } from '@/hooks/use-supabase-connection.js';
 import RRLogo from '@/components/RRLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Text } from '@/components/ui/primitives/Text';
@@ -17,7 +18,7 @@ const ROUTE_TITLES = {
   '/admin': 'Admin',
   '/settings': 'Settings',
   '/messages': 'Messages',
-  '/broadcast': 'Broadcast',
+  '/broadcast': 'Send a Signal',
 };
 
 function getPageTitle(pathname) {
@@ -87,6 +88,13 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const pageTitle = getPageTitle(pathname);
   const isBeta = import.meta.env.VITE_BETA_MODE === 'true';
 
+  // Realtime connection status drives the LIVE chip color on the radar.
+  // - 'subscribed'  → connected     → primary green
+  // - 'unknown'     → initializing  → muted neutral (avoids red flash on cold open)
+  // - anything else → disconnected  → emergency red
+  const { status: connectionStatus, isConnected } = useSupabaseConnection();
+  const isConnectionPending = connectionStatus === 'unknown';
+
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -152,10 +160,30 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
         {/* Center: Page context */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none">
           {isRadar ? (
-            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-emergency">
+            <span
+              className={cn(
+                'flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em]',
+                isConnected
+                  ? 'text-primary'
+                  : isConnectionPending
+                    ? 'text-muted-foreground'
+                    : 'text-brand-emergency'
+              )}
+            >
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-emergency opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-emergency" />
+                {isConnected ? (
+                  <>
+                    <span className="animate-pulse-green absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
+                  </>
+                ) : isConnectionPending ? (
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-muted-foreground/60" />
+                ) : (
+                  <>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-emergency opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-emergency" />
+                  </>
+                )}
               </span>
               LIVE
             </span>

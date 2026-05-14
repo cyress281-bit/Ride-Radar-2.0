@@ -1,7 +1,10 @@
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Crosshair, Plus, Navigation } from 'lucide-react';
+import { Crosshair, Plus, Navigation, Radio, Square } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
+import { toast } from 'sonner';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
+import { useUpdateSettings } from '@/features/settings/hooks/use-settings.js';
 
 /**
  * Floating UI overlays for the radar view:
@@ -16,10 +19,61 @@ const RadarOverlay = memo(function RadarOverlay({
   requestLocation,
   locating,
   geoError,
+  isLiveMapVisible,
 }) {
   const navigate = useNavigate();
+  const { user } = useAuthState();
+  const updateSettings = useUpdateSettings();
+  const [justActivated, setJustActivated] = useState(false);
 
   const handleCreateBroadcast = useCallback(() => navigate('/broadcast'), [navigate]);
+
+  // Phase 3: track lock motion + user-initiated haptic on first fix.
+  const [justLocked, setJustLocked] = useState(false);
+  const prevLocatingRef = useRef(locating);
+  const hasInitiatedRequestRef = useRef(false);
+
+  const handleRequestLocation = useCallback(() => {
+    hasInitiatedRequestRef.current = true;
+    requestLocation?.();
+  }, [requestLocation]);
+
+  const handleToggleLive = useCallback(async () => {
+    if (!user?.id || updateSettings.isPending) return;
+    try {
+      const turningOn = !isLiveMapVisible;
+      await updateSettings.mutateAsync({
+        userId: user.id,
+        updates: { live_map_visible: turningOn },
+      });
+      if (turningOn) {
+        toast.success("You're live on the radar");
+        setJustActivated(true);
+        setTimeout(() => setJustActivated(false), 700);
+      } else {
+        toast('Ride signal ended');
+      }
+    } catch (err) {
+      toast.error('Could not update live status', {
+        description: err?.message || 'Please try again',
+      });
+    }
+  }, [user?.id, isLiveMapVisible, updateSettings]);
+
+  useEffect(() => {
+    const wasLocating = prevLocatingRef.current;
+    prevLocatingRef.current = locating;
+    if (wasLocating && !locating && hasUserLocation && !geoError) {
+      setJustLocked(true);
+      if (hasInitiatedRequestRef.current) {
+        hasInitiatedRequestRef.current = false;
+        try { navigator.vibrate?.(15); } catch {}
+      }
+      const timer = setTimeout(() => setJustLocked(false), 700);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [locating, hasUserLocation, geoError]);
 
   return (
     <>
@@ -45,22 +99,52 @@ const RadarOverlay = memo(function RadarOverlay({
 
       {/* Floating action buttons */}
       <div className="absolute bottom-44 right-4 z-[30] flex flex-col gap-3">
+        {/* Ride Now toggle */}
+        <button
+          onClick={handleToggleLive}
+          disabled={updateSettings.isPending}
+          className={cn(
+            'rr-haptic flex h-11 items-center gap-2 rounded-full backdrop-blur-xl border transition-all active:scale-90 px-4',
+            isLiveMapVisible
+              ? 'bg-primary text-primary-foreground border-primary shadow-[0_0_20px_hsl(var(--primary)/0.4)]'
+              : 'bg-surface/80 text-primary border-primary/30 shadow-[0_0_20px_hsl(var(--primary)/0.3)]',
+            justActivated && 'rr-lock'
+          )}
+          aria-label={isLiveMapVisible ? 'LIVE — Tap to Stop' : 'Ride Now'}
+        >
+          {updateSettings.isPending ? (
+            <Navigation className="h-4 w-4 animate-spin" />
+          ) : isLiveMapVisible ? (
+            <Square className="h-4 w-4" />
+          ) : (
+            <Radio className="h-4 w-4" />
+          )}
+          <span className="text-xs font-bold">
+            {updateSettings.isPending
+              ? 'Updating…'
+              : isLiveMapVisible
+                ? 'LIVE — Tap to Stop'
+                : 'Ride Now'}
+          </span>
+        </button>
+
         <button
           onClick={handleCreateBroadcast}
           className="rr-haptic flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-xl bg-surface/80 border border-white/[0.06] text-primary shadow-[0_0_20px_hsl(var(--primary)/0.3)] rr-shadow-lg transition-transform active:scale-90"
-          aria-label="Create broadcast"
+          aria-label="Send a Signal"
         >
           <Plus className="h-5 w-5" />
         </button>
 
         <button
-          onClick={requestLocation}
+          onClick={handleRequestLocation}
           disabled={locating}
           className={cn(
             'rr-haptic flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-xl border transition-all active:scale-90',
             hasUserLocation
               ? 'bg-surface/80 border-white/[0.06] text-primary shadow-[0_0_20px_hsl(var(--primary)/0.3)]'
-              : 'bg-surface/80 border-primary/30 text-primary shadow-[0_0_20px_hsl(var(--primary)/0.3)]'
+              : 'bg-surface/80 border-primary/30 text-primary shadow-[0_0_20px_hsl(var(--primary)/0.3)]',
+            justLocked && 'rr-lock'
           )}
           aria-label={hasUserLocation ? 'Center on my location' : 'Enable location'}
         >

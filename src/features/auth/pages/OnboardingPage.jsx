@@ -305,7 +305,7 @@ export default function OnboardingPage() {
     },
     {
       id: 'bike',
-      label: 'Machine',
+      label: 'Bike',
       icon: Bike,
       done: !!(watchBikeMake && form.watch('bike_model')),
     },
@@ -602,7 +602,7 @@ export default function OnboardingPage() {
                     <FormMessage />
                     {watchBikeMake && field.value && (
                       <div className="mt-2 flex items-center gap-1 text-[11px] font-bold text-primary">
-                        <Check className="w-3 h-3" /> Machine registered
+                        <Check className="w-3 h-3" /> Bike registered
                       </div>
                     )}
                   </FormItem>

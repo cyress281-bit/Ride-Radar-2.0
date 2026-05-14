@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils.js';
 const FEATURES = [
   {
     type: 'solo_ride',
-    label: 'Solo Ride',
+    label: 'Ride Now',
     desc: 'Open ride signal — let others know you\'re out there',
     brand: 'kawasaki',
     color: 'text-brand-kawasaki',
@@ -28,7 +28,7 @@ const FEATURES = [
   },
   {
     type: 'iso',
-    label: 'In Search Of',
+    label: 'Need Help',
     desc: 'Need a wrench or looking for a crew?',
     brand: 'yamaha',
     color: 'text-brand-yamaha',

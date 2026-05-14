@@ -646,8 +646,9 @@
     border-radius: inherit;
     border: 1px solid currentColor;
     opacity: 0.34;
-    animation: rr-map-ping 2.4s ease-out infinite;
-    will-change: transform, opacity;
+    /* Phase 1: infinite rr-map-ping animation removed.
+       Static ring retained for shape; one-shot arrival pulse will be
+       reintroduced in a later phase via opt-in class on fresh markers. */
   }
 
   .rr-map-marker span {
@@ -708,6 +709,103 @@
 }
 
 /* ------------------------------------------------------------------
+   7b. RADAR MOTION SYSTEM (Phase 2 foundation — define only, apply later)
+   ------------------------------------------------------------------ *
+ * Restrained, named one-shot motions for the Living Radar Experience.
+ *
+ * Rules of use (enforced by review, not by code):
+ *   - These classes are NOT applied to any component in Phase 2.
+ *   - Each motion is event-driven and one-shot, with one exception:
+ *     `.rr-breathe` is permitted to loop, but ONLY on the self-marker.
+ *   - Reuse the duration tokens via var(--rr-pulse-*); do not hard-code.
+ *   - Reduced-motion fallbacks live in section 8 and must stay in sync.
+ */
+
+:root {
+  --rr-pulse-fast: 600ms;
+  --rr-pulse-base: 1.8s;
+  --rr-pulse-slow: 4s;
+  --rr-ease-cockpit: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* rr-tune-in — one-shot radar wake-up sweep on app open.
+   Apply to a transparent decorative overlay (not the map itself). */
+.rr-tune-in {
+  animation: rr-tune-in 1.4s var(--rr-ease-cockpit) 1 both;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+@keyframes rr-tune-in {
+  0%   { transform: scale(0.6); opacity: 0; }
+  40%  { opacity: 0.5; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* rr-lock — one-shot geolocation lock confirmation.
+   Apply to the self-marker or the locate button when a fix is acquired. */
+.rr-lock {
+  animation: rr-lock 700ms var(--rr-ease-cockpit) 1 both;
+  will-change: transform, box-shadow;
+}
+@keyframes rr-lock {
+  0%   { transform: scale(0.94); box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+  35%  { transform: scale(1.04); box-shadow: 0 0 0 6px hsl(var(--primary) / 0.45); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+}
+
+/* rr-arrive — one-shot new-signal/marker arrival cue.
+   Apply for ~1.2s to markers detected as freshly delivered, then remove. */
+.rr-arrive {
+  animation: rr-arrive 1.2s var(--rr-ease-cockpit) 1 both;
+  will-change: transform, box-shadow;
+}
+@keyframes rr-arrive {
+  0%   { transform: scale(0.85); box-shadow: 0 0 0 0 hsl(var(--primary) / 0.55); }
+  45%  { transform: scale(1.05); box-shadow: 0 0 0 10px hsl(var(--primary) / 0.25); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
+}
+
+/* rr-breathe — idle loop. Apply ONLY to the self-marker.
+   Low-amplitude opacity oscillation; no transforms, no halo. */
+.rr-breathe {
+  animation: rr-breathe var(--rr-pulse-slow) ease-in-out infinite;
+  will-change: opacity;
+}
+@keyframes rr-breathe {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 1; }
+}
+
+/* rr-ekg — one-shot horizontal heartbeat sweep.
+   Future use: fire on the radar's bottom edge when a real signal arrives.
+   The element using this class becomes the track; the ::after is the pulse. */
+.rr-ekg {
+  position: relative;
+  overflow: hidden;
+}
+.rr-ekg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--primary) / 0.6) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: rr-ekg 2s var(--rr-ease-cockpit) 1 both;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+@keyframes rr-ekg {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateX(100%);  opacity: 0; }
+}
+
+/* ------------------------------------------------------------------
    8. REDUCED MOTION
    ------------------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
@@ -732,8 +830,25 @@
   .rr-shimmer-button::before,
   .rr-map-marker::before,
   .rr-premium-input:focus,
-  .rr-premium-input:focus-visible {
+  .rr-premium-input:focus-visible,
+  /* Phase 2 — Radar Motion System neutralization */
+  .rr-tune-in,
+  .rr-lock,
+  .rr-arrive,
+  .rr-ekg::after {
     animation: none !important;
+  }
+
+  /* rr-breathe keeps the self-marker visible without the opacity loop */
+  .rr-breathe {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  /* rr-ekg sweep is hidden under reduced-motion (track stays present) */
+  .rr-ekg::after {
+    opacity: 0 !important;
+    transform: none !important;
   }
 }
 

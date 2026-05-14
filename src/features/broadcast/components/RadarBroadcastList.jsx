@@ -1,4 +1,5 @@
 import { memo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { RideCard } from '@/components/shared/RideCard';
 import VirtualList from '@/components/shared/VirtualList';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
@@ -18,6 +19,7 @@ import { Radio } from 'lucide-react';
  * @param {number} props.userLng
  * @param {boolean} props.isLoading
  * @param {React.RefObject<HTMLDivElement>} props.scrollElementRef — external scroll container
+ * @param {string} props.filter
  */
 const RadarBroadcastList = memo(function RadarBroadcastList({
   broadcasts,
@@ -26,7 +28,9 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
   userLng,
   isLoading,
   scrollElementRef,
+  filter = 'all',
 }) {
+  const navigate = useNavigate();
   const renderItem = useCallback(
     (broadcast, _index) => {
       return (
@@ -57,11 +61,40 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
   }
 
   if (broadcasts.length === 0 && !isLoading) {
+    const emptyStates = {
+      all: {
+        title: 'Radar is quiet nearby.',
+        description: "You'll see nearby rides, events, help requests, and warnings here.",
+        action: { label: 'Start a signal', onClick: () => navigate('/broadcast') },
+      },
+      alert: {
+        title: 'No warnings nearby.',
+        description: 'Roads are clear. Ride safe.',
+      },
+      solo_ride: {
+        title: 'No riders nearby right now.',
+        description: "Start a ride signal when you're out.",
+        action: { label: 'Ride Now', onClick: () => navigate('/broadcast') },
+      },
+      iso: {
+        title: 'No help requests nearby.',
+        description: 'Find crew or mechanical support when you need it.',
+        action: { label: 'Request Help', onClick: () => navigate('/broadcast') },
+      },
+      event: {
+        title: 'No events nearby this week.',
+        description: 'Plan a meetup, bike night, or group ride.',
+        action: { label: 'Plan a Meetup', onClick: () => navigate('/broadcast') },
+      },
+    };
+    const emptyConfig = emptyStates[filter] || emptyStates.all;
+
     return (
       <EmptyState
         icon={Radio}
-        title="No signals in this area"
-        description="Tap the + button to create one."
+        title={emptyConfig.title}
+        description={emptyConfig.description}
+        action={emptyConfig.action}
         className="mt-4"
       />
     );

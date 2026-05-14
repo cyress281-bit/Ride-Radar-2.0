@@ -172,14 +172,14 @@ function ProfilePage() {
             <HStack gap={2} className="w-full mt-1">
               <StatPill
                 icon={Radio}
-                label="Broadcasts"
+                label="Signals"
                 value={active.length}
                 isLoading={broadcastsLoading}
                 brand="green"
               />
               <StatPill
                 icon={Users}
-                label="Pack"
+                label="Crew"
                 value={connectionsCount}
                 isLoading={connectionsLoading}
                 brand="radar"
@@ -242,30 +242,30 @@ function ProfilePage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full grid grid-cols-3 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
           <TabsTrigger value="broadcasts" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-            <Radio className="w-3.5 h-3.5" /> Broadcasts
+            <Radio className="w-3.5 h-3.5" /> Signals
           </TabsTrigger>
           <TabsTrigger value="about" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
             <User className="w-3.5 h-3.5" /> About
           </TabsTrigger>
           <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-            <Grid3X3 className="w-3.5 h-3.5" /> Media
+            <Grid3X3 className="w-3.5 h-3.5" /> Photos
           </TabsTrigger>
         </TabsList>
 
         {/* Broadcasts Tab */}
         <TabsContent value="broadcasts" className="mt-4">
           {broadcastsLoading ? (
-            <LoadingState variant="section" message="Loading broadcasts..." />
+            <LoadingState variant="section" message="Loading signals..." />
           ) : broadcastsFailed ? (
             <ErrorState
-              title="Broadcasts unavailable"
-              message={broadcastsError?.message || 'Your profile is available, but active broadcasts could not be loaded.'}
+              title="Signals unavailable"
+              message={broadcastsError?.message || 'Your profile is available, but active signals could not be loaded.'}
               onRetry={refetchBroadcasts}
             />
           ) : active.length === 0 ? (
             <EmptyState
               icon={Radio}
-              title="No active broadcasts"
+              title="No active signals"
               description="Your active ride signals will appear here."
             />
           ) : (
@@ -287,7 +287,7 @@ function ProfilePage() {
                     <Bike className="h-5 w-5 text-primary" />
                   </div>
                   <VStack gap={0.5}>
-                    <Text variant="micro" className="text-primary font-bold uppercase tracking-wider">Machine</Text>
+                    <Text variant="micro" className="text-primary font-bold uppercase tracking-wider">Bike</Text>
                     <Text variant="bodySm" className="font-semibold">{bikeLabel}</Text>
                   </VStack>
                 </HStack>
@@ -325,7 +325,7 @@ function ProfilePage() {
             {!bikeLabel && !displayProfile?.location && !joinDate && (
               <EmptyState
                 icon={User}
-                title="About section empty"
+                title="About you"
                 description="Edit your profile to add bike info, location, and more."
                 action={{ label: 'Edit Profile', onClick: () => setEditing(true) }}
               />
@@ -356,7 +356,7 @@ function ProfilePage() {
           ) : (
             <EmptyState
               icon={Grid3X3}
-              title="No media yet"
+              title="No photos yet"
               description="Upload a bike photo to see it here."
               action={{ label: 'Add Photo', onClick: () => setEditing(true) }}
             />

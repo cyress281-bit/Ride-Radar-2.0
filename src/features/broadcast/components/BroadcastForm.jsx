@@ -20,10 +20,10 @@ import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 
 const TYPES = [
-  { id: 'solo_ride', label: 'Solo Ride', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
-  { id: 'iso', label: 'In Search Of', desc: 'Find wrench help or a bike crew', icon: Search, color: 'iso' },
-  { id: 'event', label: 'Event', desc: 'Stage a meetup or group ride', icon: CalendarClock, color: 'event' },
-  { id: 'alert', label: 'Alert', desc: 'Road hazard, one-way broadcast', icon: ShieldAlert, color: 'alert' },
+  { id: 'solo_ride', label: 'Ride Now', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
+  { id: 'iso', label: 'Need Help', desc: 'Find wrench help or a bike crew', icon: Search, color: 'iso' },
+  { id: 'event', label: 'Plan a Meetup', desc: 'Stage a meetup or group ride', icon: CalendarClock, color: 'event' },
+  { id: 'alert', label: 'Road Warning', desc: 'Road hazard, one-way broadcast', icon: ShieldAlert, color: 'alert' },
 ];
 
 const TYPE_STYLE_MAP = {
@@ -201,8 +201,11 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     post.mutate(payload, {
       onSuccess: () => {
         toast({
-          title: `${typeMeta.label} broadcasted`,
-          description: 'Your signal is now live on the radar.',
+          title: type === 'solo_ride' ? 'Ride signal sent' :
+                 type === 'event' ? 'Meetup created' :
+                 type === 'iso' ? 'Help request sent' :
+                 'Warning sent',
+          description: 'Riders nearby can see it.',
         });
         reset();
         setEventImage(null);
@@ -224,22 +227,25 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
   return (
     <div className="px-5 pt-5 pb-8 pb-safe bg-background scroll-smooth">
-      <button onClick={onBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> All types
+      <button onClick={onBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 min-h-[44px] px-1 transition-colors">
+        <ArrowLeft className="w-4 h-4" /> Send a signal
       </button>
 
       {/* Type header */}
-      <HStack gap={4} align="center" className="mb-5 rr-surface-strong p-5 rounded-[20px] relative overflow-hidden border-l-[3px] border-l-primary/40">
-        <div className={cn('absolute top-0 right-0 w-40 h-40 opacity-[0.07] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2', typeStyles.glow)} />
-        <div className={cn('absolute -left-8 -bottom-8 h-24 w-24 rounded-full opacity-[0.04] blur-2xl', typeStyles.glow)} />
-        <div className={cn('h-14 w-14 rounded-2xl flex items-center justify-center border shrink-0 relative z-10', typeStyles.border, typeStyles.bg)}>
-          <SignalIcon type={type} size="lg" />
+      <HStack gap={3} align="center" className="mb-2">
+        <div className={cn('h-11 w-11 rounded-xl flex items-center justify-center border shrink-0', typeStyles.border, typeStyles.bg)}>
+          <SignalIcon type={type} size="md" />
         </div>
-        <VStack gap={0.5} className="relative z-10">
-          <Text as="h1" variant="h2" className={cn('rr-heading', typeStyles.text)}>{typeMeta.label}</Text>
-          <Text variant="caption" color="muted" className="font-medium mt-0.5">{typeMeta.desc}</Text>
+        <VStack gap={0.5}>
+          <Text as="h1" variant="h2" className={cn('rr-heading text-lg', typeStyles.text)}>{typeMeta.label}</Text>
         </VStack>
       </HStack>
+      <Text variant="bodySm" color="muted" className="mb-6">
+        {type === 'solo_ride' && "Let nearby riders know you're out."}
+        {type === 'event' && 'Plan a meetup, bike night, or group ride.'}
+        {type === 'iso' && 'Ask nearby riders for help, crew, or mechanical support.'}
+        {type === 'alert' && 'Warn nearby riders about a road issue or hazard.'}
+      </Text>
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rr-surface p-5 relative overflow-hidden">
@@ -248,7 +254,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {/* ISO subtype selector */}
         {type === 'iso' && (
           <VStack gap={2}>
-            <Label htmlFor="isoSubtype" className="rr-kicker text-muted-foreground mb-1 block">Looking for</Label>
+            <Label htmlFor="isoSubtype" className="rr-kicker text-muted-foreground mb-1 block">What do you need?</Label>
             <div id="isoSubtype" role="radiogroup" aria-label="Looking for" className="grid grid-cols-2 gap-2">
               {[
                 { value: 'mechanic', label: 'Mechanic', icon: ShieldAlert },
@@ -288,7 +294,12 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           </VStack>
         ) : (
           <VStack gap={2}>
-            <Label htmlFor="title" className="rr-kicker text-muted-foreground mb-1 block">Title *</Label>
+            <Label htmlFor="title" className="rr-kicker text-muted-foreground mb-1 block">
+              {type === 'alert' ? 'What should riders know?' :
+               type === 'event' ? "What's the meetup?" :
+               type === 'iso' ? 'What do you need fixed?' :
+               'Where are you riding?'}
+            </Label>
             <Input
               id="title"
               {...register('title')}
@@ -298,8 +309,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                   : type === 'event'
                     ? 'Sunday canyon run'
                     : type === 'iso'
-                      ? 'Need a mechanic tonight'
-                      : "Who's rolling tonight?"
+                      ? 'Brake pad replacement'
+                      : 'Evening cruise, west side loop, or bike night'
               }
               className="rr-premium-input rounded-xl mt-1.5"
               maxLength={120}
@@ -313,16 +324,26 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
         {/* Details */}
         <VStack gap={2}>
-          <Label htmlFor="details" className="rr-kicker text-muted-foreground mb-1 block">Details</Label>
+          <Label htmlFor="details" className="rr-kicker text-muted-foreground mb-1 block">
+            {type === 'solo_ride' ? 'Route, pace, or notes' :
+             type === 'event' ? 'More info (optional)' :
+             type === 'iso' && isoSubtype === 'mechanic' ? 'Bike model, symptoms, tools' :
+             type === 'iso' && isoSubtype === 'bike_crew' ? 'Riding style, pace, or timing' :
+             'More details (optional)'}
+          </Label>
           <Textarea
             id="details"
             {...register('body')}
             placeholder={
               type === 'iso' && isoSubtype === 'mechanic'
-                ? 'Describe what is happening with your bike...'
+                ? '2019 Street Triple, front brake squeal...'
                 : type === 'iso' && isoSubtype === 'bike_crew'
-                  ? 'Add your area, riding style, pace, or timing...'
-                  : 'Add context...'
+                  ? 'Sport touring, all welcome'
+                  : type === 'solo_ride'
+                    ? 'Cruising pace, no drop, open to nearby riders'
+                    : type === 'event'
+                      ? 'Meet at the lot, roll at 9'
+                      : 'Gravel across both lanes'
             }
             className="rr-premium-input rounded-xl mt-1.5"
             rows={4}
@@ -337,7 +358,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {type === 'event' && (
           <VStack gap={5}>
             <VStack gap={2}>
-              <Label htmlFor="location" className="rr-kicker text-muted-foreground mb-1 block">Location *</Label>
+              <Label htmlFor="location" className="rr-kicker text-muted-foreground mb-1 block">Where is it?</Label>
               <Input
                 id="location"
                 {...register('exactLocationText')}
@@ -348,12 +369,12 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             </VStack>
             <div className="grid grid-cols-2 gap-3">
               <VStack gap={2}>
-                <Label htmlFor="start" className="rr-kicker text-muted-foreground mb-1 block">Start *</Label>
+                <Label htmlFor="start" className="rr-kicker text-muted-foreground mb-1 block">Starts</Label>
                 <Input id="start" type="datetime-local" {...register('eventDate')} className="rr-premium-input rounded-xl mt-1.5" />
                 {errors.eventDate && <p className="mt-1 text-xs text-destructive">{errors.eventDate.message}</p>}
               </VStack>
               <VStack gap={2}>
-                <Label htmlFor="end" className="rr-kicker text-muted-foreground mb-1 block">End *</Label>
+                <Label htmlFor="end" className="rr-kicker text-muted-foreground mb-1 block">Ends</Label>
                 <Input id="end" type="datetime-local" {...register('eventEndTime')} className="rr-premium-input rounded-xl mt-1.5" />
                 {errors.eventEndTime && <p className="mt-1 text-xs text-destructive">{errors.eventEndTime.message}</p>}
               </VStack>
@@ -404,7 +425,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {type === 'alert' && (
           <VStack gap={5}>
             <VStack gap={2}>
-              <Label htmlFor="approximateArea" className="rr-kicker text-muted-foreground mb-1 block">Approximate area *</Label>
+              <Label htmlFor="approximateArea" className="rr-kicker text-muted-foreground mb-1 block">Where is the hazard?</Label>
               <Input
                 id="approximateArea"
                 {...register('exactLocationText')}
@@ -412,7 +433,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 className="rr-premium-input rounded-xl mt-1.5"
               />
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
-              <Text variant="caption" color="muted" className="mt-1.5">Describe the area. No exact pin is shared.</Text>
+              <Text variant="caption" color="muted" className="mt-1.5">Describe the area. Your exact location stays private.</Text>
             </VStack>
             <AlertPhotoUploader images={alertImages} onChange={setAlertImages} />
           </VStack>
@@ -422,19 +443,19 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {(type === 'solo_ride' || type === 'iso') && (
           <div className="p-3 bg-primary/5 rounded-xl text-xs text-primary border border-primary/15 flex items-start gap-2">
             <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>Your location will be fuzzed and frozen at post time. No live tracking.</span>
+            <span>Your location is approximated (~1 mile) and frozen when you send. No live tracking.</span>
           </div>
         )}
 
         {/* Errors */}
         {post.isError && (
           <p role="alert" className="text-sm text-destructive">
-            {post.error?.message || 'Failed to create broadcast'}
+            {post.error?.message || 'Could not send signal. Try again.'}
           </p>
         )}
         {geoError && (
           <p role="alert" className="text-sm text-destructive">
-            Location access is required for this signal type. Enable location or try again.
+            Location is needed for this signal. Enable location and try again.
           </p>
         )}
 
@@ -453,7 +474,17 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                   : 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
           )}
         >
-          {post.isPending ? 'Broadcasting...' : `Publish ${typeMeta.label}`}
+          {post.isPending
+            ? 'Sending...'
+            : type === 'solo_ride'
+              ? 'Send Ride Signal'
+              : type === 'event'
+                ? 'Create Meetup'
+                : type === 'iso' && isoSubtype === 'mechanic'
+                  ? 'Request Help'
+                  : type === 'iso' && isoSubtype === 'bike_crew'
+                    ? 'Send Crew Request'
+                    : 'Send Warning'}
         </Button>
       </form>
     </div>

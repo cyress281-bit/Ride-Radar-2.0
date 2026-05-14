@@ -4,6 +4,7 @@ import { divIcon } from 'leaflet';
 const markerIconCache = new Map();
 const riderMarkerIconCache = new Map();
 let selfMarkerIcon = null;
+let selfMarkerIconLive = null;
 
 const markerClassMap = {
   alert: 'rr-map-marker-alert',
@@ -79,6 +80,19 @@ export function getSelfMarkerIcon() {
     });
   }
   return selfMarkerIcon;
+}
+
+export function getSelfMarkerIconLive() {
+  if (!selfMarkerIconLive) {
+    selfMarkerIconLive = divIcon({
+      className: 'rr-map-marker-wrapper',
+      html: '<span class="rr-map-marker rr-map-marker-self rr-breathe" aria-hidden="true"><span></span></span>',
+      iconSize: [42, 42],
+      iconAnchor: [21, 21],
+      popupAnchor: [0, -22],
+    });
+  }
+  return selfMarkerIconLive;
 }
 
 /**

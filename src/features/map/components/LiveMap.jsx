@@ -14,7 +14,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
-import { getMarkerIcon, getRiderMarkerIcon, getSelfMarkerIcon } from './MapMarker';
+import { getMarkerIcon, getRiderMarkerIcon, getSelfMarkerIcon, getSelfMarkerIconLive } from './MapMarker';
 import MapPopup from './MapPopup';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils.js';
@@ -25,9 +25,9 @@ const US_CENTER = [39.8283, -98.5795];
 const DARK_TILE_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 
 const typeConfig = {
-  alert: { label: 'Alert', Icon: ShieldAlert, text: 'text-alert', border: 'border-alert/45', bg: 'bg-alert/10', leftStripe: 'bg-alert', glow: 'shadow-[0_0_20px_hsl(var(--alert)/0.35)]' },
+  alert: { label: 'Road Warning', Icon: ShieldAlert, text: 'text-alert', border: 'border-alert/45', bg: 'bg-alert/10', leftStripe: 'bg-alert', glow: 'shadow-[0_0_20px_hsl(var(--alert)/0.35)]' },
   solo_ride: { label: 'Rider', Icon: OfficialMotorcycleIcon, text: 'text-solo', border: 'border-solo/45', bg: 'bg-solo/10', leftStripe: 'bg-solo', glow: 'shadow-[0_0_20px_hsl(var(--solo)/0.3)]' },
-  iso: { label: 'ISO', Icon: Search, text: 'text-iso', border: 'border-iso/45', bg: 'bg-iso/10', leftStripe: 'bg-iso', glow: 'shadow-[0_0_20px_hsl(var(--iso)/0.3)]' },
+  iso: { label: 'Help', Icon: Search, text: 'text-iso', border: 'border-iso/45', bg: 'bg-iso/10', leftStripe: 'bg-iso', glow: 'shadow-[0_0_20px_hsl(var(--iso)/0.3)]' },
   event: { label: 'Event', Icon: CalendarClock, text: 'text-event', border: 'border-event/45', bg: 'bg-event/10', leftStripe: 'bg-event', glow: 'shadow-[0_0_20px_hsl(var(--event)/0.3)]' },
   rider_presence: { label: 'Rider', Icon: OfficialMotorcycleIcon, text: 'text-cyan', border: 'border-cyan/40', bg: 'bg-cyan/10', leftStripe: 'bg-cyan', glow: 'shadow-[0_0_20px_hsl(var(--cyan)/0.3)]' },
 };
@@ -76,7 +76,15 @@ const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, var
     const rafId = window.requestAnimationFrame(() => map.invalidateSize());
 
     if (focusUserLocation && isValidCoordinate(userLat, userLng)) {
-      map.setView([userLat, userLng], 15, { animate: false });
+      const prefersReducedMotion =
+        typeof window !== 'undefined' &&
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      map.setView(
+        [userLat, userLng],
+        15,
+        prefersReducedMotion ? { animate: false } : { animate: true, duration: 0.6 }
+      );
       return () => window.cancelAnimationFrame(rafId);
     }
     if (items.length === 0) {
@@ -188,9 +196,9 @@ const MapSummary = memo(function MapSummary({ items, userLat, userLng, variant }
         </div>
       </div>
       <div className="mt-3 grid grid-cols-4 gap-1.5 text-center text-[10px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-        <Stat label="Alerts" value={alertCount} className="text-alert" />
+        <Stat label="Warnings" value={alertCount} className="text-alert" />
         <Stat label="Riders" value={riderCount} className="text-solo" />
-        <Stat label="ISO" value={isoCount} className="text-iso" />
+        <Stat label="Help" value={isoCount} className="text-iso" />
         <Stat label="Events" value={eventCount} className="text-event" />
       </div>
       {presenceCount > 0 && (
@@ -220,7 +228,7 @@ const LoadingState = memo(function LoadingState({ variant }) {
         <>
           <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           <p className="text-sm font-semibold text-foreground">Loading live map...</p>
-          <p className="mt-1 text-xs text-muted-foreground">Syncing broadcasts and rider markers</p>
+          <p className="mt-1 text-xs text-muted-foreground">Syncing signals and rider markers</p>
         </>
       )}
     </div>
@@ -281,7 +289,7 @@ const SignalListItem = memo(function SignalListItem({ item, userLat, userLng }) 
   const distance = isValidCoordinate(userLat, userLng) ? formatDistance(haversineMiles(userLat, userLng, item.lat, item.lng)) : null;
   const signalAge = item.created_at ? timeAgo(item.created_at) : 'live';
   const isPresence = item.type === 'rider_presence';
-  const title = isPresence ? item.display_name || 'Live rider' : item.title || BROADCAST_META[item.type]?.label || 'Broadcast';
+  const title = isPresence ? item.display_name || 'Live rider' : item.title || BROADCAST_META[item.type]?.label || 'Signal';
   const detail = isPresence ? item.vehicle_label || null : item.exact_location_text || null;
   const riderPrecision = isPresence ? item.location_precision || 'approximate' : null;
 
@@ -340,6 +348,7 @@ function LiveMap({
   showSelfLocation = false,
   offlineMode = false,
   offlineSnapshotAt,
+  isLiveMapVisible = false,
 }) {
   const [mapError, setMapError] = useState(false);
   const [autoFitDisabled, setAutoFitDisabled] = useState(false);
@@ -436,7 +445,7 @@ function LiveMap({
         variant === 'full' ? 'lg:p-4' : variant !== 'radar' ? 'p-4' : '',
         className
       )}
-      aria-label="Live map of active rider broadcasts"
+      aria-label="Live map of active rider signals"
     >
       {variant !== 'full' && variant !== 'radar' && (
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -452,14 +461,13 @@ function LiveMap({
         <div
           className={cn('relative overflow-hidden rounded-[1.1rem] border border-border/60 bg-background', variant === 'full' ? 'min-h-[560px] h-[calc(100svh-15rem)] max-h-[760px]' : variant === 'radar' ? 'h-full min-h-0 rounded-none border-0 bg-transparent' : 'h-[320px]')}
           role="application"
-          aria-label={`Interactive map showing ${items.length} active ${items.length === 1 ? 'broadcast' : 'broadcasts'}`}
+          aria-label={`Interactive map showing ${items.length} active ${items.length === 1 ? 'signal' : 'signals'}`}
         >
-          {variant === 'radar' && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[435] h-[2px] overflow-hidden">
-              <div className="h-full w-full animate-ekg bg-primary/40 shadow-[0_0_16px_hsl(var(--primary)/0.6)]" />
-              <div className="absolute inset-0 animate-ekg bg-primary/20 shadow-[0_0_24px_hsl(var(--primary)/0.5)] blur-[1px]" />
-            </div>
-          )}
+          {/* Phase 1: removed always-on EKG strip (two stacked animate-ekg layers)
+              to calm the radar screen. The animate-ekg keyframes/classes are kept
+              in index.css for reuse elsewhere (e.g. EmptyState uses animate-ekg-pulse).
+              A future phase will reintroduce this as an event-driven heartbeat that
+              fires only when a real signal arrives (see .rr-ekg in index.css). */}
 
           <a href={variant === 'full' ? '#live-map-list' : '#map-legend'} className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[500] focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:shadow-lg">Skip map</a>
 
@@ -471,8 +479,8 @@ function LiveMap({
             <div className={cn('pointer-events-none absolute inset-x-4 z-[430] flex justify-center', variant === 'radar' ? 'bottom-24' : 'bottom-4')}>
               <div className={cn('max-w-sm rounded-2xl border border-border/65 bg-background/78 text-center rr-shadow-lg backdrop-blur-xl', variant === 'radar' ? 'px-4 py-3' : 'p-4')}>
                 <MapPin className={cn('mx-auto text-muted-foreground', variant === 'radar' ? 'mb-1 h-5 w-5' : 'mb-2 h-6 w-6')} aria-hidden="true" />
-                <h2 className={cn('font-display font-bold', variant === 'radar' ? 'text-base' : 'text-lg')}>No mapped broadcasts</h2>
-                {variant !== 'radar' && <p className="mt-1 text-xs text-muted-foreground">Active broadcasts with recognizable locations will appear here as soon as they hit the network.</p>}
+                <h2 className={cn('font-display font-bold', variant === 'radar' ? 'text-base' : 'text-lg')}>No mapped signals</h2>
+                {variant !== 'radar' && <p className="mt-1 text-xs text-muted-foreground">Active signals with recognizable locations will appear here as soon as they hit the network.</p>}
               </div>
             </div>
           )}
@@ -502,12 +510,16 @@ function LiveMap({
             />
             <FitMapToItems items={items} userLat={userLat} userLng={userLng} variant={variant} disabled={variant === 'radar' && autoFitDisabled} focusUserLocation={focusUserLocation} fitKey={fitKey} />
             {showSelfLocation && hasUserLocation && (
-              <Marker position={[userLat, userLng]} icon={getSelfMarkerIcon()}>
+              <Marker position={[userLat, userLng]} icon={isLiveMapVisible ? getSelfMarkerIconLive() : getSelfMarkerIcon()}>
                 <Popup>
                   <div className="min-w-48 text-foreground">
                     <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Private location</div>
                     <div className="mt-1 font-display text-base font-bold leading-tight">You are here</div>
-                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">This exact pin is only shown on your device.</p>
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      {isLiveMapVisible
+                        ? 'You are visible to nearby riders on the live map.'
+                        : 'This exact pin is only shown on your device.'}
+                    </p>
                     {Number.isFinite(Number(userAccuracyMeters)) && (
                       <div className="mt-2 text-xs text-muted-foreground font-mono tracking-tight">Accuracy ~{Math.round(Number(userAccuracyMeters))}m</div>
                     )}
@@ -550,6 +562,7 @@ export default memo(LiveMap, (prev, next) => {
     prev.focusUserLocation === next.focusUserLocation &&
     prev.showSelfLocation === next.showSelfLocation &&
     prev.offlineMode === next.offlineMode &&
-    prev.offlineSnapshotAt === next.offlineSnapshotAt
+    prev.offlineSnapshotAt === next.offlineSnapshotAt &&
+    prev.isLiveMapVisible === next.isLiveMapVisible
   );
 });

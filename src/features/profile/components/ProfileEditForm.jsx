@@ -214,7 +214,7 @@ export default function ProfileEditForm({ profile, onDone }) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <div className="rr-kicker mb-1">Identity config</div>
+            <div className="rr-kicker mb-1">Your profile</div>
             <h1 className="font-display text-2xl font-bold tracking-tight rr-neon-green">Edit profile</h1>
           </div>
           <div className="flex gap-2">

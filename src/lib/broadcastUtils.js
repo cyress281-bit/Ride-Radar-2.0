@@ -7,10 +7,10 @@ export const EXPIRY_MINUTES = {
 };
 
 export const BROADCAST_META = {
-  solo_ride: { label: 'Solo Ride', color: 'solo', rank: 2 },
-  iso: { label: 'In Search Of', color: 'iso', rank: 3 },
-  event: { label: 'Event', color: 'event', rank: 4 },
-  alert: { label: 'Alert', color: 'alert', rank: 1 },
+  solo_ride: { label: 'Ride Now', color: 'solo', rank: 2 },
+  iso: { label: 'Need Help', color: 'iso', rank: 3 },
+  event: { label: 'Plan a Meetup', color: 'event', rank: 4 },
+  alert: { label: 'Road Warning', color: 'alert', rank: 1 },
 };
 
 export function computeExpiresAt(broadcast) {
