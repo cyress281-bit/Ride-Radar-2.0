@@ -9,10 +9,10 @@ const TYPE_MAP = {
 };
 
 const DEFAULT_LABELS = {
-  alert: 'Alert',
-  solo_ride: 'Solo Ride',
-  iso: 'ISO',
-  event: 'Event',
+  alert: 'Road Warning',
+  solo_ride: 'Ride Now',
+  iso: 'Need Help',
+  event: 'Plan a Meetup',
 };
 
 /**

@@ -20,10 +20,10 @@ import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 
 const TYPES = [
-  { id: 'solo_ride', label: 'Solo Ride', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
-  { id: 'iso', label: 'In Search Of', desc: 'Find wrench help or a bike crew', icon: Search, color: 'iso' },
-  { id: 'event', label: 'Event', desc: 'Stage a meetup or group ride', icon: CalendarClock, color: 'event' },
-  { id: 'alert', label: 'Alert', desc: 'Road hazard, one-way broadcast', icon: ShieldAlert, color: 'alert' },
+  { id: 'solo_ride', label: 'Ride Now', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
+  { id: 'iso', label: 'Need Help', desc: 'Find wrench help or a bike crew', icon: Search, color: 'iso' },
+  { id: 'event', label: 'Plan a Meetup', desc: 'Stage a meetup or group ride', icon: CalendarClock, color: 'event' },
+  { id: 'alert', label: 'Road Warning', desc: 'Road hazard, one-way broadcast', icon: ShieldAlert, color: 'alert' },
 ];
 
 const TYPE_STYLE_MAP = {
