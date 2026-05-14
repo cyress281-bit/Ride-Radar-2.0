@@ -63,6 +63,12 @@ function BroadcastFeedPage() {
   const isOnline = useOnlineStatus();
 
   const { userLoc, hasUserLocation, geoError, locating, requestLocation, effectiveLoc } = useRadarLocation();
+  const [locateCount, setLocateCount] = useState(0);
+
+  const handleRequestLocation = useCallback(() => {
+    setLocateCount((count) => count + 1);
+    requestLocation();
+  }, [requestLocation]);
   const {
     sheetOpen,
     setSheetOpen,
@@ -203,7 +209,7 @@ function BroadcastFeedPage() {
           isLoading={isLoadingBroadcasts && !usingOfflineSnapshot}
           variant="radar"
           className="h-full w-full"
-          fitKey={hasUserLocation ? 'self' : 'default'}
+          fitKey={hasUserLocation ? `self-${locateCount}` : 'default'}
           focusUserLocation={hasUserLocation}
           showSelfLocation={hasUserLocation}
           offlineMode={usingOfflineSnapshot}
@@ -216,7 +222,7 @@ function BroadcastFeedPage() {
         activeCount={activeCount}
         hasUserLocation={hasUserLocation}
         usingOfflineSnapshot={usingOfflineSnapshot}
-        requestLocation={requestLocation}
+        requestLocation={handleRequestLocation}
         locating={locating}
         geoError={geoError}
         isLiveMapVisible={isLiveMapVisible}
