@@ -33,10 +33,10 @@ function BroadcastCreatePage() {
           {/* Header */}
           <VStack gap={1}>
             <Text as="h1" variant="h1" className="rr-heading text-2xl">
-              Send a signal
+              Send a Signal
             </Text>
             <Text variant="bodySm" color="muted">
-              Choose what to send to the rider network.
+              Choose what you want to send to nearby riders.
             </Text>
           </VStack>
 

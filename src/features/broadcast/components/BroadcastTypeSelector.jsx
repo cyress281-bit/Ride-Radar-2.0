@@ -8,9 +8,9 @@ import { cn } from '@/lib/utils.js';
 
 const GROUPS = [
   { id: 'solo_ride', label: 'Ride Now', microcopy: "Let riders know you're out", color: 'solo' },
-  { id: 'event', label: 'Plan a Meetup', microcopy: 'Event or group ride', color: 'event' },
-  { id: 'iso', label: 'Need Help', microcopy: 'Mechanic or crew', color: 'iso' },
-  { id: 'alert', label: 'Warning', microcopy: 'Road hazard or accident', color: 'alert' },
+  { id: 'event', label: 'Plan a Meetup', microcopy: 'Bike night, event, or group ride', color: 'event' },
+  { id: 'iso', label: 'Need Help', microcopy: 'Find crew or mechanical support', color: 'iso' },
+  { id: 'alert', label: 'Road Warning', microcopy: 'Hazard, accident, or road issue', color: 'alert' },
 ];
 
 const GROUP_STYLES = {
