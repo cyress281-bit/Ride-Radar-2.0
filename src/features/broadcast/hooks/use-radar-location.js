@@ -105,6 +105,14 @@ export function useRadarLocation() {
     return () => { if (watchId != null) navigator.geolocation.clearWatch(watchId); };
   }, [hasUserLocation]);
 
+  // Auto-refresh GPS on mount for returning users who have a cached location
+  useEffect(() => {
+    const cached = readCachedRadarLocation();
+    if (cached.lat != null && cached.lng != null) {
+      requestLocation();
+    }
+  }, [requestLocation]);
+
   // Preload map tiles around user location for offline use
   useEffect(() => {
     if (!hasUserLocation) return;
