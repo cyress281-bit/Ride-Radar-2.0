@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Crosshair, Plus, Navigation, Radio, Square } from 'lucide-react';
+import { Crosshair, Plus, Navigation, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { toast } from 'sonner';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
@@ -101,10 +101,10 @@ const RadarOverlay = memo(function RadarOverlay({
           onClick={handleToggleLive}
           disabled={updateSettings.isPending}
           className={cn(
-            'rr-haptic flex h-11 items-center gap-2 rounded-full backdrop-blur-xl border transition-all active:scale-90 px-4',
+            'rr-haptic flex h-11 items-center gap-2 rounded-full backdrop-blur-xl border transition-all active:scale-90',
             isLiveMapVisible
-              ? 'bg-primary text-primary-foreground border-primary shadow-[0_0_20px_hsl(var(--primary)/0.4)]'
-              : 'bg-surface/80 text-primary border-primary/30 shadow-[0_0_20px_hsl(var(--primary)/0.3)]',
+              ? 'bg-primary text-primary-foreground border-primary shadow-[0_0_20px_hsl(var(--primary)/0.4)] px-5'
+              : 'bg-surface/80 text-primary border-primary/30 shadow-[0_0_20px_hsl(var(--primary)/0.3)] px-4',
             justActivated && 'rr-lock'
           )}
           aria-label={isLiveMapVisible ? 'LIVE — Tap to Stop' : 'Ride Now'}
@@ -112,7 +112,10 @@ const RadarOverlay = memo(function RadarOverlay({
           {updateSettings.isPending ? (
             <Navigation className="h-4 w-4 animate-spin" />
           ) : isLiveMapVisible ? (
-            <Square className="h-4 w-4" />
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-foreground" />
+            </span>
           ) : (
             <Radio className="h-4 w-4" />
           )}
