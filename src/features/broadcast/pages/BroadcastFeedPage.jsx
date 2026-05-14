@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useTransition, memo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState, useTransition, memo, useRef } from 'react';
 import { useNearbyBroadcasts } from '@/features/broadcast/hooks/use-nearby-broadcasts.js';
 import { useLiveMapPresence } from '@/features/map/hooks/use-live-map.js';
 import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
