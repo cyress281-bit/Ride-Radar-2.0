@@ -209,21 +209,42 @@ export default function OnboardingPage() {
     mutationFn: async (values) => {
       if (!user?.id) throw new Error('Not authenticated');
 
-      // Upload images if needed
+      // Ensure public.users row exists before writing user_profiles
+      const { error: userRowError } = await supabase
+        .from('users')
+        .upsert(
+          {
+            id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || null,
+          },
+          { onConflict: 'id' }
+        );
+      if (userRowError) {
+        logger.error('[Onboarding] Failed to ensure public.users row:', userRowError);
+      }
+
+      // Upload images if needed — non-blocking so optional photos never block onboarding
       const [avatar_url, bike_photo_url] = await Promise.all([
         avatarLocal?.file
           ? uploadImage(
               avatarLocal.file,
               'uploads',
               `avatars/${user.id}-${Date.now()}.webp`
-            )
+            ).catch((err) => {
+              logger.warn('[Onboarding] Avatar upload failed:', err);
+              return '';
+            })
           : '',
         bikePhotoLocal?.file
           ? uploadImage(
               bikePhotoLocal.file,
               'uploads',
               `bikes/${user.id}-${Date.now()}.webp`
-            )
+            ).catch((err) => {
+              logger.warn('[Onboarding] Bike photo upload failed:', err);
+              return '';
+            })
           : '',
       ]);
 
@@ -268,6 +289,21 @@ export default function OnboardingPage() {
     setUploadError('');
     setSkipLoading(true);
     try {
+      // Ensure public.users row exists before writing user_profiles
+      const { error: userRowError } = await supabase
+        .from('users')
+        .upsert(
+          {
+            id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || null,
+          },
+          { onConflict: 'id' }
+        );
+      if (userRowError) {
+        logger.error('[Onboarding] Failed to ensure public.users row during skip:', userRowError);
+      }
+
       const { error } = await supabase
         .from('user_profiles')
         .upsert(
@@ -286,7 +322,7 @@ export default function OnboardingPage() {
       navigate(redirectPath, { replace: true });
     } catch (err) {
       logger.error('[Onboarding] Skip failed:', err);
-      setUploadError('Failed to skip onboarding. Please try again.');
+      setUploadError('We could not finish your profile setup. Please try again.');
     } finally {
       setSkipLoading(false);
     }
