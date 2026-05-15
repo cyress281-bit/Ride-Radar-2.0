@@ -10,9 +10,24 @@
 export const BROADCAST_EXPIRY_MS = {
   solo_ride: 1 * 60 * 60 * 1000,  // 1 hour
   iso: 6 * 60 * 60 * 1000,        // 6 hours
-  alert: 6 * 60 * 60 * 1000,      // 6 hours
+  alert: 4 * 60 * 60 * 1000,      // 4 hours (default fallback for custom titles)
   bike_down: 6 * 60 * 60 * 1000,  // 6 hours — same urgency as alert
   event: null,                     // Use event end time instead
+};
+
+/** Preset-specific expiry for Road Warning signals (keyed by title preset). */
+export const ALERT_PRESET_EXPIRY_MS = {
+  'Police':         1 * 60 * 60 * 1000,   // 1 hour
+  'Traffic':        2 * 60 * 60 * 1000,   // 2 hours
+  'Animal on road': 2 * 60 * 60 * 1000,   // 2 hours
+  'Blocked lane':   3 * 60 * 60 * 1000,   // 3 hours
+  'Debris':         4 * 60 * 60 * 1000,   // 4 hours
+  'Gravel':         4 * 60 * 60 * 1000,   // 4 hours
+  'Oil spill':      4 * 60 * 60 * 1000,   // 4 hours
+  'Street closed':  6 * 60 * 60 * 1000,   // 6 hours
+  'Flooding':       8 * 60 * 60 * 1000,   // 8 hours
+  'Pothole':       12 * 60 * 60 * 1000,   // 12 hours
+  'Construction':  12 * 60 * 60 * 1000,   // 12 hours
 };
 
 // ------------------------------------------------------------------

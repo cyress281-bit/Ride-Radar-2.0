@@ -9,7 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef } from 'react';
 import { supabase } from '@/lib/supabase.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
-import { BROADCAST_EXPIRY_MS } from '@/lib/constants.js';
+import { BROADCAST_EXPIRY_MS, ALERT_PRESET_EXPIRY_MS } from '@/lib/constants.js';
 import { geocodeAddress, approximateLocation } from '@/lib/geocoding.js';
 import { logger } from '@/lib/logger.js';
 import { toast } from '@/components/ui/use-toast';
@@ -58,6 +58,14 @@ export function useCreateBroadcast() {
         expires_at = new Date(now.getTime() + expiryMs).toISOString();
       } else if (broadcastData.type === 'event' && broadcastData.eventEndTime) {
         expires_at = new Date(broadcastData.eventEndTime).toISOString();
+      }
+
+      // Override expiry for Road Warning presets (does not affect bike_down)
+      if (broadcastData.type === 'alert' && broadcastData.title) {
+        const presetExpiry = ALERT_PRESET_EXPIRY_MS[broadcastData.title];
+        if (presetExpiry !== undefined) {
+          expires_at = new Date(now.getTime() + presetExpiry).toISOString();
+        }
       }
 
       let frozenLocation = null;
