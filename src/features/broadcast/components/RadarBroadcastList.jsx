@@ -29,6 +29,7 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
   isLoading,
   scrollElementRef,
   filter = 'all',
+  hasUserLocation,
 }) {
   const navigate = useNavigate();
   const renderItem = useCallback(
@@ -62,11 +63,17 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
 
   if (broadcasts.length === 0 && !isLoading) {
     const emptyStates = {
-      all: {
-        title: 'Radar is quiet nearby.',
-        description: "You'll see nearby rides, events, help requests, and warnings here.",
-        action: { label: 'Start a signal', onClick: () => navigate('/broadcast') },
-      },
+      all: hasUserLocation
+        ? {
+            title: 'Radar is quiet nearby.',
+            description: "You'll see nearby rides, events, help requests, and warnings here.",
+            action: { label: 'Start a signal', onClick: () => navigate('/broadcast') },
+          }
+        : {
+            title: 'Enable location to see nearby signals',
+            description: 'Radar is showing a US overview. Tap the locate button to scan your area.',
+            action: { label: 'Start a signal', onClick: () => navigate('/broadcast') },
+          },
       alert: {
         title: 'No warnings nearby.',
         description: 'Roads are clear. Ride safe.',

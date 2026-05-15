@@ -49,6 +49,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
   isPending,
   peekLabel,
   totalCount,
+  hasUserLocation,
 }) {
   // Close the sheet with Escape key when open
   useEffect(() => {
@@ -183,6 +184,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
           isLoading={isLoading}
           scrollElementRef={sheetContentRef}
           filter={filter}
+          hasUserLocation={hasUserLocation}
         />
       </div>
     </div>
