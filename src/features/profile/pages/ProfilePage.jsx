@@ -23,6 +23,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
+import { useUserPosts } from '@/features/profile/hooks/use-user-posts';
+import PostGrid from '@/features/profile/components/PostGrid';
+import PostCreateSheet from '@/features/profile/components/PostCreateSheet';
+import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
 
 function ProfilePage() {
   const { user, profile } = useAuthState();
@@ -31,6 +35,8 @@ function ProfilePage() {
   const [avatarError, setAvatarError] = useState(false);
   const [activeTab, setActiveTab] = useState('broadcasts');
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [createSheetOpen, setCreateSheetOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
 
   const handleSignOut = useCallback(async () => {
     setIsSigningOut(true);
@@ -56,6 +62,14 @@ function ProfilePage() {
       return data || [];
     },
   });
+
+  const {
+    data: posts = [],
+    isLoading: postsLoading,
+    isError: postsFailed,
+    error: postsError,
+    refetch: refetchPosts,
+  } = useUserPosts(user?.id);
 
   const { data: connectionsCount = 0, isLoading: connectionsLoading } = useQuery({
     queryKey: ['connections-count', user?.id],
@@ -340,31 +354,35 @@ function ProfilePage() {
           </VStack>
         </TabsContent>
 
-        {/* Media Tab */}
+        {/* Posts Tab */}
         <TabsContent value="media" className="mt-4">
-          {displayProfile?.bike_photo_url ? (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="surface-card overflow-hidden aspect-square group relative rounded-xl">
-                <OptimizedImage
-                  src={displayProfile.bike_photo_url}
-                  alt="Bike"
-                  containerClassName="h-full w-full"
-                  className="h-full w-full transition-transform duration-500 group-hover:scale-105"
-                  objectFit="cover"
-                  loading="lazy"
-                  showSkeleton
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Text variant="caption" className="text-white font-semibold">{bikeLabel || 'My Bike'}</Text>
-                </div>
-              </div>
-            </div>
+          {postsLoading ? (
+            <LoadingState variant="section" message="Loading posts..." />
+          ) : postsFailed ? (
+            <ErrorState
+              title="Posts unavailable"
+              message={postsError?.message || 'Could not load posts.'}
+              onRetry={refetchPosts}
+            />
           ) : (
-            <EmptyState
-              icon={Grid3X3}
-              title="No posts yet"
-              description="Share bike photos, ride moments, or group pictures here."
+            <PostGrid
+              posts={posts}
+              onPostClick={setSelectedPost}
+              onAddPost={() => setCreateSheetOpen(true)}
+            />
+          )}
+
+          <PostCreateSheet
+            open={createSheetOpen}
+            onClose={() => setCreateSheetOpen(false)}
+            userId={user?.id}
+          />
+
+          {selectedPost && (
+            <PostDetailSheet
+              post={selectedPost}
+              onClose={() => setSelectedPost(null)}
+              userId={user?.id}
             />
           )}
         </TabsContent>
