@@ -2,12 +2,14 @@
  * Broadcast query hooks using TanStack Query v5.
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getBroadcasts,
   getBroadcastById,
   getBroadcastsByAuthor,
+  removeBroadcast,
 } from '@/features/broadcast/api/broadcast-api.js';
+import { toast } from '@/components/ui/use-toast';
 
 /**
  * Query key factory for broadcasts.
@@ -81,5 +83,32 @@ export function useBroadcastsByAuthor(authorId) {
     staleTime: 60_000,
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * Mutation hook to soft-remove a broadcast (set status='expired').
+ * Invalidates all broadcast caches on success.
+ * Navigation after removal is handled by the caller.
+ */
+export function useRemoveBroadcast() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id) => {
+      const { error } = await removeBroadcast(id);
+      if (error) throw error;
+    },
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: broadcastKeys.all });
+      qc.invalidateQueries({ queryKey: broadcastKeys.detail(id) });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to remove signal',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    },
   });
 }

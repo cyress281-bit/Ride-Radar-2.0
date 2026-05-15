@@ -4,7 +4,7 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, memo, useCallback } from 'react';
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, MessageCircle, Radio } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, MessageCircle, Radio, Trash2, Loader2, AlertCircle } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import AlertPhotoGrid from '@/components/shared/AlertPhotoGrid';
 import { Text } from '@/components/ui/primitives/Text';
@@ -18,6 +18,7 @@ import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { toast } from '@/components/ui/use-toast';
 import { getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
 import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
+import { useRemoveBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
 
 /**
  * Single broadcast detail page.
@@ -77,6 +78,10 @@ function BroadcastDetailPage() {
     staleTime: 30_000,
   });
 
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [removeError, setRemoveError] = useState('');
+  const removeSignal = useRemoveBroadcast();
+
   const handleGoBack = useCallback(() => navigate(-1), [navigate]);
 
   const handleShare = useCallback(async () => {
@@ -87,6 +92,17 @@ function BroadcastDetailPage() {
       toast({ title: 'Copy failed', description: 'Unable to copy link.', variant: 'destructive' });
     }
   }, []);
+
+  const handleRemove = useCallback(async () => {
+    setRemoveError('');
+    try {
+      await removeSignal.mutateAsync(id);
+      navigate('/home');
+    } catch (err) {
+      setRemoveError(err?.message || 'Failed to remove signal. Please try again.');
+      setConfirmRemove(false);
+    }
+  }, [id, removeSignal, navigate]);
 
   if (!hasValidBroadcastId) {
     return (
@@ -272,6 +288,51 @@ function BroadcastDetailPage() {
           </Link>
         )}
       </div>
+
+      {/* Owner controls */}
+      {isAuthor && (
+        <div className="mt-4 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-4">
+          {!confirmRemove ? (
+            <button
+              onClick={() => setConfirmRemove(true)}
+              className="w-full flex items-center justify-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-5 py-2.5 text-sm font-bold text-destructive transition-all hover:bg-destructive/20 active:scale-95"
+            >
+              <Trash2 className="h-4 w-4" />
+              Remove Signal
+            </button>
+          ) : (
+            <VStack gap={3}>
+              <Text variant="caption" color="muted" className="block text-center">
+                This will remove your signal from all feeds.
+              </Text>
+              {removeError && (
+                <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3" role="alert">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-destructive mt-0.5" aria-hidden="true" />
+                  <Text variant="caption" className="text-destructive">{removeError}</Text>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setConfirmRemove(false)}
+                  disabled={removeSignal.isPending}
+                  className="rounded-full border border-white/[0.06] py-2.5 text-sm font-bold transition-colors hover:bg-white/[0.06] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRemove}
+                  disabled={removeSignal.isPending}
+                  className="rounded-full bg-destructive py-2.5 text-sm font-bold text-white transition-all hover:bg-destructive/90 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {removeSignal.isPending ? (
+                    <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Removing…</>
+                  ) : 'Confirm Remove'}
+                </button>
+              </div>
+            </VStack>
+          )}
+        </div>
+      )}
 
       {/* SafetyActions — glassmorphism panel */}
       {!isAuthor && user && (

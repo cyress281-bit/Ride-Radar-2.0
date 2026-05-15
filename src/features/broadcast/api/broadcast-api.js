@@ -108,6 +108,21 @@ export async function hardDeleteBroadcast(id) {
 }
 
 /**
+ * Soft-remove a broadcast by setting status to 'expired'.
+ * Only the author can do this (enforced by RLS: auth.uid() = author_id).
+ * @param {string} id
+ * @returns {Promise<{data: null, error: Error|null}>}
+ */
+export async function removeBroadcast(id) {
+  const { error } = await supabase
+    .from('broadcasts')
+    .update({ status: 'expired' })
+    .eq('id', id);
+  if (error) logger.error('[removeBroadcast] Error:', error);
+  return { data: null, error };
+}
+
+/**
  * Fetch all broadcasts by a given author.
  *
  * @param {string} authorId
