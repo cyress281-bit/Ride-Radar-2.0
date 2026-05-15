@@ -233,7 +233,7 @@ export default function OnboardingPage() {
           ? uploadImage(
               avatarLocal.file,
               'uploads',
-              `avatars/${user.id}-${Date.now()}.webp`
+              `avatars/${user.id}/${Date.now()}.webp`
             ).catch((err) => {
               logger.warn('[Onboarding] Avatar upload failed:', err);
               return '';
@@ -243,7 +243,7 @@ export default function OnboardingPage() {
           ? uploadImage(
               bikePhotoLocal.file,
               'uploads',
-              `bikes/${user.id}-${Date.now()}.webp`
+              `bikes/${user.id}/${Date.now()}.webp`
             ).catch((err) => {
               logger.warn('[Onboarding] Bike photo upload failed:', err);
               return '';
