@@ -269,11 +269,18 @@ function ProfilePage() {
               description="Your active ride signals will appear here."
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {active.map((b) => (
-                <RideCard key={b.id} broadcast={b} author={displayProfile} to={`/broadcast/${b.id}`} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {active.slice(0, 5).map((b) => (
+                  <RideCard key={b.id} broadcast={b} author={displayProfile} to={`/broadcast/${b.id}`} />
+                ))}
+              </div>
+              {active.length > 5 && (
+                <Text variant="micro" color="muted" className="block text-center mt-3">
+                  +{active.length - 5} more active signal{active.length - 5 === 1 ? '' : 's'} not shown
+                </Text>
+              )}
+            </>
           )}
         </TabsContent>
 
