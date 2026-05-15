@@ -8,6 +8,7 @@ import {
   getBroadcastById,
   getBroadcastsByAuthor,
   removeBroadcast,
+  updateBroadcast,
 } from '@/features/broadcast/api/broadcast-api.js';
 import { toast } from '@/components/ui/use-toast';
 
@@ -83,6 +84,29 @@ export function useBroadcastsByAuthor(authorId) {
     staleTime: 60_000,
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * Mutation hook to update a broadcast's title and/or body.
+ * Only the owner can call this (enforced by RLS: auth.uid() = author_id).
+ */
+export function useUpdateBroadcast() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, fields }) => updateBroadcast(id, fields),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: broadcastKeys.all });
+      qc.invalidateQueries({ queryKey: broadcastKeys.detail(id) });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to update signal',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    },
   });
 }
 

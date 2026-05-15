@@ -2,9 +2,10 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, memo, useCallback } from 'react';
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, MessageCircle, Radio, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, MessageCircle, Radio, Trash2, Loader2, AlertCircle, Pencil } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import AlertPhotoGrid from '@/components/shared/AlertPhotoGrid';
 import { Text } from '@/components/ui/primitives/Text';
@@ -18,7 +19,7 @@ import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { toast } from '@/components/ui/use-toast';
 import { getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
 import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
-import { broadcastKeys, useRemoveBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
+import { broadcastKeys, useRemoveBroadcast, useUpdateBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
 
 /**
  * Single broadcast detail page.
@@ -80,7 +81,16 @@ function BroadcastDetailPage() {
 
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [removeError, setRemoveError] = useState('');
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editBody, setEditBody] = useState('');
+  const [editError, setEditError] = useState('');
+
   const removeSignal = useRemoveBroadcast();
+  const updateSignal = useUpdateBroadcast();
+
+  const canEditTitle = broadcast?.type === 'solo_ride' || broadcast?.type === 'iso' || broadcast?.type === 'event';
+  const saveDisabled = updateSignal.isPending || (canEditTitle && editTitle.trim().length < 3);
 
   const handleGoBack = useCallback(() => navigate(-1), [navigate]);
 
@@ -92,6 +102,27 @@ function BroadcastDetailPage() {
       toast({ title: 'Copy failed', description: 'Unable to copy link.', variant: 'destructive' });
     }
   }, []);
+
+  const handleEditOpen = useCallback(() => {
+    setEditTitle(broadcast?.title || '');
+    setEditBody(broadcast?.body || '');
+    setEditError('');
+    setConfirmRemove(false);
+    setEditOpen(true);
+  }, [broadcast?.title, broadcast?.body]);
+
+  const handleSave = useCallback(async () => {
+    setEditError('');
+    const fields = { body: editBody.trim() };
+    if (canEditTitle) fields.title = editTitle.trim();
+    try {
+      await updateSignal.mutateAsync({ id, fields });
+      setEditOpen(false);
+      toast({ title: 'Signal updated', description: 'Your changes are now live.' });
+    } catch (err) {
+      setEditError(err?.message || 'Failed to update signal. Please try again.');
+    }
+  }, [id, editBody, editTitle, canEditTitle, updateSignal]);
 
   const handleRemove = useCallback(async () => {
     setRemoveError('');
@@ -292,14 +323,76 @@ function BroadcastDetailPage() {
       {/* Owner controls */}
       {isAuthor && (
         <div className="mt-4 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-4">
-          {!confirmRemove ? (
-            <button
-              onClick={() => setConfirmRemove(true)}
-              className="w-full flex items-center justify-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-5 py-2.5 text-sm font-bold text-destructive transition-all hover:bg-destructive/20 active:scale-95"
-            >
-              <Trash2 className="h-4 w-4" />
-              Remove Signal
-            </button>
+          {!editOpen && !confirmRemove ? (
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={handleEditOpen}
+                className="flex items-center justify-center gap-2 rounded-full border border-white/[0.10] bg-white/[0.04] px-5 py-2.5 text-sm font-bold transition-all hover:bg-white/[0.08] active:scale-95"
+              >
+                <Pencil className="h-4 w-4" />
+                Edit Signal
+              </button>
+              <button
+                onClick={() => setConfirmRemove(true)}
+                className="flex items-center justify-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-5 py-2.5 text-sm font-bold text-destructive transition-all hover:bg-destructive/20 active:scale-95"
+              >
+                <Trash2 className="h-4 w-4" />
+                Remove Signal
+              </button>
+            </div>
+          ) : editOpen ? (
+            <VStack gap={3}>
+              {canEditTitle && (
+                <VStack gap={1}>
+                  <Text variant="caption" color="muted" className="font-semibold">Title</Text>
+                  <Input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    maxLength={120}
+                    className="rr-premium-input rounded-xl"
+                  />
+                  {editTitle.trim().length > 0 && editTitle.trim().length < 3 && (
+                    <p className="text-xs text-destructive">Title must be at least 3 characters</p>
+                  )}
+                  <Text variant="micro" color="muted" className="block text-right">{editTitle.length} / 120</Text>
+                </VStack>
+              )}
+              <VStack gap={1}>
+                <Text variant="caption" color="muted" className="font-semibold">Details</Text>
+                <Textarea
+                  value={editBody}
+                  onChange={(e) => setEditBody(e.target.value)}
+                  maxLength={500}
+                  rows={4}
+                  className="rr-premium-input rounded-xl"
+                />
+                <Text variant="micro" color="muted" className="block text-right">{editBody.length} / 500</Text>
+              </VStack>
+              {editError && (
+                <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3" role="alert">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-destructive mt-0.5" aria-hidden="true" />
+                  <Text variant="caption" className="text-destructive">{editError}</Text>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setEditOpen(false)}
+                  disabled={updateSignal.isPending}
+                  className="rounded-full border border-white/[0.06] py-2.5 text-sm font-bold transition-colors hover:bg-white/[0.06] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saveDisabled}
+                  className="rounded-full bg-primary py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {updateSignal.isPending ? (
+                    <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…</>
+                  ) : 'Save Changes'}
+                </button>
+              </div>
+            </VStack>
           ) : (
             <VStack gap={3}>
               <Text variant="caption" color="muted" className="block text-center">

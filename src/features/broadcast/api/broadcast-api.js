@@ -108,6 +108,30 @@ export async function hardDeleteBroadcast(id) {
 }
 
 /**
+ * Update a broadcast's editable fields (owner only, enforced by RLS).
+ * Only 'title' and 'body' are accepted; all other keys are silently dropped.
+ *
+ * @param {string} id
+ * @param {{ title?: string, body?: string }} fields
+ * @returns {Promise<{ id: string }>}
+ */
+export async function updateBroadcast(id, fields) {
+  const allowed = {};
+  if ('title' in fields) allowed.title = fields.title;
+  if ('body' in fields) allowed.body = fields.body;
+
+  const { error } = await supabase
+    .from('broadcasts')
+    .update(allowed)
+    .eq('id', id);
+  if (error) {
+    logger.error('[updateBroadcast] Error:', error);
+    throw error;
+  }
+  return { id };
+}
+
+/**
  * Soft-remove a broadcast by setting status to 'expired'.
  * Only the author can do this (enforced by RLS: auth.uid() = author_id).
  * @param {string} id
