@@ -116,11 +116,6 @@ export function useCreateBroadcast() {
           logger.warn('[useCreateBroadcast] Alert geocoding failed:', error);
         }
 
-        if (!geocodeResult || !frozenLocation) {
-          throw new Error(
-            'We could not locate that alert area. Add a nearby road, city, or landmark and try again.'
-          );
-        }
       }
 
       const broadcast = {
@@ -133,6 +128,7 @@ export function useCreateBroadcast() {
 
         frozen_lat: frozenLocation?.lat ?? null,
         frozen_lng: frozenLocation?.lng ?? null,
+        location_name: exactLocationText || null,
 
         event_date: broadcastData.eventDate ? new Date(broadcastData.eventDate).toISOString() : null,
 
