@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin, Users, Siren } from 'lucide-react';
+import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin, Users, Siren, LocateFixed } from 'lucide-react';
 import AlertPhotoUploader from './AlertPhotoUploader';
 import AlertPinMap from './AlertPinMap';
 import { useRadarLocation } from '@/features/broadcast/hooks/use-radar-location';
@@ -126,7 +126,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const post = useCreateBroadcast();
   const typeMeta = TYPES.find((t) => t.id === type);
   const typeStyles = TYPE_STYLE_MAP[typeMeta.color];
-  const { effectiveLoc: radarDefaultLoc } = useRadarLocation();
+  const { effectiveLoc: radarDefaultLoc, userLoc, hasUserLocation } = useRadarLocation();
 
   const [coords, setCoords] = useState({ lat: null, lng: null });
   const [eventImage, setEventImage] = useState(null);
@@ -460,6 +460,16 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
               <Text variant="caption" color="muted" className="mt-1.5">Describe the area. Your exact location stays private.</Text>
             </VStack>
+            {hasUserLocation && (
+              <button
+                type="button"
+                onClick={() => setAlertPin({ lat: userLoc.lat, lng: userLoc.lng })}
+                className="flex items-center gap-2 text-sm font-bold text-alert border border-alert/30 bg-alert/8 rounded-xl px-4 py-2.5 min-h-[44px] w-full hover:bg-alert/15 transition-colors pressable"
+              >
+                <LocateFixed className="w-4 h-4 shrink-0" />
+                Use my current location
+              </button>
+            )}
             <AlertPinMap
               defaultCenter={radarDefaultLoc}
               value={alertPin}
@@ -483,6 +493,16 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
               <Text variant="caption" color="muted" className="mt-1.5">Describe the area. Your exact location stays private.</Text>
             </VStack>
+            {hasUserLocation && (
+              <button
+                type="button"
+                onClick={() => setAlertPin({ lat: userLoc.lat, lng: userLoc.lng })}
+                className="flex items-center gap-2 text-sm font-bold text-destructive border border-destructive/30 bg-destructive/8 rounded-xl px-4 py-2.5 min-h-[44px] w-full hover:bg-destructive/15 transition-colors pressable"
+              >
+                <LocateFixed className="w-4 h-4 shrink-0" />
+                Use my current location
+              </button>
+            )}
             <AlertPinMap
               defaultCenter={radarDefaultLoc}
               value={alertPin}
