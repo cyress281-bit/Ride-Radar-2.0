@@ -104,7 +104,7 @@ const RadarOverlay = memo(function RadarOverlay({
 
       {/* Floating action buttons */}
       <div className="absolute bottom-44 right-4 z-[15] flex flex-col gap-3">
-        {/* Ride Now toggle */}
+        {/* Go Live toggle */}
         <button
           onClick={handleToggleLive}
           disabled={updateSettings.isPending}
@@ -115,7 +115,7 @@ const RadarOverlay = memo(function RadarOverlay({
               : 'bg-surface/80 text-primary border-primary/30 shadow-[0_0_20px_hsl(var(--primary)/0.3)] px-4',
             justActivated && 'rr-lock'
           )}
-          aria-label={isLiveMapVisible ? 'LIVE — Tap to Stop' : 'Ride Now'}
+          aria-label={isLiveMapVisible ? 'LIVE — Tap to Stop' : 'Go Live'}
         >
           {updateSettings.isPending ? (
             <Navigation className="h-4 w-4 animate-spin" />
@@ -132,7 +132,7 @@ const RadarOverlay = memo(function RadarOverlay({
               ? 'Updating…'
               : isLiveMapVisible
                 ? 'LIVE — Tap to Stop'
-                : 'Ride Now'}
+                : 'Go Live'}
           </span>
         </button>
 
