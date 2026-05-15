@@ -558,6 +558,30 @@
 /* ------------------------------------------------------------------
    6. LEAFLET MAP OVERRIDES
    ------------------------------------------------------------------ */
+/* Leaflet popup overrides — unlayered to override Leaflet's default white popup shell */
+.leaflet-popup-content-wrapper {
+  background:
+    radial-gradient(circle at 18% 0%, hsl(var(--primary) / 0.08), transparent 42%),
+    hsl(240 20% 2% / 0.98) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: var(--radius) !important;
+  color: hsl(var(--foreground)) !important;
+  box-shadow: 0 20px 60px hsl(0 0% 0% / 0.5) !important;
+}
+
+.leaflet-popup-tip {
+  background: hsl(var(--primary) / 0.9) !important;
+  box-shadow: 0 4px 14px hsl(var(--primary) / 0.25) !important;
+}
+
+.leaflet-popup-content {
+  margin: 14px !important;
+}
+
+.leaflet-popup-close-button {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
 @layer utilities {
   .leaflet-container {
     background: hsl(var(--background)) !important;
@@ -573,29 +597,6 @@
       linear-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px),
       linear-gradient(90deg, hsl(var(--primary) / 0.05) 1px, transparent 1px) !important;
     background-size: 48px 48px !important;
-  }
-
-  .leaflet-popup-content-wrapper {
-    background:
-      radial-gradient(circle at 18% 0%, hsl(var(--primary) / 0.08), transparent 42%),
-      hsl(240 20% 2% / 0.98) !important;
-    border: 1px solid hsl(var(--border)) !important;
-    border-radius: var(--radius) !important;
-    color: hsl(var(--foreground)) !important;
-    box-shadow: 0 20px 60px hsl(0 0% 0% / 0.5) !important;
-  }
-
-  .leaflet-popup-tip {
-    background: hsl(var(--primary) / 0.9) !important;
-    box-shadow: 0 4px 14px hsl(var(--primary) / 0.25) !important;
-  }
-
-  .leaflet-popup-content {
-    margin: 14px !important;
-  }
-
-  .leaflet-popup-close-button {
-    color: hsl(var(--muted-foreground)) !important;
   }
 
   .leaflet-control-zoom {

@@ -31,7 +31,7 @@ const MapPopup = memo(function MapPopup({ item, userLat, userLng }) {
   const riderPrecision = isPresence ? item.location_precision || 'approximate' : null;
 
   return (
-    <div className="min-w-56 max-w-72 rounded-lg bg-background p-3 text-foreground shadow-lg">
+    <div className="min-w-56 max-w-72 p-3 text-foreground">
       <div className={cn('h-[2px] w-full rounded-full', config.leftStripe, isPresence ? 'opacity-60' : 'opacity-80')} />
       <div className="mt-2.5">
         <div className={cn('text-[10px] font-bold uppercase tracking-[0.16em]', config.text)}>
