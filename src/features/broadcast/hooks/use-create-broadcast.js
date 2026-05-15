@@ -129,7 +129,7 @@ export function useCreateBroadcast() {
         author_id: user.id,
         type: broadcastData.type === 'bike_down' ? 'alert' : broadcastData.type,
         alert_type: broadcastData.type === 'bike_down' ? 'bike_down' : null,
-        title: broadcastData.title || null,
+        title: broadcastData.type === 'bike_down' ? 'Bike Down' : broadcastData.title,
         body: broadcastData.body || null,
         status: 'active',
         expires_at,
