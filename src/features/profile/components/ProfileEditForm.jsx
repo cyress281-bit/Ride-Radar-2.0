@@ -26,9 +26,11 @@ import {
 } from '@/components/ui/form';
 import { Check, X, Loader2, AlertCircle, Camera, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger.js';
 import { MOTORCYCLE_MAKES, getModelSuggestions } from '@/lib/motorcycleCatalog';
 import BikePhotoUploader from './BikePhotoUploader';
-import { uploadImageIfNeeded, isLocalImage, prepareLocalImage } from '@/lib/image-utils.js';
+import { uploadImage, isLocalImage, prepareLocalImage } from '@/lib/image-utils.js';
+import { toast } from '@/components/ui/use-toast';
 
 const currentYear = new Date().getFullYear();
 
@@ -88,6 +90,7 @@ export default function ProfileEditForm({ profile, onDone }) {
     form.reset(defaultValues);
     setAvatarLocal(null);
     setBikePhotoLocal(null);
+    setSubmitError('');
   }, [defaultValues, form]);
 
   const watchedUsername = form.watch('username');
@@ -127,6 +130,7 @@ export default function ProfileEditForm({ profile, onDone }) {
   const [isUploading, setIsUploading] = useState(false);
   const [avatarLocal, setAvatarLocal] = useState(null);
   const [bikePhotoLocal, setBikePhotoLocal] = useState(null);
+  const [submitError, setSubmitError] = useState('');
 
   const onSubmit = useCallback(
     async (values) => {
@@ -140,11 +144,17 @@ export default function ProfileEditForm({ profile, onDone }) {
       }
 
       setIsUploading(true);
+      setSubmitError('');
+      const previous = qc.getQueryData(['profile', user.id]);
       try {
         // Upload local images first, otherwise keep existing string URLs
         const [avatar_url, bike_photo_url] = await Promise.all([
-          avatarLocal ? uploadImageIfNeeded(avatarLocal) : values.avatar_url,
-          bikePhotoLocal ? uploadImageIfNeeded(bikePhotoLocal) : values.bike_photo_url,
+          avatarLocal
+            ? uploadImage(avatarLocal.file, 'uploads', `avatars/${user.id}-${Date.now()}.webp`)
+            : values.avatar_url,
+          bikePhotoLocal
+            ? uploadImage(bikePhotoLocal.file, 'uploads', `bikes/${user.id}-${Date.now()}.webp`)
+            : values.bike_photo_url,
         ]);
 
         if (isLocalImage(avatar_url) || isLocalImage(bike_photo_url)) {
@@ -163,20 +173,19 @@ export default function ProfileEditForm({ profile, onDone }) {
         };
 
         // Optimistic update
-        const previous = qc.getQueryData(['profile', user.id]);
         qc.setQueryData(['profile', user.id], (old) => (old ? { ...old, ...updates } : old));
 
-        try {
-          await updateMutation.mutateAsync({ userId: user.id, updates });
-          await refreshProfile();
-          qc.invalidateQueries({ queryKey: ['myBroadcasts'] });
-          onDone();
-        } catch (mutationErr) {
-          // Rollback optimistic update on error
-          qc.setQueryData(['profile', user.id], previous);
-          // Re-throw so updateMutation.isError is set and the error banner shows
-          throw mutationErr;
-        }
+        await updateMutation.mutateAsync({ userId: user.id, updates });
+        await refreshProfile();
+        qc.invalidateQueries({ queryKey: ['myBroadcasts'] });
+
+        toast({ title: 'Profile updated', description: 'Your changes have been saved.' });
+        onDone();
+      } catch (err) {
+        logger.error('[ProfileEdit] Save failed:', err);
+        setSubmitError(err?.message || 'Failed to save profile. Please try again.');
+        // Rollback optimistic update on any error
+        qc.setQueryData(['profile', user.id], previous);
       } finally {
         setIsUploading(false);
       }
@@ -228,6 +237,7 @@ export default function ProfileEditForm({ profile, onDone }) {
               onClick={() => {
                 setAvatarLocal(null);
                 setBikePhotoLocal(null);
+                setSubmitError('');
                 form.reset(defaultValues);
                 onDone();
               }}
@@ -474,10 +484,10 @@ export default function ProfileEditForm({ profile, onDone }) {
           )}
         </Button>
 
-        {updateMutation.isError && (
+        {(submitError || updateMutation.isError) && (
           <div className="rounded-xl border border-brand-emergency/25 bg-brand-emergency/5 p-3 text-sm text-brand-emergency flex items-center gap-2">
             <AlertCircle className="h-4 w-4 shrink-0" />
-            {updateMutation.error?.message || 'Failed to save profile'}
+            {submitError || updateMutation.error?.message || 'Failed to save profile'}
           </div>
         )}
       </form>
