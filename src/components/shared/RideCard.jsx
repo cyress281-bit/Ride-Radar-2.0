@@ -74,48 +74,68 @@ export const RideCard = memo(
 
     const cardContent = (
       <>
-        <AspectRatio ratio={16 / 9}>
-          {mediaUrl ? (
-            isVideo ? (
-              <video
-                src={mediaUrl}
-                className="absolute inset-0 w-full h-full object-cover"
-                muted
-                playsInline
-                preload="metadata"
-              />
-            ) : (
-              <img
-                src={mediaUrl}
-                alt={broadcast.title}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                loading="lazy"
-              />
-            )
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-surface-elevated to-background" />
-          )}
-
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-          {/* Type badge */}
-          <div className="absolute top-3 left-3">
+        {broadcast.type === 'alert' && !mediaUrl ? (
+          <div className="p-4 space-y-2">
             <Badge type={broadcast.type} />
-          </div>
-
-          {/* Title & body overlaid */}
-          <div className="absolute bottom-0 left-0 right-0 p-4">
-            <Text as="h3" variant="h3" color="white" className="line-clamp-2 drop-shadow-lg font-bold">
+            <Text as="h3" variant="h3" className="line-clamp-2 font-bold">
               {broadcast.title}
             </Text>
             {broadcast.body && (
-              <Text variant="bodySm" color="white" className="mt-1 line-clamp-2 opacity-90 drop-shadow-sm">
+              <Text variant="bodySm" color="muted" className="line-clamp-2">
                 {broadcast.body}
               </Text>
             )}
+            {broadcast.location_name && (
+              <HStack align="center" gap={1} className="text-muted-foreground">
+                <MapPin className="w-3 h-3 text-primary" />
+                <Text variant="micro" color="muted">{broadcast.location_name}</Text>
+              </HStack>
+            )}
           </div>
-        </AspectRatio>
+        ) : (
+          <AspectRatio ratio={16 / 9}>
+            {mediaUrl ? (
+              isVideo ? (
+                <video
+                  src={mediaUrl}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  muted
+                  playsInline
+                  preload="metadata"
+                />
+              ) : (
+                <img
+                  src={mediaUrl}
+                  alt={broadcast.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+              )
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-surface-elevated to-background" />
+            )}
+
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+            {/* Type badge */}
+            <div className="absolute top-3 left-3">
+              <Badge type={broadcast.type} />
+            </div>
+
+            {/* Title & body overlaid */}
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <Text as="h3" variant="h3" color="white" className="line-clamp-2 drop-shadow-lg font-bold">
+                {broadcast.title}
+              </Text>
+              {broadcast.body && (
+                <Text variant="bodySm" color="white" className="mt-1 line-clamp-2 opacity-90 drop-shadow-sm">
+                  {broadcast.body}
+                </Text>
+              )}
+            </div>
+          </AspectRatio>
+        )}
 
         {/* Author row */}
         <HStack align="center" justify="between" className="p-4">
