@@ -496,7 +496,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 className="rr-premium-input rounded-xl mt-1.5"
               />
             </VStack>
-            <AlertPhotoUploader images={alertImages} onChange={setAlertImages} />
+            <AlertPhotoUploader images={alertImages} onChange={setAlertImages} color="alert" />
           </VStack>
         )}
 
@@ -529,7 +529,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               value={alertPin}
               onChange={setAlertPin}
             />
-            <AlertPhotoUploader images={alertImages} onChange={setAlertImages} />
+            <AlertPhotoUploader images={alertImages} onChange={setAlertImages} color="bike_down" />
           </VStack>
         )}
 

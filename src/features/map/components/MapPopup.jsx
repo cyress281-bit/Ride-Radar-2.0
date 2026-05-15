@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils.js';
 
 const typeConfig = {
   alert: { label: 'Road Warning', text: 'text-alert', leftStripe: 'bg-alert' },
+  bike_down: { label: 'Bike Down', text: 'text-destructive', leftStripe: 'bg-destructive' },
   solo_ride: { label: 'Rider', text: 'text-solo', leftStripe: 'bg-solo' },
   iso: { label: 'Help', text: 'text-iso', leftStripe: 'bg-iso' },
   event: { label: 'Event', text: 'text-event', leftStripe: 'bg-event' },
@@ -21,7 +22,10 @@ const typeConfig = {
  * @param {number|null} props.userLng
  */
 const MapPopup = memo(function MapPopup({ item, userLat, userLng }) {
-  const config = typeConfig[item.type] || typeConfig.solo_ride;
+  const config = (item.alert_type === 'bike_down' ? typeConfig.bike_down : typeConfig[item.type]) || typeConfig.solo_ride;
+  const ctaClasses = item.alert_type === 'bike_down'
+    ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground focus-visible:ring-destructive shadow-[0_0_16px_hsl(var(--destructive)/0.35)]'
+    : 'bg-primary hover:bg-primary/90 text-primary-foreground focus-visible:ring-primary shadow-[0_0_16px_hsl(var(--primary)/0.35)]';
   const hasCoords = userLat != null && userLng != null;
   const distance = hasCoords ? formatDistance(haversineMiles(userLat, userLng, item.lat, item.lng)) : null;
   const signalAge = item.created_at ? timeAgo(item.created_at) : 'live';
@@ -60,7 +64,7 @@ const MapPopup = memo(function MapPopup({ item, userLat, userLng }) {
         </div>
         <Link
           to={isPresence ? `/profile/${item.user_id}` : `/broadcast/${item.id}`}
-          className="mt-3 inline-flex min-h-9 w-full items-center justify-center rounded-full bg-primary px-3 py-2 text-xs font-extrabold uppercase tracking-[0.12em] text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary shadow-[0_0_16px_hsl(var(--primary)/0.35)]"
+          className={cn('mt-3 inline-flex min-h-9 w-full items-center justify-center rounded-full px-3 py-2 text-xs font-extrabold uppercase tracking-[0.12em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background', ctaClasses)}
         >
           {isPresence ? 'Open profile' : 'Open signal'}
         </Link>

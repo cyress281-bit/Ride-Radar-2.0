@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Search,
   ShieldAlert,
+  Siren,
   WifiOff,
 } from 'lucide-react';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
@@ -26,6 +27,7 @@ const DARK_TILE_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}
 
 const typeConfig = {
   alert: { label: 'Road Warning', Icon: ShieldAlert, text: 'text-alert', border: 'border-alert/45', bg: 'bg-alert/10', leftStripe: 'bg-alert', glow: 'shadow-[0_0_20px_hsl(var(--alert)/0.35)]' },
+  bike_down: { label: 'Bike Down', Icon: Siren, text: 'text-destructive', border: 'border-destructive/45', bg: 'bg-destructive/10', leftStripe: 'bg-destructive', glow: 'shadow-[0_0_20px_hsl(var(--destructive)/0.35)]' },
   solo_ride: { label: 'Rider', Icon: OfficialMotorcycleIcon, text: 'text-solo', border: 'border-solo/45', bg: 'bg-solo/10', leftStripe: 'bg-solo', glow: 'shadow-[0_0_20px_hsl(var(--solo)/0.3)]' },
   iso: { label: 'Help', Icon: Search, text: 'text-iso', border: 'border-iso/45', bg: 'bg-iso/10', leftStripe: 'bg-iso', glow: 'shadow-[0_0_20px_hsl(var(--iso)/0.3)]' },
   event: { label: 'Event', Icon: CalendarClock, text: 'text-event', border: 'border-event/45', bg: 'bg-event/10', leftStripe: 'bg-event', glow: 'shadow-[0_0_20px_hsl(var(--event)/0.3)]' },
@@ -291,7 +293,7 @@ const SignalList = memo(function SignalList({ items, userLat, userLng, variant }
 });
 
 const SignalListItem = memo(function SignalListItem({ item, userLat, userLng }) {
-  const config = typeConfig[item.type] || typeConfig.solo_ride;
+  const config = (item.alert_type === 'bike_down' ? typeConfig.bike_down : typeConfig[item.type]) || typeConfig.solo_ride;
   const distance = isValidCoordinate(userLat, userLng) ? formatDistance(haversineMiles(userLat, userLng, item.lat, item.lng)) : null;
   const signalAge = item.created_at ? timeAgo(item.created_at) : 'live';
   const isPresence = item.type === 'rider_presence';

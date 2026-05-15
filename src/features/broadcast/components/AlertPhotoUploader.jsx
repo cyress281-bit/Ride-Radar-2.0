@@ -14,7 +14,22 @@ const ACCEPTED_TYPES = 'image/jpeg,image/jpg,image/png,image/webp';
  * @param {Function} props.onChange
  * @param {boolean} [props.disabled=false]
  */
-export default function AlertPhotoUploader({ images = [], onChange, disabled = false }) {
+export default function AlertPhotoUploader({ images = [], onChange, disabled = false, color = 'alert' }) {
+  const c = color === 'bike_down'
+    ? {
+        badge: 'border-destructive/25 bg-destructive/10 text-destructive',
+        dragOver: 'border-destructive/60 bg-destructive/10',
+        photoBorder: 'border-destructive/20',
+        emptySlot: 'border-destructive/30 bg-destructive/5 hover:border-destructive/60 hover:bg-destructive/10',
+        icon: 'text-destructive',
+      }
+    : {
+        badge: 'border-alert/25 bg-alert/10 text-alert',
+        dragOver: 'border-alert/60 bg-alert/10',
+        photoBorder: 'border-alert/20',
+        emptySlot: 'border-alert/30 bg-alert/5 hover:border-alert/60 hover:bg-alert/10',
+        icon: 'text-alert',
+      };
   const [uploadingIndex, setUploadingIndex] = useState(null);
   const [uploadError, setUploadError] = useState('');
   const [dragOver, setDragOver] = useState(false);
@@ -80,7 +95,7 @@ export default function AlertPhotoUploader({ images = [], onChange, disabled = f
       <div className="mb-2 flex items-center justify-between gap-3">
         <legend className="text-xs font-semibold text-muted-foreground">Optional photos</legend>
         <div
-          className="rounded-full border border-alert/25 bg-alert/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-alert"
+          className={cn('rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em]', c.badge)}
           aria-label={`${photos.length} of ${MAX_ALERT_PHOTOS} photos uploaded`}
         >
           {photos.length}/{MAX_ALERT_PHOTOS} max
@@ -93,12 +108,12 @@ export default function AlertPhotoUploader({ images = [], onChange, disabled = f
             key={index}
             className={cn(
               'rounded-2xl border border-border/70 bg-black/30 p-2 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)] transition-colors',
-              dragOver && !photo && 'border-alert/60 bg-alert/10'
+              dragOver && !photo && c.dragOver
             )}
           >
             {photo ? (
               <div className="space-y-2">
-                <div className="flex h-32 items-center justify-center overflow-hidden rounded-xl border border-alert/20 bg-black/45 p-1.5">
+                <div className={cn('flex h-32 items-center justify-center overflow-hidden rounded-xl border bg-black/45 p-1.5', c.photoBorder)}>
                   <img
                     src={photo.previewUrl || photo}
                     className="max-h-28 w-full object-contain"
@@ -154,7 +169,7 @@ export default function AlertPhotoUploader({ images = [], onChange, disabled = f
                 className={cn(
                   'flex h-[180px] cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-3 text-center transition',
                   canAddMore
-                    ? 'border-alert/30 bg-alert/5 hover:border-alert/60 hover:bg-alert/10'
+                    ? c.emptySlot
                     : 'border-border/30 bg-black/20 opacity-50 cursor-not-allowed',
                   'focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background'
                 )}
@@ -176,9 +191,9 @@ export default function AlertPhotoUploader({ images = [], onChange, disabled = f
                   aria-describedby={uploadError ? 'alert-upload-error' : undefined}
                 />
                 {uploadingIndex === index ? (
-                  <Upload className="mb-2 h-5 w-5 animate-pulse text-alert" aria-hidden="true" />
+                  <Upload className={cn('mb-2 h-5 w-5 animate-pulse', c.icon)} aria-hidden="true" />
                 ) : (
-                  <Image className="mb-2 h-5 w-5 text-alert" aria-hidden="true" />
+                  <Image className={cn('mb-2 h-5 w-5', c.icon)} aria-hidden="true" />
                 )}
                 <div className="text-sm font-bold text-foreground">
                   {uploadingIndex === index ? 'Preparing...' : 'Add photo'}

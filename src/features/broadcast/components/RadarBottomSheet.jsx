@@ -67,13 +67,16 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
   // Phase 4: honest category summary for expanded state
   const categorySummary = useMemo(() => {
     if (!sheetOpen || totalCount === 0) return null;
-    const alerts = broadcasts.filter((b) => b.type === 'alert').length;
+    const warnings = broadcasts.filter((b) => b.type === 'alert' && b.alert_type !== 'bike_down').length;
+    const bikeDowns = broadcasts.filter((b) => b.type === 'alert' && b.alert_type === 'bike_down').length;
     const rides = broadcasts.filter((b) => b.type === 'solo_ride').length;
     const iso = broadcasts.filter((b) => b.type === 'iso').length;
     const events = broadcasts.filter((b) => b.type === 'event').length;
     const parts = [];
-    if (alerts === 1) parts.push('1 warning');
-    else if (alerts > 1) parts.push(`${alerts} warnings`);
+    if (bikeDowns === 1) parts.push('1 bike down');
+    else if (bikeDowns > 1) parts.push(`${bikeDowns} bike downs`);
+    if (warnings === 1) parts.push('1 warning');
+    else if (warnings > 1) parts.push(`${warnings} warnings`);
     if (rides === 1) parts.push('1 ride');
     else if (rides > 1) parts.push(`${rides} rides`);
     if (iso === 1) parts.push('1 help request');
