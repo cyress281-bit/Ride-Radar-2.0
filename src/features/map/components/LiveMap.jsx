@@ -296,7 +296,7 @@ const SignalListItem = memo(function SignalListItem({ item, userLat, userLng }) 
   const signalAge = item.created_at ? timeAgo(item.created_at) : 'live';
   const isPresence = item.type === 'rider_presence';
   const title = isPresence ? item.display_name || 'Live rider' : item.title || BROADCAST_META[item.type]?.label || 'Signal';
-  const detail = isPresence ? item.vehicle_label || null : item.exact_location_text || null;
+  const detail = isPresence ? item.vehicle_label || null : item.location_name || null;
   const riderPrecision = isPresence ? item.location_precision || 'approximate' : null;
 
   return (

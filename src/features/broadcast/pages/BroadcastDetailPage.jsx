@@ -231,10 +231,10 @@ function BroadcastDetailPage() {
 
         {/* Metadata */}
         <HStack gap={4} wrap className="text-sm text-muted-foreground mt-5">
-          {(broadcast.type === 'event' || isAlert) && broadcast.exact_location_text && (
+          {(broadcast.type === 'event' || isAlert) && broadcast.location_name && (
             <span className="flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-primary" />
-              {broadcast.exact_location_text}
+              {broadcast.location_name}
             </span>
           )}
           {broadcast.type === 'event' && broadcast.event_date && (

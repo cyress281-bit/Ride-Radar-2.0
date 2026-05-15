@@ -27,11 +27,11 @@ const MapPopup = memo(function MapPopup({ item, userLat, userLng }) {
   const signalAge = item.created_at ? timeAgo(item.created_at) : 'live';
   const isPresence = item.type === 'rider_presence';
   const title = isPresence ? item.display_name || 'Live rider' : item.title || BROADCAST_META[item.type]?.label || 'Signal';
-  const detail = isPresence ? item.vehicle_label || null : item.exact_location_text || null;
+  const detail = isPresence ? item.vehicle_label || null : item.location_name || null;
   const riderPrecision = isPresence ? item.location_precision || 'approximate' : null;
 
   return (
-    <div className="min-w-56 max-w-72 text-foreground">
+    <div className="min-w-56 max-w-72 rounded-lg bg-background p-3 text-foreground shadow-lg">
       <div className={cn('h-[2px] w-full rounded-full', config.leftStripe, isPresence ? 'opacity-60' : 'opacity-80')} />
       <div className="mt-2.5">
         <div className={cn('text-[10px] font-bold uppercase tracking-[0.16em]', config.text)}>
