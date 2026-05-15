@@ -65,12 +65,16 @@ export const RideCard = memo(
     const isVideo = mediaUrl && /\.(mp4|webm|mov)(\?.*)?$/i.test(mediaUrl);
 
     // Type-specific neon glow for cards
-    const typeGlowClass = {
-      solo_ride: 'hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)] hover:border-primary/20',
-      iso: 'hover:shadow-[0_0_20px_hsl(var(--cyan)/0.12)] hover:border-cyan/20',
-      event: 'hover:shadow-[0_0_20px_hsl(var(--amber)/0.12)] hover:border-amber/20',
-      alert: 'hover:shadow-[0_0_20px_hsl(var(--destructive)/0.15)] hover:border-destructive/20',
-    }[broadcast.type] || '';
+    const typeGlowClass =
+      broadcast.type === 'alert'
+        ? broadcast.alert_type === 'bike_down'
+          ? 'hover:shadow-[0_0_20px_hsl(var(--destructive)/0.15)] hover:border-destructive/20'
+          : 'hover:shadow-[0_0_20px_hsl(var(--alert)/0.15)] hover:border-alert/20'
+        : {
+            solo_ride: 'hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)] hover:border-primary/20',
+            iso: 'hover:shadow-[0_0_20px_hsl(var(--iso)/0.12)] hover:border-iso/20',
+            event: 'hover:shadow-[0_0_20px_hsl(var(--event)/0.12)] hover:border-event/20',
+          }[broadcast.type] || '';
 
     const cardContent = (
       <>
@@ -120,7 +124,7 @@ export const RideCard = memo(
 
             {/* Type badge */}
             <div className="absolute top-3 left-3">
-              <Badge type={broadcast.type} />
+              <Badge type={broadcast.type} alertType={broadcast.alert_type} />
             </div>
 
             {/* Title & body overlaid */}

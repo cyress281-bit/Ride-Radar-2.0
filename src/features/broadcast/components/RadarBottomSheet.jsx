@@ -16,10 +16,10 @@ const FILTER_TYPES = [
 
 const FILTER_STYLES = {
   all:    { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'hover:bg-primary/10 hover:text-primary hover:border-primary/20' },
-  alert:  { active: 'bg-destructive text-destructive-foreground shadow-[0_0_20px_hsl(var(--destructive)/0.3)]', inactive: 'hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20' },
+  alert:  { active: 'bg-alert text-alert-foreground shadow-[0_0_20px_hsl(var(--alert)/0.3)]', inactive: 'hover:bg-alert/10 hover:text-alert hover:border-alert/20' },
   solo_ride: { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'hover:bg-primary/10 hover:text-primary hover:border-primary/20' },
-  iso:    { active: 'bg-cyan text-cyan-foreground shadow-[0_0_20px_hsl(var(--cyan)/0.3)]', inactive: 'hover:bg-cyan/10 hover:text-cyan hover:border-cyan/20' },
-  event:  { active: 'bg-amber text-amber-foreground shadow-[0_0_20px_hsl(var(--amber)/0.3)]', inactive: 'hover:bg-amber/10 hover:text-amber hover:border-amber/20' },
+  iso:    { active: 'bg-iso text-iso-foreground shadow-[0_0_20px_hsl(var(--iso)/0.3)]', inactive: 'hover:bg-iso/10 hover:text-iso hover:border-iso/20' },
+  event:  { active: 'bg-event text-event-foreground shadow-[0_0_20px_hsl(var(--event)/0.3)]', inactive: 'hover:bg-event/10 hover:text-event hover:border-event/20' },
 };
 
 /**
