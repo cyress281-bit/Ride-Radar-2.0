@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useCallback, memo, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useMessages, useMarkRead } from '@/features/chat/hooks/use-messages.js';
@@ -294,9 +294,17 @@ function ConversationPage() {
         </button>
 
         {otherProfile && otherId ? (
-          <Link
-            to={`/profile/${otherId}`}
-            className="flex flex-1 items-center gap-3 min-w-0 pressable"
+          <HStack
+            align="center"
+            gap={3}
+            flex
+            className="min-w-0 pressable cursor-pointer"
+            role="link"
+            tabIndex={0}
+            onClick={() => navigate(`/profile/${otherId}`)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') navigate(`/profile/${otherId}`);
+            }}
           >
             <AvatarWithStatus
               url={otherProfile.avatar_url}
@@ -313,7 +321,7 @@ function ConversationPage() {
                 <Text variant="micro" color="muted">Secure channel</Text>
               </HStack>
             </VStack>
-          </Link>
+          </HStack>
         ) : (
           <VStack flex className="min-w-0">
             <Text variant="bodySm" className="font-semibold truncate">Rider</Text>
