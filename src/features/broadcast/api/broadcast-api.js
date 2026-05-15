@@ -71,8 +71,7 @@ export async function getNearbyBroadcasts(lat, lng, radius = 50, limit = 100, bl
     user_lat: lat,
     user_lng: lng,
     radius_miles: radius,
-    result_limit: limit,
-    exclude_user_ids: blockedUserIds.length > 0 ? blockedUserIds : null,
+    limit_count: limit,
   });
 
   if (error) logger.error('[getNearbyBroadcasts] Error:', error);
