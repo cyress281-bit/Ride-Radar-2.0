@@ -36,7 +36,7 @@ function BroadcastCreatePage() {
 
   if (!type) {
     return (
-      <div className="px-5 pt-6 pb-8 pb-safe bg-background min-h-dvh">
+      <div className="px-5 pt-6 pb-nav-safe bg-background min-h-dvh">
         <VStack gap={6}>
           {/* Header */}
           <VStack gap={1}>

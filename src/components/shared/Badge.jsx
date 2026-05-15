@@ -6,6 +6,7 @@ const TYPE_MAP = {
   solo_ride: { bg: 'bg-solo', text: 'text-solo-foreground' },
   iso: { bg: 'bg-iso', text: 'text-iso-foreground' },
   event: { bg: 'bg-event', text: 'text-event-foreground' },
+  bike_down: { bg: 'bg-destructive', text: 'text-destructive-foreground' },
 };
 
 const ALERT_TYPE_LABELS = {
@@ -28,7 +29,7 @@ const DEFAULT_LABELS = {
  * @param {string} [props.className]
  */
 export const Badge = memo(function Badge({ type, alertType, label, className }) {
-  const config = TYPE_MAP[type] || TYPE_MAP.solo_ride;
+  const config = (alertType && TYPE_MAP[alertType]) || TYPE_MAP[type] || TYPE_MAP.solo_ride;
   const displayLabel = label || ALERT_TYPE_LABELS[alertType] || DEFAULT_LABELS[type] || 'Signal';
 
   return (

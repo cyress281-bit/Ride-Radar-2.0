@@ -22,11 +22,11 @@ import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 
 const TYPES = [
-  { id: 'bike_down', label: 'Bike Down', desc: 'Fast safety alert — accident or rider down', icon: Siren, color: 'alert' },
   { id: 'solo_ride', label: 'Ride Now', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
-  { id: 'iso', label: 'Need Help', desc: 'Find wrench help or a bike crew', icon: Search, color: 'iso' },
   { id: 'event', label: 'Plan a Meetup', desc: 'Stage a meetup or group ride', icon: CalendarClock, color: 'event' },
+  { id: 'iso', label: 'Need Help', desc: 'Find wrench help or a bike crew', icon: Search, color: 'iso' },
   { id: 'alert', label: 'Road Warning', desc: 'Road hazard, one-way broadcast', icon: ShieldAlert, color: 'alert' },
+  { id: 'bike_down', label: 'Bike Down', desc: 'Fast safety alert — accident or rider down', icon: Siren, color: 'bike_down' },
 ];
 
 const TYPE_STYLE_MAP = {
@@ -39,32 +39,41 @@ const TYPE_STYLE_MAP = {
     neonClass: 'rr-neon-green',
     glowClass: 'glow-kawasaki-sm',
   },
-  iso: {
-    hover: 'hover:border-cyan/40 hover:bg-cyan/5',
-    glow: 'bg-cyan',
-    border: 'border-cyan/25',
-    text: 'text-cyan',
-    bg: 'bg-cyan/10',
-    neonClass: 'rr-neon-blue',
-    glowClass: 'glow-yamaha',
-  },
   event: {
-    hover: 'hover:border-amber/40 hover:bg-amber/5',
-    glow: 'bg-amber',
-    border: 'border-amber/25',
-    text: 'text-amber',
-    bg: 'bg-amber/10',
+    hover: 'hover:border-event/40 hover:bg-event/5',
+    glow: 'bg-event',
+    border: 'border-event/25',
+    text: 'text-event',
+    bg: 'bg-event/10',
     neonClass: '',
-    glowClass: 'glow-ducati',
+    glowClass: '',
+  },
+  iso: {
+    hover: 'hover:border-iso/40 hover:bg-iso/5',
+    glow: 'bg-iso',
+    border: 'border-iso/25',
+    text: 'text-iso',
+    bg: 'bg-iso/10',
+    neonClass: '',
+    glowClass: '',
   },
   alert: {
+    hover: 'hover:border-alert/40 hover:bg-alert/5',
+    glow: 'bg-alert',
+    border: 'border-alert/25',
+    text: 'text-alert',
+    bg: 'bg-alert/10',
+    neonClass: '',
+    glowClass: '',
+  },
+  bike_down: {
     hover: 'hover:border-destructive/40 hover:bg-destructive/5',
     glow: 'bg-destructive',
     border: 'border-destructive/25',
     text: 'text-destructive',
     bg: 'bg-destructive/10',
     neonClass: 'rr-neon-red',
-    glowClass: 'glow-honda',
+    glowClass: '',
   },
 };
 
@@ -238,7 +247,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
 
   return (
-    <div className="px-5 pt-5 pb-8 pb-safe bg-background scroll-smooth">
+    <div className="px-5 pt-5 pb-nav-safe bg-background scroll-smooth">
       <button onClick={onBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 min-h-[44px] px-1 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Send a Signal
       </button>
@@ -383,19 +392,6 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               />
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
             </VStack>
-            <div className="grid grid-cols-2 gap-3">
-              <VStack gap={2}>
-                <Label htmlFor="start" className="rr-kicker text-muted-foreground mb-1 block">Starts</Label>
-                <Input id="start" type="datetime-local" {...register('eventDate')} className="rr-premium-input rounded-xl mt-1.5" />
-                {errors.eventDate && <p className="mt-1 text-xs text-destructive">{errors.eventDate.message}</p>}
-              </VStack>
-              <VStack gap={2}>
-                <Label htmlFor="end" className="rr-kicker text-muted-foreground mb-1 block">Ends</Label>
-                <Input id="end" type="datetime-local" {...register('eventEndTime')} className="rr-premium-input rounded-xl mt-1.5" />
-                {errors.eventEndTime && <p className="mt-1 text-xs text-destructive">{errors.eventEndTime.message}</p>}
-              </VStack>
-            </div>
-
             {/* Event poster upload */}
             <VStack gap={2}>
               <Label htmlFor="eventPoster" className="rr-kicker text-muted-foreground mb-1 block">Event poster (optional)</Label>
@@ -433,6 +429,19 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 )}
               </div>
               {uploadError && <p className="mt-2 text-sm text-destructive">{uploadError}</p>}
+            </VStack>
+
+            <VStack gap={3}>
+              <VStack gap={2}>
+                <Label htmlFor="start" className="rr-kicker text-muted-foreground mb-1 block">Starts</Label>
+                <Input id="start" type="datetime-local" {...register('eventDate')} className="rr-premium-input rounded-xl mt-1.5" />
+                {errors.eventDate && <p className="mt-1 text-xs text-destructive">{errors.eventDate.message}</p>}
+              </VStack>
+              <VStack gap={2}>
+                <Label htmlFor="end" className="rr-kicker text-muted-foreground mb-1 block">Ends</Label>
+                <Input id="end" type="datetime-local" {...register('eventEndTime')} className="rr-premium-input rounded-xl mt-1.5" />
+                {errors.eventEndTime && <p className="mt-1 text-xs text-destructive">{errors.eventEndTime.message}</p>}
+              </VStack>
             </VStack>
           </VStack>
         )}
@@ -509,13 +518,15 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           disabled={!canPost || post.isPending || !user}
           className={cn(
             'w-full h-14 rounded-full mt-2 text-base font-bold pressable transition-all duration-200',
-            type === 'alert' || type === 'bike_down'
-              ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground glow-honda'
-              : type === 'event'
-                ? 'bg-amber hover:bg-amber/90 text-amber-foreground glow-ducati'
-                : type === 'iso'
-                  ? 'bg-cyan hover:bg-cyan/90 text-cyan-foreground glow-yamaha'
-                  : 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
+            type === 'bike_down'
+              ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
+              : type === 'alert'
+                ? 'bg-alert hover:bg-alert/90 text-alert-foreground'
+                : type === 'event'
+                  ? 'bg-event hover:bg-event/90 text-event-foreground'
+                  : type === 'iso'
+                    ? 'bg-iso hover:bg-iso/90 text-iso-foreground'
+                    : 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
           )}
         >
           {post.isPending

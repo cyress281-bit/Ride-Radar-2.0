@@ -31,9 +31,9 @@ const styles = {
   },
   bike_down: {
     Icon: Siren,
-    shell: 'border-alert/30 bg-alert/8 text-alert shadow-[inset_0_1px_0_hsl(0_0%_100%/0.06)]',
-    beam: 'bg-alert/45',
-    dot: 'bg-alert',
+    shell: 'border-destructive/30 bg-destructive/8 text-destructive shadow-[inset_0_1px_0_hsl(0_0%_100%/0.06)]',
+    beam: 'bg-destructive/45',
+    dot: 'bg-destructive',
   },
 };
 

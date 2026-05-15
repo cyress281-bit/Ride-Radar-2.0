@@ -92,14 +92,14 @@
     --pulse-dim: 0 100% 59%;
 
     /* Broadcast type colors */
-    --alert: 0 100% 59%;
-    --alert-foreground: 0 0% 100%;
+    --alert: 30 100% 53%;
+    --alert-foreground: 240 20% 2%;
     --solo: 107 100% 54%;
     --solo-foreground: 240 20% 2%;
-    --iso: 191 100% 50%;
-    --iso-foreground: 0 0% 100%;
-    --event: 43 100% 50%;
-    --event-foreground: 240 20% 2%;
+    --iso: 50 100% 52%;
+    --iso-foreground: 240 20% 2%;
+    --event: 214 100% 60%;
+    --event-foreground: 0 0% 100%;
 
     /* Typography */
     --font-sans: Inter, system-ui, sans-serif;

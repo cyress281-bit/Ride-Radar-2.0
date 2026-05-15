@@ -7,11 +7,11 @@ import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
 
 const GROUPS = [
-  { id: 'bike_down', label: 'Bike Down', microcopy: 'Fast safety alert — accident or rider down', color: 'alert' },
   { id: 'solo_ride', label: 'Ride Now', microcopy: "Let riders know you're out", color: 'solo' },
   { id: 'event', label: 'Plan a Meetup', microcopy: 'Bike night, event, or group ride', color: 'event' },
   { id: 'iso', label: 'Need Help', microcopy: 'Find crew or mechanical support', color: 'iso' },
   { id: 'alert', label: 'Road Warning', microcopy: 'Road hazard or surface condition', color: 'alert' },
+  { id: 'bike_down', label: 'Bike Down', microcopy: 'Fast safety alert — accident or rider down', color: 'bike_down' },
 ];
 
 const GROUP_STYLES = {
@@ -24,28 +24,36 @@ const GROUP_STYLES = {
     hoverBorder: 'hover:border-primary/50',
   },
   event: {
-    border: 'border-brand-amber/20',
-    borderLeft: 'border-l-brand-amber/50',
-    text: 'text-brand-amber',
-    iconBorder: 'border-brand-amber/25',
-    iconBg: 'bg-brand-amber/10',
-    hoverBorder: 'hover:border-brand-amber/50',
+    border: 'border-event/20',
+    borderLeft: 'border-l-event/50',
+    text: 'text-event',
+    iconBorder: 'border-event/25',
+    iconBg: 'bg-event/10',
+    hoverBorder: 'hover:border-event/50',
   },
   iso: {
-    border: 'border-brand-radar/20',
-    borderLeft: 'border-l-brand-radar/50',
-    text: 'text-brand-radar',
-    iconBorder: 'border-brand-radar/25',
-    iconBg: 'bg-brand-radar/10',
-    hoverBorder: 'hover:border-brand-radar/50',
+    border: 'border-iso/20',
+    borderLeft: 'border-l-iso/50',
+    text: 'text-iso',
+    iconBorder: 'border-iso/25',
+    iconBg: 'bg-iso/10',
+    hoverBorder: 'hover:border-iso/50',
   },
   alert: {
-    border: 'border-brand-emergency/20',
-    borderLeft: 'border-l-brand-emergency/50',
-    text: 'text-brand-emergency',
-    iconBorder: 'border-brand-emergency/25',
-    iconBg: 'bg-brand-emergency/10',
-    hoverBorder: 'hover:border-brand-emergency/50',
+    border: 'border-alert/20',
+    borderLeft: 'border-l-alert/50',
+    text: 'text-alert',
+    iconBorder: 'border-alert/25',
+    iconBg: 'bg-alert/10',
+    hoverBorder: 'hover:border-alert/50',
+  },
+  bike_down: {
+    border: 'border-destructive/20',
+    borderLeft: 'border-l-destructive/50',
+    text: 'text-destructive',
+    iconBorder: 'border-destructive/25',
+    iconBg: 'bg-destructive/10',
+    hoverBorder: 'hover:border-destructive/50',
   },
 };
 
