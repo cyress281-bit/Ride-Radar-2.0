@@ -61,7 +61,6 @@ export function useCreateBroadcast() {
       }
 
       let frozenLocation = null;
-      let locationPrivacy = 'none';
       let geocodeResult = null;
       const exactLocationText = normalizeLocationText(broadcastData.exactLocationText);
 
@@ -77,7 +76,6 @@ export function useCreateBroadcast() {
             broadcastData.lng,
             `${user.id}:${now.toISOString()}:${broadcastData.type}`
           );
-          locationPrivacy = frozenLocation ? 'approximate' : 'none';
         }
       }
 
@@ -91,7 +89,6 @@ export function useCreateBroadcast() {
               geocodeResult.lng,
               `${user.id}:${now.toISOString()}:event:${exactLocationText}`
             );
-            locationPrivacy = frozenLocation ? 'approximate' : 'none';
           }
         } catch (error) {
           logger.warn('[useCreateBroadcast] Event geocoding failed:', error);
@@ -114,7 +111,6 @@ export function useCreateBroadcast() {
               geocodeResult.lng,
               `${user.id}:${now.toISOString()}:alert:${exactLocationText}`
             );
-            locationPrivacy = frozenLocation ? 'approximate' : 'none';
           }
         } catch (error) {
           logger.warn('[useCreateBroadcast] Alert geocoding failed:', error);
@@ -137,10 +133,6 @@ export function useCreateBroadcast() {
 
         frozen_lat: frozenLocation?.lat ?? null,
         frozen_lng: frozenLocation?.lng ?? null,
-        location_privacy: locationPrivacy,
-        location_geocoded_at: geocodeResult ? now.toISOString() : null,
-        location_geocode_provider: geocodeResult ? 'nominatim' : null,
-        location_geocode_query: geocodeResult ? exactLocationText : null,
 
         event_date: broadcastData.eventDate ? new Date(broadcastData.eventDate).toISOString() : null,
 
