@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
 import OptimizedImage from '@/components/shared/OptimizedImage';
+import PostComments from '@/features/profile/components/PostComments';
 
 /**
  * PostDetailSheet — full-screen overlay for viewing a post and optionally deleting it.
@@ -132,6 +133,13 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, c
             <Text variant="caption" className="text-destructive">{error}</Text>
           </div>
         )}
+
+        {/* Comments */}
+        <PostComments
+          postId={post.id}
+          postOwnerId={post.user_id}
+          currentUserId={userId}
+        />
       </VStack>
 
       {/* Delete confirmation */}
