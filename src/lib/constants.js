@@ -8,11 +8,11 @@
 
 /** @type {Record<string, number|null>} */
 export const BROADCAST_EXPIRY_MS = {
-  solo_ride: 72 * 60 * 60 * 1000, // 72 hours
-  iso: 72 * 60 * 60 * 1000,       // 72 hours
+  solo_ride: 1 * 60 * 60 * 1000,  // 1 hour
+  iso: 6 * 60 * 60 * 1000,        // 6 hours
   alert: 6 * 60 * 60 * 1000,      // 6 hours
   bike_down: 6 * 60 * 60 * 1000,  // 6 hours — same urgency as alert
-  event: null,                    // Use event end time instead
+  event: null,                     // Use event end time instead
 };
 
 // ------------------------------------------------------------------
