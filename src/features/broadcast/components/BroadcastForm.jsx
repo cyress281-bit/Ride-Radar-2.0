@@ -97,7 +97,7 @@ const eventSchema = baseSchema.extend({
 }, { message: 'End time must be after start time', path: ['eventEndTime'] });
 
 const alertSchema = baseSchema.extend({
-  exactLocationText: z.string().min(1, 'Approximate area is required'),
+  exactLocationText: z.string().optional(),
 });
 
 const bikeDownSchema = z.object({
@@ -248,7 +248,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     !isLocating &&
     (type !== 'iso' || isoSubtype === 'mechanic' || watch('lookingTo')) &&
     (type !== 'event' || (exactLocationTextValue && eventDateValue && eventEndTimeValue)) &&
-    (type !== 'alert' && type !== 'bike_down' || exactLocationTextValue) &&
+    (type !== 'bike_down' || exactLocationTextValue) &&
+    (type !== 'alert' || (alertPin?.lat != null && alertPin?.lng != null)) &&
     ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
 
   return (
@@ -468,17 +469,6 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {/* Alert fields */}
         {type === 'alert' && (
           <VStack gap={5}>
-            <VStack gap={2}>
-              <Label htmlFor="approximateArea" className="rr-kicker text-muted-foreground mb-1 block">Where is the hazard?</Label>
-              <Input
-                id="approximateArea"
-                {...register('exactLocationText')}
-                placeholder="I-70 westbound near Idaho Springs"
-                className="rr-premium-input rounded-xl mt-1.5"
-              />
-              {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
-              <Text variant="caption" color="muted" className="mt-1.5">Describe the area. Your exact location stays private.</Text>
-            </VStack>
             {hasUserLocation && (
               <button
                 type="button"
@@ -494,6 +484,16 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               value={alertPin}
               onChange={setAlertPin}
             />
+            <Text variant="caption" color="muted">Drop a pin or use your current location. Exact location stays private.</Text>
+            <VStack gap={2}>
+              <Label htmlFor="approximateArea" className="rr-kicker text-muted-foreground mb-1 block">Area note (optional)</Label>
+              <Input
+                id="approximateArea"
+                {...register('exactLocationText')}
+                placeholder="I-70 westbound near Idaho Springs"
+                className="rr-premium-input rounded-xl mt-1.5"
+              />
+            </VStack>
             <AlertPhotoUploader images={alertImages} onChange={setAlertImages} />
           </VStack>
         )}
