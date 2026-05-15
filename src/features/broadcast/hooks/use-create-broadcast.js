@@ -101,21 +101,28 @@ export function useCreateBroadcast() {
         }
       }
 
-      // Alert: geocode area then approximate
-      if (broadcastData.type === 'alert' && exactLocationText && showApproximateLocation) {
-        try {
-          geocodeResult = await geocodeAddress(exactLocationText);
-          if (geocodeResult) {
-            frozenLocation = approximateLocation(
-              geocodeResult.lat,
-              geocodeResult.lng,
-              `${user.id}:${now.toISOString()}:alert:${exactLocationText}`
-            );
+      // Alert: use pin coords first, then geocode text fallback
+      if (broadcastData.type === 'alert') {
+        if (broadcastData.lat != null && broadcastData.lng != null) {
+          frozenLocation = approximateLocation(
+            broadcastData.lat,
+            broadcastData.lng,
+            `${user.id}:${now.toISOString()}:alert:pin`
+          );
+        } else if (exactLocationText && showApproximateLocation) {
+          try {
+            geocodeResult = await geocodeAddress(exactLocationText);
+            if (geocodeResult) {
+              frozenLocation = approximateLocation(
+                geocodeResult.lat,
+                geocodeResult.lng,
+                `${user.id}:${now.toISOString()}:alert:${exactLocationText}`
+              );
+            }
+          } catch (error) {
+            logger.warn('[useCreateBroadcast] Alert geocoding failed:', error);
           }
-        } catch (error) {
-          logger.warn('[useCreateBroadcast] Alert geocoding failed:', error);
         }
-
       }
 
       const broadcast = {
