@@ -2,11 +2,13 @@
 export const EXPIRY_MINUTES = {
   solo_ride: 90,
   alert: 240,
+  bike_down: 240,
   iso_mechanic: 720,
   iso_bike_crew: 1440,
 };
 
 export const BROADCAST_META = {
+  bike_down: { label: 'Bike Down', color: 'alert', rank: 0 },
   solo_ride: { label: 'Ride Now', color: 'solo', rank: 2 },
   iso: { label: 'Need Help', color: 'iso', rank: 3 },
   event: { label: 'Plan a Meetup', color: 'event', rank: 4 },
@@ -75,6 +77,13 @@ export function timeUntilExpiry(iso) {
   return `${Math.floor(diff / 86400)}d left`;
 }
 
+function getBroadcastRank(broadcast) {
+  if (broadcast.type === 'alert' && broadcast.alert_type === 'bike_down') {
+    return BROADCAST_META.bike_down.rank;
+  }
+  return BROADCAST_META[broadcast.type]?.rank ?? 99;
+}
+
 export function rankBroadcasts(broadcasts, userLat, userLng) {
   // Precompute distances once per item to avoid O(n log n) haversine calls during sort
   const shouldComputeDistance = userLat != null && userLng != null;
@@ -87,8 +96,8 @@ export function rankBroadcasts(broadcasts, userLat, userLng) {
   }));
 
   return withDistances.sort((a, b) => {
-    const rankA = BROADCAST_META[a.type]?.rank ?? 99;
-    const rankB = BROADCAST_META[b.type]?.rank ?? 99;
+    const rankA = getBroadcastRank(a);
+    const rankB = getBroadcastRank(b);
     if (rankA !== rankB) return rankA - rankB;
 
     // Events rank by upcoming eventDate

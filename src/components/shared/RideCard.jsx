@@ -76,7 +76,7 @@ export const RideCard = memo(
       <>
         {broadcast.type === 'alert' && !mediaUrl ? (
           <div className="p-4 space-y-2">
-            <Badge type={broadcast.type} />
+            <Badge type={broadcast.type} alertType={broadcast.alert_type} />
             <Text as="h3" variant="h3" className="line-clamp-2 font-bold">
               {broadcast.title}
             </Text>

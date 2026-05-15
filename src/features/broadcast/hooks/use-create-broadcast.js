@@ -101,8 +101,8 @@ export function useCreateBroadcast() {
         }
       }
 
-      // Alert: use pin coords first, then geocode text fallback
-      if (broadcastData.type === 'alert') {
+      // Alert / Bike Down: use pin coords first, then geocode text fallback
+      if (broadcastData.type === 'alert' || broadcastData.type === 'bike_down') {
         if (broadcastData.lat != null && broadcastData.lng != null) {
           frozenLocation = approximateLocation(
             broadcastData.lat,
@@ -127,7 +127,8 @@ export function useCreateBroadcast() {
 
       const broadcast = {
         author_id: user.id,
-        type: broadcastData.type,
+        type: broadcastData.type === 'bike_down' ? 'alert' : broadcastData.type,
+        alert_type: broadcastData.type === 'bike_down' ? 'bike_down' : null,
         title: broadcastData.title || null,
         body: broadcastData.body || null,
         status: 'active',

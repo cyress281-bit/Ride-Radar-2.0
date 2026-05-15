@@ -7,6 +7,7 @@ import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
 
 const GROUPS = [
+  { id: 'bike_down', label: 'Bike Down', microcopy: 'Fast safety alert — accident or rider down', color: 'alert' },
   { id: 'solo_ride', label: 'Ride Now', microcopy: "Let riders know you're out", color: 'solo' },
   { id: 'event', label: 'Plan a Meetup', microcopy: 'Bike night, event, or group ride', color: 'event' },
   { id: 'iso', label: 'Need Help', microcopy: 'Find crew or mechanical support', color: 'iso' },

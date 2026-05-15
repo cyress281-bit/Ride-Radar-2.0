@@ -8,6 +8,10 @@ const TYPE_MAP = {
   event: { bg: 'bg-event', text: 'text-event-foreground' },
 };
 
+const ALERT_TYPE_LABELS = {
+  bike_down: 'Bike Down',
+};
+
 const DEFAULT_LABELS = {
   alert: 'Road Warning',
   solo_ride: 'Ride Now',
@@ -23,9 +27,9 @@ const DEFAULT_LABELS = {
  * @param {string} [props.label] - Override badge label
  * @param {string} [props.className]
  */
-export const Badge = memo(function Badge({ type, label, className }) {
+export const Badge = memo(function Badge({ type, alertType, label, className }) {
   const config = TYPE_MAP[type] || TYPE_MAP.solo_ride;
-  const displayLabel = label || DEFAULT_LABELS[type] || 'Signal';
+  const displayLabel = label || ALERT_TYPE_LABELS[alertType] || DEFAULT_LABELS[type] || 'Signal';
 
   return (
     <span

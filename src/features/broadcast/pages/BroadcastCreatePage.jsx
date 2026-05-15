@@ -14,7 +14,7 @@ function BroadcastCreatePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlType = searchParams.get('type');
-  const validTypes = ['solo_ride', 'event', 'iso', 'alert'];
+  const validTypes = ['solo_ride', 'event', 'iso', 'alert', 'bike_down'];
   const [type, setType] = useState(validTypes.includes(urlType) ? urlType : null);
   const [showCelebration, setShowCelebration] = useState(false);
   const timerRef = useRef(null);

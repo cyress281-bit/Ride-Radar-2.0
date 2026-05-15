@@ -140,6 +140,7 @@ function BroadcastDetailPage() {
   }
 
   const meta = BROADCAST_META[broadcast.type];
+  const displayLabel = broadcast.alert_type === 'bike_down' ? 'Bike Down' : meta?.label;
   const isAuthor = user?.id === broadcast.author_id;
   const isAlert = broadcast.type === 'alert';
 
@@ -189,7 +190,7 @@ function BroadcastDetailPage() {
               'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-3 border backdrop-blur-md',
               badgeClass
             )}>
-              {meta.label}
+              {displayLabel}
             </div>
             <Text as="h1" variant="h1" className="text-2xl sm:text-3xl font-extrabold text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] tracking-tight">
               {broadcast.title}
@@ -210,7 +211,7 @@ function BroadcastDetailPage() {
             )}
           >
             {broadcast.type === 'solo_ride' && <OfficialMotorcycleIcon className="h-5 w-6 rounded-md" />}
-            {meta.label}
+            {displayLabel}
             {broadcast.iso_subtype && ` · ${broadcast.iso_subtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}`}
           </div>
         )}

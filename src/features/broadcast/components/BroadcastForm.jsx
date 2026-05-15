@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin, Users } from 'lucide-react';
+import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin, Users, Siren } from 'lucide-react';
 import AlertPhotoUploader from './AlertPhotoUploader';
 import AlertPinMap from './AlertPinMap';
 import { useRadarLocation } from '@/features/broadcast/hooks/use-radar-location';
@@ -22,6 +22,7 @@ import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 
 const TYPES = [
+  { id: 'bike_down', label: 'Bike Down', desc: 'Fast safety alert — accident or rider down', icon: Siren, color: 'alert' },
   { id: 'solo_ride', label: 'Ride Now', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
   { id: 'iso', label: 'Need Help', desc: 'Find wrench help or a bike crew', icon: Search, color: 'iso' },
   { id: 'event', label: 'Plan a Meetup', desc: 'Stage a meetup or group ride', icon: CalendarClock, color: 'event' },
@@ -85,6 +86,12 @@ const alertSchema = baseSchema.extend({
   exactLocationText: z.string().min(1, 'Approximate area is required'),
 });
 
+const bikeDownSchema = z.object({
+  exactLocationText: z.string().min(1, 'Location is required'),
+  title: z.string().trim().max(120).optional(),
+  body: z.string().max(500).optional(),
+});
+
 const isoSchema = z.object({
   isoSubtype: z.enum(['mechanic', 'bike_crew']),
   lookingTo: z.enum(['join_crew', 'start_crew']).optional(),
@@ -142,7 +149,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   }, [type]);
 
   const schema =
-    type === 'event' ? eventSchema : type === 'alert' ? alertSchema : type === 'iso' ? isoSchema : baseSchema;
+    type === 'event' ? eventSchema : type === 'alert' ? alertSchema : type === 'bike_down' ? bikeDownSchema : type === 'iso' ? isoSchema : baseSchema;
 
   const {
     register,
@@ -208,6 +215,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           title: type === 'solo_ride' ? 'Ride signal sent' :
                  type === 'event' ? 'Meetup created' :
                  type === 'iso' ? 'Help request sent' :
+                 type === 'bike_down' ? 'Bike Down alert sent' :
                  'Warning sent',
           description: 'Riders nearby can see it.',
         });
@@ -226,7 +234,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     !isLocating &&
     (type !== 'iso' || isoSubtype === 'mechanic' || watch('lookingTo')) &&
     (type !== 'event' || (exactLocationTextValue && eventDateValue && eventEndTimeValue)) &&
-    (type !== 'alert' || exactLocationTextValue) &&
+    (type !== 'alert' && type !== 'bike_down' || exactLocationTextValue) &&
     ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
 
   return (
@@ -249,6 +257,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {type === 'event' && 'Plan a meetup, bike night, or group ride.'}
         {type === 'iso' && 'Ask nearby riders for help, crew, or mechanical support.'}
         {type === 'alert' && 'Warn nearby riders about a road issue or hazard.'}
+        {type === 'bike_down' && 'Fast safety alert — accident or rider down nearby.'}
       </Text>
 
       {/* Form */}
@@ -296,7 +305,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               </SelectContent>
             </Select>
           </VStack>
-        ) : (
+        ) : type === 'bike_down' ? null : (
           <VStack gap={2}>
             <Label htmlFor="title" className="rr-kicker text-muted-foreground mb-1 block">
               {type === 'alert' ? 'What should riders know?' :
@@ -333,6 +342,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
              type === 'event' ? 'More info (optional)' :
              type === 'iso' && isoSubtype === 'mechanic' ? 'Bike model, symptoms, tools' :
              type === 'iso' && isoSubtype === 'bike_crew' ? 'Riding style, pace, or timing' :
+             type === 'bike_down' ? 'Details (optional)' :
              'More details (optional)'}
           </Label>
           <Textarea
@@ -347,7 +357,9 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                     ? 'Cruising pace, no drop, open to nearby riders'
                     : type === 'event'
                       ? 'Meet at the lot, roll at 9'
-                      : 'Gravel across both lanes'
+                      : type === 'bike_down'
+                        ? 'Motorcycle down, rider condition, traffic blocked...'
+                        : 'Gravel across both lanes'
             }
             className="rr-premium-input rounded-xl mt-1.5"
             rows={4}
@@ -448,6 +460,29 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           </VStack>
         )}
 
+        {/* Bike Down fields */}
+        {type === 'bike_down' && (
+          <VStack gap={5}>
+            <VStack gap={2}>
+              <Label htmlFor="approximateArea" className="rr-kicker text-muted-foreground mb-1 block">Where did you see it?</Label>
+              <Input
+                id="approximateArea"
+                {...register('exactLocationText')}
+                placeholder="I-70 westbound near Idaho Springs"
+                className="rr-premium-input rounded-xl mt-1.5"
+              />
+              {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
+              <Text variant="caption" color="muted" className="mt-1.5">Describe the area. Your exact location stays private.</Text>
+            </VStack>
+            <AlertPinMap
+              defaultCenter={radarDefaultLoc}
+              value={alertPin}
+              onChange={setAlertPin}
+            />
+            <AlertPhotoUploader images={alertImages} onChange={setAlertImages} />
+          </VStack>
+        )}
+
         {/* Location info */}
         {(type === 'solo_ride' || type === 'iso') && (
           <div className="p-3 bg-primary/5 rounded-xl text-xs text-primary border border-primary/15 flex items-start gap-2">
@@ -474,7 +509,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           disabled={!canPost || post.isPending || !user}
           className={cn(
             'w-full h-14 rounded-full mt-2 text-base font-bold pressable transition-all duration-200',
-            type === 'alert'
+            type === 'alert' || type === 'bike_down'
               ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground glow-honda'
               : type === 'event'
                 ? 'bg-amber hover:bg-amber/90 text-amber-foreground glow-ducati'
@@ -489,11 +524,13 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               ? 'Send Ride Signal'
               : type === 'event'
                 ? 'Create Meetup'
-                : type === 'iso' && isoSubtype === 'mechanic'
-                  ? 'Request Help'
-                  : type === 'iso' && isoSubtype === 'bike_crew'
-                    ? 'Send Crew Request'
-                    : 'Send Warning'}
+                : type === 'bike_down'
+                  ? 'Send Bike Down Alert'
+                  : type === 'iso' && isoSubtype === 'mechanic'
+                    ? 'Request Help'
+                    : type === 'iso' && isoSubtype === 'bike_crew'
+                      ? 'Send Crew Request'
+                      : 'Send Warning'}
         </Button>
       </form>
     </div>

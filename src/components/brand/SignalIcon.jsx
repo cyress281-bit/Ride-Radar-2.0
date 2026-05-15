@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { ShieldAlert, Search, CalendarClock, Wrench } from 'lucide-react';
+import { ShieldAlert, Search, CalendarClock, Wrench, Siren } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 
@@ -25,6 +25,12 @@ const styles = {
   },
   alert: {
     Icon: ShieldAlert,
+    shell: 'border-alert/30 bg-alert/8 text-alert shadow-[inset_0_1px_0_hsl(0_0%_100%/0.06)]',
+    beam: 'bg-alert/45',
+    dot: 'bg-alert',
+  },
+  bike_down: {
+    Icon: Siren,
     shell: 'border-alert/30 bg-alert/8 text-alert shadow-[inset_0_1px_0_hsl(0_0%_100%/0.06)]',
     beam: 'bg-alert/45',
     dot: 'bg-alert',
