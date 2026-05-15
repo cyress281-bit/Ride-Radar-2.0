@@ -22,6 +22,7 @@ const MAX_FILE_SIZES = {
   bike: 10 * 1024 * 1024,
   event: 10 * 1024 * 1024,
   alert: 10 * 1024 * 1024,
+  post: 10 * 1024 * 1024,
 };
 
 /**
