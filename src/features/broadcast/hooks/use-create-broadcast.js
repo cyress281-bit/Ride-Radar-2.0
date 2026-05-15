@@ -135,8 +135,6 @@ export function useCreateBroadcast() {
         status: 'active',
         expires_at,
 
-        lat: frozenLocation?.lat ?? null,
-        lng: frozenLocation?.lng ?? null,
         frozen_lat: frozenLocation?.lat ?? null,
         frozen_lng: frozenLocation?.lng ?? null,
         location_privacy: locationPrivacy,
@@ -144,12 +142,7 @@ export function useCreateBroadcast() {
         location_geocode_provider: geocodeResult ? 'nominatim' : null,
         location_geocode_query: geocodeResult ? exactLocationText : null,
 
-        iso_subtype: broadcastData.isoSubtype || null,
-        looking_to: broadcastData.lookingTo || null,
-
-        exact_location_text: exactLocationText || null,
         event_date: broadcastData.eventDate ? new Date(broadcastData.eventDate).toISOString() : null,
-        event_end_time: broadcastData.eventEndTime ? new Date(broadcastData.eventEndTime).toISOString() : null,
 
         // Upload images to Supabase Storage before inserting (blob URLs are session-only)
         event_image_url: broadcastData.eventImage
