@@ -114,7 +114,6 @@ function BroadcastFeedPage() {
       sourceBroadcasts.filter((b) => {
         if (blockedIds.has(getAuthorId(b))) return false;
         if (b.expires_at && new Date(b.expires_at) <= new Date()) return false;
-        if (getAuthorId(b) === user?.id) return false;
         return true;
       }),
     [sourceBroadcasts, blockedIds, user?.id]
