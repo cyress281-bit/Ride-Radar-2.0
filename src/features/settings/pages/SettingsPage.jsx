@@ -89,7 +89,7 @@ const SettingsRow = memo(function SettingsRow({
           {label}
         </Text>
         {desc && (
-          <Text variant="caption" color="muted" truncate>{desc}</Text>
+          <Text variant="caption" color="muted">{desc}</Text>
         )}
       </VStack>
       {toggle !== undefined && (

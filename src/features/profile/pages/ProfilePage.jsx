@@ -248,7 +248,7 @@ function ProfilePage() {
             <User className="w-3.5 h-3.5" /> About
           </TabsTrigger>
           <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-            <Grid3X3 className="w-3.5 h-3.5" /> Photos
+            <Grid3X3 className="w-3.5 h-3.5" /> Posts
           </TabsTrigger>
         </TabsList>
 
@@ -356,9 +356,8 @@ function ProfilePage() {
           ) : (
             <EmptyState
               icon={Grid3X3}
-              title="No photos yet"
-              description="Upload a bike photo to see it here."
-              action={{ label: 'Add Photo', onClick: () => setEditing(true) }}
+              title="No posts yet"
+              description="Share bike photos, ride moments, or group pictures here."
             />
           )}
         </TabsContent>
@@ -382,10 +381,10 @@ const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading, b
           <Icon className={cn('h-3.5 w-3.5', style.text)} />
         </div>
       </div>
-      <Text variant="bodySm" className={cn('font-bold', style.text)}>
+      <Text variant="bodySm" className={cn('block font-bold', style.text)}>
         {isLoading ? '—' : value}
       </Text>
-      <Text variant="micro" color="muted">{label}</Text>
+      <Text variant="micro" color="muted" className="block">{label}</Text>
     </div>
   );
 });
