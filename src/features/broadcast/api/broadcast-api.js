@@ -97,24 +97,6 @@ export async function createBroadcast(broadcastData) {
 }
 
 /**
- * Soft-delete a broadcast by setting status to 'deleted'.
- *
- * @param {string} id
- * @returns {Promise<{data: object|null, error: Error|null}>}
- */
-export async function deleteBroadcast(id) {
-  const { data, error } = await supabase
-    .from('broadcasts')
-    .update({ status: 'deleted' })
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) logger.error('[deleteBroadcast] Error:', error);
-  return { data, error };
-}
-
-/**
  * Hard-delete a broadcast by ID (admin only).
  * @param {string} id
  * @returns {Promise<{data: null, error: Error|null}>}
