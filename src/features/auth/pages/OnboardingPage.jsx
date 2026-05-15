@@ -222,6 +222,9 @@ export default function OnboardingPage() {
         );
       if (userRowError) {
         logger.error('[Onboarding] Failed to ensure public.users row:', userRowError);
+        throw new Error(
+          'We could not finish your profile setup. Please refresh and try again.'
+        );
       }
 
       // Upload images if needed — non-blocking so optional photos never block onboarding
@@ -302,6 +305,9 @@ export default function OnboardingPage() {
         );
       if (userRowError) {
         logger.error('[Onboarding] Failed to ensure public.users row during skip:', userRowError);
+        throw new Error(
+          'We could not finish your profile setup. Please refresh and try again.'
+        );
       }
 
       const { error } = await supabase
