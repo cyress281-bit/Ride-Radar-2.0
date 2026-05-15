@@ -150,10 +150,10 @@ export default function ProfileEditForm({ profile, onDone }) {
         // Upload local images first, otherwise keep existing string URLs
         const [avatar_url, bike_photo_url] = await Promise.all([
           avatarLocal
-            ? uploadImage(avatarLocal.file, 'uploads', `avatars/${user.id}-${Date.now()}.webp`)
+            ? uploadImage(avatarLocal.file, 'uploads', `avatars/${user.id}/${Date.now()}.webp`)
             : values.avatar_url,
           bikePhotoLocal
-            ? uploadImage(bikePhotoLocal.file, 'uploads', `bikes/${user.id}-${Date.now()}.webp`)
+            ? uploadImage(bikePhotoLocal.file, 'uploads', `bikes/${user.id}/${Date.now()}.webp`)
             : values.bike_photo_url,
         ]);
 
