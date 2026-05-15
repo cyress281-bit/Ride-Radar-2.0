@@ -8,6 +8,7 @@ let selfMarkerIconLive = null;
 
 const markerClassMap = {
   alert: 'rr-map-marker-alert',
+  bike_down: 'rr-map-marker-bike-down',
   solo_ride: 'rr-map-marker-solo',
   iso: 'rr-map-marker-iso',
   event: 'rr-map-marker-event',

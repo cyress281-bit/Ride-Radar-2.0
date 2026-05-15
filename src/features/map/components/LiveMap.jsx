@@ -374,6 +374,7 @@ function LiveMap({
         return {
           ...broadcast,
           ...point,
+          markerType: broadcast.type === 'alert' && broadcast.alert_type === 'bike_down' ? 'bike_down' : broadcast.type,
           author: getProfileRef.current && broadcast.author_id ? getProfileRef.current(broadcast.author_id) : null,
         };
       })
@@ -537,7 +538,7 @@ function LiveMap({
               <Marker
                 key={item.id}
                 position={[item.lat, item.lng]}
-                icon={item.type === 'rider_presence' ? getRiderMarkerIcon(item) : getMarkerIcon(item.type)}
+                icon={item.type === 'rider_presence' ? getRiderMarkerIcon(item) : getMarkerIcon(item.markerType || item.type)}
               >
                 <Popup>
                   <MapPopup item={item} userLat={userLat} userLng={userLng} />

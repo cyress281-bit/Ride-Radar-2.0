@@ -661,6 +661,7 @@
   }
 
   .rr-map-marker-alert { color: hsl(var(--alert)); }
+  .rr-map-marker-bike-down { color: hsl(var(--destructive)); }
   .rr-map-marker-solo { color: hsl(var(--solo)); }
   .rr-map-marker-iso { color: hsl(var(--iso)); }
   .rr-map-marker-event { color: hsl(var(--event)); }
