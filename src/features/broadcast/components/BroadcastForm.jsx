@@ -77,6 +77,11 @@ const TYPE_STYLE_MAP = {
   },
 };
 
+const ALERT_PRESETS = [
+  'Police', 'Traffic', 'Street closed', 'Flooding', 'Debris', 'Gravel',
+  'Oil spill', 'Pothole', 'Construction', 'Animal on road', 'Blocked lane',
+];
+
 const baseSchema = z.object({
   title: z.string().trim().min(3, 'Title must be at least 3 characters').max(120),
   body: z.string().max(500).optional(),
@@ -322,6 +327,20 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                type === 'iso' ? 'What do you need fixed?' :
                'Where are you riding?'}
             </Label>
+            {type === 'alert' && (
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {ALERT_PRESETS.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setValue('title', preset)}
+                    className="text-xs font-bold px-3 py-1.5 rounded-full border border-alert/30 bg-alert/8 text-alert hover:bg-alert/15 transition-colors pressable"
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            )}
             <Input
               id="title"
               {...register('title')}
