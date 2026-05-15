@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, memo, useCallback } from 'react';
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, MessageCircle, Radio, Trash2, Loader2, AlertCircle, Pencil } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, Radio, Trash2, Loader2, AlertCircle, Pencil } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import AlertPhotoGrid from '@/components/shared/AlertPhotoGrid';
 import { Text } from '@/components/ui/primitives/Text';
@@ -457,17 +457,6 @@ function BroadcastDetailPage() {
           </Text>
         </div>
       )}
-
-      {/* Comments section */}
-      <div className="mt-5 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-5">
-        <Text variant="micro" color="muted" className="mb-3 uppercase tracking-widest text-[10px] font-bold">Comments</Text>
-        <VStack gap={3} align="center" className="py-8 text-center">
-          <div className="h-12 w-12 rounded-full bg-surface-elevated border border-white/[0.06] flex items-center justify-center">
-            <MessageCircle className="w-5 h-5 text-muted-foreground/40" />
-          </div>
-          <Text variant="bodySm" color="muted">Comments coming soon</Text>
-        </VStack>
-      </div>
 
       {/* Related broadcasts — horizontal scroll with RideCards */}
       <div className="mt-5">

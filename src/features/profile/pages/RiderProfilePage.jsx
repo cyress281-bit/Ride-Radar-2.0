@@ -428,6 +428,7 @@ function RiderProfilePage() {
               <PostDetailSheet
                 post={selectedPost}
                 onClose={() => setSelectedPost(null)}
+                userId={user?.id}
               />
             )}
           </TabsContent>
