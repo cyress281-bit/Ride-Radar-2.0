@@ -12,7 +12,7 @@ import OptimizedImage from '@/components/shared/OptimizedImage';
  *
  * @param {{ post: object, onClose: () => void, userId: string }} props
  */
-const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId }) {
+const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, canDelete = false }) {
   const [photoIdx, setPhotoIdx] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState('');
@@ -51,7 +51,7 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId })
           <X className="h-5 w-5" />
         </button>
         <Text variant="bodySm" className="font-bold">Post</Text>
-        {userId && (
+        {canDelete && (
           <button
             onClick={() => setConfirmDelete(true)}
             disabled={deletePost.isPending}
@@ -135,7 +135,7 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId })
       </VStack>
 
       {/* Delete confirmation */}
-      {confirmDelete && (
+      {canDelete && confirmDelete && (
         <div
           className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-sm pb-8"
           onClick={() => setConfirmDelete(false)}

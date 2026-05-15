@@ -10,7 +10,12 @@ import OptimizedImage from '@/components/shared/OptimizedImage';
  *
  * @param {{ posts: Array, onPostClick: (post: object) => void, onAddPost?: () => void }} props
  */
-const PostGrid = memo(function PostGrid({ posts = [], onPostClick, onAddPost }) {
+const PostGrid = memo(function PostGrid({
+  posts = [],
+  onPostClick,
+  onAddPost,
+  emptyDescription = 'Share bike photos, ride moments, or group pictures here.',
+}) {
   return (
     <div>
       {onAddPost && (
@@ -32,7 +37,7 @@ const PostGrid = memo(function PostGrid({ posts = [], onPostClick, onAddPost }) 
         <EmptyState
           icon={Grid3X3}
           title="No posts yet"
-          description="Share bike photos, ride moments, or group pictures here."
+          description={emptyDescription}
         />
       ) : (
         <div className="grid grid-cols-3 gap-1">

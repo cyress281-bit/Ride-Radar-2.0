@@ -45,6 +45,9 @@ import { cn } from '@/lib/utils.js';
 import { LoadingState } from '@/components/shared/LoadingState';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorState } from '@/components/shared/ErrorState';
+import { useUserPosts } from '@/features/profile/hooks/use-user-posts';
+import PostGrid from '@/features/profile/components/PostGrid';
+import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
 
 function RiderProfilePage() {
   const { userId } = useParams();
@@ -53,6 +56,7 @@ function RiderProfilePage() {
   const { user } = useAuthState();
   const [avatarError, setAvatarError] = useState(false);
   const [activeTab, setActiveTab] = useState('broadcasts');
+  const [selectedPost, setSelectedPost] = useState(null);
 
   const hasValidUserId = isValidUuid(userId);
   const isMeRoute = user?.id === userId;
@@ -130,6 +134,15 @@ function RiderProfilePage() {
     const date = new Date(profile.created_at);
     return date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
   }, [profile?.created_at]);
+
+  const {
+    data: riderPosts = [],
+    isLoading: postsLoading,
+    isError: postsFailed,
+    refetch: refetchPosts,
+  } = useUserPosts(userId, {
+    enabled: canSeeDetails && hasValidUserId && !!profile,
+  });
 
   if (!hasValidUserId) {
     return (
@@ -406,26 +419,23 @@ function RiderProfilePage() {
           </TabsContent>
 
           <TabsContent value="media" className="mt-4">
-            {profile?.bike_photo_url ? (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="surface-card overflow-hidden aspect-square group relative rounded-xl">
-                  <OptimizedImage
-                    src={profile.bike_photo_url}
-                    alt="Bike"
-                    containerClassName="h-full w-full"
-                    className="h-full w-full transition-transform duration-500 group-hover:scale-105"
-                    objectFit="cover"
-                    loading="lazy"
-                    showSkeleton
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Text variant="caption" className="text-white font-semibold">{bikeLabel || 'Bike'}</Text>
-                  </div>
-                </div>
-              </div>
+            {postsLoading ? (
+              <LoadingState variant="section" message="Loading posts..." />
+            ) : postsFailed ? (
+              <ErrorState title="Posts unavailable" onRetry={refetchPosts} />
             ) : (
-              <EmptyState icon={Grid3X3} title="No posts yet" description="This rider hasn't shared any bike photos, ride moments, or group pictures yet." />
+              <PostGrid
+                posts={riderPosts}
+                onPostClick={setSelectedPost}
+                emptyDescription="This rider hasn't shared any posts yet."
+              />
+            )}
+
+            {selectedPost && (
+              <PostDetailSheet
+                post={selectedPost}
+                onClose={() => setSelectedPost(null)}
+              />
             )}
           </TabsContent>
         </Tabs>
