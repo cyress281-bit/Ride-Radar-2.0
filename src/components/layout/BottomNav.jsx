@@ -1,12 +1,12 @@
 import { memo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, MessageCircle, User } from 'lucide-react';
+import { Map, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
 
 const TABS = [
-  { to: '/home', icon: Home, label: 'Home' },
+  { to: '/home', icon: Map, label: 'Radar' },
   { to: '/messages', icon: MessageCircle, label: 'Messages' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];
