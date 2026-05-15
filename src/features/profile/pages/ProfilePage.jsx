@@ -17,7 +17,7 @@ import { isExpired, timeAgo } from '@/lib/broadcastUtils';
 import { LoadingState } from '@/components/shared/LoadingState';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorState } from '@/components/shared/ErrorState';
-import { getBroadcastsByAuthor } from '@/features/broadcast/api/broadcast-api.js';
+import { useBroadcastsByAuthor } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { getFriendshipsCount } from '@/features/connections/api/connections-api.js';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/primitives/Text';
@@ -53,15 +53,7 @@ function ProfilePage() {
     error: broadcastsError,
     isLoading: broadcastsLoading,
     refetch: refetchBroadcasts,
-  } = useQuery({
-    queryKey: ['myBroadcasts', user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await getBroadcastsByAuthor(user.id, 50);
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  } = useBroadcastsByAuthor(user?.id);
 
   const {
     data: posts = [],

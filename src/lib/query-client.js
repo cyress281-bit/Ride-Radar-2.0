@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase.js';
+import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 
 /**
  * Shared TanStack Query client for Ride Radar 2.0.
@@ -58,7 +59,7 @@ export const queryClientInstance = queryClient;
 export function prefetchBroadcastDetail(qc, broadcastId) {
   if (!broadcastId) return;
   qc.prefetchQuery({
-    queryKey: ['broadcast', broadcastId],
+    queryKey: broadcastKeys.detail(broadcastId),
     queryFn: async () => {
       const { data, error } = await supabase
         .from('broadcasts')

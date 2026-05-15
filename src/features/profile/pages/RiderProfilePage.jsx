@@ -33,7 +33,7 @@ import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { RideCard } from '@/components/shared/RideCard';
 import { isExpired } from '@/lib/broadcastUtils';
-import { getBroadcastsByAuthor } from '@/features/broadcast/api/broadcast-api.js';
+import { useBroadcastsByAuthor } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { useIsBlocked } from '@/features/safety/hooks/use-blocks.js';
 import { useIsFriend } from '@/features/connections/hooks/use-friendships.js';
 import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
@@ -85,15 +85,8 @@ function RiderProfilePage() {
     staleTime: 30_000,
   });
 
-  const { data: riderBroadcasts = [], isLoading: isBroadcastsLoading, isError: broadcastsError, refetch: refetchBroadcasts } = useQuery({
-    queryKey: ['rider-broadcasts', userId],
-    enabled: hasValidUserId && !!profile,
-    queryFn: async () => {
-      const { data, error } = await getBroadcastsByAuthor(userId, 50);
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  const { data: riderBroadcasts = [], isLoading: isBroadcastsLoading, isError: broadcastsError, refetch: refetchBroadcasts } =
+    useBroadcastsByAuthor(hasValidUserId && !!profile ? userId : null);
 
   const sendFriendReq = useSendConnectionRequest();
 

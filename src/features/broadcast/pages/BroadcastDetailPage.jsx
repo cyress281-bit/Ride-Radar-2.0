@@ -18,7 +18,7 @@ import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { toast } from '@/components/ui/use-toast';
 import { getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
 import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
-import { useRemoveBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
+import { broadcastKeys, useRemoveBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
 
 /**
  * Single broadcast detail page.
@@ -30,7 +30,7 @@ function BroadcastDetailPage() {
   const hasValidBroadcastId = isValidUuid(id);
 
   const { data: broadcast, isLoading: isBroadcastLoading, isError: isBroadcastError } = useQuery({
-    queryKey: ['broadcast', id],
+    queryKey: broadcastKeys.detail(id),
     enabled: hasValidBroadcastId,
     queryFn: async () => {
       const { data, error } = await getBroadcastById(id);
