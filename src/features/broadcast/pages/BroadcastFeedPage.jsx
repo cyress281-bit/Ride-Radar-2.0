@@ -191,6 +191,7 @@ function BroadcastFeedPage() {
     if (events > 0) return 'Events nearby this week';
     if (riders > 0) return riders === 1 ? '1 rider nearby' : `${riders} riders nearby`;
     if (total > 0) return total === 1 ? '1 signal nearby' : `${total} signals nearby`;
+    if (!hasUserLocation) return 'Tap locate to scan your area';
     return 'Radar is quiet nearby';
   }, [visibleBroadcasts, visibleRiderMarkers]);
 
@@ -250,6 +251,7 @@ function BroadcastFeedPage() {
         activeCount={activeCount}
         peekLabel={peekLabel}
         totalCount={visibleBroadcasts.length}
+        hasUserLocation={hasUserLocation}
       />
     </div>
   );
