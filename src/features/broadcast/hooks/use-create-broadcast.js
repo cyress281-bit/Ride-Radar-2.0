@@ -71,11 +71,15 @@ export function useCreateBroadcast() {
         broadcastData.lng != null
       ) {
         if (showApproximateLocation) {
-          frozenLocation = approximateLocation(
-            broadcastData.lat,
-            broadcastData.lng,
-            `${user.id}:${now.toISOString()}:${broadcastData.type}`
-          );
+          if (broadcastData.type === 'solo_ride' && broadcastData.locationPrecision === 'precise') {
+            frozenLocation = { lat: broadcastData.lat, lng: broadcastData.lng };
+          } else {
+            frozenLocation = approximateLocation(
+              broadcastData.lat,
+              broadcastData.lng,
+              `${user.id}:${now.toISOString()}:${broadcastData.type}`
+            );
+          }
         }
       }
 

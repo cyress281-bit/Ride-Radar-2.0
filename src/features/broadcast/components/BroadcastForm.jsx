@@ -141,6 +141,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const [uploadError, setUploadError] = useState('');
   const [geoError, setGeoError] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [locationPrecision, setLocationPrecision] = useState('approximate');
 
   useEffect(() => {
     if (navigator.geolocation && (type === 'solo_ride' || type === 'iso')) {
@@ -221,6 +222,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
       lookingTo: values.lookingTo,
       lat: alertPin?.lat ?? coords.lat,
       lng: alertPin?.lng ?? coords.lng,
+      locationPrecision: type === 'solo_ride' ? locationPrecision : undefined,
     };
 
     post.mutate(payload, {
@@ -532,7 +534,51 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         )}
 
         {/* Location info */}
-        {(type === 'solo_ride' || type === 'iso') && (
+        {type === 'solo_ride' && (
+          <VStack gap={2.5}>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setLocationPrecision('approximate')}
+                className={cn(
+                  'flex-1 rounded-xl border px-3 py-2 text-xs font-bold transition-colors min-h-[40px]',
+                  locationPrecision === 'approximate'
+                    ? 'bg-primary/10 border-primary/40 text-primary'
+                    : 'bg-transparent border-border/40 text-muted-foreground hover:border-border/70'
+                )}
+              >
+                Approximate
+              </button>
+              <button
+                type="button"
+                onClick={() => setLocationPrecision('precise')}
+                className={cn(
+                  'flex-1 rounded-xl border px-3 py-2 text-xs font-bold transition-colors min-h-[40px]',
+                  locationPrecision === 'precise'
+                    ? 'bg-alert/10 border-alert/40 text-alert'
+                    : 'bg-transparent border-border/40 text-muted-foreground hover:border-border/70'
+                )}
+              >
+                Precise
+              </button>
+            </div>
+            <div className={cn(
+              'p-3 rounded-xl text-xs flex items-start gap-2 border',
+              locationPrecision === 'precise'
+                ? 'bg-alert/5 border-alert/15 text-alert'
+                : 'bg-primary/5 border-primary/15 text-primary'
+            )}>
+              <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>
+                {locationPrecision === 'precise'
+                  ? 'Your exact GPS location will be shared with nearby riders. No live tracking.'
+                  : 'Your location is fuzzed ~1.5 mi and frozen when you send. No live tracking.'}
+              </span>
+            </div>
+          </VStack>
+        )}
+
+        {type === 'iso' && (
           <div className="p-3 bg-primary/5 rounded-xl text-xs text-primary border border-primary/15 flex items-start gap-2">
             <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
             <span>Your location is approximated (~1 mile) and frozen when you send. No live tracking.</span>
