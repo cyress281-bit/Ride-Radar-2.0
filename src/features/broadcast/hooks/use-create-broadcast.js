@@ -13,7 +13,7 @@ import { BROADCAST_EXPIRY_MS } from '@/lib/constants.js';
 import { geocodeAddress, approximateLocation } from '@/lib/geocoding.js';
 import { logger } from '@/lib/logger.js';
 import { toast } from '@/components/ui/use-toast';
-import { uploadImageIfNeeded } from '@/lib/image-utils.js';
+import { uploadImage } from '@/lib/image-utils.js';
 import { broadcastKeys } from './use-broadcasts.js';
 
 function normalizeLocationText(text) {
@@ -141,13 +141,24 @@ export function useCreateBroadcast() {
         event_date: broadcastData.eventDate ? new Date(broadcastData.eventDate).toISOString() : null,
 
         // Upload images to Supabase Storage before inserting (blob URLs are session-only)
+        // Use owner-scoped paths to satisfy RLS policies
         event_image_url: broadcastData.eventImage
-          ? await uploadImageIfNeeded(broadcastData.eventImage, 'uploads', 'events')
+          ? await uploadImage(
+              broadcastData.eventImage.file || broadcastData.eventImage,
+              'uploads',
+              `events/${user.id}/${Date.now()}.webp`
+            )
           : null,
 
         alert_photos: broadcastData.alertImages?.length
           ? await Promise.all(
-              broadcastData.alertImages.map((img) => uploadImageIfNeeded(img, 'uploads', 'alerts'))
+              broadcastData.alertImages.map((img, index) =>
+                uploadImage(
+                  img.file || img,
+                  'uploads',
+                  `alerts/${user.id}/${Date.now()}-${index}.webp`
+                )
+              )
             )
           : [],
       };
