@@ -83,9 +83,11 @@ export default function ProfileEditForm({ profile, onDone }) {
     defaultValues,
   });
 
-  // Reset form when profile prop changes (e.g. after optimistic update revert)
+  // Reset form and local photo state when profile prop changes
   useEffect(() => {
     form.reset(defaultValues);
+    setAvatarLocal(null);
+    setBikePhotoLocal(null);
   }, [defaultValues, form]);
 
   const watchedUsername = form.watch('username');
@@ -123,6 +125,8 @@ export default function ProfileEditForm({ profile, onDone }) {
   };
 
   const [isUploading, setIsUploading] = useState(false);
+  const [avatarLocal, setAvatarLocal] = useState(null);
+  const [bikePhotoLocal, setBikePhotoLocal] = useState(null);
 
   const onSubmit = useCallback(
     async (values) => {
@@ -137,10 +141,10 @@ export default function ProfileEditForm({ profile, onDone }) {
 
       setIsUploading(true);
       try {
-        // Upload local images first
+        // Upload local images first, otherwise keep existing string URLs
         const [avatar_url, bike_photo_url] = await Promise.all([
-          uploadImageIfNeeded(values.avatar_url),
-          uploadImageIfNeeded(values.bike_photo_url),
+          avatarLocal ? uploadImageIfNeeded(avatarLocal) : values.avatar_url,
+          bikePhotoLocal ? uploadImageIfNeeded(bikePhotoLocal) : values.bike_photo_url,
         ]);
 
         if (isLocalImage(avatar_url) || isLocalImage(bike_photo_url)) {
@@ -177,7 +181,7 @@ export default function ProfileEditForm({ profile, onDone }) {
         setIsUploading(false);
       }
     },
-    [user, checkingUsername, shouldCheckUsername, usernameAvailable, form, updateMutation, qc, refreshProfile, onDone]
+    [user, checkingUsername, shouldCheckUsername, usernameAvailable, form, updateMutation, qc, refreshProfile, onDone, avatarLocal, bikePhotoLocal]
   );
 
   const handleAvatarChange = async (e) => {
@@ -197,16 +201,14 @@ export default function ProfileEditForm({ profile, onDone }) {
 
     try {
       const local = await prepareLocalImage(file, 'avatar');
-      form.setValue('avatar_url', local, { shouldDirty: true });
+      setAvatarLocal(local);
     } catch (err) {
       form.setError('avatar_url', { message: err.message || 'Failed to prepare image' });
     }
   };
 
   const avatarValue = form.watch('avatar_url');
-  const avatarPreview = isLocalImage(avatarValue)
-    ? avatarValue.previewUrl
-    : avatarValue || '';
+  const avatarPreview = avatarLocal?.previewUrl || avatarValue || '';
 
   return (
     <Form {...form}>
@@ -224,6 +226,8 @@ export default function ProfileEditForm({ profile, onDone }) {
               size="icon"
               aria-label="Cancel editing"
               onClick={() => {
+                setAvatarLocal(null);
+                setBikePhotoLocal(null);
                 form.reset(defaultValues);
                 onDone();
               }}
@@ -413,8 +417,15 @@ export default function ProfileEditForm({ profile, onDone }) {
                 <FormLabel className="rr-kicker">Bike photo</FormLabel>
                 <FormControl>
                   <BikePhotoUploader
-                    image={field.value}
-                    onChange={(val) => field.onChange(val)}
+                    image={bikePhotoLocal || field.value}
+                    onChange={(val) => {
+                      if (isLocalImage(val)) {
+                        setBikePhotoLocal(val);
+                      } else {
+                        setBikePhotoLocal(null);
+                        field.onChange(val);
+                      }
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
