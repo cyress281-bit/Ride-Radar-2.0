@@ -331,7 +331,7 @@ function RiderProfilePage() {
               <User className="w-3.5 h-3.5" /> About
             </TabsTrigger>
             <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-              <Grid3X3 className="w-3.5 h-3.5" /> Photos
+              <Grid3X3 className="w-3.5 h-3.5" /> Posts
             </TabsTrigger>
           </TabsList>
 
@@ -425,7 +425,7 @@ function RiderProfilePage() {
                 </div>
               </div>
             ) : (
-              <EmptyState icon={Grid3X3} title="No photos yet" description="This rider hasn't uploaded any photos yet." />
+              <EmptyState icon={Grid3X3} title="No posts yet" description="This rider hasn't shared any bike photos, ride moments, or group pictures yet." />
             )}
           </TabsContent>
         </Tabs>
