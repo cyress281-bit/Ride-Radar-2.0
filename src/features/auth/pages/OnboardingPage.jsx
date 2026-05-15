@@ -328,7 +328,9 @@ export default function OnboardingPage() {
       navigate(redirectPath, { replace: true });
     } catch (err) {
       logger.error('[Onboarding] Skip failed:', err);
-      setUploadError('We could not finish your profile setup. Please try again.');
+      setUploadError(
+        err?.message || 'We could not finish your profile setup. Please refresh and try again.'
+      );
     } finally {
       setSkipLoading(false);
     }
