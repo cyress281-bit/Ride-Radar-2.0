@@ -10,10 +10,10 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
 import { Edit2, Settings, LogOut, Radio, Users, ShieldCheck, Bike, MapPin, Calendar, Grid3X3, User } from 'lucide-react';
-import { RideCard } from '@/components/shared/RideCard';
+import { Badge } from '@/components/shared/Badge';
 import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
 import OptimizedImage from '@/components/shared/OptimizedImage';
-import { isExpired } from '@/lib/broadcastUtils';
+import { isExpired, timeAgo } from '@/lib/broadcastUtils';
 import { LoadingState } from '@/components/shared/LoadingState';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorState } from '@/components/shared/ErrorState';
@@ -270,9 +270,9 @@ function ProfilePage() {
             />
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="surface-card overflow-hidden divide-y divide-white/[0.06] rounded-xl">
                 {active.slice(0, 5).map((b) => (
-                  <RideCard key={b.id} broadcast={b} author={displayProfile} to={`/broadcast/${b.id}`} />
+                  <SignalRow key={b.id} broadcast={b} />
                 ))}
               </div>
               {active.length > 5 && (
@@ -393,6 +393,25 @@ const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading, b
       </Text>
       <Text variant="micro" color="muted" className="block">{label}</Text>
     </div>
+  );
+});
+
+const SignalRow = memo(function SignalRow({ broadcast: b }) {
+  const detail = b.location_name || b.body || null;
+  return (
+    <Link
+      to={`/broadcast/${b.id}`}
+      className="flex items-center gap-3 px-4 py-3 min-h-[56px] transition-colors hover:bg-white/[0.03] active:bg-white/[0.05]"
+    >
+      <Badge type={b.type} alertType={b.alert_type} className="shrink-0" />
+      <VStack gap={0} className="min-w-0 flex-1">
+        <Text variant="bodySm" className="font-semibold line-clamp-1">{b.title}</Text>
+        {detail && (
+          <Text variant="micro" color="muted" className="block line-clamp-1 mt-0.5">{detail}</Text>
+        )}
+      </VStack>
+      <Text variant="micro" color="muted" className="shrink-0 tabular-nums">{timeAgo(b.created_at)}</Text>
+    </Link>
   );
 });
 
