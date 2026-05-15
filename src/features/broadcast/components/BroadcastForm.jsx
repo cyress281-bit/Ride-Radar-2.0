@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin, Users } from 'lucide-react';
 import AlertPhotoUploader from './AlertPhotoUploader';
+import AlertPinMap from './AlertPinMap';
+import { useRadarLocation } from '@/features/broadcast/hooks/use-radar-location';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
@@ -108,10 +110,12 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const post = useCreateBroadcast();
   const typeMeta = TYPES.find((t) => t.id === type);
   const typeStyles = TYPE_STYLE_MAP[typeMeta.color];
+  const { effectiveLoc: radarDefaultLoc } = useRadarLocation();
 
   const [coords, setCoords] = useState({ lat: null, lng: null });
   const [eventImage, setEventImage] = useState(null);
   const [alertImages, setAlertImages] = useState([]);
+  const [alertPin, setAlertPin] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [geoError, setGeoError] = useState(false);
@@ -194,8 +198,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
       alertImages: alertImages,
       isoSubtype: values.isoSubtype,
       lookingTo: values.lookingTo,
-      lat: coords.lat,
-      lng: coords.lng,
+      lat: alertPin?.lat ?? coords.lat,
+      lng: alertPin?.lng ?? coords.lng,
     };
 
     post.mutate(payload, {
@@ -435,6 +439,11 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
               <Text variant="caption" color="muted" className="mt-1.5">Describe the area. Your exact location stays private.</Text>
             </VStack>
+            <AlertPinMap
+              defaultCenter={radarDefaultLoc}
+              value={alertPin}
+              onChange={setAlertPin}
+            />
             <AlertPhotoUploader images={alertImages} onChange={setAlertImages} />
           </VStack>
         )}
