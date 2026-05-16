@@ -13,7 +13,7 @@ export async function getConnectionRequests(userId) {
 
   const { data, error } = await supabase
     .from('connection_requests')
-    .select('id, from_user_id, to_user_id, status, created_at, message')
+    .select('id, from_user_id, to_user_id, status, created_at')
     .eq('to_user_id', userId)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
@@ -31,7 +31,7 @@ export async function getSentRequests(userId) {
 
   const { data, error } = await supabase
     .from('connection_requests')
-    .select('id, from_user_id, to_user_id, status, created_at, message')
+    .select('id, from_user_id, to_user_id, status, created_at')
     .eq('from_user_id', userId)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });

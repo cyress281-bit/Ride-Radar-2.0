@@ -60,7 +60,7 @@ export async function getUnreadCount(userId) {
 export async function markAsRead(notificationId) {
   const { data, error } = await supabase
     .from('notifications')
-    .update({ is_read: true })
+    .update({ read: true })
     .eq('id', notificationId)
     .select()
     .maybeSingle();
@@ -78,9 +78,9 @@ export async function markAsRead(notificationId) {
 export async function markAllAsRead(userId) {
   const { data, error } = await supabase
     .from('notifications')
-    .update({ is_read: true })
+    .update({ read: true })
     .eq('user_id', userId)
-    .eq('is_read', false)
+    .eq('read', false)
     .select();
 
   if (error) logger.error('[markAllAsRead] Error:', error);
