@@ -21,7 +21,7 @@ if ('serviceWorker' in navigator) {
     }
     sessionStorage.setItem('sw-last-reload', String(now));
     refreshing = true;
-    window.location.replace('/home');
+    window.location.reload();
   });
 }
 
