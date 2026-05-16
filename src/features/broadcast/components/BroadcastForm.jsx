@@ -262,9 +262,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
       {/* Type header */}
       <HStack gap={3} align="center" className="mb-2">
-        <div className={cn('h-11 w-11 rounded-xl flex items-center justify-center border shrink-0', typeStyles.border, typeStyles.bg)}>
-          <SignalIcon type={type} size="md" />
-        </div>
+        <SignalIcon type={type} size="md" />
         <VStack gap={0.5}>
           <Text as="h1" variant="h2" className={cn('rr-heading text-lg', typeStyles.text)}>{typeMeta.label}</Text>
         </VStack>

@@ -1,6 +1,7 @@
 import { memo, useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, ChevronLeft, User } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
@@ -95,6 +96,14 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { status: connectionStatus, isConnected } = useSupabaseConnection();
   const isConnectionPending = connectionStatus === 'unknown';
 
+  // Read live map visibility from the settings cache (populated by useLiveMapPresence
+  // on the Radar screen). Only enabled on /home to avoid unnecessary background fetches.
+  const { data: radarSettings } = useQuery({
+    queryKey: ['settings', user?.id],
+    enabled: !!user?.id && isRadar,
+  });
+  const isLiveOnMap = radarSettings?.live_map_visible === true;
+
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -187,7 +196,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
                   </>
                 )}
               </span>
-              LIVE
+              {isConnected && isLiveOnMap ? "YOU'RE LIVE" : 'LIVE'}
             </span>
           ) : (
             pageTitle && (
