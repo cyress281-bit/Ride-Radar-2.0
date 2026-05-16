@@ -2,7 +2,7 @@
  * @fileoverview TanStack Query hooks for connection requests.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
@@ -153,15 +153,9 @@ export function useConnectionRequestWith(userId) {
  */
 export function useSendConnectionRequest() {
   const queryClient = useQueryClient();
-  const lastRunRef = useRef(0);
 
   return useMutation({
     mutationFn: async ({ from_user_id, to_user_id }) => {
-      const now = Date.now();
-      if (now - lastRunRef.current < 10_000) {
-        throw new Error('Please wait a moment before trying again.');
-      }
-      lastRunRef.current = now;
       const { data, error } = await sendConnectionRequest({ from_user_id, to_user_id });
       if (error) throw error;
       return data;
