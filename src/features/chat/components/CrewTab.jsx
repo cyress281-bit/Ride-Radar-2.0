@@ -128,20 +128,25 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
 
   return (
     <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md">
-      <AvatarWithStatus
-        url={friendProfile?.avatar_url}
-        name={friendProfile?.display_name}
-        status="offline"
-        size="md"
-      />
-      <VStack flex className="min-w-0">
-        <Text variant="bodySm" className="font-semibold truncate">
-          {friendProfile?.display_name || 'Rider'}
-        </Text>
-        {friendProfile?.username && (
-          <Text variant="micro" color="muted">@{friendProfile.username}</Text>
-        )}
-      </VStack>
+      <button
+        onClick={() => navigate(`/profile/${friendId}`)}
+        className="flex flex-1 items-center gap-3 min-w-0 text-left"
+      >
+        <AvatarWithStatus
+          url={friendProfile?.avatar_url}
+          name={friendProfile?.display_name}
+          status="offline"
+          size="md"
+        />
+        <VStack className="min-w-0">
+          <Text variant="bodySm" className="font-semibold truncate">
+            {friendProfile?.display_name || 'Rider'}
+          </Text>
+          {friendProfile?.username && (
+            <Text variant="micro" color="muted">@{friendProfile.username}</Text>
+          )}
+        </VStack>
+      </button>
       <button
         onClick={() => openChat.mutate()}
         disabled={openChat.isPending}
