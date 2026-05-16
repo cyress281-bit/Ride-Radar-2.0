@@ -41,7 +41,7 @@ export async function getUnreadCount(userId) {
     .from('notifications')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .eq('is_read', false);
+    .eq('read', false);
 
   if (error) {
     logger.error('[getUnreadCount] Error:', error);
