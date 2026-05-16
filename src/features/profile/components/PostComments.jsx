@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, memo } from 'react';
+import { useState, useRef, useCallback, useEffect, memo } from 'react';
 import { Trash2, Loader2, Send } from 'lucide-react';
 import {
   usePostComments,
@@ -72,10 +72,25 @@ const PostComments = memo(function PostComments({ postId, postOwnerId, currentUs
   const [body, setBody] = useState('');
   const [deletingId, setDeletingId] = useState(null);
   const inputRef = useRef(null);
+  const bottomRef = useRef(null);
+  const prevLengthRef = useRef(null);
 
   const { data: comments = [], isLoading } = usePostComments(postId);
   const addComment = useAddPostComment();
   const deleteComment = useDeletePostComment();
+
+  // Scroll newest comment into view on live update; skip the initial data load
+  useEffect(() => {
+    if (isLoading) return;
+    if (prevLengthRef.current === null) {
+      prevLengthRef.current = comments.length;
+      return;
+    }
+    if (comments.length > prevLengthRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    prevLengthRef.current = comments.length;
+  }, [comments.length, isLoading]);
 
   const handleSend = useCallback(async () => {
     const trimmed = body.trim();
@@ -141,6 +156,9 @@ const PostComments = memo(function PostComments({ postId, postOwnerId, currentUs
             isDeleting={deletingId === comment.id}
           />
         ))}
+
+      {/* scroll anchor — scroll-mb-20 ensures scrollIntoView clears the sticky composer */}
+      <div ref={bottomRef} className="scroll-mb-20" aria-hidden="true" />
 
       {/* Composer */}
       <div className="sticky bottom-0 flex items-center gap-2 px-4 py-3 border-t border-white/[0.06] bg-surface/95 backdrop-blur-xl">
