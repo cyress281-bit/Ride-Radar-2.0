@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, memo, useCallback } from 'react';
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, Radio, Trash2, Loader2, AlertCircle, Pencil } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, Trash2, Loader2, AlertCircle, Pencil } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import AlertPhotoGrid from '@/components/shared/AlertPhotoGrid';
 import { Text } from '@/components/ui/primitives/Text';
@@ -469,28 +469,6 @@ function BroadcastDetailPage() {
           </Text>
         </div>
       )}
-
-      {/* Related broadcasts — horizontal scroll with RideCards */}
-      <div className="mt-5">
-        <Text variant="micro" color="muted" className="mb-3 uppercase tracking-widest text-[10px] font-bold px-1">Related rides</Text>
-        <div className="-mx-5 px-5">
-          <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="min-w-[260px] max-w-[260px] snap-start rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-4 flex-shrink-0"
-              >
-                <div className="h-28 rounded-2xl bg-surface-elevated border border-white/[0.04] mb-3 flex items-center justify-center">
-                  <Radio className="w-6 h-6 text-muted-foreground/20" />
-                </div>
-                <div className="h-3 w-20 rounded-full bg-primary/20 mb-2" />
-                <div className="h-2.5 w-full rounded-full bg-white/[0.04] mb-1.5" />
-                <div className="h-2.5 w-2/3 rounded-full bg-white/[0.04]" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
