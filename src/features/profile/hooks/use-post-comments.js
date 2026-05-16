@@ -4,7 +4,7 @@ import {
   addPostComment,
   deletePostComment,
 } from '@/features/profile/api/comments-api.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 const COMMENTS_KEY = 'post-comments';
 
@@ -44,10 +44,8 @@ export function useAddPostComment() {
       qc.invalidateQueries({ queryKey: [COMMENTS_KEY, variables.postId] });
     },
     onError: (error) => {
-      toast({
-        title: 'Failed to post comment',
+      toast.error('Failed to post comment', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });
@@ -69,10 +67,8 @@ export function useDeletePostComment() {
       qc.invalidateQueries({ queryKey: [COMMENTS_KEY, variables.postId] });
     },
     onError: (error) => {
-      toast({
-        title: 'Failed to delete comment',
+      toast.error('Failed to delete comment', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });
