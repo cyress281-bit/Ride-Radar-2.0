@@ -121,15 +121,44 @@ export function useNotifications(userId) {
 }
 
 /**
- * Hook to fetch the unread notification count.
+ * Hook to fetch the unread notification count with realtime updates.
  *
- * Derives from the notifications list cache; realtime updates are
- * handled by the single channel in useNotifications() to avoid
- * duplicate subscriptions.
+ * Maintains its own INSERT subscription so the AppHeader bell badge
+ * updates immediately on any page, not just on NotificationsPage.
  *
  * @param {string|null} userId
  */
 export function useUnreadCount(userId) {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`notifications-unread-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
+        }
+      )
+      .subscribe((status, err) => {
+        if (err) {
+          logger.error('[useUnreadCount] Subscription error:', err);
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, qc]);
+
   return useQuery({
     queryKey: notificationKeys.unread(userId),
     queryFn: async () => {
