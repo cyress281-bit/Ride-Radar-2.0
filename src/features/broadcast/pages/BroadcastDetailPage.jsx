@@ -235,6 +235,27 @@ function BroadcastDetailPage() {
     );
   }
 
+  if (broadcast.status !== 'active' && user?.id !== broadcast.author_id) {
+    return (
+      <div className="px-5 pt-5">
+        <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <div className="surface-card p-10 text-center">
+          <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
+          <Text variant="bodySm" color="muted" className="font-semibold mb-2">Signal removed</Text>
+          <Text variant="bodySm" color="muted">This signal was removed by its owner.</Text>
+          <button
+            onClick={() => navigate('/home')}
+            className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
+          >
+            Back to Radar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const meta = BROADCAST_META[broadcast.type];
   const displayLabel = broadcast.alert_type === 'bike_down' ? 'Bike Down' : meta?.label;
   const isAuthor = user?.id === broadcast.author_id;
