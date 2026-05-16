@@ -161,6 +161,7 @@ function ConversationsPage() {
           <div className="relative animate-fade-up" style={{ animationDelay: '50ms' }}>
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <input
+              id="conversation-search"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, memo } from 'react';
+import { useState, useRef, useCallback, useEffect, memo, useId } from 'react';
 import { Trash2, Loader2, Send } from 'lucide-react';
 import {
   usePostComments,
@@ -69,6 +69,7 @@ function CommentRow({ comment, currentUserId, postOwnerId, onDelete, isDeleting 
 }
 
 const PostComments = memo(function PostComments({ postId, postOwnerId, currentUserId }) {
+  const inputId = useId();
   const [body, setBody] = useState('');
   const [deletingId, setDeletingId] = useState(null);
   const inputRef = useRef(null);
@@ -164,6 +165,7 @@ const PostComments = memo(function PostComments({ postId, postOwnerId, currentUs
       <div className="sticky bottom-0 flex items-center gap-2 px-4 py-3 border-t border-white/[0.06] bg-surface/95 backdrop-blur-xl">
         <input
           ref={inputRef}
+          id={inputId}
           type="text"
           value={body}
           onChange={(e) => setBody(e.target.value.slice(0, 500))}

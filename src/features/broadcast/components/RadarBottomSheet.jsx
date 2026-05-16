@@ -166,6 +166,8 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
           <div className="ml-auto flex items-center gap-1 min-h-[44px] px-2 rounded-full border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl">
             <SlidersHorizontal className="w-3.5 h-3.5 text-primary shrink-0" />
             <select
+              id="radar-sort"
+              aria-label="Sort broadcasts"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               disabled={isPending}

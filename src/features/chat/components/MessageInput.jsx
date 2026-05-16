@@ -83,6 +83,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
         <div className="relative flex-1">
           <textarea
             ref={textareaRef}
+            id="message-input"
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}

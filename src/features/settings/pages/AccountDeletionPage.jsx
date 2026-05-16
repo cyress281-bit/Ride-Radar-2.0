@@ -138,6 +138,7 @@ export default function AccountDeletionPage() {
                 Type <strong className="text-brand-emergency rr-neon-red">DELETE</strong> to confirm
               </Text>
               <input
+                id="delete-confirm"
                 type="text"
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}

@@ -284,8 +284,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {/* ISO subtype selector */}
         {type === 'iso' && (
           <VStack gap={2}>
-            <Label htmlFor="isoSubtype" className="rr-kicker text-muted-foreground mb-1 block">What do you need?</Label>
-            <div id="isoSubtype" role="radiogroup" aria-label="Looking for" className="grid grid-cols-2 gap-2">
+            <Label id="isoSubtype-label" className="rr-kicker text-muted-foreground mb-1 block">What do you need?</Label>
+            <div role="radiogroup" aria-labelledby="isoSubtype-label" className="grid grid-cols-2 gap-2">
               {[
                 { value: 'mechanic', label: 'Mechanic', icon: ShieldAlert },
                 { value: 'bike_crew', label: 'Bike Crew', icon: Users },
@@ -416,7 +416,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             </VStack>
             {/* Event poster upload */}
             <VStack gap={2}>
-              <Label htmlFor="eventPoster" className="rr-kicker text-muted-foreground mb-1 block">Event poster (optional)</Label>
+              <Label className="rr-kicker text-muted-foreground mb-1 block">Event poster (optional)</Label>
               <div id="eventPoster" className="mt-1.5 rounded-[20px] border border-border/70 bg-black/30 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
                 {eventImage ? (
                   <VStack gap={3}>
