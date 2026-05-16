@@ -424,7 +424,7 @@ export default function ProfileEditForm({ profile, onDone }) {
             name="bike_photo_url"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="rr-kicker">Bike photo</FormLabel>
+                <p className="text-sm font-medium leading-none rr-kicker">Bike photo</p>
                 <FormControl>
                   <BikePhotoUploader
                     image={bikePhotoLocal || field.value}
