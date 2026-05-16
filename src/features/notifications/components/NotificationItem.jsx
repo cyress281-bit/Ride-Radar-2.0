@@ -31,6 +31,9 @@ function getIconForType(type) {
     case 'message':
     case 'new_message':
       return MessageCircle;
+    case 'broadcast_comment':
+    case 'post_comment':
+      return MessageCircle;
     case 'broadcast':
     case 'rsvp':
     case 'event_reminder':
@@ -56,6 +59,12 @@ function getNotificationHref(notification) {
     const postOwnerId = notification.data?.post_owner_id;
     const postId = notification.data?.post_id;
     if (postOwnerId && postId) return `/profile/${postOwnerId}?openPost=${postId}`;
+    return null;
+  }
+
+  if (notification.type === 'broadcast_comment') {
+    const broadcastId = notification.data?.broadcast_id ?? notification.related_entity_id;
+    if (broadcastId) return `/broadcast/${broadcastId}`;
     return null;
   }
 
