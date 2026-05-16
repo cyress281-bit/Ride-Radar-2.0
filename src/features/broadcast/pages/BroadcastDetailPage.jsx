@@ -23,6 +23,30 @@ import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/c
 import { broadcastKeys, useRemoveBroadcast, useUpdateBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
 import BroadcastComments from '@/features/broadcast/components/BroadcastComments.jsx';
 
+function RemovedSignalScreen({ onBack, onHome }) {
+  return (
+    <div className="px-5 pt-5">
+      <button
+        onClick={onBack}
+        className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1"
+      >
+        <ArrowLeft className="w-4 h-4" /> Back
+      </button>
+      <div className="surface-card p-10 text-center">
+        <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
+        <p className="text-[13px] font-semibold text-muted-foreground mb-2">Signal removed</p>
+        <p className="text-[13px] text-muted-foreground">This signal was removed by its owner.</p>
+        <button
+          onClick={onHome}
+          className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
+        >
+          Back to Radar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /**
  * Single broadcast detail page.
  */
@@ -108,6 +132,7 @@ function BroadcastDetailPage() {
         },
         () => {
           qc.invalidateQueries({ queryKey: broadcastKeys.detail(id) });
+          qc.refetchQueries({ queryKey: broadcastKeys.detail(id), type: 'active' });
         }
       )
       .subscribe();
@@ -203,24 +228,7 @@ function BroadcastDetailPage() {
 
   if (!broadcast) {
     if (wasLoaded.current) {
-      return (
-        <div className="px-5 pt-5">
-          <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
-          <div className="surface-card p-10 text-center">
-            <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
-            <Text variant="bodySm" color="muted" className="font-semibold mb-2">Signal removed</Text>
-            <Text variant="bodySm" color="muted">This signal was removed by its owner.</Text>
-            <button
-              onClick={() => navigate('/home')}
-              className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
-            >
-              Back to Radar
-            </button>
-          </div>
-        </div>
-      );
+      return <RemovedSignalScreen onBack={handleGoBack} onHome={() => navigate('/home')} />;
     }
     return (
       <div className="px-5 pt-5">
@@ -236,24 +244,7 @@ function BroadcastDetailPage() {
   }
 
   if (broadcast.status !== 'active' && user?.id !== broadcast.author_id) {
-    return (
-      <div className="px-5 pt-5">
-        <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
-        <div className="surface-card p-10 text-center">
-          <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
-          <Text variant="bodySm" color="muted" className="font-semibold mb-2">Signal removed</Text>
-          <Text variant="bodySm" color="muted">This signal was removed by its owner.</Text>
-          <button
-            onClick={() => navigate('/home')}
-            className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
-          >
-            Back to Radar
-          </button>
-        </div>
-      </div>
-    );
+    return <RemovedSignalScreen onBack={handleGoBack} onHome={() => navigate('/home')} />;
   }
 
   const meta = BROADCAST_META[broadcast.type];
