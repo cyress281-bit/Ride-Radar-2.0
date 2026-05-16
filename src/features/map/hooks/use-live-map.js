@@ -111,7 +111,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
       .channel(`live-map-presence-realtime-${userId}-${instanceId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'live_map_presence', filter: 'is_visible=eq.true' },
+        { event: '*', schema: 'public', table: 'live_map_presence' },
         (payload) => {
           queryClient.invalidateQueries({ queryKey: presenceKeys.all });
           const changedUserId = payload.new?.user_id || payload.old?.user_id;
