@@ -53,10 +53,11 @@ export async function getConnectionRequestBetween(userAId, userBId) {
   const { data, error } = await supabase
     .from('connection_requests')
     .select('id, from_user_id, to_user_id, status')
-    .eq('status', 'pending')
     .or(
       `and(from_user_id.eq.${userAId},to_user_id.eq.${userBId}),and(from_user_id.eq.${userBId},to_user_id.eq.${userAId})`
     )
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   return { data, error };

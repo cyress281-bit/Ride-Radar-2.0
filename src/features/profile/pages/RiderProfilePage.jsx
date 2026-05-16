@@ -65,7 +65,8 @@ function RiderProfilePage() {
   const { isFriend: isFriendActive, friendship: _friendship } = useIsFriend(userId);
   const { data: connectionRequest } = useConnectionRequestWith(userId);
 
-  const isPending = !!connectionRequest;
+  const isPending = connectionRequest?.status === 'pending';
+  const isConnected = connectionRequest?.status === 'accepted' || isFriendActive;
   const isFriend = isFriendActive;
 
   const {
@@ -266,7 +267,7 @@ function RiderProfilePage() {
             {/* Action Buttons */}
             {!isMeRoute && !isBlocked && (
               <HStack gap={3} className="w-full mt-1">
-                {isFriend ? (
+                {isConnected ? (
                   <button
                     onClick={() => openFriendChat.mutate()}
                     disabled={openFriendChat.isPending}

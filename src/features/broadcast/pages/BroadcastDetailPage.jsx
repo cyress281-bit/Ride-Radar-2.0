@@ -537,8 +537,8 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
     );
   }, [sendRequest, user, broadcast, msg, onChange]);
 
-  if (existing) {
-    const map = { pending: 'Request sent', accepted: 'Connected', declined: 'Declined' };
+  if (existing && existing.status !== 'declined') {
+    const map = { pending: 'Request sent', accepted: 'Connected' };
     return (
       <Button variant="outline" disabled className="w-full h-14 rounded-full border-primary/20">
         <Check className="w-4 h-4 mr-1.5" /> {map[existing.status] || 'Request sent'}
