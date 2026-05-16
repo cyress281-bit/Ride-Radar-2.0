@@ -298,25 +298,37 @@ function BroadcastDetailPage() {
         </HStack>
 
         {/* Author card — glassmorphism */}
-        {author && (
-          <Link
-            to={`/profile/${author.user_id}`}
-            className="flex items-center gap-3 mt-6 pt-5 border-t border-white/[0.06] pressable"
-          >
-            {author.avatar_url ? (
-              <div className="rr-avatar-ring shrink-0" style={{ padding: '3px' }}>
-                <img src={author.avatar_url} className="w-11 h-11 rounded-full object-cover border border-primary/30" alt={author.display_name || 'Rider'} />
+        {broadcast.author_id && (
+          author ? (
+            <Link
+              to={`/profile/${author.user_id}`}
+              className="flex items-center gap-3 mt-6 pt-5 border-t border-white/[0.06] pressable"
+            >
+              {author.avatar_url ? (
+                <div className="rr-avatar-ring shrink-0" style={{ padding: '3px' }}>
+                  <img src={author.avatar_url} className="w-11 h-11 rounded-full object-cover border border-primary/30" alt={author.display_name || 'Rider'} />
+                </div>
+              ) : (
+                <div className="w-11 h-11 rounded-full bg-surface-elevated flex items-center justify-center font-semibold text-sm border border-white/[0.08] text-foreground/80">
+                  {author.display_name?.[0] || '?'}
+                </div>
+              )}
+              <VStack gap={0.5}>
+                <Text variant="bodySm" className="font-semibold text-foreground/90">{author.display_name}</Text>
+                <Text variant="caption" color="muted">{timeAgo(broadcast.created_at)}</Text>
+              </VStack>
+            </Link>
+          ) : (
+            <div className="flex items-center gap-3 mt-6 pt-5 border-t border-white/[0.06]">
+              <div className="w-11 h-11 rounded-full bg-surface-elevated flex items-center justify-center border border-white/[0.08]">
+                <span className="text-sm font-semibold text-foreground/40">?</span>
               </div>
-            ) : (
-              <div className="w-11 h-11 rounded-full bg-surface-elevated flex items-center justify-center font-semibold text-sm border border-white/[0.08] text-foreground/80">
-                {author.display_name?.[0] || '?'}
-              </div>
-            )}
-            <VStack gap={0.5}>
-              <Text variant="bodySm" className="font-semibold text-foreground/90">{author.display_name}</Text>
-              <Text variant="caption" color="muted">{timeAgo(broadcast.created_at)}</Text>
-            </VStack>
-          </Link>
+              <VStack gap={0.5}>
+                <Text variant="bodySm" className="font-semibold text-foreground/90">Rider</Text>
+                <Text variant="caption" color="muted">Profile unavailable</Text>
+              </VStack>
+            </div>
+          )
         )}
       </div>
 
