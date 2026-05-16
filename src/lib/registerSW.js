@@ -9,6 +9,21 @@
 
 let deferredPrompt = null;
 let registration = null;
+let refreshing = false;
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    const lastReload = sessionStorage.getItem('sw-last-reload');
+    const now = Date.now();
+    if (lastReload && now - parseInt(lastReload, 10) < 10000) {
+      return;
+    }
+    sessionStorage.setItem('sw-last-reload', String(now));
+    refreshing = true;
+    window.location.replace('/home');
+  });
+}
 
 /**
  * Register the service worker (called from main.jsx)
@@ -72,21 +87,6 @@ export async function registerServiceWorker() {
             newWorker.postMessage({ type: 'SKIP_WAITING' });
           }
         });
-      });
-
-      // Reload when new service worker takes over
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (refreshing) return;
-        // Rate-limit: don't reload more than once per 10 seconds
-        const lastReload = sessionStorage.getItem('sw-last-reload');
-        const now = Date.now();
-        if (lastReload && now - parseInt(lastReload, 10) < 10000) {
-          return;
-        }
-        sessionStorage.setItem('sw-last-reload', String(now));
-        refreshing = true;
-        window.location.replace('/home');
       });
 
     } catch (error) {
