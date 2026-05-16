@@ -4,7 +4,7 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useEffect, useRef } from 'react';
 import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, Trash2, Loader2, AlertCircle, Pencil } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import AlertPhotoGrid from '@/components/shared/AlertPhotoGrid';
@@ -14,6 +14,7 @@ import { BROADCAST_META, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils.js';
 import { getProfileByUserId } from '@/features/profile/api/profile-api.js';
 import { isValidUuid } from '@/lib/utils.js';
+import { supabase } from '@/lib/supabase.js';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { toast } from '@/components/ui/use-toast';
@@ -89,6 +90,31 @@ function BroadcastDetailPage() {
 
   const removeSignal = useRemoveBroadcast();
   const updateSignal = useUpdateBroadcast();
+
+  const qc = useQueryClient();
+  const wasLoaded = useRef(false);
+
+  useEffect(() => {
+    if (!hasValidBroadcastId) return;
+    const channel = supabase
+      .channel(`broadcast-detail-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'broadcasts',
+          filter: `id=eq.${id}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: broadcastKeys.detail(id) });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, hasValidBroadcastId, qc]);
 
   const canEditTitle = broadcast?.type === 'solo_ride' || broadcast?.type === 'iso' || broadcast?.type === 'event';
   const saveDisabled = updateSignal.isPending || (canEditTitle && editTitle.trim().length < 3);
@@ -173,7 +199,29 @@ function BroadcastDetailPage() {
     );
   }
 
+  if (broadcast) wasLoaded.current = true;
+
   if (!broadcast) {
+    if (wasLoaded.current) {
+      return (
+        <div className="px-5 pt-5">
+          <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+          <div className="surface-card p-10 text-center">
+            <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
+            <Text variant="bodySm" color="muted" className="font-semibold mb-2">Signal removed</Text>
+            <Text variant="bodySm" color="muted">This signal was removed by its owner.</Text>
+            <button
+              onClick={() => navigate('/home')}
+              className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
+            >
+              Back to Radar
+            </button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="px-5 pt-5">
         <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
