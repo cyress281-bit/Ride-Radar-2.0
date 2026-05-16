@@ -9,8 +9,8 @@ import { useUpdateSettings } from '@/features/settings/hooks/use-settings.js';
 /**
  * Floating UI overlays for the radar view:
  * - Top signal-count pill
- * - Right-side floating action buttons
- * - Location error toast
+ * - Right-side control card (Go Live, Signal, Locate)
+ * - Location error banner
  */
 const RadarOverlay = memo(function RadarOverlay({
   activeCount,
@@ -35,7 +35,6 @@ const RadarOverlay = memo(function RadarOverlay({
 
   const handleCreateBroadcast = useCallback(() => navigate('/broadcast'), [navigate]);
 
-  // Phase 3: track lock motion + user-initiated haptic on first fix.
   const [justLocked, setJustLocked] = useState(false);
   const prevLocatingRef = useRef(locating);
   const hasInitiatedRequestRef = useRef(false);
@@ -102,69 +101,101 @@ const RadarOverlay = memo(function RadarOverlay({
         </div>
       </div>
 
-      {/* Floating action buttons */}
-      <div className="absolute bottom-44 right-4 z-[15] flex flex-col gap-3">
-        {/* Go Live toggle */}
-        <button
-          onClick={handleToggleLive}
-          disabled={updateSettings.isPending}
-          className={cn(
-            'rr-haptic flex h-11 items-center gap-2 rounded-full backdrop-blur-xl border transition-all active:scale-90',
-            isLiveMapVisible
-              ? 'bg-primary text-primary-foreground border-primary shadow-[0_0_20px_hsl(var(--primary)/0.4)] px-5'
-              : 'bg-surface/80 text-primary border-primary/30 shadow-[0_0_20px_hsl(var(--primary)/0.3)] px-4',
-            justActivated && 'rr-lock'
-          )}
-          aria-label={isLiveMapVisible ? 'LIVE — Tap to Stop' : 'Go Live'}
-        >
-          {updateSettings.isPending ? (
-            <Navigation className="h-4 w-4 animate-spin" />
-          ) : isLiveMapVisible ? (
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-foreground" />
-            </span>
-          ) : (
-            <Radio className="h-4 w-4" />
-          )}
-          <span className="text-xs font-bold">
-            {updateSettings.isPending
-              ? 'Updating…'
-              : isLiveMapVisible
-                ? 'LIVE — Tap to Stop'
-                : 'Go Live'}
-          </span>
-        </button>
+      {/* Floating control card — single card, one glow, no per-button shadow bleed */}
+      <div className="absolute bottom-44 right-4 z-[15]">
+        <div className="flex flex-col overflow-hidden rounded-[22px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
 
-        <button
-          onClick={handleCreateBroadcast}
-          className="rr-haptic flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-xl bg-surface/80 border border-white/[0.06] text-primary shadow-[0_0_20px_hsl(var(--primary)/0.3)] rr-shadow-lg transition-transform active:scale-90"
-          aria-label="Send a Signal"
-        >
-          <Plus className="h-5 w-5" />
-        </button>
+          {/* Go Live — toggles live presence dot on other riders' maps */}
+          <button
+            onClick={handleToggleLive}
+            disabled={updateSettings.isPending}
+            className={cn(
+              'rr-haptic flex items-center gap-2.5 px-4 py-3 transition-all active:scale-95',
+              isLiveMapVisible
+                ? 'bg-primary text-primary-foreground'
+                : 'text-foreground hover:bg-white/[0.04]',
+              justActivated && 'rr-lock'
+            )}
+            aria-label={isLiveMapVisible ? 'LIVE — Tap to hide' : 'Go Live — appear on map'}
+          >
+            <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+              {updateSettings.isPending ? (
+                <Navigation className="h-4 w-4 animate-spin" />
+              ) : isLiveMapVisible ? (
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-foreground" />
+                </span>
+              ) : (
+                <Radio className="h-4 w-4 text-primary" />
+              )}
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-[11px] font-bold leading-tight">
+                {updateSettings.isPending ? 'Updating…' : isLiveMapVisible ? 'LIVE' : 'Go Live'}
+              </span>
+              {!updateSettings.isPending && (
+                <span className={cn(
+                  'text-[10px] leading-tight',
+                  isLiveMapVisible ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                )}>
+                  {isLiveMapVisible ? 'Tap to hide' : 'Appear on map'}
+                </span>
+              )}
+            </div>
+          </button>
 
-        <button
-          onClick={handleRequestLocation}
-          disabled={locating}
-          className={cn(
-            'rr-haptic flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-xl border transition-all active:scale-90',
-            hasUserLocation
-              ? 'bg-surface/80 border-white/[0.06] text-primary shadow-[0_0_20px_hsl(var(--primary)/0.3)]'
-              : 'bg-surface/80 border-primary/30 text-primary shadow-[0_0_20px_hsl(var(--primary)/0.3)]',
-            justLocked && 'rr-lock'
-          )}
-          aria-label={hasUserLocation ? 'Center on my location' : 'Enable location'}
-        >
-          {locating ? (
-            <Navigation className="h-5 w-5 animate-spin" />
-          ) : (
-            <Crosshair className="h-5 w-5" />
-          )}
-        </button>
+          <div className="h-px bg-white/[0.06] mx-3" />
+
+          {/* Signal — navigates to broadcast creation */}
+          <button
+            onClick={handleCreateBroadcast}
+            className="rr-haptic flex items-center gap-2.5 px-4 py-3 text-primary hover:bg-white/[0.04] transition-all active:scale-95"
+            aria-label="Create a signal"
+          >
+            <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+              <Plus className="h-4 w-4" />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-[11px] font-bold leading-tight">Signal</span>
+              <span className="text-[10px] leading-tight text-muted-foreground">Post to Radar</span>
+            </div>
+          </button>
+
+          <div className="h-px bg-white/[0.06] mx-3" />
+
+          {/* Locate — requests permission or re-centers map */}
+          <button
+            onClick={handleRequestLocation}
+            disabled={locating}
+            className={cn(
+              'rr-haptic flex items-center gap-2.5 px-4 py-3 text-primary transition-all active:scale-95',
+              !locating && 'hover:bg-white/[0.04]',
+              justLocked && 'rr-lock'
+            )}
+            aria-label="Center Radar on my area"
+          >
+            <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+              {locating ? (
+                <Navigation className="h-4 w-4 animate-spin" />
+              ) : (
+                <Crosshair className="h-4 w-4" />
+              )}
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-[11px] font-bold leading-tight">
+                {locating ? 'Finding…' : hasUserLocation ? 'Locate' : 'Find me'}
+              </span>
+              <span className="text-[10px] leading-tight text-muted-foreground">
+                {locating ? 'Scanning…' : hasUserLocation ? 'Center on me' : 'Scan my area'}
+              </span>
+            </div>
+          </button>
+
+        </div>
       </div>
 
-      {/* Location error toast */}
+      {/* Location error banner */}
       {geoError && (
         <div className="absolute top-32 left-4 right-4 z-10 flex justify-center">
           <div className="rounded-2xl border border-white/[0.06] bg-surface/80 backdrop-blur-xl px-4 py-3 text-center shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
