@@ -20,6 +20,7 @@ import { toast } from '@/components/ui/use-toast';
 import { getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
 import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
 import { broadcastKeys, useRemoveBroadcast, useUpdateBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
+import BroadcastComments from '@/features/broadcast/components/BroadcastComments.jsx';
 
 /**
  * Single broadcast detail page.
@@ -469,6 +470,14 @@ function BroadcastDetailPage() {
           </Text>
         </div>
       )}
+
+      {/* Comments */}
+      <BroadcastComments
+        broadcastId={broadcast.id}
+        broadcastAuthorId={broadcast.author_id}
+        currentUserId={user?.id}
+        isActive={broadcast.status === 'active'}
+      />
     </div>
   );
 }
