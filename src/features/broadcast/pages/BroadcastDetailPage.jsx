@@ -12,7 +12,7 @@ import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { BROADCAST_META, timeAgo, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils.js';
-import { getProfileById } from '@/features/profile/api/profile-api.js';
+import { getProfileByUserId } from '@/features/profile/api/profile-api.js';
 import { isValidUuid } from '@/lib/utils.js';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
@@ -45,7 +45,7 @@ function BroadcastDetailPage() {
     queryKey: ['profile', broadcast?.author_id],
     enabled: !!broadcast?.author_id,
     queryFn: async () => {
-      const { data, error } = await getProfileById(broadcast.author_id);
+      const { data, error } = await getProfileByUserId(broadcast.author_id);
       if (error) throw error;
       return data;
     },
