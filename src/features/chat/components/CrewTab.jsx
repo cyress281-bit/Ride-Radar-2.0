@@ -11,7 +11,7 @@ import {
 import { useFriendships } from '@/features/connections/hooks/use-friendships.js';
 import { useProfileBatch } from '@/hooks/use-profile-batch.js';
 import { getOrCreateConversation } from '@/lib/conversationUtils.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
@@ -120,7 +120,7 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
       navigate(`/messages/${convoId}`);
     },
     onError: () => {
-      toast({ title: 'Could not open conversation', description: 'Please try again.', variant: 'destructive' });
+      toast.error('Could not open conversation', { description: 'Please try again.' });
     },
   });
 

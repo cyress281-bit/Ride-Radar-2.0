@@ -70,12 +70,13 @@ async function getOrCreateConversationFallback({ participantIds, type, threadExp
   // Normalize participant order for consistent querying
   const sortedIds = [...participantIds].sort();
 
-  // Step 1: Check for existing conversation (exact participant match)
+  // Step 1: Check for existing conversation (contains-based to avoid array equality quirks)
   const { data: existing, error: fetchError } = await supabase
     .from('conversations')
     .select('*')
     .eq('status', 'active')
-    .eq('participant_ids', sortedIds)
+    .contains('participant_ids', [sortedIds[0]])
+    .contains('participant_ids', [sortedIds[1]])
     .maybeSingle();
 
   if (fetchError) throw fetchError;
@@ -108,13 +109,15 @@ async function getOrCreateConversationFallback({ participantIds, type, threadExp
         .from('conversations')
         .select('*')
         .eq('status', 'active')
-        .eq('participant_ids', sortedIds)
+        .contains('participant_ids', [sortedIds[0]])
+        .contains('participant_ids', [sortedIds[1]])
         .maybeSingle();
 
       if (retryError) throw retryError;
       if (retryExisting) {
         return { ...retryExisting, created: false };
       }
+      throw new Error('Conversation could not be found after conflict');
     }
 
     throw createError;
