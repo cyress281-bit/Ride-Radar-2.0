@@ -7,8 +7,8 @@
  * Electric Neon Green redesign.
  */
 
-import { useMemo, useState, memo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useMemo, useState, memo, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { getProfileByUserId } from '@/features/profile/api/profile-api';
@@ -58,6 +58,8 @@ function RiderProfilePage() {
   const [avatarError, setAvatarError] = useState(false);
   const [activeTab, setActiveTab] = useState('broadcasts');
   const [selectedPost, setSelectedPost] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const openPostId = searchParams.get('openPost');
 
   const hasValidUserId = isValidUuid(userId);
   const isMeRoute = user?.id === userId;
@@ -141,6 +143,19 @@ function RiderProfilePage() {
   } = useUserPosts(userId, {
     enabled: canSeeDetails && hasValidUserId && !!profile,
   });
+
+  useEffect(() => {
+    if (!openPostId || postsLoading || riderPosts.length === 0) return;
+    const post = riderPosts.find((p) => p.id === openPostId);
+    if (!post) return;
+    setActiveTab('media');
+    setSelectedPost(post);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('openPost');
+      return next;
+    }, { replace: true });
+  }, [openPostId, postsLoading, riderPosts, setSearchParams]);
 
   if (!hasValidUserId) {
     return (
@@ -428,16 +443,16 @@ function RiderProfilePage() {
                 emptyDescription="This rider hasn't shared any posts yet."
               />
             )}
-
-            {selectedPost && (
-              <PostDetailSheet
-                post={selectedPost}
-                onClose={() => setSelectedPost(null)}
-                userId={user?.id}
-              />
-            )}
           </TabsContent>
         </Tabs>
+      )}
+
+      {selectedPost && (
+        <PostDetailSheet
+          post={selectedPost}
+          onClose={() => setSelectedPost(null)}
+          userId={user?.id}
+        />
       )}
 
       {/* Safety Actions */}

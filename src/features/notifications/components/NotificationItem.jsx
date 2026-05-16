@@ -52,6 +52,13 @@ function getIconForType(type) {
  * @returns {string|null}
  */
 function getNotificationHref(notification) {
+  if (notification.type === 'post_comment') {
+    const postOwnerId = notification.data?.post_owner_id;
+    const postId = notification.data?.post_id;
+    if (postOwnerId && postId) return `/profile/${postOwnerId}?openPost=${postId}`;
+    return null;
+  }
+
   const type = notification.related_entity_type;
   const id = notification.related_entity_id;
 
