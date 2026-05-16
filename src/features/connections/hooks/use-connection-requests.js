@@ -2,7 +2,7 @@
  * @fileoverview TanStack Query hooks for connection requests.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
@@ -31,6 +31,7 @@ export const connectionRequestKeys = {
 export function useConnectionRequests() {
   const { user } = useAuthState();
   const queryClient = useQueryClient();
+  const instanceId = useRef(crypto.randomUUID());
 
   const query = useQuery({
     queryKey: connectionRequestKeys.incoming(user?.id),
@@ -48,7 +49,7 @@ export function useConnectionRequests() {
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
-      .channel(`connection-requests-incoming-${user.id}`)
+      .channel(`connection-requests-incoming-${user.id}-${instanceId.current}`)
       .on(
         'postgres_changes',
         {
@@ -82,6 +83,7 @@ export function useConnectionRequests() {
 export function useSentRequests() {
   const { user } = useAuthState();
   const queryClient = useQueryClient();
+  const instanceId = useRef(crypto.randomUUID());
 
   const query = useQuery({
     queryKey: connectionRequestKeys.sent(user?.id),
@@ -99,7 +101,7 @@ export function useSentRequests() {
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
-      .channel(`connection-requests-sent-${user.id}`)
+      .channel(`connection-requests-sent-${user.id}-${instanceId.current}`)
       .on(
         'postgres_changes',
         {
