@@ -77,7 +77,6 @@ async function getOrCreateConversationFallback({ participantIds, type, threadExp
   const { data: existing, error: fetchError } = await supabase
     .from('conversations')
     .select('*')
-    .eq('type', type)
     .eq('status', 'active')
     .eq('participant_ids', sortedIds)
     .maybeSingle();
@@ -90,7 +89,6 @@ async function getOrCreateConversationFallback({ participantIds, type, threadExp
 
   // Step 2: Attempt to insert
   const insertPayload = {
-    type,
     participant_ids: sortedIds,
     status: 'active',
   };
@@ -112,7 +110,6 @@ async function getOrCreateConversationFallback({ participantIds, type, threadExp
       const { data: retryExisting, error: retryError } = await supabase
         .from('conversations')
         .select('*')
-        .eq('type', type)
         .eq('status', 'active')
         .eq('participant_ids', sortedIds)
         .maybeSingle();
