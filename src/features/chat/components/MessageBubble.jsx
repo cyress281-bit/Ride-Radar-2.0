@@ -2,7 +2,7 @@ import React, { memo, useState } from 'react';
 import { cn, timeAgo } from '@/lib/utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
-import { Check, CheckCheck, Smile, Image as ImageIcon } from 'lucide-react';
+import { Check, Smile, Image as ImageIcon } from 'lucide-react';
 
 /**
  * Single message bubble.
@@ -22,9 +22,6 @@ import { Check, CheckCheck, Smile, Image as ImageIcon } from 'lucide-react';
 const MessageBubble = memo(function MessageBubble({ message, isMine }) {
   const [showReactions, setShowReactions] = useState(false);
 
-  // Placeholder: simulate read status based on created_at age
-  const isRead = isMine && new Date(message.created_at).getTime() < Date.now() - 5000;
-
   return (
     <div
       className={cn(
@@ -32,7 +29,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
         isMine ? 'justify-end' : 'justify-start'
       )}
     >
-      <VStack className="max-w-[82%]" align={isMine ? 'end' : 'start'}>
+      <VStack className="max-w-[82%] min-w-0" align={isMine ? 'end' : 'start'}>
         <div
           onClick={() => setShowReactions((s) => !s)}
           className={cn(
@@ -67,12 +64,8 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
             {timeAgo(message.created_at)}
           </Text>
           {isMine && (
-            <span className={cn('transition-colors duration-300', isRead ? 'text-primary' : 'text-muted-foreground/50')}>
-              {isRead ? (
-                <CheckCheck className="w-3 h-3" aria-hidden="true" />
-              ) : (
-                <Check className="w-3 h-3" aria-hidden="true" />
-              )}
+            <span className="text-muted-foreground/50">
+              <Check className="w-3 h-3" aria-hidden="true" />
             </span>
           )}
         </HStack>

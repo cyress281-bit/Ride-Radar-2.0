@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils.js';
 import { MAX_MESSAGE_LENGTH } from '@/lib/constants.js';
 import { Send, Paperclip } from 'lucide-react';
 import { HStack } from '@/components/ui/primitives/Stack';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 /**
  * Auto-resizing message textarea with glassmorphism input bar design.
@@ -60,7 +60,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
 
   return (
     <div className="p-3 pb-safe bg-background/80 backdrop-blur-xl border-t border-white/[0.06]">
-      <HStack align="end" gap={2} className="max-w-2xl mx-auto">
+      <HStack align="end" gap={2} className="max-w-xl mx-auto">
         {/* Attachment button */}
         <button
           type="button"
@@ -73,7 +73,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
           )}
           aria-label="Attach file"
           onClick={() => {
-            toast({ title: 'Attachments coming soon', description: 'File sharing will be available in a future update.' });
+            toast.info('Attachments coming soon');
           }}
         >
           <Paperclip className="w-5 h-5" />

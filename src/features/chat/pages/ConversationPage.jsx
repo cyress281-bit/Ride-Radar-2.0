@@ -20,25 +20,6 @@ import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
 import { Skeleton } from '@/components/ui/skeleton';
 
 /**
- * Typing indicator — animated dots with neon green pulse.
- */
-function TypingIndicator() {
-  return (
-    <div className="flex justify-start animate-fade-in">
-      <div className="flex items-center gap-1.5 px-4 py-3 rounded-2xl rounded-bl-sm bg-surface-elevated border border-white/[0.06] shadow-depth-1">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce"
-            style={{ animationDelay: `${i * 120}ms`, animationDuration: '800ms' }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/**
  * Loading skeleton for the conversation header and message list.
  */
 function ConversationSkeleton() {
@@ -81,7 +62,6 @@ function ConversationPage() {
   const { user } = useAuthState();
   const endRef = useRef(null);
   const scrollContainerRef = useRef(null);
-  const [isTyping, setIsTyping] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const lastMarkedLengthRef = useRef(0);
@@ -139,8 +119,6 @@ function ConversationPage() {
     staleTime: 5 * 60_000,
   });
 
-  const typingTimeoutRef = useRef(null);
-
   const handleBlockUser = useCallback(() => {
     if (!otherId || !user?.id) return;
     setShowActions(false);
@@ -193,18 +171,6 @@ function ConversationPage() {
     (body) => {
       if (send.isPending) return;
       send.mutate(body);
-      // Demo: simulate typing indicator from other user after a short delay
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-      const t1 = setTimeout(() => setIsTyping(true), 800);
-      const t2 = setTimeout(() => setIsTyping(false), 3000);
-      typingTimeoutRef.current = t2;
-
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-      };
     },
     [send]
   );
@@ -219,16 +185,16 @@ function ConversationPage() {
     [user?.id]
   );
 
-  // Auto-scroll to bottom on new messages or typing indicator
+  // Auto-scroll to bottom on new messages
   const prevCountRef = useRef(messages.length);
   useEffect(() => {
-    if (messages.length > prevCountRef.current || isTyping) {
+    if (messages.length > prevCountRef.current) {
       requestAnimationFrame(() => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' });
       });
     }
     prevCountRef.current = messages.length;
-  }, [messages.length, isTyping]);
+  }, [messages.length]);
 
   // Track scroll position for scroll-to-bottom button
   const handleScroll = useCallback(() => {
@@ -273,7 +239,7 @@ function ConversationPage() {
   }
 
   return (
-    <VStack className="h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px)-6rem-env(safe-area-inset-bottom,0px))] min-h-0 bg-background relative overflow-hidden">
+    <VStack className="w-full h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px)-6rem-env(safe-area-inset-bottom,0px))] min-h-0 bg-background relative overflow-hidden">
       {/* Header */}
       <HStack
         align="center"
@@ -385,7 +351,7 @@ function ConversationPage() {
         <VStack
           gap={3}
           flex
-          className="overflow-y-auto [-webkit-overflow-scrolling:touch] overscroll-contain min-h-0 px-4 py-4 scroll-smooth"
+          className="overflow-y-auto overflow-x-hidden [-webkit-overflow-scrolling:touch] overscroll-contain min-h-0 min-w-0 px-4 py-4 scroll-smooth"
           ref={scrollContainerRef}
           onScroll={handleScroll}
           role="log"
@@ -413,7 +379,6 @@ function ConversationPage() {
               </React.Fragment>
             );
           })}
-          {isTyping && <TypingIndicator />}
           <div ref={endRef} />
         </VStack>
       )}
