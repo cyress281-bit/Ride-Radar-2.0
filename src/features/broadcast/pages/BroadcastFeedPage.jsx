@@ -94,9 +94,9 @@ function BroadcastFeedPage() {
   const { blockedIds } = useBlockedIds();
 
   const { data: nearbyBroadcasts = [], isLoading: isLoadingNearby } = useNearbyBroadcasts(
-    effectiveLoc.lat,
-    effectiveLoc.lng,
-    hasUserLocation ? 50 : 500,
+    hasUserLocation ? effectiveLoc.lat : null,
+    hasUserLocation ? effectiveLoc.lng : null,
+    50,
     Array.from(blockedIds)
   );
 
