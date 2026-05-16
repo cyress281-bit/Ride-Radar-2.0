@@ -37,6 +37,7 @@ import { useBroadcastsByAuthor } from '@/features/broadcast/hooks/use-broadcasts
 import { useIsBlocked } from '@/features/safety/hooks/use-blocks.js';
 import { useIsFriend } from '@/features/connections/hooks/use-friendships.js';
 import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
+import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
@@ -102,6 +103,9 @@ function RiderProfilePage() {
     onSuccess: (convoId) => {
       qc.invalidateQueries({ queryKey: ['conversations'] });
       navigate(`/messages/${convoId}`);
+    },
+    onError: () => {
+      toast({ title: 'Could not open conversation', description: 'Please try again.', variant: 'destructive' });
     },
   });
 

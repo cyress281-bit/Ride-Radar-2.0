@@ -48,18 +48,15 @@ export async function getOrCreateConversation({
     return rpcResult;
   }
 
-  // Fallback: If RPC is not deployed yet, use client-side logic with retry
-  // This handles the transition period before the migration is applied
-  if (rpcError?.message?.includes('function') || rpcError?.code === '42883') {
-    logger.warn(
-      '[getOrCreateConversation] RPC function not found, using fallback. ' +
-      'Please run the migration: supabase/migrations/20260506_fix_duplicate_conversations.sql'
-    );
+  // Fallback: use client-side logic on any RPC failure.
+  // The production conversations table does not have the type/participant_key
+  // columns that the RPC expects, so the fallback is the durable path.
+  if (rpcError) {
+    logger.warn('[getOrCreateConversation] RPC error, using fallback:', rpcError.message);
     return await getOrCreateConversationFallback({ participantIds, type, threadExpiresAt });
   }
 
-  // Unexpected error
-  throw new Error(`getOrCreateConversation failed: ${rpcError.message}`);
+  throw new Error('getOrCreateConversation: no data returned from RPC');
 }
 
 /**
