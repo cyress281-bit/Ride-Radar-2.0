@@ -11,6 +11,8 @@ import {
 import { useFriendships } from '@/features/connections/hooks/use-friendships.js';
 import { useProfileBatch } from '@/hooks/use-profile-batch.js';
 import { getOrCreateConversation } from '@/lib/conversationUtils.js';
+import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
+import RiderSearch from '@/features/chat/components/RiderSearch.jsx';
 import { toast } from 'sonner';
 import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
 import { Text } from '@/components/ui/primitives/Text';
@@ -165,6 +167,7 @@ function CrewTab() {
   const { data: pendingRequests = [] } = useConnectionRequests();
   const { data: sentRequests = [] } = useSentRequests();
   const { data: friendships = [] } = useFriendships();
+  const { blockedIds } = useBlockedIds();
   const { mutate: acceptConn, isPending: isAccepting } = useAcceptConnectionRequest();
   const { mutate: declineConn, isPending: isDeclining } = useDeclineConnectionRequest();
 
@@ -198,6 +201,16 @@ function CrewTab() {
 
   return (
     <VStack gap={5} className="pb-8">
+      <div>
+        <SectionHeader title="Find Riders" />
+        <RiderSearch
+          currentUserId={user.id}
+          friendships={friendships}
+          sentRequests={sentRequests}
+          pendingRequests={pendingRequests}
+          blockedIds={blockedIds}
+        />
+      </div>
       <div>
         <SectionHeader title="Requests" />
         {pendingRequests.length === 0 ? (
