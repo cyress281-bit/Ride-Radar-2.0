@@ -21,6 +21,7 @@ import { Check, Smile } from 'lucide-react';
  */
 const MessageBubble = memo(function MessageBubble({ message, isMine }) {
   const [showReactions, setShowReactions] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   return (
     <div
@@ -48,12 +49,19 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
           {/* Image */}
           {message.image_url && (
             <div className={cn('rounded-xl overflow-hidden', message.body && 'mb-2')}>
-              <img
-                src={message.image_url}
-                alt="Photo"
-                className="w-full max-w-[260px] rounded-xl object-cover block"
-                loading="lazy"
-              />
+              {imageError ? (
+                <div className="flex items-center justify-center w-full max-w-[260px] h-16 rounded-xl bg-white/[0.05] border border-white/[0.08]">
+                  <span className="text-xs text-muted-foreground">Photo unavailable</span>
+                </div>
+              ) : (
+                <img
+                  src={message.image_url}
+                  alt="Photo"
+                  className="w-full max-w-[260px] rounded-xl object-cover block"
+                  loading="lazy"
+                  onError={() => setImageError(true)}
+                />
+              )}
             </div>
           )}
 
