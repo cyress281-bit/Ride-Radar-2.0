@@ -55,28 +55,46 @@ function getIconForType(type) {
  * @returns {string|null}
  */
 function getNotificationHref(notification) {
-  if (notification.type === 'post_comment') {
-    const postOwnerId = notification.data?.post_owner_id;
-    const postId = notification.data?.post_id;
+  const { type, data } = notification;
+
+  if (type === 'post_comment') {
+    const postOwnerId = data?.post_owner_id;
+    const postId = data?.post_id;
     if (postOwnerId && postId) return `/profile/${postOwnerId}?openPost=${postId}`;
     return null;
   }
 
-  if (notification.type === 'broadcast_comment') {
-    const broadcastId = notification.data?.broadcast_id ?? notification.related_entity_id;
+  if (type === 'broadcast_comment') {
+    const broadcastId = data?.broadcast_id ?? notification.related_entity_id;
     if (broadcastId) return `/broadcast/${broadcastId}`;
     return null;
   }
 
-  const type = notification.related_entity_type;
+  if (type === 'connection_request') {
+    const fromUserId = data?.from_user_id;
+    return fromUserId ? `/profile/${fromUserId}` : null;
+  }
+
+  if (type === 'connection_accepted') {
+    // to_user_id is the rider who accepted — the actor the requester wants to see
+    const accepterId = data?.to_user_id;
+    return accepterId ? `/profile/${accepterId}` : null;
+  }
+
+  if (type === 'new_message' || type === 'message') {
+    const convId = data?.conversation_id;
+    return convId ? `/messages/${convId}` : null;
+  }
+
+  const type2 = notification.related_entity_type;
   const id = notification.related_entity_id;
 
-  if (!type || !id) return null;
+  if (!type2 || !id) return null;
 
-  if (type === 'conversation' || type === 'message' || type === 'new_message') return `/messages/${id}`;
-  if (type === 'broadcast' || type === 'event' || type === 'rsvp') return `/broadcast/${id}`;
-  if (type === 'user_profile' || type === 'user' || type === 'connection_request' || type === 'friend_request') return `/profile/${id}`;
-  if (type === 'alert') return `/home`;
+  if (type2 === 'conversation' || type2 === 'message' || type2 === 'new_message') return `/messages/${id}`;
+  if (type2 === 'broadcast' || type2 === 'event' || type2 === 'rsvp') return `/broadcast/${id}`;
+  if (type2 === 'user_profile' || type2 === 'user' || type2 === 'connection_request' || type2 === 'friend_request') return `/profile/${id}`;
+  if (type2 === 'alert') return `/home`;
 
   return null;
 }
