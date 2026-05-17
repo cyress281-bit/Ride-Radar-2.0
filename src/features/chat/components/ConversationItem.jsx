@@ -80,12 +80,19 @@ const ConversationItem = memo(function ConversationItem({
         {/* Content */}
         <VStack flex className="min-w-0">
           <HStack align="center" justify="between" gap={2}>
-            <Text
-              variant="bodySm"
-              className={cn('font-semibold truncate', hasUnread && 'text-foreground')}
-            >
-              {profile?.display_name || 'Rider'}
-            </Text>
+            <VStack gap={0} className="min-w-0 flex-1">
+              <Text
+                variant="bodySm"
+                className={cn('font-semibold truncate', hasUnread && 'text-foreground')}
+              >
+                {profile?.display_name || 'Rider'}
+              </Text>
+              {profile?.username && (
+                <Text variant="micro" color="muted" className="truncate">
+                  @{profile.username}
+                </Text>
+              )}
+            </VStack>
             <Text
               variant="micro"
               color={hasUnread ? 'default' : 'muted'}
