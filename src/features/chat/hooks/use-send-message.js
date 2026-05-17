@@ -1,29 +1,42 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { sendMessage as apiSendMessage } from '@/features/chat/api/chat-api.js';
+import { uploadImage } from '@/lib/image-utils.js';
 import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 
 /**
  * Hook to send a message in a conversation.
  *
- * Uses optimistic updates to show the message instantly in the UI.
- * The real-time subscription handles messages from OTHER users only,
- * so we do NOT invalidate the messages query on success.
+ * Accepts { body, imageFile }:
+ *   body      — optional text string
+ *   imageFile — optional File object; uploaded before insert
+ *
+ * Uses optimistic updates to show the message instantly. Images use a local
+ * object URL for the optimistic bubble, replaced by the CDN URL on success.
  */
 export function useSendMessage(conversationId) {
   const { user } = useAuthState();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (messageBody) => {
+    mutationFn: async ({ body, imageFile } = {}) => {
       if (!user) throw new Error('Must be authenticated to send message');
-      if (!messageBody?.trim()) throw new Error('Message cannot be empty');
+
+      const trimmedBody = body?.trim() || null;
+      if (!trimmedBody && !imageFile) throw new Error('Message cannot be empty');
+
+      let image_url = null;
+      if (imageFile) {
+        const path = `messages/${user.id}/${conversationId}/${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        image_url = await uploadImage(imageFile, 'uploads', path, 'message');
+      }
 
       const { data: message, error: messageError } = await apiSendMessage({
         conversation_id: conversationId,
         from_user_id: user.id,
-        body: messageBody.trim(),
+        body: trimmedBody,
+        image_url,
       });
 
       if (messageError) {
@@ -34,18 +47,24 @@ export function useSendMessage(conversationId) {
       return message;
     },
 
-    onMutate: async (messageBody) => {
+    onMutate: async ({ body, imageFile } = {}) => {
       await queryClient.cancelQueries({ queryKey: ['messages', conversationId] });
 
       const previousMessages = queryClient.getQueryData(['messages', conversationId]);
+
+      const trimmedBody = body?.trim() || null;
+      // Create a local object URL so the optimistic bubble shows the image immediately
+      const optimisticImageUrl = imageFile ? URL.createObjectURL(imageFile) : null;
 
       const optimisticMessage = {
         id: `optimistic-${Date.now()}`,
         conversation_id: conversationId,
         from_user_id: user.id,
-        body: messageBody.trim(),
+        body: trimmedBody,
+        image_url: optimisticImageUrl,
         created_at: new Date().toISOString(),
         _optimistic: true,
+        _localImageUrl: optimisticImageUrl,
       };
 
       queryClient.setQueryData(['messages', conversationId], (old = []) => [
@@ -69,7 +88,12 @@ export function useSendMessage(conversationId) {
       return { previousMessages, optimisticMessage };
     },
 
-    onSuccess: (serverMessage, _messageBody, context) => {
+    onSuccess: (serverMessage, _variables, context) => {
+      // Revoke local object URL now that we have the real CDN URL
+      if (context?.optimisticMessage?._localImageUrl) {
+        URL.revokeObjectURL(context.optimisticMessage._localImageUrl);
+      }
+
       queryClient.setQueryData(['messages', conversationId], (old = []) =>
         old.map((msg) =>
           msg.id === context.optimisticMessage.id ? serverMessage : msg
@@ -90,7 +114,12 @@ export function useSendMessage(conversationId) {
       });
     },
 
-    onError: (error, _messageBody, context) => {
+    onError: (error, _variables, context) => {
+      // Revoke local object URL on failure
+      if (context?.optimisticMessage?._localImageUrl) {
+        URL.revokeObjectURL(context.optimisticMessage._localImageUrl);
+      }
+
       if (context?.previousMessages) {
         queryClient.setQueryData(['messages', conversationId], context.previousMessages);
       }

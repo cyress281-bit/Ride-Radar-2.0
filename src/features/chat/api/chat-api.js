@@ -36,13 +36,14 @@ export async function getMessages(conversationId) {
  * @param {Object} payload
  * @param {string} payload.conversation_id
  * @param {string} payload.from_user_id
- * @param {string} payload.body
+ * @param {string|null} payload.body
+ * @param {string|null} [payload.image_url]
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
-export async function sendMessage({ conversation_id, from_user_id, body }) {
+export async function sendMessage({ conversation_id, from_user_id, body, image_url = null }) {
   const { data, error } = await supabase
     .from('messages')
-    .insert({ conversation_id, from_user_id, body })
+    .insert({ conversation_id, from_user_id, body: body || null, image_url: image_url || null })
     .select()
     .single();
 

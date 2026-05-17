@@ -177,9 +177,9 @@ function ConversationPage() {
   }, []);
 
   const handleSend = useCallback(
-    (body) => {
+    ({ body, imageFile } = {}) => {
       if (send.isPending) return;
-      send.mutate(body);
+      send.mutate({ body, imageFile });
     },
     [send]
   );

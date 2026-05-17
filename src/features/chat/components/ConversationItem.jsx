@@ -40,7 +40,8 @@ const ConversationItem = memo(function ConversationItem({
   }, [onNavigate, conversationId, onClick]);
 
   const hasUnread = unreadCount > 0;
-  const lastMessage = conversation.last_message?.body || conversation.last_message_preview || '';
+  const lastPreview = conversation.last_message?.body || conversation.last_message_preview;
+  const lastMessage = lastPreview || (conversation.last_message_at ? '📷 Photo' : '');
 
   return (
     <button

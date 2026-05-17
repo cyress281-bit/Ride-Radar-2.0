@@ -1,20 +1,17 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils.js';
 import { MAX_MESSAGE_LENGTH } from '@/lib/constants.js';
-import { Send, Paperclip } from 'lucide-react';
+import { Send, Paperclip, X } from 'lucide-react';
 import { HStack } from '@/components/ui/primitives/Stack';
 import { toast } from 'sonner';
 
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
 /**
- * Auto-resizing message textarea with glassmorphism input bar design.
+ * Auto-resizing message textarea with image attachment support.
  *
- * Features:
- * - Rounded-full text input that grows with content
- * - Neon green send button with glow
- * - Attachment button with glassmorphism
- * - Character counter
- * - Glassmorphism container
- *
+ * onSend receives { body, imageFile } — at least one must be non-empty.
  * Enter sends; Shift+Enter inserts a newline.
  *
  * @param {Object} props
@@ -24,11 +21,21 @@ import { toast } from 'sonner';
  */
 export default function MessageInput({ onSend, isSending, disabled = false }) {
   const [text, setText] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null); // File
+  const [previewUrl, setPreviewUrl] = useState(null);       // Object URL
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const length = text.length;
   const isOverLimit = length > MAX_MESSAGE_LENGTH;
-  const canSend = !isSending && !isOverLimit && text.trim().length > 0 && !disabled;
+  const canSend = !isSending && !isOverLimit && (text.trim().length > 0 || !!selectedImage) && !disabled;
+
+  // Revoke preview URL whenever it changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -38,15 +45,44 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   }, [text]);
 
+  const handleFileChange = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast.error('Invalid file type', { description: 'Please select a JPG, PNG, or WebP image.' });
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast.error('Image too large', { description: 'Maximum size is 5MB.' });
+      e.target.value = '';
+      return;
+    }
+
+    // Setting new previewUrl triggers cleanup of the old one via useEffect
+    setSelectedImage(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    e.target.value = ''; // Reset so the same file can be re-selected
+  }, []);
+
+  const handleRemoveImage = useCallback(() => {
+    // Setting previewUrl to null triggers revoke via useEffect
+    setSelectedImage(null);
+    setPreviewUrl(null);
+  }, []);
+
   const handleSend = useCallback(() => {
-    const trimmed = text.trim();
-    if (!trimmed || isOverLimit || disabled || isSending) return;
-    onSend(trimmed);
+    if (!canSend) return;
+    onSend({ body: text.trim(), imageFile: selectedImage || null });
     setText('');
+    setSelectedImage(null);
+    setPreviewUrl(null); // revoke via useEffect
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [text, isOverLimit, disabled, isSending, onSend]);
+  }, [text, selectedImage, canSend, onSend]);
 
   const handleKeyDown = useCallback(
     (e) => {
@@ -60,21 +96,54 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
 
   return (
     <div className="p-3 pb-safe bg-background/80 backdrop-blur-xl border-t border-white/[0.06]">
+      {/* Image preview thumbnail */}
+      {previewUrl && (
+        <div className="mb-2 max-w-xl mx-auto">
+          <div className="relative inline-block">
+            <img
+              src={previewUrl}
+              alt="Selected"
+              className="h-20 w-20 object-cover rounded-xl border border-white/[0.08]"
+            />
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-surface-elevated border border-white/[0.12] flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Remove image"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <HStack align="end" gap={2} className="max-w-xl mx-auto">
+        {/* Hidden file input — no capture attribute so users can choose gallery or camera */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={handleFileChange}
+          aria-label="Select image"
+          tabIndex={-1}
+        />
+
         {/* Attachment button */}
         <button
           type="button"
           disabled={disabled || isSending}
+          onClick={() => fileInputRef.current?.click()}
           className={cn(
             'shrink-0 h-11 w-11 rounded-full flex items-center justify-center',
-            'border border-white/[0.06] bg-surface/80 text-muted-foreground backdrop-blur-md',
-            'transition-all duration-200 hover:bg-surface-elevated hover:text-foreground hover:border-primary/15',
-            'disabled:opacity-40 disabled:cursor-not-allowed pressable shadow-depth-1'
+            'border backdrop-blur-md transition-all duration-200',
+            'pressable shadow-depth-1',
+            'disabled:opacity-40 disabled:cursor-not-allowed',
+            selectedImage
+              ? 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
+              : 'bg-surface/80 border-white/[0.06] text-muted-foreground hover:bg-surface-elevated hover:text-foreground hover:border-primary/15',
           )}
-          aria-label="Attach file"
-          onClick={() => {
-            toast.info('Attachments coming soon');
-          }}
+          aria-label="Attach image"
         >
           <Paperclip className="w-5 h-5" />
         </button>

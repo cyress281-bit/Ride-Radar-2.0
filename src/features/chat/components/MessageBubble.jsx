@@ -2,7 +2,7 @@ import React, { memo, useState } from 'react';
 import { cn, timeAgo } from '@/lib/utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
-import { Check, Smile, Image as ImageIcon } from 'lucide-react';
+import { Check, Smile } from 'lucide-react';
 
 /**
  * Single message bubble.
@@ -45,17 +45,19 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
             <span className="absolute left-0 top-3 bottom-3 w-[2px] rounded-full bg-primary/60" />
           )}
 
-          {/* Image placeholder */}
-          {message.has_image && (
-            <div className="mb-2 rounded-xl overflow-hidden bg-black/20 border border-white/5">
-              <div className="flex items-center justify-center h-32 gap-2 text-muted-foreground">
-                <ImageIcon className="w-5 h-5" />
-                <Text variant="caption" color={isMine ? 'default' : 'muted'}>Image</Text>
-              </div>
+          {/* Image */}
+          {message.image_url && (
+            <div className={cn('rounded-xl overflow-hidden', message.body && 'mb-2')}>
+              <img
+                src={message.image_url}
+                alt="Photo"
+                className="w-full max-w-[260px] rounded-xl object-cover block"
+                loading="lazy"
+              />
             </div>
           )}
 
-          <span className={cn(isMine && 'pl-1')}>{message.body}</span>
+          {message.body && <span className={cn(isMine && 'pl-1')}>{message.body}</span>}
         </div>
 
         {/* Meta row: timestamp + read receipts */}
