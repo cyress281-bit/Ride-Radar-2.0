@@ -13,7 +13,7 @@ const PageLoader = memo(function PageLoader({ className }) {
           stroke-dasharray: 340;
           stroke-dashoffset: 340;
           animation: rr-ekg-draw 2.2s ease-in-out infinite;
-          filter: drop-shadow(0 0 5px hsl(var(--primary) / 0.75));
+          filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.65));
         }
         @keyframes rr-ekg-draw {
           0%   { stroke-dashoffset: 340; }
@@ -31,7 +31,7 @@ const PageLoader = memo(function PageLoader({ className }) {
       <div className="flex flex-col items-center gap-5">
         <svg
           viewBox="0 0 240 60"
-          className="w-72 fill-none"
+          className="w-[86vw] max-w-[620px] fill-none"
           aria-hidden="true"
         >
           {/*
@@ -41,7 +41,7 @@ const PageLoader = memo(function PageLoader({ className }) {
           <polyline
             className="rr-ekg-line"
             points="0,30 50,30 58,22 66,38 74,30 96,30 102,34 114,4 122,48 130,30 152,30 164,18 178,30 240,30"
-            strokeWidth="2"
+            strokeWidth="5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
