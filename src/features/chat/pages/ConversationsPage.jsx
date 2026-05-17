@@ -8,14 +8,14 @@ import { useConnectionRequests } from '@/features/connections/hooks/use-connecti
 import ConversationList from '@/features/chat/components/ConversationList.jsx';
 import CrewTab from '@/features/chat/components/CrewTab.jsx';
 import { supabase } from '@/lib/supabase.js';
-import { MessageCircle, Plus, Search, RefreshCw } from 'lucide-react';
+import { MessageCircle, Search, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { LoadingState } from '@/components/shared/LoadingState';
 import { ErrorState } from '@/components/shared/ErrorState';
-import { toast } from '@/components/ui/use-toast';
+
 
 /**
  * Conversations list page.
@@ -227,27 +227,7 @@ function ConversationsPage() {
             </div>
           )}
 
-          {/* New message FAB */}
-          <button
-            type="button"
-            onClick={() => {
-              toast({
-                title: 'Start a conversation',
-                description: 'Browse the home feed, tap a rider\'s profile, then tap Message.',
-              });
-              navigate('/home');
-            }}
-            className={cn(
-              'fixed bottom-28 right-5 z-50 h-14 w-14 rounded-full',
-              'bg-primary text-primary-foreground',
-              'flex items-center justify-center pressable',
-              'border border-primary/20 shadow-depth-4',
-              'animate-glow-pulse hover:animate-none'
-            )}
-            aria-label="New message"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
+
         </>
       )}
 
