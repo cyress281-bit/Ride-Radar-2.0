@@ -221,7 +221,14 @@ function RiderProfilePage() {
   useEffect(() => {
     if (!openPostId || postsLoading || riderPosts.length === 0) return;
     const post = riderPosts.find((p) => p.id === openPostId);
-    if (!post) return;
+    if (!post) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('openPost');
+        return next;
+      }, { replace: true });
+      return;
+    }
     setActiveTab('media');
     setSelectedPost(post);
     setSearchParams((prev) => {

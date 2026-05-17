@@ -141,7 +141,9 @@ const PostComments = memo(function PostComments({ postId, postOwnerId, currentUs
               ? 'No comments yet'
               : comments.length === 1
                 ? '1 comment'
-                : `${comments.length} comments`}
+                : comments.length >= 50
+                  ? '50+ comments'
+                  : `${comments.length} comments`}
         </span>
       </div>
 
