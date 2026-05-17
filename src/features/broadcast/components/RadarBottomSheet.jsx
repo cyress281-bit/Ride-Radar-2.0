@@ -41,6 +41,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
   sortBy,
   setSortBy,
   broadcasts,
+  allBroadcasts,
   getProfile,
   userLat,
   userLng,
@@ -64,14 +65,15 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [sheetOpen, setSheetOpen]);
 
-  // Phase 4: honest category summary for expanded state
+  // Phase 4: honest category summary for expanded state — uses unfiltered list so active filter chips don't skew counts
   const categorySummary = useMemo(() => {
     if (!sheetOpen || totalCount === 0) return null;
-    const warnings = broadcasts.filter((b) => b.type === 'alert' && b.alert_type !== 'bike_down').length;
-    const bikeDowns = broadcasts.filter((b) => b.type === 'alert' && b.alert_type === 'bike_down').length;
-    const rides = broadcasts.filter((b) => b.type === 'solo_ride').length;
-    const iso = broadcasts.filter((b) => b.type === 'iso').length;
-    const events = broadcasts.filter((b) => b.type === 'event').length;
+    const source = allBroadcasts ?? broadcasts;
+    const warnings = source.filter((b) => b.type === 'alert' && b.alert_type !== 'bike_down').length;
+    const bikeDowns = source.filter((b) => b.type === 'alert' && b.alert_type === 'bike_down').length;
+    const rides = source.filter((b) => b.type === 'solo_ride').length;
+    const iso = source.filter((b) => b.type === 'iso').length;
+    const events = source.filter((b) => b.type === 'event').length;
     const parts = [];
     if (bikeDowns === 1) parts.push('1 bike down');
     else if (bikeDowns > 1) parts.push(`${bikeDowns} bike downs`);
@@ -84,7 +86,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
     if (events === 1) parts.push('1 event');
     else if (events > 1) parts.push(`${events} events`);
     return parts.length > 0 ? parts.join(', ') + ' nearby' : null;
-  }, [broadcasts, sheetOpen, totalCount]);
+  }, [allBroadcasts, broadcasts, sheetOpen, totalCount]);
 
   return (
     <div

@@ -128,7 +128,9 @@ const BroadcastComments = memo(function BroadcastComments({
     ? 'Comments'
     : comments.length === 1
       ? '1 comment'
-      : `${comments.length} comments`;
+      : comments.length >= 50
+        ? '50+ comments'
+        : `${comments.length} comments`;
 
   return (
     <div className="mt-4 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-4">

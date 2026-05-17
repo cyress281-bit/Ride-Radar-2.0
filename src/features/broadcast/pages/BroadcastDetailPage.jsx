@@ -132,7 +132,6 @@ function BroadcastDetailPage() {
         },
         () => {
           qc.invalidateQueries({ queryKey: broadcastKeys.detail(id) });
-          qc.refetchQueries({ queryKey: broadcastKeys.detail(id), type: 'active' });
         }
       )
       .subscribe();

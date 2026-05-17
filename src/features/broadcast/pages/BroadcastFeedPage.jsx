@@ -107,7 +107,7 @@ function BroadcastFeedPage() {
         if (b.expires_at && new Date(b.expires_at) <= new Date()) return false;
         return true;
       }),
-    [sourceBroadcasts, blockedIds, user?.id]
+    [sourceBroadcasts, blockedIds]
   );
 
   const rawRiderMarkers = usingOfflineSnapshot ? offlineSnapshot.riderMarkers : riderMarkers;
@@ -233,6 +233,7 @@ function BroadcastFeedPage() {
         setSortBy={(v) => startTransition(() => setSortBy(v))}
         isPending={isPending}
         broadcasts={filteredBroadcasts}
+        allBroadcasts={visibleBroadcasts}
         getProfile={getProfile}
         userLat={effectiveLoc.lat}
         userLng={effectiveLoc.lng}
