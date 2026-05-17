@@ -65,6 +65,7 @@ function ConversationPage() {
   const [showActions, setShowActions] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const lastMarkedLengthRef = useRef(0);
+  const markedConversationIdRef = useRef(null);
 
   const {
     data: conversation,
@@ -91,7 +92,15 @@ function ConversationPage() {
   const { mutate: blockUser } = useCreateBlock();
   const { mutate: reportUser } = useCreateReport();
 
-  // Mark as read when viewing conversation and when new messages arrive from others
+  // Mark as read immediately on conversation open, regardless of message count or sender
+  useEffect(() => {
+    if (!id || !user?.id) return;
+    if (markedConversationIdRef.current === id) return;
+    markedConversationIdRef.current = id;
+    markRead();
+  }, [id, user?.id, markRead]);
+
+  // Mark as read when new messages from the other user arrive while the thread is open
   useEffect(() => {
     if (!id || messages.length === 0) return;
     const lastMessage = messages[messages.length - 1];

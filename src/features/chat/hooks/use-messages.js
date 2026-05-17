@@ -101,6 +101,7 @@ export function useMessages(conversationId) {
  */
 export function useMarkRead(conversationId) {
   const { user } = useAuthState();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
@@ -108,6 +109,11 @@ export function useMarkRead(conversationId) {
       const { data, error } = await markConversationRead(conversationId, user.id);
       if (error) throw error;
       return data;
+    },
+    onSuccess: () => {
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: ['conversation-notifications', user.id] });
+      }
     },
   });
 }
