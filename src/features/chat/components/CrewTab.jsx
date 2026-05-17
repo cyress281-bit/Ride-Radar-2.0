@@ -257,7 +257,7 @@ function CrewTab() {
       <div>
         <SectionHeader title="Friends" />
         {friendships.length === 0 ? (
-          <SectionEmpty message="No crew yet. Find riders on the Radar." />
+          <SectionEmpty message="No friends yet. Find a rider to connect." />
         ) : (
           <VStack gap={2}>
             {friendships.map((f) => {

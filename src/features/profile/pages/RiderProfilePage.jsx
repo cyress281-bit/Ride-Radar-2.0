@@ -7,7 +7,7 @@
  * Electric Neon Green redesign.
  */
 
-import { useMemo, useState, memo, useEffect } from 'react';
+import { useMemo, useState, memo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
@@ -28,6 +28,7 @@ import {
   Grid3X3,
   User,
   Ban,
+  Loader2,
 } from 'lucide-react';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/shared/OptimizedImage';
@@ -36,7 +37,12 @@ import { isExpired } from '@/lib/broadcastUtils';
 import { useBroadcastsByAuthor } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { useIsBlocked } from '@/features/safety/hooks/use-blocks.js';
 import { useIsFriend } from '@/features/connections/hooks/use-friendships.js';
-import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
+import {
+  useConnectionRequestWith,
+  useSendConnectionRequest,
+  useAcceptConnectionRequest,
+  useDeclineConnectionRequest,
+} from '@/features/connections/hooks/use-connection-requests.js';
 import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/primitives/Text';
@@ -68,7 +74,9 @@ function RiderProfilePage() {
   const { isFriend: isFriendActive, friendship: _friendship } = useIsFriend(userId);
   const { data: connectionRequest } = useConnectionRequestWith(userId);
 
-  const isPending = connectionRequest?.status === 'pending';
+  const isOutgoingPending = connectionRequest?.status === 'pending' && connectionRequest?.from_user_id === user?.id;
+  const isIncomingPending = connectionRequest?.status === 'pending' && connectionRequest?.from_user_id === userId;
+  const isPending = isOutgoingPending || isIncomingPending;
   const isConnected = connectionRequest?.status === 'accepted' || isFriendActive;
   const isFriend = isFriendActive;
 
@@ -93,6 +101,22 @@ function RiderProfilePage() {
     useBroadcastsByAuthor(hasValidUserId && !!profile ? userId : null);
 
   const sendFriendReq = useSendConnectionRequest();
+  const { mutate: acceptConn, isPending: isAccepting } = useAcceptConnectionRequest();
+  const { mutate: declineConn, isPending: isDeclining } = useDeclineConnectionRequest();
+
+  const handleAccept = useCallback(() => {
+    if (!connectionRequest?.id) return;
+    acceptConn(connectionRequest.id, {
+      onSuccess: (conversation) => {
+        if (conversation?.id) navigate(`/messages/${conversation.id}`);
+      },
+    });
+  }, [acceptConn, connectionRequest?.id, navigate]);
+
+  const handleDecline = useCallback(() => {
+    if (!connectionRequest?.id) return;
+    declineConn(connectionRequest.id);
+  }, [declineConn, connectionRequest?.id]);
 
   const openFriendChat = useMutation({
     mutationFn: async () => {
@@ -285,49 +309,89 @@ function RiderProfilePage() {
 
             {/* Action Buttons */}
             {!isMeRoute && !isBlocked && (
-              <HStack gap={3} className="w-full mt-1">
+              <>
                 {isConnected ? (
-                  <button
-                    onClick={() => openFriendChat.mutate()}
-                    disabled={openFriendChat.isPending}
-                    className={cn(
-                      'flex-1 flex items-center justify-center gap-2 rounded-full',
-                      'bg-brand-radar text-primary-foreground px-5 py-2.5 text-sm font-bold',
-                      'transition-all hover:bg-brand-radar/90 pressable',
-                      'shadow-[0_4px_20px_hsl(var(--brand-radar)/0.35)]',
-                      'disabled:opacity-50'
-                    )}
-                  >
-                    <MessageCircle className="h-4 w-4" /> Message
-                  </button>
-                ) : isPending ? (
-                  <button
-                    disabled
-                    className={cn(
-                      'flex-1 flex items-center justify-center gap-2 rounded-full border border-brand-amber/30',
-                      'bg-brand-amber/10 px-5 py-2.5 text-sm font-semibold text-brand-amber',
-                      'disabled:opacity-60'
-                    )}
-                  >
-                    <Clock className="h-4 w-4" />
-                    Request {connectionRequest?.from_user_id === user?.id ? 'sent' : 'pending'}
-                  </button>
+                  <HStack gap={3} className="w-full mt-1">
+                    <button
+                      onClick={() => openFriendChat.mutate()}
+                      disabled={openFriendChat.isPending}
+                      className={cn(
+                        'flex-1 flex items-center justify-center gap-2 rounded-full',
+                        'bg-brand-radar text-primary-foreground px-5 py-2.5 text-sm font-bold',
+                        'transition-all hover:bg-brand-radar/90 pressable',
+                        'shadow-[0_4px_20px_hsl(var(--brand-radar)/0.35)]',
+                        'disabled:opacity-50'
+                      )}
+                    >
+                      <MessageCircle className="h-4 w-4" /> Message
+                    </button>
+                  </HStack>
+                ) : isIncomingPending ? (
+                  <VStack gap={2} className="w-full mt-1">
+                    <Text variant="micro" color="muted" align="center">
+                      This rider sent you a connection request.
+                    </Text>
+                    <HStack gap={2} className="w-full">
+                      <button
+                        onClick={handleDecline}
+                        disabled={isDeclining || isAccepting}
+                        className={cn(
+                          'flex-1 flex items-center justify-center gap-2 rounded-full border border-white/[0.08]',
+                          'bg-surface/60 px-5 py-2.5 text-sm font-semibold text-muted-foreground',
+                          'transition-all hover:text-foreground hover:bg-surface-elevated pressable',
+                          'disabled:opacity-50'
+                        )}
+                      >
+                        {isDeclining && <Loader2 className="h-4 w-4 animate-spin" />}
+                        Decline
+                      </button>
+                      <button
+                        onClick={handleAccept}
+                        disabled={isAccepting || isDeclining}
+                        className={cn(
+                          'flex-1 flex items-center justify-center gap-2 rounded-full',
+                          'bg-primary text-primary-foreground px-5 py-2.5 text-sm font-bold',
+                          'transition-all hover:bg-primary/90 pressable',
+                          'shadow-[0_4px_20px_hsl(var(--primary)/0.35)]',
+                          'disabled:opacity-50'
+                        )}
+                      >
+                        {isAccepting && <Loader2 className="h-4 w-4 animate-spin" />}
+                        Accept
+                      </button>
+                    </HStack>
+                  </VStack>
+                ) : isOutgoingPending ? (
+                  <HStack gap={3} className="w-full mt-1">
+                    <button
+                      disabled
+                      className={cn(
+                        'flex-1 flex items-center justify-center gap-2 rounded-full border border-brand-amber/30',
+                        'bg-brand-amber/10 px-5 py-2.5 text-sm font-semibold text-brand-amber',
+                        'disabled:opacity-60'
+                      )}
+                    >
+                      <Clock className="h-4 w-4" /> Request sent
+                    </button>
+                  </HStack>
                 ) : (
-                  <button
-                    onClick={() => sendFriendReq.mutate({ from_user_id: user.id, to_user_id: userId })}
-                    disabled={sendFriendReq.isPending}
-                    className={cn(
-                      'flex-1 flex items-center justify-center gap-2 rounded-full',
-                      'bg-primary text-primary-foreground px-5 py-2.5 text-sm font-bold',
-                      'transition-all hover:bg-primary/90 pressable',
-                      'shadow-[0_4px_20px_hsl(var(--primary)/0.35)]',
-                      'disabled:opacity-50'
-                    )}
-                  >
-                    <UserPlus className="h-4 w-4" /> Connect
-                  </button>
+                  <HStack gap={3} className="w-full mt-1">
+                    <button
+                      onClick={() => sendFriendReq.mutate({ from_user_id: user.id, to_user_id: userId })}
+                      disabled={sendFriendReq.isPending}
+                      className={cn(
+                        'flex-1 flex items-center justify-center gap-2 rounded-full',
+                        'bg-primary text-primary-foreground px-5 py-2.5 text-sm font-bold',
+                        'transition-all hover:bg-primary/90 pressable',
+                        'shadow-[0_4px_20px_hsl(var(--primary)/0.35)]',
+                        'disabled:opacity-50'
+                      )}
+                    >
+                      <UserPlus className="h-4 w-4" /> Connect
+                    </button>
+                  </HStack>
                 )}
-              </HStack>
+              </>
             )}
           </VStack>
         </div>

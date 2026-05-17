@@ -146,7 +146,7 @@ function ConversationsPage() {
               : 'bg-surface/60 border border-white/[0.06] text-muted-foreground hover:text-foreground',
           )}
         >
-          Crew
+          Friends
           {pendingCount > 0 && (
             <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold text-white flex items-center justify-center">
               {pendingCount > 9 ? '9+' : pendingCount}
