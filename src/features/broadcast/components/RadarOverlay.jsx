@@ -103,7 +103,7 @@ const RadarOverlay = memo(function RadarOverlay({
       </div>
 
       {/* Floating control card — single card, one glow, no per-button shadow bleed */}
-      <div className="absolute bottom-44 right-4 z-[15]">
+      <div className="absolute bottom-52 right-4 z-[15]">
         <div className="flex flex-col overflow-hidden rounded-[22px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
 
           {/* Go Live — toggles live presence dot on other riders' maps */}
