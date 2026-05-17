@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useProfileBatch } from '@/hooks/use-profile-batch.js';
 import { useConversations } from '@/features/chat/hooks/use-conversations.js';
-import { useConnectionRequests } from '@/features/connections/hooks/use-connection-requests.js';
 import ConversationList from '@/features/chat/components/ConversationList.jsx';
 import CrewTab from '@/features/chat/components/CrewTab.jsx';
 import { supabase } from '@/lib/supabase.js';
@@ -32,8 +31,6 @@ function ConversationsPage() {
 
   const [activeTab, setActiveTab] = useState('chats');
   const { data: conversations = [], isLoading, isError, error, refetch } = useConversations();
-  const { data: pendingRequests = [] } = useConnectionRequests();
-  const pendingCount = pendingRequests.length;
 
   const { data: readNotifications = [] } = useQuery({
     queryKey: ['conversation-notifications', user?.id],
@@ -140,18 +137,13 @@ function ConversationsPage() {
           type="button"
           onClick={() => setActiveTab('crew')}
           className={cn(
-            'relative px-4 py-1.5 rounded-full text-sm font-semibold transition-colors',
+            'px-4 py-1.5 rounded-full text-sm font-semibold transition-colors',
             activeTab === 'crew'
               ? 'bg-primary text-primary-foreground'
               : 'bg-surface/60 border border-white/[0.06] text-muted-foreground hover:text-foreground',
           )}
         >
           Friends
-          {pendingCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold text-white flex items-center justify-center">
-              {pendingCount > 9 ? '9+' : pendingCount}
-            </span>
-          )}
         </button>
       </HStack>
 
