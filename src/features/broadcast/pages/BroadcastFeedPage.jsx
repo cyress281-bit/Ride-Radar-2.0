@@ -92,7 +92,7 @@ function BroadcastFeedPage() {
   );
 
   const usingOfflineSnapshot = !isOnline && !!offlineSnapshot;
-  const sourceBroadcasts = usingOfflineSnapshot ? offlineSnapshot.broadcasts : nearbyBroadcasts;
+  const sourceBroadcasts = usingOfflineSnapshot ? offlineSnapshot.broadcasts : hasUserLocation ? nearbyBroadcasts : [];
   const isLoadingBroadcasts = hasUserLocation ? isLoadingNearby : false;
 
   const { markers: riderMarkers, isLiveMapVisible } = useLiveMapPresence(
