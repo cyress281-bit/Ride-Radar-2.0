@@ -11,7 +11,6 @@ import LiveMap from '@/features/map/components/LiveMap';
 import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
 import RadarOverlay from '@/features/broadcast/components/RadarOverlay';
 import RadarBottomSheet from '@/features/broadcast/components/RadarBottomSheet';
-import RadarTuneInCurtain from '@/features/broadcast/components/RadarTuneInCurtain';
 
 const RADAR_OFFLINE_SNAPSHOT_KEY = 'rr:radar-offline-snapshot';
 const RADAR_OFFLINE_SNAPSHOT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -83,14 +82,6 @@ function BroadcastFeedPage() {
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('rank');
   const [isPending, startTransition] = useTransition();
-  const [showCurtain, setShowCurtain] = useState(true);
-
-  // Phase 3: cold-start tune-in curtain. Stays opaque ~600ms, then fades.
-  useEffect(() => {
-    const timer = setTimeout(() => setShowCurtain(false), 600);
-    return () => clearTimeout(timer);
-  }, []);
-
   const { blockedIds } = useBlockedIds();
 
   const { data: nearbyBroadcasts = [], isLoading: isLoadingNearby } = useNearbyBroadcasts(
@@ -227,8 +218,6 @@ function BroadcastFeedPage() {
         geoError={geoError}
         isLiveMapVisible={isLiveMapVisible}
       />
-
-      <RadarTuneInCurtain isVisible={showCurtain} />
 
       <RadarBottomSheet
         sheetOpen={sheetOpen}

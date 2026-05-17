@@ -10,11 +10,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth.js';
 import LoginForm from '@/features/auth/components/LoginForm.jsx';
 import RRLogo from '@/components/RRLogo';
+import PageLoader from '@/components/shared/PageLoader';
 import { getSafeAuthRedirectFromSearch } from '@/lib/auth-redirect.js';
 import { preloadCoreRoutes } from '@/lib/routePreload.js';
 import { logger } from '@/lib/logger.js';
 import { getAuthErrorFromLocation } from '@/lib/auth-redirect';
-import { RIDE_RADAR_LOGO_URL } from '@/components/splash/logoAsset';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -69,24 +69,8 @@ export default function LoginPage() {
     }
   };
 
-  // Show brand loading state while auth state is initializing
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <VStack align="center" gap={4}>
-          <img
-            src={RIDE_RADAR_LOGO_URL}
-            alt="Ride Radar"
-            className="h-14 w-auto object-contain drop-shadow-[0_0_16px_hsl(var(--primary)/0.4)] animate-pulse"
-          />
-          <div className="flex items-center gap-1.5">
-            <span className="h-1 w-1 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '0ms' }} />
-            <span className="h-1 w-1 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '150ms' }} />
-            <span className="h-1 w-1 rounded-full bg-primary/40 animate-pulse" style={{ animationDelay: '300ms' }} />
-          </div>
-        </VStack>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
