@@ -29,6 +29,7 @@ import {
   User,
   Ban,
   Loader2,
+  UserMinus,
 } from 'lucide-react';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/shared/OptimizedImage';
@@ -36,7 +37,7 @@ import { RideCard } from '@/components/shared/RideCard';
 import { isExpired } from '@/lib/broadcastUtils';
 import { useBroadcastsByAuthor } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { useIsBlocked } from '@/features/safety/hooks/use-blocks.js';
-import { useIsFriend } from '@/features/connections/hooks/use-friendships.js';
+import { useIsFriend, useRemoveFriendship } from '@/features/connections/hooks/use-friendships.js';
 import {
   useConnectionRequestWith,
   useSendConnectionRequest,
@@ -71,7 +72,7 @@ function RiderProfilePage() {
   const isMeRoute = user?.id === userId;
 
   const { data: isBlocked = false } = useIsBlocked(userId);
-  const { isFriend: isFriendActive, friendship: _friendship } = useIsFriend(userId);
+  const { isFriend: isFriendActive, friendship } = useIsFriend(userId);
   const { data: connectionRequest } = useConnectionRequestWith(userId);
 
   const isOutgoingPending = connectionRequest?.status === 'pending' && connectionRequest?.from_user_id === user?.id;
@@ -79,6 +80,9 @@ function RiderProfilePage() {
   const isPending = isOutgoingPending || isIncomingPending;
   const isConnected = isFriendActive;
   const isFriend = isFriendActive;
+
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
+  const { mutate: removeFriend, isPending: isRemovingFriend } = useRemoveFriendship();
 
   const {
     data: profile,
@@ -311,10 +315,10 @@ function RiderProfilePage() {
             {!isMeRoute && !isBlocked && (
               <>
                 {isConnected ? (
-                  <HStack gap={3} className="w-full mt-1">
+                  <HStack gap={2} className="w-full mt-1">
                     <button
                       onClick={() => openFriendChat.mutate()}
-                      disabled={openFriendChat.isPending}
+                      disabled={openFriendChat.isPending || isRemovingFriend}
                       className={cn(
                         'flex-1 flex items-center justify-center gap-2 rounded-full',
                         'bg-brand-radar text-primary-foreground px-5 py-2.5 text-sm font-bold',
@@ -325,6 +329,51 @@ function RiderProfilePage() {
                     >
                       <MessageCircle className="h-4 w-4" /> Message
                     </button>
+                    {confirmingRemove ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingRemove(false)}
+                          disabled={isRemovingFriend}
+                          className={cn(
+                            'flex items-center justify-center rounded-full border border-white/[0.08]',
+                            'bg-surface/60 px-3 py-2.5 text-xs font-semibold text-muted-foreground',
+                            'transition-all hover:text-foreground hover:bg-surface-elevated pressable',
+                            'disabled:opacity-50'
+                          )}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => friendship?.id && removeFriend(friendship.id)}
+                          disabled={isRemovingFriend || !friendship?.id}
+                          className={cn(
+                            'flex items-center justify-center gap-1.5 rounded-full',
+                            'bg-brand-emergency/10 border border-brand-emergency/30 text-brand-emergency',
+                            'px-3 py-2.5 text-xs font-bold',
+                            'transition-all hover:bg-brand-emergency/20 pressable',
+                            'disabled:opacity-50'
+                          )}
+                        >
+                          {isRemovingFriend && <Loader2 className="h-3 w-3 animate-spin" />}
+                          Remove
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmingRemove(true)}
+                        className={cn(
+                          'flex items-center justify-center gap-1.5 rounded-full',
+                          'border border-brand-emergency/20 text-brand-emergency/70',
+                          'px-3 py-2.5 text-xs font-semibold',
+                          'transition-all hover:border-brand-emergency/40 hover:text-brand-emergency hover:bg-brand-emergency/10 pressable',
+                        )}
+                      >
+                        <UserMinus className="h-3.5 w-3.5" /> Unfriend
+                      </button>
+                    )}
                   </HStack>
                 ) : isIncomingPending ? (
                   <VStack gap={2} className="w-full mt-1">
