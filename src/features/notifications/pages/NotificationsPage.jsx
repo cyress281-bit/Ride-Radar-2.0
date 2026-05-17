@@ -18,6 +18,7 @@ import {
   useNotifications,
   useMarkAsRead,
   useMarkAllAsRead,
+  useDeleteNotification,
 } from '@/features/notifications/hooks/use-notifications.js';
 import {
   useConnectionRequests,
@@ -35,10 +36,10 @@ import NotificationSection from '@/features/notifications/components/Notificatio
 // Virtualized notification list
 // ------------------------------------------------------------------
 
-function VirtualNotificationList({ notifications, onMarkRead }) {
+function VirtualNotificationList({ notifications, onMarkRead, onDelete }) {
   const renderItem = useCallback(
-    (n) => <NotificationItem notification={n} onMarkRead={onMarkRead} />,
-    [onMarkRead]
+    (n) => <NotificationItem notification={n} onMarkRead={onMarkRead} onDelete={onDelete} />,
+    [onMarkRead, onDelete]
   );
   const getItemKey = useCallback((index) => notifications[index]?.id ?? index, [notifications]);
 
@@ -157,11 +158,13 @@ export default function NotificationsPage() {
 
   const { mutate: markRead } = useMarkAsRead();
   const { mutate: markAllRead } = useMarkAllAsRead();
+  const { mutate: deleteNotif } = useDeleteNotification();
 
   const handleMarkRead = useCallback((notification) => markRead(notification.id), [markRead]);
   const handleMarkAllRead = useCallback(() => {
     if (user?.id) markAllRead(user.id);
   }, [markAllRead, user?.id]);
+  const handleDelete = useCallback((notification) => deleteNotif(notification.id), [deleteNotif]);
 
   // Connection requests (use shared hook)
   const { data: pendingRequests = [] } = useConnectionRequests();
@@ -238,13 +241,13 @@ export default function NotificationsPage() {
       {visibleNotifications.length > 0 && !shouldVirtualize && (
         <>
           {today.length > 0 && (
-            <NotificationSection title="Today" notifications={today} onMarkRead={handleMarkRead} />
+            <NotificationSection title="Today" notifications={today} onMarkRead={handleMarkRead} onDelete={handleDelete} />
           )}
           {yesterday.length > 0 && (
-            <NotificationSection title="Yesterday" notifications={yesterday} onMarkRead={handleMarkRead} />
+            <NotificationSection title="Yesterday" notifications={yesterday} onMarkRead={handleMarkRead} onDelete={handleDelete} />
           )}
           {earlier.length > 0 && (
-            <NotificationSection title="Earlier" notifications={earlier} onMarkRead={handleMarkRead} />
+            <NotificationSection title="Earlier" notifications={earlier} onMarkRead={handleMarkRead} onDelete={handleDelete} />
           )}
         </>
       )}
@@ -252,7 +255,7 @@ export default function NotificationsPage() {
       {visibleNotifications.length > 0 && shouldVirtualize && (
         <div className="mb-6">
           <div className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wider text-primary">Activity</div>
-          <VirtualNotificationList notifications={visibleNotifications} onMarkRead={handleMarkRead} />
+          <VirtualNotificationList notifications={visibleNotifications} onMarkRead={handleMarkRead} onDelete={handleDelete} />
         </div>
       )}
     </div>

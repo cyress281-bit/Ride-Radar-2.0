@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   UserPlus,
+  UserCheck,
   MessageCircle,
   Megaphone,
   AlertTriangle,
@@ -28,6 +29,8 @@ function getIconForType(type) {
   switch (type) {
     case 'connection_request':
       return UserPlus;
+    case 'connection_accepted':
+      return UserCheck;
     case 'message':
     case 'new_message':
       return MessageCircle;
@@ -144,12 +147,12 @@ const NotificationItem = memo(function NotificationItem({
   const handleTouchEnd = useCallback(() => {
     isDragging.current = false;
     if (swipeOffset < -60) {
-      onDelete?.();
+      onDelete?.(notification);
       setSwipeOffset(0);
     } else {
       setSwipeOffset(0);
     }
-  }, [swipeOffset, onDelete]);
+  }, [swipeOffset, onDelete, notification]);
 
   const handleClick = useCallback(() => {
     if (isUnread && onMarkRead) {

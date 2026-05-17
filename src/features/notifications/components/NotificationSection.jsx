@@ -8,7 +8,7 @@ import NotificationItem from '@/features/notifications/components/NotificationIt
  * @param {Array<object>} props.notifications
  * @param {(n: object) => void} props.onMarkRead
  */
-export default function NotificationSection({ title, notifications, onMarkRead }) {
+export default function NotificationSection({ title, notifications, onMarkRead, onDelete }) {
   return (
     <div className="mb-6">
       <div className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wider text-primary">{title}</div>
@@ -19,7 +19,7 @@ export default function NotificationSection({ title, notifications, onMarkRead }
             className="will-change-transform transform-gpu animate-notification-in"
             style={{ animationDelay: `${index * 40}ms` }}
           >
-            <NotificationItem notification={n} onMarkRead={onMarkRead} />
+            <NotificationItem notification={n} onMarkRead={onMarkRead} onDelete={onDelete} />
           </div>
         ))}
       </div>
