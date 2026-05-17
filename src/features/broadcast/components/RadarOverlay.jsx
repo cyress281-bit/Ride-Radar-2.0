@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Crosshair, Plus, Navigation, Radio } from 'lucide-react';
+import { Crosshair, Plus, Navigation, Radio, Siren } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { toast } from 'sonner';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
@@ -34,6 +34,7 @@ const RadarOverlay = memo(function RadarOverlay({
   }, []);
 
   const handleCreateBroadcast = useCallback(() => navigate('/broadcast'), [navigate]);
+  const handleBikeDown = useCallback(() => navigate('/broadcast?type=bike_down'), [navigate]);
 
   const [justLocked, setJustLocked] = useState(false);
   const prevLocatingRef = useRef(locating);
@@ -189,6 +190,23 @@ const RadarOverlay = memo(function RadarOverlay({
               <span className="text-[10px] leading-tight text-muted-foreground">
                 {locating ? 'Scanning…' : hasUserLocation ? 'Center on me' : 'Scan my area'}
               </span>
+            </div>
+          </button>
+
+          <div className="h-px bg-white/[0.06] mx-3" />
+
+          {/* Bike Down — emergency shortcut, skips type selector */}
+          <button
+            onClick={handleBikeDown}
+            className="rr-haptic flex items-center gap-2.5 px-4 py-3 text-destructive hover:bg-destructive/[0.06] transition-all active:scale-95"
+            aria-label="Report a bike down emergency"
+          >
+            <div className="flex h-5 w-5 shrink-0 items-center justify-center">
+              <Siren className="h-4 w-4" />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-[11px] font-bold leading-tight">Bike Down</span>
+              <span className="text-[10px] leading-tight text-destructive/60">Alert rider down</span>
             </div>
           </button>
 
