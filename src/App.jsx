@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, memo, useEffect } from 'react';
+import React, { lazy, Suspense, memo, useEffect, useState, useRef } from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -16,6 +16,7 @@ import { useAuthState } from './features/auth/hooks/use-auth';
 import { useAdminRole } from './features/auth/hooks/use-admin-role';
 import { getSafeAuthRedirectFromSearch } from './lib/auth-redirect';
 import { isValidUuid } from './lib/utils';
+import { preloadCoreRoutes } from './lib/routePreload';
 
 // ------------------------------------------------------------------
 // Eagerly loaded (shell components needed immediately)
@@ -74,6 +75,14 @@ const AdminHealthPage = lazy(() => import('./features/admin/pages/AdminHealthPag
 const ProtectedRoute = memo(function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuthState();
   const location = useLocation();
+  const didPreloadRef = useRef(false);
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && !didPreloadRef.current) {
+      didPreloadRef.current = true;
+      preloadCoreRoutes();
+    }
+  }, [isLoading, isAuthenticated]);
 
   if (isLoading) {
     return <PageLoader />;
@@ -212,7 +221,7 @@ const LoginRoute = memo(function LoginRoute() {
 
 const AdminLayout = memo(function AdminLayout() {
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={null}>
       <Outlet />
     </Suspense>
   );
@@ -229,8 +238,14 @@ const AdminLayout = memo(function AdminLayout() {
  * and are wrapped in AppLayout. Admin routes add an additional role check.
  */
 const AppContent = memo(function AppContent() {
+  const [hasBooted, setHasBooted] = useState(false);
+
+  useEffect(() => {
+    setHasBooted(true);
+  }, []);
+
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={hasBooted ? null : <PageLoader />}>
       <ScrollToTop />
       <Routes>
         {/* Public routes */}
