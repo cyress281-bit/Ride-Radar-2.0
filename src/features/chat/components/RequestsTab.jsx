@@ -59,6 +59,7 @@ const IncomingRequestRow = memo(function IncomingRequestRow({ request, senderPro
           {senderProfile?.username && (
             <Text variant="micro" color="muted">@{senderProfile.username}</Text>
           )}
+          <Text variant="micro" color="muted">Sent you a friend request.</Text>
         </VStack>
       </button>
 
@@ -111,6 +112,7 @@ const OutgoingRequestRow = memo(function OutgoingRequestRow({ request, recipient
           {recipientProfile?.username && (
             <Text variant="micro" color="muted">@{recipientProfile.username}</Text>
           )}
+          <Text variant="micro" color="muted">You sent a friend request.</Text>
         </VStack>
       </button>
 
