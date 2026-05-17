@@ -65,8 +65,12 @@ export function useNotifications(userId) {
         (payload) => {
           qc.setQueryData(notificationKeys.list(userId), (old = []) => {
             const next = normalizeNotification(payload.new);
-            // Defensive: skip self-notifications where the actor is the current user
-            if (!next || next.actor_id === userId || old.some((n) => n.id === next.id)) return old;
+            // Defensive: skip self-notifications where the actor is the current user.
+            // Exception: connection_accepted — the trigger sets from_user_id (= requester = recipient)
+            // as the actor, so the guard would wrongly drop the notification for the requester.
+            const isSelfActor = next?.actor_id === userId;
+            const shouldSkipSelf = isSelfActor && next?.type !== 'connection_accepted';
+            if (!next || shouldSkipSelf || old.some((n) => n.id === next.id)) return old;
             return [next, ...old];
           });
           // Also invalidate unread count
