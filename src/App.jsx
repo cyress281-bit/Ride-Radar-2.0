@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, memo, useEffect, useState, useRef } from 'react';
+import React, { lazy, Suspense, memo, useEffect, useState, useRef, useCallback } from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -262,6 +262,59 @@ const AdminLayout = memo(function AdminLayout() {
 });
 
 // ------------------------------------------------------------------
+// Cold-start boot overlay — minimum display duration + fade-out exit
+// ------------------------------------------------------------------
+
+/**
+ * Overlays <PageLoader> for the cold-start sequence.
+ * Unmounts only when BOTH conditions are true:
+ *   1. auth isLoading has resolved
+ *   2. 2 000 ms minimum display has elapsed
+ * Applies a 400 ms opacity fade before unmounting.
+ * Children (the route tree) render immediately underneath.
+ */
+const AppBootLoader = memo(function AppBootLoader({ children }) {
+  const { isLoading } = useAuthState();
+  const [visible, setVisible] = useState(true);
+  const [exiting, setExiting] = useState(false);
+  const stateRef = useRef({ minElapsed: false, authDone: false, exiting: false });
+  const exitTimerRef = useRef(null);
+
+  const tryExit = useCallback(() => {
+    const s = stateRef.current;
+    if (s.exiting || !s.minElapsed || !s.authDone) return;
+    s.exiting = true;
+    setExiting(true);
+    exitTimerRef.current = setTimeout(() => setVisible(false), 400);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      stateRef.current.minElapsed = true;
+      tryExit();
+    }, 2000);
+    return () => {
+      clearTimeout(timer);
+      if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+    };
+  }, [tryExit]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      stateRef.current.authDone = true;
+      tryExit();
+    }
+  }, [isLoading, tryExit]);
+
+  return (
+    <>
+      {children}
+      {visible && <PageLoader exiting={exiting} />}
+    </>
+  );
+});
+
+// ------------------------------------------------------------------
 // App content
 // ------------------------------------------------------------------
 
@@ -272,17 +325,12 @@ const AdminLayout = memo(function AdminLayout() {
  * and are wrapped in AppLayout. Admin routes add an additional role check.
  */
 const AppContent = memo(function AppContent() {
-  const [hasBooted, setHasBooted] = useState(false);
-
-  useEffect(() => {
-    setHasBooted(true);
-  }, []);
-
   return (
-    <Suspense fallback={hasBooted ? null : <PageLoader />}>
-      <ScrollToTop />
-      <ColdStartGuard />
-      <Routes>
+    <AppBootLoader>
+      <Suspense fallback={null}>
+        <ScrollToTop />
+        <ColdStartGuard />
+        <Routes>
         {/* Public routes */}
         <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<LoginRoute />} />
@@ -341,8 +389,9 @@ const AppContent = memo(function AppContent() {
         {/* Default redirects */}
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Suspense>
+        </Routes>
+      </Suspense>
+    </AppBootLoader>
   );
 });
 
