@@ -106,28 +106,6 @@ export async function updateProfile(userId, updates) {
 }
 
 /**
- * Fetch public profiles for a list of user IDs via RPC.
- * Falls back to listProfilesByIds if the RPC is unavailable.
- * @param {string[]} userIds
- * @returns {Promise<{data: object[], error: Error|null}>}
- */
-export async function getPublicProfiles(userIds) {
-  const uniqueIds = Array.from(new Set(userIds.filter(isValidUuid)));
-  if (uniqueIds.length === 0) return { data: [], error: null };
-
-  const { data, error } = await supabase.rpc('get_public_profiles', {
-    user_ids: uniqueIds,
-  });
-
-  if (error?.code === '42883') {
-    // RPC not found — fallback to standard query
-    return listProfilesByIds(uniqueIds);
-  }
-
-  return { data: data || [], error };
-}
-
-/**
  * Check whether a username is already taken.
  * @param {string} username
  * @returns {Promise<{data: boolean, error: Error|null}>}
