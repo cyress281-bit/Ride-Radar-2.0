@@ -50,7 +50,7 @@ function VirtualNotificationList({ notifications, onMarkRead, onDelete }) {
       estimateSize={80}
       overscan={8}
       gap={8}
-      height="calc(100vh - 18rem)"
+      height="calc(100dvh - 18rem)"
       getItemKey={getItemKey}
     />
   );

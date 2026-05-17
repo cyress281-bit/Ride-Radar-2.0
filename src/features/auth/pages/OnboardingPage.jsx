@@ -718,7 +718,7 @@ export default function OnboardingPage() {
                     {bikeUploading ? 'Preparing preview...' : 'Add one bike photo'}
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    Optional. JPG, PNG, or WebP up to 10MB.
+                    Optional. JPG, PNG, or WebP up to 5MB.
                   </div>
                 </label>
               )}

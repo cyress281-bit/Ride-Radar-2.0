@@ -198,9 +198,9 @@ export default function ProfileEditForm({ profile, onDone }) {
     if (!file) return;
 
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
     if (!ALLOWED_TYPES.includes(file.type)) {
-      form.setError('avatar_url', { message: 'Invalid file type. Use JPEG, PNG, WebP, or GIF.' });
+      form.setError('avatar_url', { message: 'Invalid file type. Use JPEG, PNG, or WebP.' });
       return;
     }
     if (file.size > MAX_SIZE) {

@@ -66,7 +66,6 @@ export async function listProfilesByIds(ids) {
           .from('user_profiles')
           .select('*')
           .in('user_id', chunk)
-          .eq('is_public', true)
       )
     );
 

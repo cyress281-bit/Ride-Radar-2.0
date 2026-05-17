@@ -168,14 +168,6 @@ function ConversationPage() {
     );
   }, [otherId, user?.id, reportUser]);
 
-  const handleDeleteConversation = useCallback(() => {
-    toast({
-      title: 'Coming soon',
-      description: 'Conversation deletion is not yet available.',
-    });
-    setShowActions(false);
-  }, []);
-
   const handleSend = useCallback(
     ({ body, imageFile } = {}) => {
       if (send.isPending) return;
@@ -331,12 +323,6 @@ function ConversationPage() {
               onClick={handleReportUser}
             >
               Report
-            </button>
-            <button
-              className="w-full text-left px-3 py-2 min-h-[44px] text-sm text-brand-emergency hover:bg-brand-emergency/10 rounded-lg transition-colors flex items-center"
-              onClick={handleDeleteConversation}
-            >
-              Delete conversation
             </button>
           </div>
         )}
