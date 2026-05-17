@@ -37,13 +37,15 @@ import { RideCard } from '@/components/shared/RideCard';
 import { isExpired } from '@/lib/broadcastUtils';
 import { useBroadcastsByAuthor } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { useIsBlocked } from '@/features/safety/hooks/use-blocks.js';
-import { useIsFriend, useRemoveFriendship } from '@/features/connections/hooks/use-friendships.js';
+import { useIsFriend, useRemoveFriendship, friendshipKeys } from '@/features/connections/hooks/use-friendships.js';
 import {
   useConnectionRequestWith,
   useSendConnectionRequest,
   useAcceptConnectionRequest,
   useDeclineConnectionRequest,
+  connectionRequestKeys,
 } from '@/features/connections/hooks/use-connection-requests.js';
+import { supabase } from '@/lib/supabase.js';
 import { toast } from '@/components/ui/use-toast';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/primitives/Text';
@@ -83,6 +85,50 @@ function RiderProfilePage() {
 
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const { mutate: removeFriend, isPending: isRemovingFriend } = useRemoveFriendship();
+
+  useEffect(() => {
+    if (!user?.id || !userId) return;
+
+    const channel = supabase
+      .channel(`profile-conn-${user.id}-${userId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'connection_requests',
+        filter: `from_user_id=eq.${user.id}`,
+      }, () => {
+        qc.invalidateQueries({ queryKey: connectionRequestKeys.all });
+        qc.invalidateQueries({ queryKey: friendshipKeys.all });
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'connection_requests',
+        filter: `to_user_id=eq.${user.id}`,
+      }, () => {
+        qc.invalidateQueries({ queryKey: connectionRequestKeys.all });
+        qc.invalidateQueries({ queryKey: friendshipKeys.all });
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'friendships',
+        filter: `user_a_id=eq.${user.id}`,
+      }, () => {
+        qc.invalidateQueries({ queryKey: friendshipKeys.all });
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'friendships',
+        filter: `user_b_id=eq.${user.id}`,
+      }, () => {
+        qc.invalidateQueries({ queryKey: friendshipKeys.all });
+      })
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [user?.id, userId, qc]);
 
   const {
     data: profile,
