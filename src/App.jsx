@@ -6,6 +6,7 @@ import {
   Navigate,
   Outlet,
   useLocation,
+  useNavigate,
   useParams,
 } from 'react-router-dom';
 import { AppProviders } from './providers/AppProviders';
@@ -168,6 +169,39 @@ const ScrollToTop = memo(function ScrollToTop() {
 });
 
 // ------------------------------------------------------------------
+// Cold-start redirect guard
+// ------------------------------------------------------------------
+
+const ColdStartGuard = memo(function ColdStartGuard() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const hasRunRef = useRef(false);
+
+  useEffect(() => {
+    if (hasRunRef.current) return;
+    hasRunRef.current = true;
+
+    const SESSION_KEY = 'rr_session_active';
+    const isActiveSession = sessionStorage.getItem(SESSION_KEY);
+    sessionStorage.setItem(SESSION_KEY, '1');
+
+    if (isActiveSession) return;
+
+    const path = location.pathname;
+    const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i;
+    if (UUID_RE.test(path)) return;
+
+    const preservedPaths = ['/home', '/', '/login', '/landing', '/onboarding',
+      '/account-deletion', '/privacy-policy', '/support'];
+    if (preservedPaths.some((p) => path === p || path.startsWith(p + '/'))) return;
+
+    navigate('/home', { replace: true });
+  }, []);
+
+  return null;
+});
+
+// ------------------------------------------------------------------
 // Route param validation
 // ------------------------------------------------------------------
 
@@ -247,6 +281,7 @@ const AppContent = memo(function AppContent() {
   return (
     <Suspense fallback={hasBooted ? null : <PageLoader />}>
       <ScrollToTop />
+      <ColdStartGuard />
       <Routes>
         {/* Public routes */}
         <Route path="/landing" element={<LandingPage />} />
