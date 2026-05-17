@@ -20,6 +20,7 @@ const ResultCard = memo(function ResultCard({
   friendSet,
   sentSet,
   incomingRequests,
+  showActions,
 }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -69,6 +70,29 @@ const ResultCard = memo(function ResultCard({
       onError: (err) => toast.error('Failed to accept', { description: err?.message }),
     });
   };
+
+  if (!showActions) {
+    return (
+      <button
+        type="button"
+        onClick={() => navigate(`/profile/${uid}`)}
+        className="flex items-center gap-3 p-3.5 w-full rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md text-left hover:bg-surface/80 active:scale-[0.99] transition-colors"
+      >
+        <AvatarWithStatus
+          url={result.avatar_url}
+          name={displayName}
+          status="offline"
+          size="md"
+        />
+        <VStack className="min-w-0 flex-1">
+          <Text variant="bodySm" className="font-semibold truncate">{displayName}</Text>
+          {result.username && (
+            <Text variant="micro" color="muted">@{result.username}</Text>
+          )}
+        </VStack>
+      </button>
+    );
+  }
 
   return (
     <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md">
@@ -156,10 +180,11 @@ const ResultCard = memo(function ResultCard({
 
 function RiderSearch({
   currentUserId,
-  friendships,
-  sentRequests,
-  pendingRequests,
+  friendships = [],
+  sentRequests = [],
+  pendingRequests = [],
   blockedIds,
+  showActions = false,
 }) {
   const [query, setQuery] = useState('');
   const { data: results = [], isLoading } = useRiderSearch(query);
@@ -236,6 +261,7 @@ function RiderSearch({
                 friendSet={friendSet}
                 sentSet={sentSet}
                 incomingRequests={pendingRequests}
+                showActions={showActions}
               />
             ))
           )}

@@ -8,7 +8,9 @@ import { useConnectionRequests } from '@/features/connections/hooks/use-connecti
 import ConversationList from '@/features/chat/components/ConversationList.jsx';
 import CrewTab from '@/features/chat/components/CrewTab.jsx';
 import RequestsTab from '@/features/chat/components/RequestsTab.jsx';
+import RiderSearch from '@/features/chat/components/RiderSearch.jsx';
 import { supabase } from '@/lib/supabase.js';
+import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
 import { MessageCircle, Search, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { Text } from '@/components/ui/primitives/Text';
@@ -30,10 +32,12 @@ function ConversationsPage() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   const [activeTab, setActiveTab] = useState('chats');
   const { data: conversations = [], isLoading, isError, error, refetch } = useConversations();
   const { data: pendingRequests = [] } = useConnectionRequests();
+  const { blockedIds } = useBlockedIds();
   const pendingCount = pendingRequests.length;
 
   const { data: readNotifications = [] } = useQuery({
@@ -108,20 +112,42 @@ function ConversationsPage() {
             )}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={isRefreshing || isLoading}
-          className={cn(
-            'p-2.5 rounded-full border border-white/[0.06] bg-surface/80 backdrop-blur-xl transition-all',
-            'hover:bg-surface-elevated hover:border-primary/20 active:scale-95 disabled:opacity-50',
-            'shadow-depth-1'
-          )}
-          aria-label="Refresh"
-        >
-          <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isRefreshing && 'animate-spin')} />
-        </button>
+        <HStack gap={2} align="center">
+          <button
+            type="button"
+            onClick={() => setShowSearch((s) => !s)}
+            className={cn(
+              'p-2.5 rounded-full border transition-all active:scale-95 shadow-depth-1',
+              showSearch
+                ? 'bg-primary/10 border-primary/30 text-primary'
+                : 'border-white/[0.06] bg-surface/80 backdrop-blur-xl text-muted-foreground hover:bg-surface-elevated hover:border-primary/20',
+            )}
+            aria-label={showSearch ? 'Close rider search' : 'Find riders'}
+          >
+            <Search className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing || isLoading}
+            className={cn(
+              'p-2.5 rounded-full border border-white/[0.06] bg-surface/80 backdrop-blur-xl transition-all',
+              'hover:bg-surface-elevated hover:border-primary/20 active:scale-95 disabled:opacity-50',
+              'shadow-depth-1',
+            )}
+            aria-label="Refresh"
+          >
+            <RefreshCw className={cn('w-4 h-4 text-muted-foreground', isRefreshing && 'animate-spin')} />
+          </button>
+        </HStack>
       </HStack>
+
+      {/* Find Riders search panel */}
+      {showSearch && (
+        <div className="animate-fade-up">
+          <RiderSearch currentUserId={user?.id} blockedIds={blockedIds} showActions={false} />
+        </div>
+      )}
 
       {/* Tabs */}
       <HStack gap={2} className="px-1">
