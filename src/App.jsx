@@ -210,17 +210,9 @@ const LoginRoute = memo(function LoginRoute() {
 // Granular suspense wrappers for heavy route groups
 // ------------------------------------------------------------------
 
-const AdminPageLoader = memo(function AdminPageLoader() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-    </div>
-  );
-});
-
 const AdminLayout = memo(function AdminLayout() {
   return (
-    <Suspense fallback={<AdminPageLoader />}>
+    <Suspense fallback={<PageLoader />}>
       <Outlet />
     </Suspense>
   );
