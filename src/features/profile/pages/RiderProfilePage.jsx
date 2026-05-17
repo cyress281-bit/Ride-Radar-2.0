@@ -77,7 +77,7 @@ function RiderProfilePage() {
   const isOutgoingPending = connectionRequest?.status === 'pending' && connectionRequest?.from_user_id === user?.id;
   const isIncomingPending = connectionRequest?.status === 'pending' && connectionRequest?.from_user_id === userId;
   const isPending = isOutgoingPending || isIncomingPending;
-  const isConnected = connectionRequest?.status === 'accepted' || isFriendActive;
+  const isConnected = isFriendActive;
   const isFriend = isFriendActive;
 
   const {

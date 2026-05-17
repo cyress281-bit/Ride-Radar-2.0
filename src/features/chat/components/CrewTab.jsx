@@ -1,21 +1,22 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
-import { useFriendships } from '@/features/connections/hooks/use-friendships.js';
+import { useFriendships, useRemoveFriendship } from '@/features/connections/hooks/use-friendships.js';
 import { useProfileBatch } from '@/hooks/use-profile-batch.js';
 import { getOrCreateConversation } from '@/lib/conversationUtils.js';
 import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
 import { toast } from 'sonner';
 import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
 import { Text } from '@/components/ui/primitives/Text';
-import { VStack } from '@/components/ui/primitives/Stack';
+import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
-import { MessageCircle, Loader2, Users } from 'lucide-react';
+import { MessageCircle, Loader2, Users, UserMinus } from 'lucide-react';
 
 const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUserId }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [confirming, setConfirming] = useState(false);
   const friendId = friendship.user_a_id === currentUserId ? friendship.user_b_id : friendship.user_a_id;
 
   const openChat = useMutation({
@@ -34,6 +35,8 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
       toast.error('Could not open conversation', { description: 'Please try again.' });
     },
   });
+
+  const { mutate: removeF, isPending: isRemoving } = useRemoveFriendship();
 
   return (
     <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md">
@@ -57,21 +60,55 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
           )}
         </VStack>
       </button>
-      <button
-        type="button"
-        onClick={() => openChat.mutate()}
-        disabled={openChat.isPending}
-        className={cn(
-          'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors',
-          'bg-brand-radar/10 border border-brand-radar/20 text-brand-radar',
-          'hover:bg-brand-radar/20 disabled:opacity-50',
-        )}
-      >
-        {openChat.isPending
-          ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          : <MessageCircle className="w-3.5 h-3.5" />}
-        Message
-      </button>
+
+      {confirming ? (
+        <HStack gap={2} align="center" className="shrink-0">
+          <Text variant="micro" color="muted">Remove friend?</Text>
+          <button
+            type="button"
+            onClick={() => removeF(friendship.id)}
+            disabled={isRemoving}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-brand-emergency/10 border border-brand-emergency/30 text-brand-emergency hover:bg-brand-emergency/20 disabled:opacity-50 transition-colors"
+          >
+            {isRemoving && <Loader2 className="w-3 h-3 animate-spin" />}
+            Yes
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirming(false)}
+            disabled={isRemoving}
+            className="px-2.5 py-1 rounded-full text-[11px] font-semibold border border-white/[0.08] text-muted-foreground hover:text-foreground hover:bg-surface-elevated disabled:opacity-50 transition-colors"
+          >
+            Cancel
+          </button>
+        </HStack>
+      ) : (
+        <HStack gap={2} className="shrink-0">
+          <button
+            type="button"
+            onClick={() => openChat.mutate()}
+            disabled={openChat.isPending}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors',
+              'bg-brand-radar/10 border border-brand-radar/20 text-brand-radar',
+              'hover:bg-brand-radar/20 disabled:opacity-50',
+            )}
+          >
+            {openChat.isPending
+              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              : <MessageCircle className="w-3.5 h-3.5" />}
+            Message
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirming(true)}
+            className="flex items-center justify-center h-8 w-8 rounded-full border border-white/[0.06] text-muted-foreground hover:text-brand-emergency hover:border-brand-emergency/30 hover:bg-brand-emergency/10 transition-colors"
+            aria-label="Remove friend"
+          >
+            <UserMinus className="w-3.5 h-3.5" />
+          </button>
+        </HStack>
+      )}
     </div>
   );
 });
