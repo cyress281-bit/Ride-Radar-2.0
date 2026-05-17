@@ -62,6 +62,7 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
   }
 
   if (broadcasts.length === 0 && !isLoading) {
+    const noLocAction = { label: 'Find me', onClick: () => navigate('/home') };
     const emptyStates = {
       all: hasUserLocation
         ? {
@@ -74,25 +75,18 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
             description: 'Radar is showing a US overview. Tap the locate button to scan your area.',
             action: { label: 'Start a signal', onClick: () => navigate('/broadcast') },
           },
-      alert: {
-        title: 'No warnings nearby.',
-        description: 'Roads are clear. Ride safe.',
-      },
-      solo_ride: {
-        title: 'No riders nearby right now.',
-        description: "Start a ride signal when you're out.",
-        action: { label: 'Ride Now', onClick: () => navigate('/broadcast') },
-      },
-      iso: {
-        title: 'No help requests nearby.',
-        description: 'Find crew or mechanical support when you need it.',
-        action: { label: 'Request Help', onClick: () => navigate('/broadcast') },
-      },
-      event: {
-        title: 'No events nearby this week.',
-        description: 'Plan a meetup, bike night, or group ride.',
-        action: { label: 'Plan a Meetup', onClick: () => navigate('/broadcast') },
-      },
+      alert: hasUserLocation
+        ? { title: 'No warnings nearby.', description: 'Roads are clear. Ride safe.' }
+        : { title: 'Enable location to see warnings.', description: 'Tap Find me to scan your area.', action: noLocAction },
+      solo_ride: hasUserLocation
+        ? { title: 'No riders nearby right now.', description: "Start a ride signal when you're out.", action: { label: 'Ride Now', onClick: () => navigate('/broadcast') } }
+        : { title: 'Enable location to find riders.', description: 'Tap Find me to scan your area.', action: noLocAction },
+      iso: hasUserLocation
+        ? { title: 'No help requests nearby.', description: 'Find crew or mechanical support when you need it.', action: { label: 'Request Help', onClick: () => navigate('/broadcast') } }
+        : { title: 'Enable location to see help requests.', description: 'Tap Find me to scan your area.', action: noLocAction },
+      event: hasUserLocation
+        ? { title: 'No events nearby this week.', description: 'Plan a meetup, bike night, or group ride.', action: { label: 'Plan a Meetup', onClick: () => navigate('/broadcast') } }
+        : { title: 'Enable location to see events.', description: 'Tap Find me to scan your area.', action: noLocAction },
     };
     const emptyConfig = emptyStates[filter] || emptyStates.all;
 

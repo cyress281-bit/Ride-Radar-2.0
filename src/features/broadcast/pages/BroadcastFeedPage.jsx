@@ -194,9 +194,9 @@ function BroadcastFeedPage() {
           broadcasts={filteredBroadcasts}
           presenceMarkers={visibleRiderMarkers}
           getProfile={getProfile}
-          userLat={effectiveLoc.lat}
-          userLng={effectiveLoc.lng}
-          userAccuracyMeters={effectiveLoc.accuracyMeters}
+          userLat={userLoc.lat}
+          userLng={userLoc.lng}
+          userAccuracyMeters={userLoc.accuracyMeters}
           isLoading={isLoadingBroadcasts && !usingOfflineSnapshot}
           variant="radar"
           className="h-full w-full"

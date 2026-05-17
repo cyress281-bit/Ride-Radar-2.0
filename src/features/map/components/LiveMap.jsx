@@ -94,7 +94,8 @@ const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, var
       return () => window.cancelAnimationFrame(rafId);
     }
     if (items.length === 0) {
-      map.setView(getCenter(items, userLatRef.current, userLngRef.current), variant === 'full' ? 4 : 12);
+      const hasRealLocation = isValidCoordinate(userLatRef.current, userLngRef.current);
+      map.setView(getCenter(items, userLatRef.current, userLngRef.current), variant === 'full' ? 4 : hasRealLocation ? 12 : 4);
       return () => window.cancelAnimationFrame(rafId);
     }
     if (items.length === 1) {
