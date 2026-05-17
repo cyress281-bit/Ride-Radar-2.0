@@ -101,7 +101,7 @@ const alertSchema = baseSchema.extend({
 });
 
 const bikeDownSchema = z.object({
-  exactLocationText: z.string().min(1, 'Location is required'),
+  exactLocationText: z.string().max(500).optional(),
   title: z.string().trim().max(120).optional(),
   body: z.string().max(500).optional(),
 });
@@ -250,7 +250,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     !isLocating &&
     (type !== 'iso' || isoSubtype === 'mechanic' || watch('lookingTo')) &&
     (type !== 'event' || (exactLocationTextValue && eventDateValue && eventEndTimeValue)) &&
-    (type !== 'bike_down' || exactLocationTextValue) &&
+    (type !== 'bike_down' || exactLocationTextValue || (alertPin?.lat != null && alertPin?.lng != null)) &&
     (type !== 'alert' || (alertPin?.lat != null && alertPin?.lng != null)) &&
     ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
 
@@ -515,7 +515,12 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             {hasUserLocation && (
               <button
                 type="button"
-                onClick={() => setAlertPin({ lat: userLoc.lat, lng: userLoc.lng })}
+                onClick={() => {
+                  setAlertPin({ lat: userLoc.lat, lng: userLoc.lng });
+                  if (!exactLocationTextValue) {
+                    setValue('exactLocationText', 'Near my current location');
+                  }
+                }}
                 className="flex items-center gap-2 text-sm font-bold text-destructive border border-destructive/30 bg-destructive/8 rounded-xl px-4 py-2.5 min-h-[44px] w-full hover:bg-destructive/15 transition-colors pressable"
               >
                 <LocateFixed className="w-4 h-4 shrink-0" />

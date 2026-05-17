@@ -1,12 +1,3 @@
-// Expiry windows in minutes
-export const EXPIRY_MINUTES = {
-  solo_ride: 90,
-  alert: 240,
-  bike_down: 240,
-  iso_mechanic: 720,
-  iso_bike_crew: 1440,
-};
-
 export const BROADCAST_META = {
   bike_down: { label: 'Bike Down', color: 'alert', rank: 0 },
   solo_ride: { label: 'Ride Now', color: 'solo', rank: 2 },
@@ -15,25 +6,6 @@ export const BROADCAST_META = {
   alert: { label: 'Road Warning', color: 'alert', rank: 1 },
 };
 
-export function computeExpiresAt(broadcast) {
-  const now = Date.now();
-  if (broadcast.type === 'solo_ride') {
-    return new Date(now + EXPIRY_MINUTES.solo_ride * 60 * 1000).toISOString();
-  }
-  if (broadcast.type === 'alert') {
-    return new Date(now + EXPIRY_MINUTES.alert * 60 * 1000).toISOString();
-  }
-  if (broadcast.type === 'iso') {
-    const mins = broadcast.isoSubtype === 'mechanic'
-      ? EXPIRY_MINUTES.iso_mechanic
-      : EXPIRY_MINUTES.iso_bike_crew;
-    return new Date(now + mins * 60 * 1000).toISOString();
-  }
-  if (broadcast.type === 'event' && broadcast.eventEndTime) {
-    return new Date(new Date(broadcast.eventEndTime).getTime() + 6 * 60 * 60 * 1000).toISOString();
-  }
-  return new Date(now + 24 * 60 * 60 * 1000).toISOString();
-}
 
 export function isExpired(broadcast) {
   const expiresAt = broadcast.expires_at;
