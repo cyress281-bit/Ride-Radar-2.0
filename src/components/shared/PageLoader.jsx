@@ -10,13 +10,13 @@ const PageLoader = memo(function PageLoader({ className }) {
       <style>{`
         .rr-ekg-line {
           stroke: hsl(var(--primary));
-          stroke-dasharray: 260;
-          stroke-dashoffset: 260;
+          stroke-dasharray: 340;
+          stroke-dashoffset: 340;
           animation: rr-ekg-draw 2.2s ease-in-out infinite;
           filter: drop-shadow(0 0 5px hsl(var(--primary) / 0.75));
         }
         @keyframes rr-ekg-draw {
-          0%   { stroke-dashoffset: 260; }
+          0%   { stroke-dashoffset: 340; }
           80%  { stroke-dashoffset: 0; }
           100% { stroke-dashoffset: 0; }
         }
@@ -30,18 +30,17 @@ const PageLoader = memo(function PageLoader({ className }) {
 
       <div className="flex flex-col items-center gap-5">
         <svg
-          viewBox="0 0 80 220"
-          className="w-20 fill-none"
+          viewBox="0 0 240 60"
+          className="w-72 fill-none"
           aria-hidden="true"
         >
           {/*
-            Vertical EKG path — top to bottom:
-            flat in → Q dip left → R spike right → S trough left → baseline
-            → T wave → flat → small secondary pulse → flat out
+            Horizontal EKG — left to right:
+            flat in → P wave → flat → QRS complex (R spike up, S dip down) → flat → T wave → flat out
           */}
           <polyline
             className="rr-ekg-line"
-            points="40,12 40,62 37,70 63,85 25,100 40,107 40,124 45,130 40,138 40,155 43,160 50,166 43,172 40,177 40,208"
+            points="0,30 50,30 58,22 66,38 74,30 96,30 102,34 114,4 122,48 130,30 152,30 164,18 178,30 240,30"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
