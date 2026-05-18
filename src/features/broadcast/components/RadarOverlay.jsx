@@ -24,7 +24,7 @@ function clampPos(left, top) {
 function getDefaultPos() {
   return clampPos(
     window.innerWidth - PAD_WIDTH - MARGIN,
-    window.innerHeight - PAD_HEIGHT_WITH_HANDLE - 188,
+    window.innerHeight - PAD_HEIGHT_WITH_HANDLE - 168,
   );
 }
 
@@ -173,18 +173,18 @@ const RadarOverlay = memo(function RadarOverlay({
     <>
       {/* Top info pill */}
       <div className="absolute top-header-offset left-4 right-4 z-10 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full backdrop-blur-xl bg-surface/80 border border-white/[0.06] px-4 py-2 shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
+        <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full backdrop-blur-xl bg-surface/80 border border-white/[0.04] px-4 py-2 shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
           <span className="h-2 w-2 rounded-full bg-primary animate-pulse-green" />
           <span className="text-xs font-bold text-foreground">
             {activeCount} {activeCount === 1 ? 'signal' : 'signals'}
           </span>
           {!hasUserLocation && (
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-l border-white/[0.06] pl-3">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-l border-white/[0.04] pl-3">
               US overview
             </span>
           )}
           {usingOfflineSnapshot && (
-            <span className="text-[10px] font-bold uppercase tracking-wider text-brand-radar border-l border-white/[0.06] pl-3">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-brand-radar border-l border-white/[0.04] pl-3">
               Offline
             </span>
           )}
@@ -196,7 +196,7 @@ const RadarOverlay = memo(function RadarOverlay({
         className="absolute z-[15]"
         style={{ left: padPos.left, top: padPos.top }}
       >
-        <div className="overflow-hidden rounded-[18px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] shadow-[0_0_12px_hsl(var(--primary)/0.10)]">
+        <div className="overflow-hidden rounded-[18px] backdrop-blur-xl bg-black/55 border border-white/[0.04] shadow-[0_0_12px_hsl(var(--primary)/0.10)]">
 
           {/* Drag handle — pointer events captured here only */}
           <div
@@ -205,18 +205,18 @@ const RadarOverlay = memo(function RadarOverlay({
             onPointerUp={handlePadPointerUp}
             onPointerCancel={handlePadPointerCancel}
             style={{ touchAction: 'none' }}
-            className="flex flex-col items-center justify-center gap-[5px] h-6 border-b border-white/[0.06] cursor-grab active:cursor-grabbing select-none"
+            className="flex flex-col items-center justify-center gap-[5px] h-6 border-b border-white/[0.04] cursor-grab active:cursor-grabbing select-none"
             aria-label="Drag to reposition controls. Double-tap to reset."
           >
             <div className="flex gap-[5px]">
-              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
-              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
-              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
+              <span className="h-[3px] w-[3px] rounded-full bg-white/[0.15]" />
+              <span className="h-[3px] w-[3px] rounded-full bg-white/[0.15]" />
+              <span className="h-[3px] w-[3px] rounded-full bg-white/[0.15]" />
             </div>
             <div className="flex gap-[5px]">
-              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
-              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
-              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
+              <span className="h-[3px] w-[3px] rounded-full bg-white/[0.15]" />
+              <span className="h-[3px] w-[3px] rounded-full bg-white/[0.15]" />
+              <span className="h-[3px] w-[3px] rounded-full bg-white/[0.15]" />
             </div>
           </div>
 
@@ -227,7 +227,7 @@ const RadarOverlay = memo(function RadarOverlay({
               onClick={handleToggleLive}
               disabled={updateSettings.isPending}
               className={cn(
-                'rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] transition-all active:scale-95 border-r border-b border-white/[0.06]',
+                'rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] transition-all active:scale-95 border-r border-b border-white/[0.04]',
                 isLiveMapVisible
                   ? 'bg-primary text-primary-foreground'
                   : 'text-foreground hover:bg-white/[0.04]',
@@ -255,7 +255,7 @@ const RadarOverlay = memo(function RadarOverlay({
             {/* Signal */}
             <button
               onClick={handleCreateBroadcast}
-              className="rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-primary hover:bg-white/[0.04] transition-all active:scale-95 border-b border-white/[0.06]"
+              className="rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-primary hover:bg-white/[0.04] transition-all active:scale-95 border-b border-white/[0.04]"
               aria-label="Create a signal"
             >
               <div className="flex h-4 w-4 items-center justify-center">
@@ -269,7 +269,7 @@ const RadarOverlay = memo(function RadarOverlay({
               onClick={handleRequestLocation}
               disabled={locating}
               className={cn(
-                'rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-primary transition-all active:scale-95 border-r border-white/[0.06]',
+                'rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-foreground/65 transition-all active:scale-95 border-r border-white/[0.04]',
                 !locating && 'hover:bg-white/[0.04]',
                 justLocked && 'rr-lock'
               )}
@@ -306,7 +306,7 @@ const RadarOverlay = memo(function RadarOverlay({
       {/* Location error banner */}
       {geoError && (
         <div className="absolute top-32 left-4 right-4 z-10 flex justify-center">
-          <div className="rounded-2xl border border-white/[0.06] bg-surface/80 backdrop-blur-xl px-4 py-3 text-center shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
+          <div className="rounded-2xl border border-white/[0.04] bg-surface/80 backdrop-blur-xl px-4 py-3 text-center shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
             <p className="text-xs font-bold text-alert">Location access denied</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">Enable location in settings to see nearby signals</p>
           </div>
