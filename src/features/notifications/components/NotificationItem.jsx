@@ -67,6 +67,8 @@ function getIconForType(type) {
     case 'rsvp':
     case 'event_reminder':
       return Megaphone;
+    case 'bike_down':
+    case 'sos':
     case 'alert':
       return AlertTriangle;
     case 'system':
@@ -76,6 +78,9 @@ function getIconForType(type) {
       return Bell;
   }
 }
+
+/** Types that require emergency visual treatment. */
+const EMERGENCY_TYPES = new Set(['bike_down', 'sos', 'alert']);
 
 /**
  * Derive a navigation path from a notification.
@@ -151,6 +156,7 @@ const NotificationItem = memo(function NotificationItem({
 
   const Icon = getIconForType(notification.type);
   const typeColors = getTypeColors(notification.type);
+  const isEmergency = EMERGENCY_TYPES.has(notification.type);
 
   // Swipe-to-dismiss state
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -203,8 +209,9 @@ const NotificationItem = memo(function NotificationItem({
         className={cn(
           'relative flex items-start gap-3 rounded-[20px] border p-4 transition-all duration-200 active:scale-95',
           isUnread
-            ? `cursor-pointer border-l-2 ${typeColors.border} border-y border-r border-primary/10 bg-surface/80 hover:border-primary/30 backdrop-blur-sm`
-            : 'border-border/40 bg-surface/40 opacity-70'
+            ? `cursor-pointer border-l-4 ${typeColors.border} border-y border-r border-primary/10 bg-surface/80 hover:border-primary/30 backdrop-blur-sm`
+            : 'border-border/40 bg-surface/40 opacity-70',
+          isEmergency && 'bg-brand-emergency/8'
         )}
         style={{
           transform: `translateX(${swipeOffset}px)`,
@@ -242,7 +249,10 @@ const NotificationItem = memo(function NotificationItem({
           </div>
 
           {notification.body && (
-            <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
+            <p className={cn(
+              'mt-0.5 line-clamp-2 text-sm text-muted-foreground',
+              isEmergency && 'font-semibold text-foreground'
+            )}>
               {notification.body}
             </p>
           )}
@@ -253,7 +263,7 @@ const NotificationItem = memo(function NotificationItem({
             </p>
           )}
 
-          <div className="mt-1 text-[11px] text-muted-foreground">
+          <div className="mt-1 text-xs text-foreground/70">
             {timeAgo(notification.created_at)}
           </div>
         </div>
