@@ -628,6 +628,11 @@
     backdrop-filter: blur(10px);
   }
 
+  /* Lift Leaflet attribution above the floating bottom nav pill on radar */
+  .rr-radar-map .leaflet-bottom.leaflet-right {
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px) + 12px);
+  }
+
   /* Map markers */
   .rr-map-marker {
     position: relative;

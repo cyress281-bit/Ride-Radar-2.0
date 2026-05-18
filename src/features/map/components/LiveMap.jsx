@@ -501,7 +501,7 @@ function LiveMap({
             minZoom={3}
             maxZoom={19}
             scrollWheelZoom={variant === 'full' || variant === 'radar'}
-            className={cn('h-full w-full', mapError && 'leaflet-offline')}
+            className={cn('h-full w-full', mapError && 'leaflet-offline', variant === 'radar' && 'rr-radar-map')}
             preferCanvas
             zoomControl={variant === 'full'}
             eventHandlers={mapEventHandlers}
@@ -548,7 +548,6 @@ function LiveMap({
                 </Popup>
               </Marker>
             ))}
-            {variant === 'radar' && <CenterOnUserButton userLat={userLat} userLng={userLng} />}
           </MapContainer>
         </div>
         {variant !== 'radar' && <SignalList items={items} userLat={userLat} userLng={userLng} variant={variant} />}

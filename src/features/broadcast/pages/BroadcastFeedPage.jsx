@@ -10,6 +10,7 @@ import { useBottomSheet } from '@/features/broadcast/hooks/use-bottom-sheet.js';
 import LiveMap from '@/features/map/components/LiveMap';
 import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
 import RadarOverlay from '@/features/broadcast/components/RadarOverlay';
+import { RadarCommandContext } from '@/features/broadcast/contexts/RadarCommandContext';
 import RadarBottomSheet from '@/features/broadcast/components/RadarBottomSheet';
 
 const RADAR_OFFLINE_SNAPSHOT_KEY = 'rr:radar-offline-snapshot';
@@ -186,7 +187,15 @@ function BroadcastFeedPage() {
     return 'Radar is quiet nearby';
   }, [visibleBroadcasts, visibleRiderMarkers]);
 
+  const radarCommandValue = useMemo(() => ({
+    requestLocation: handleRequestLocation,
+    locating,
+    hasUserLocation,
+    isLiveMapVisible,
+  }), [handleRequestLocation, locating, hasUserLocation, isLiveMapVisible]);
+
   return (
+    <RadarCommandContext.Provider value={radarCommandValue}>
     <div className="fixed inset-0 bg-background">
       {/* Full-screen map */}
       <div className="absolute inset-0 z-0">
@@ -213,10 +222,7 @@ function BroadcastFeedPage() {
         activeCount={activeCount}
         hasUserLocation={hasUserLocation}
         usingOfflineSnapshot={usingOfflineSnapshot}
-        requestLocation={handleRequestLocation}
-        locating={locating}
         geoError={geoError}
-        isLiveMapVisible={isLiveMapVisible}
       />
 
       <RadarBottomSheet
@@ -244,6 +250,7 @@ function BroadcastFeedPage() {
         hasUserLocation={hasUserLocation}
       />
     </div>
+    </RadarCommandContext.Provider>
   );
 }
 
