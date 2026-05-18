@@ -32,9 +32,10 @@ const PageLoader = memo(function PageLoader({ className, exiting = false }) {
         }
         @keyframes rr-ekg-label {
           0%   { opacity: 0; }
-          10%  { opacity: 0.6; }
-          70%  { opacity: 0.6; }
-          90%  { opacity: 0; }
+          28%  { opacity: 0; }
+          42%  { opacity: 0.65; }
+          78%  { opacity: 0.65; }
+          92%  { opacity: 0; }
           100% { opacity: 0; }
         }
         @media (prefers-reduced-motion: reduce) {
@@ -45,29 +46,37 @@ const PageLoader = memo(function PageLoader({ className, exiting = false }) {
           }
           .rr-ekg-label {
             animation: none;
-            opacity: 0.6;
+            opacity: 0.65;
           }
         }
       `}</style>
 
-      <span className="rr-ekg-label mb-5 text-[14px] font-extrabold uppercase tracking-[0.3em] text-primary select-none">
-        Ride Radar
-      </span>
-
-      <svg
-        viewBox="0 0 400 100"
-        className="w-full fill-none"
-        aria-hidden="true"
-      >
-        <path
-          pathLength="1"
-          className="rr-ekg-line"
-          d="M 0 50 L 100 50 L 104 58 L 116 8 L 128 80 L 140 50 L 170 50 L 184 30 L 200 50 L 400 50"
-          strokeWidth="3"
-          strokeLinecap="butt"
-          strokeLinejoin="miter"
-        />
-      </svg>
+      <div className="relative w-full">
+        <svg
+          viewBox="0 0 400 100"
+          className="w-full fill-none"
+          aria-hidden="true"
+        >
+          <path
+            pathLength="1"
+            className="rr-ekg-line"
+            d="M 0 50 L 100 50 L 104 58 L 116 8 L 128 80 L 140 50 L 170 50 L 184 30 L 200 50 L 400 50"
+            strokeWidth="3"
+            strokeLinecap="butt"
+            strokeLinejoin="miter"
+          />
+        </svg>
+        <span
+          className="rr-ekg-label pointer-events-none absolute select-none whitespace-nowrap text-[16px] font-extrabold uppercase tracking-[0.3em] text-primary"
+          style={{
+            left: '55%',
+            top: 'calc(50% - 8px)',
+            transform: 'translateY(-100%)',
+          }}
+        >
+          Ride Radar
+        </span>
+      </div>
 
       <span className="sr-only">Loading</span>
     </div>
