@@ -165,6 +165,9 @@ function BroadcastFeedPage() {
 
   // Phase 4: honest collapsed peek — uses unfiltered data so it never lies about what's nearby
   const peekLabel = useMemo(() => {
+    const bikeDownAlerts = visibleBroadcasts.filter(
+      (b) => b.type === 'alert' && (b.alert_type === 'bike_down' || b.alertType === 'bike_down')
+    ).length;
     const alerts = visibleBroadcasts.filter((b) => b.type === 'alert').length;
     const help = visibleBroadcasts.filter(
       (b) => b.type === 'iso' && ((b.isoSubtype || b.iso_subtype) === 'mechanic')
@@ -176,6 +179,7 @@ function BroadcastFeedPage() {
     const riders = visibleRiderMarkers.length;
     const total = visibleBroadcasts.length;
 
+    if (bikeDownAlerts > 0) return bikeDownAlerts === 1 ? 'Bike Down nearby' : `${bikeDownAlerts} Bike Down alerts nearby`;
     if (alerts > 0) return alerts === 1 ? 'Warning nearby' : `${alerts} warnings nearby`;
     if (help > 0) return help === 1 ? 'Help request nearby' : `${help} help requests nearby`;
     if (rides > 0) return rides === 1 ? 'Ride forming nearby' : `${rides} rides nearby`;
