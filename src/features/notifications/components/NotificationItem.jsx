@@ -238,7 +238,7 @@ const NotificationItem = memo(function NotificationItem({
           isUnread
             ? `cursor-pointer border-l-4 ${typeColors.border} border-y border-r border-primary/10 bg-surface/80 hover:border-primary/30 backdrop-blur-sm`
             : 'border-border/40 bg-surface/40 opacity-70',
-          isEmergency && 'bg-brand-emergency/8'
+          isEmergency && 'bg-brand-emergency/15'
         )}
         style={{
           transform: `translateX(${swipeOffset}px)`,
@@ -269,7 +269,7 @@ const NotificationItem = memo(function NotificationItem({
         {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-foreground">{notification.title}</span>
+            <span className={cn('text-sm font-semibold', isEmergency ? 'text-brand-emergency' : 'text-foreground')}>{notification.title}</span>
             {isUnread && (
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.8)]" />

@@ -9,7 +9,13 @@ import MessageInput from '@/features/chat/components/MessageInput.jsx';
 import VirtualList from '@/components/shared/VirtualList.jsx';
 import { supabase } from '@/lib/supabase.js';
 import { cn } from '@/lib/utils.js';
-import { ArrowLeft, Shield, MoreVertical, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Shield, MoreVertical, ChevronDown, Ban, Flag } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useCreateBlock } from '@/features/safety/hooks/use-blocks.js';
 import { useCreateReport } from '@/features/safety/hooks/use-reports.js';
 import { toast } from '@/components/ui/use-toast';
@@ -62,7 +68,6 @@ function ConversationPage() {
   const { user } = useAuthState();
   const endRef = useRef(null);
   const scrollContainerRef = useRef(null);
-  const [showActions, setShowActions] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const lastMarkedLengthRef = useRef(0);
   const markedConversationIdRef = useRef(null);
@@ -130,7 +135,6 @@ function ConversationPage() {
 
   const handleBlockUser = useCallback(() => {
     if (!otherId || !user?.id) return;
-    setShowActions(false);
     blockUser(
       { blocker_user_id: user.id, blocked_user_id: otherId },
       {
@@ -147,7 +151,6 @@ function ConversationPage() {
 
   const handleReportUser = useCallback(() => {
     if (!otherId || !user?.id) return;
-    setShowActions(false);
     reportUser(
       {
         reporter_user_id: user.id,
@@ -296,36 +299,37 @@ function ConversationPage() {
         )}
 
         {/* Message actions */}
-        <button
-          type="button"
-          onClick={() => setShowActions((s) => !s)}
-          className={cn(
-            'p-2.5 min-h-[44px] min-w-[44px] hover:bg-surface-elevated rounded-full',
-            'border border-white/[0.06] transition-colors flex items-center justify-center pressable relative',
-            'shadow-depth-1'
-          )}
-          aria-label="More options"
-        >
-          <MoreVertical className="w-5 h-5 text-foreground" />
-        </button>
-
-        {/* Action menu */}
-        {showActions && (
-          <div className="absolute top-16 right-4 z-50 bg-surface/95 backdrop-blur-xl border border-white/[0.06] p-2 min-w-[160px] rounded-xl shadow-depth-4 animate-scale-in">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <button
-              className="w-full text-left px-3 py-2 min-h-[44px] text-sm text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors flex items-center"
+              type="button"
+              className={cn(
+                'p-2.5 min-h-[44px] min-w-[44px] hover:bg-surface-elevated rounded-full',
+                'border border-white/[0.06] transition-colors flex items-center justify-center pressable',
+                'shadow-depth-1'
+              )}
+              aria-label="More options"
+            >
+              <MoreVertical className="w-5 h-5 text-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[160px]">
+            <DropdownMenuItem
               onClick={handleBlockUser}
+              className="text-muted-foreground focus:text-foreground cursor-pointer"
             >
+              <Ban className="w-3.5 h-3.5" />
               Block user
-            </button>
-            <button
-              className="w-full text-left px-3 py-2 min-h-[44px] text-sm text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors flex items-center"
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={handleReportUser}
+              className="text-muted-foreground focus:text-foreground cursor-pointer"
             >
+              <Flag className="w-3.5 h-3.5" />
               Report
-            </button>
-          </div>
-        )}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </HStack>
 
       {/* Message list */}

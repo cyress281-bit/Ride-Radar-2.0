@@ -69,7 +69,7 @@ const IncomingRequestRow = memo(function IncomingRequestRow({ request, senderPro
           type="button"
           onClick={handleDecline}
           disabled={isDeclining || isAccepting}
-          className="px-3 py-1.5 rounded-full border border-white/[0.08] text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-surface-elevated disabled:opacity-50 transition-colors"
+          className="px-3 py-1.5 min-h-[44px] rounded-full border border-white/[0.08] text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-surface-elevated disabled:opacity-50 transition-colors"
         >
           Decline
         </button>
@@ -78,7 +78,7 @@ const IncomingRequestRow = memo(function IncomingRequestRow({ request, senderPro
           onClick={handleAccept}
           disabled={isAccepting || isDeclining}
           className={cn(
-            'flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-bold',
+            'flex items-center gap-1 px-3 py-1.5 min-h-[44px] rounded-full bg-primary text-primary-foreground text-xs font-bold',
             'hover:bg-primary/90 disabled:opacity-50 transition-colors',
           )}
         >
@@ -95,7 +95,7 @@ const OutgoingRequestRow = memo(function OutgoingRequestRow({ request, recipient
   const { mutate: cancelRequest, isPending: isCancelling } = useCancelConnectionRequest();
 
   return (
-    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md opacity-70">
+    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md">
       <button
         type="button"
         onClick={() => navigate(`/profile/${request.to_user_id}`)}
@@ -127,7 +127,7 @@ const OutgoingRequestRow = memo(function OutgoingRequestRow({ request, recipient
           type="button"
           onClick={() => cancelRequest(request.id)}
           disabled={isCancelling}
-          className="flex items-center justify-center px-2.5 py-1 rounded-full text-[11px] font-semibold border border-white/[0.08] text-muted-foreground hover:text-brand-emergency hover:border-brand-emergency/30 disabled:opacity-50 transition-colors"
+          className="flex items-center justify-center px-2.5 py-1 min-h-[44px] rounded-full text-[11px] font-semibold border border-white/[0.08] text-muted-foreground hover:text-brand-emergency hover:border-brand-emergency/30 disabled:opacity-50 transition-colors"
         >
           {isCancelling ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Cancel'}
         </button>

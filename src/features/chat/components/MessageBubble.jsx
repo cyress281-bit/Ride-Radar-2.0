@@ -124,7 +124,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
                 key={emoji}
                 onClick={() => setShowReactions(false)}
                 aria-label={`React with ${emoji}`}
-                className="text-lg p-1 hover:bg-surface-elevated rounded-lg transition-colors"
+                className="text-lg min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-surface-elevated rounded-lg transition-colors"
               >
                 {emoji}
               </button>
@@ -132,7 +132,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
             <button
               onClick={() => setShowReactions(false)}
               aria-label="More reactions"
-              className="p-1 hover:bg-surface-elevated rounded-lg transition-colors text-muted-foreground"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-surface-elevated rounded-lg transition-colors text-muted-foreground"
             >
               <Smile className="w-4 h-4" />
             </button>

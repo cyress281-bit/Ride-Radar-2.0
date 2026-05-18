@@ -109,7 +109,7 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="flex items-center justify-center h-8 w-8 rounded-full border border-white/[0.06] text-muted-foreground hover:text-foreground hover:bg-surface-elevated transition-colors"
+                className="flex items-center justify-center h-11 w-11 rounded-full border border-white/[0.06] text-muted-foreground hover:text-foreground hover:bg-surface-elevated transition-colors"
                 aria-label="More options"
               >
                 <MoreHorizontal className="w-3.5 h-3.5" />

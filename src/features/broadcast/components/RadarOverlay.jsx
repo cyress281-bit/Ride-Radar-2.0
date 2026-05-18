@@ -193,7 +193,7 @@ const RadarOverlay = memo(function RadarOverlay({
 
       {/* Draggable 2×2 action pad */}
       <div
-        className="absolute z-[15]"
+        className="absolute z-[25]"
         style={{ left: padPos.left, top: padPos.top }}
       >
         <div className="overflow-hidden rounded-[18px] backdrop-blur-xl bg-black/80 border border-white/[0.12] shadow-[0_0_12px_hsl(var(--primary)/0.10)]">
@@ -209,14 +209,14 @@ const RadarOverlay = memo(function RadarOverlay({
             aria-label="Drag to reposition controls. Double-tap to reset."
           >
             <div className="flex gap-[5px]">
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.35]" />
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.35]" />
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.35]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
             </div>
             <div className="flex gap-[5px]">
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.35]" />
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.35]" />
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.35]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
             </div>
           </div>
 
@@ -267,23 +267,23 @@ const RadarOverlay = memo(function RadarOverlay({
             {/* Locate */}
             <button
               onClick={handleRequestLocation}
-              disabled={locating}
+              disabled={locating && !geoError}
               className={cn(
                 'rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-foreground/65 transition-all active:scale-95 border-r border-white/[0.04]',
-                !locating && 'hover:bg-white/[0.04]',
+                (!locating || geoError) && 'hover:bg-white/[0.04]',
                 justLocked && 'rr-lock'
               )}
               aria-label="Center Radar on my area"
             >
               <div className="flex h-5 w-5 items-center justify-center">
-                {locating ? (
+                {(locating && !geoError) ? (
                   <Navigation className="h-[18px] w-[18px] animate-spin" />
                 ) : (
                   <Crosshair className="h-[18px] w-[18px]" />
                 )}
               </div>
               <span className="text-xs font-bold leading-none">
-                {locating ? 'Finding' : hasUserLocation ? 'Locate' : 'Find me'}
+                {(locating && !geoError) ? 'Finding' : hasUserLocation ? 'Locate' : 'Find me'}
               </span>
             </button>
 
@@ -305,7 +305,7 @@ const RadarOverlay = memo(function RadarOverlay({
 
       {/* Location error banner */}
       {geoError && (
-        <div className="absolute top-32 left-4 right-4 z-10 flex justify-center">
+        <div className="absolute top-32 left-4 right-4 z-[11] flex justify-center">
           <div className="rounded-2xl border border-white/[0.04] bg-surface/80 backdrop-blur-xl px-4 py-3 text-center shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
             <p className="text-xs font-bold text-alert">Location access denied</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">Enable location in settings to see nearby signals</p>
