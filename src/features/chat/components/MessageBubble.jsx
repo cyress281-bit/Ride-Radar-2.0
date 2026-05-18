@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useRef, useCallback } from 'react';
 import { cn, timeAgo } from '@/lib/utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
@@ -19,9 +19,41 @@ import { Check, Smile } from 'lucide-react';
  * @param {object} props.message
  * @param {boolean} props.isMine
  */
+const LONG_PRESS_DELAY = 500; // ms
+const MOVE_THRESHOLD = 8; // px
+
 const MessageBubble = memo(function MessageBubble({ message, isMine }) {
   const [showReactions, setShowReactions] = useState(false);
   const [imageError, setImageError] = useState(false);
+
+  const longPressTimer = useRef(null);
+  const pointerOrigin = useRef(null);
+
+  const cancelLongPress = useCallback(() => {
+    if (longPressTimer.current !== null) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    pointerOrigin.current = null;
+  }, []);
+
+  const handlePointerDown = useCallback((e) => {
+    pointerOrigin.current = { x: e.clientX, y: e.clientY };
+    longPressTimer.current = setTimeout(() => {
+      longPressTimer.current = null;
+      pointerOrigin.current = null;
+      setShowReactions((s) => !s);
+    }, LONG_PRESS_DELAY);
+  }, []);
+
+  const handlePointerMove = useCallback((e) => {
+    if (pointerOrigin.current === null) return;
+    const dx = e.clientX - pointerOrigin.current.x;
+    const dy = e.clientY - pointerOrigin.current.y;
+    if (Math.sqrt(dx * dx + dy * dy) > MOVE_THRESHOLD) {
+      cancelLongPress();
+    }
+  }, [cancelLongPress]);
 
   return (
     <div
@@ -32,7 +64,10 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
     >
       <VStack className="max-w-[82%] min-w-0" align={isMine ? 'end' : 'start'}>
         <div
-          onClick={() => setShowReactions((s) => !s)}
+          onPointerDown={handlePointerDown}
+          onPointerUp={cancelLongPress}
+          onPointerCancel={cancelLongPress}
+          onPointerMove={handlePointerMove}
           className={cn(
             'relative px-4 py-2.5 text-sm leading-relaxed cursor-pointer select-text',
             'transition-all duration-200',
