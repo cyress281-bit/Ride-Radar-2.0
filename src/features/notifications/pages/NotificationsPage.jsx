@@ -8,7 +8,8 @@
 
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Activity, Radio } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Check, Activity, Radio, WifiOff } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import RRLogo from '@/components/RRLogo';
 import { Button } from '@/components/ui/button';
@@ -129,12 +130,14 @@ function NotificationEmptyState() {
 }
 
 function ErrorState() {
+  const queryClient = useQueryClient();
   return (
     <div className="px-5 pt-5 pb-8">
       <div className="rounded-[20px] border border-primary/10 bg-surface/80 p-6 text-center backdrop-blur-xl">
-        <h2 className="mb-2 text-xl font-bold text-brand-emergency">Notifications unavailable</h2>
+        <WifiOff className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+        <h2 className="mb-2 text-xl font-bold text-brand-emergency">Signal lost</h2>
         <p className="mb-4 text-sm text-muted-foreground">Unable to load notifications. Please try again.</p>
-        <Button onClick={() => window.location.reload()} variant="outline" className="rounded-full border-primary/20 bg-background text-foreground hover:bg-surface hover:text-foreground">
+        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['notifications'] })} variant="outline" className="rounded-full border-primary/20 bg-background text-foreground hover:bg-surface hover:text-foreground">
           Retry
         </Button>
       </div>
@@ -209,7 +212,7 @@ export default function NotificationsPage() {
 
       {unreadCount > 0 && (
         <div className="mb-4 flex justify-end">
-          <Button variant="ghost" size="sm" onClick={handleMarkAllRead} className="rounded-full text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors">
+          <Button variant="ghost" size="sm" onClick={handleMarkAllRead} className="rounded-full text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors border border-border/40">
             <Check className="mr-1 h-3.5 w-3.5" /> Mark all as read
           </Button>
         </div>

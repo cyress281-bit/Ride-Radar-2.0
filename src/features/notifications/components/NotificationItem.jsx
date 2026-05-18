@@ -12,13 +12,39 @@ import {
   UserPlus,
   UserCheck,
   MessageCircle,
+  MessageSquare,
   Megaphone,
   AlertTriangle,
-  Settings,
+  Radio,
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { timeAgo } from '@/lib/utils.js';
+
+// Type-specific color scheme for unread notifications.
+const TYPE_COLORS = {
+  // emergency
+  alert:               { border: 'border-l-brand-emergency', icon: 'bg-brand-emergency/15 border border-brand-emergency/30', text: 'text-brand-emergency' },
+  bike_down:           { border: 'border-l-brand-emergency', icon: 'bg-brand-emergency/15 border border-brand-emergency/30', text: 'text-brand-emergency' },
+  // conversational
+  new_message:         { border: 'border-l-brand-radar',     icon: 'bg-brand-radar/15 border border-brand-radar/30',         text: 'text-brand-radar' },
+  message:             { border: 'border-l-brand-radar',     icon: 'bg-brand-radar/15 border border-brand-radar/30',         text: 'text-brand-radar' },
+  broadcast_comment:   { border: 'border-l-brand-radar',     icon: 'bg-brand-radar/15 border border-brand-radar/30',         text: 'text-brand-radar' },
+  post_comment:        { border: 'border-l-brand-radar',     icon: 'bg-brand-radar/15 border border-brand-radar/30',         text: 'text-brand-radar' },
+  // social/connections — keep primary green
+  connection_request:  { border: 'border-l-primary',         icon: 'bg-primary/10 border border-primary/20',                 text: 'text-primary' },
+  connection_accepted: { border: 'border-l-primary',         icon: 'bg-primary/10 border border-primary/20',                 text: 'text-primary' },
+  // event/rsvp — amber
+  rsvp:                { border: 'border-l-amber-500',       icon: 'bg-amber-500/15 border border-amber-500/30',             text: 'text-amber-500' },
+  event_reminder:      { border: 'border-l-amber-500',       icon: 'bg-amber-500/15 border border-amber-500/30',             text: 'text-amber-500' },
+  // system/announcement — neutral
+  system:              { border: 'border-l-border',          icon: 'bg-muted/20 border border-border/40',                    text: 'text-muted-foreground' },
+  announcement:        { border: 'border-l-border',          icon: 'bg-muted/20 border border-border/40',                    text: 'text-muted-foreground' },
+};
+
+function getTypeColors(type) {
+  return TYPE_COLORS[type] ?? TYPE_COLORS.connection_request;
+}
 
 /**
  * Icon mapping per notification type.
@@ -36,7 +62,7 @@ function getIconForType(type) {
       return MessageCircle;
     case 'broadcast_comment':
     case 'post_comment':
-      return MessageCircle;
+      return MessageSquare;
     case 'broadcast':
     case 'rsvp':
     case 'event_reminder':
@@ -45,7 +71,7 @@ function getIconForType(type) {
       return AlertTriangle;
     case 'system':
     case 'announcement':
-      return Settings;
+      return Radio;
     default:
       return Bell;
   }
@@ -69,7 +95,7 @@ function getNotificationHref(notification) {
 
   if (type === 'broadcast_comment') {
     const broadcastId = data?.broadcast_id ?? notification.related_entity_id;
-    if (broadcastId) return `/broadcast/${broadcastId}`;
+    if (broadcastId) return `/broadcast/${broadcastId}#comments`;
     return null;
   }
 
@@ -124,6 +150,7 @@ const NotificationItem = memo(function NotificationItem({
   const isUnread = !notification.is_read;
 
   const Icon = getIconForType(notification.type);
+  const typeColors = getTypeColors(notification.type);
 
   // Swipe-to-dismiss state
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -167,7 +194,7 @@ const NotificationItem = memo(function NotificationItem({
     <div className="relative overflow-hidden">
       {/* Swipe background */}
       {onDelete && (
-        <div className="absolute inset-y-0 right-0 flex w-full items-center justify-end bg-brand-emergency/10 pr-4">
+        <div className="absolute inset-y-0 right-0 flex w-full items-center justify-end bg-brand-emergency/20 pr-4">
           <X className="h-5 w-5 text-brand-emergency" />
         </div>
       )}
@@ -176,7 +203,7 @@ const NotificationItem = memo(function NotificationItem({
         className={cn(
           'relative flex items-start gap-3 rounded-[20px] border p-4 transition-all duration-200 active:scale-95',
           isUnread
-            ? 'cursor-pointer border-l-2 border-l-primary border-y border-r border-primary/10 bg-surface/80 hover:border-primary/30 backdrop-blur-sm'
+            ? `cursor-pointer border-l-2 ${typeColors.border} border-y border-r border-primary/10 bg-surface/80 hover:border-primary/30 backdrop-blur-sm`
             : 'border-border/40 bg-surface/40 opacity-70'
         )}
         style={{
@@ -193,14 +220,14 @@ const NotificationItem = memo(function NotificationItem({
           className={cn(
             'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
             isUnread
-              ? 'border border-primary/20 bg-primary/10'
+              ? typeColors.icon
               : 'bg-muted/50'
           )}
         >
           <Icon
             className={cn(
-              'h-4 w-4',
-              isUnread ? 'text-primary' : 'text-muted-foreground'
+              'h-5 w-5',
+              isUnread ? typeColors.text : 'text-muted-foreground'
             )}
           />
         </div>
@@ -217,6 +244,12 @@ const NotificationItem = memo(function NotificationItem({
           {notification.body && (
             <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
               {notification.body}
+            </p>
+          )}
+
+          {(notification.type === 'new_message' || notification.type === 'message') && notification.messagePreview && (
+            <p className="text-xs text-muted-foreground/75 truncate mt-0.5 italic leading-snug">
+              &ldquo;{notification.messagePreview}&rdquo;
             </p>
           )}
 

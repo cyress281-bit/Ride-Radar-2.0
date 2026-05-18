@@ -160,6 +160,7 @@ export function normalizeNotification(notification) {
     type,
     title,
     body,
+    messagePreview: data?.message_preview ?? null,
 
     // Read/global flags
     is_read: isRead,
