@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { WifiOff, Wifi } from 'lucide-react';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { cn } from '@/lib/utils';
@@ -9,18 +9,24 @@ import { cn } from '@/lib/utils';
  * Shows "You're offline — viewing cached data" when disconnected.
  * Shows "Back online!" briefly (2s) when reconnected, then auto-hides.
  * Positioned above all content with z-index 50.
+ *
+ * Guard: "Back online!" only fires after actually going offline in this
+ * session, so it never appears on cold start.
  */
 const OfflineBanner = memo(function OfflineBanner() {
   const isOnline = useOnlineStatus();
   const [showBanner, setShowBanner] = useState(false);
   const [bannerType, setBannerType] = useState('offline'); // 'offline' | 'online'
+  const didGoOfflineRef = useRef(false);
 
   useEffect(() => {
     if (!isOnline) {
+      didGoOfflineRef.current = true;
       setBannerType('offline');
       setShowBanner(true);
     } else {
-      // If we were offline and now we're online, show "Back online!" briefly
+      if (!didGoOfflineRef.current) return;
+      didGoOfflineRef.current = false;
       setBannerType('online');
       setShowBanner(true);
 

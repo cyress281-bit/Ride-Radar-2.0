@@ -292,7 +292,7 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
     const timer = setTimeout(() => {
       stateRef.current.minElapsed = true;
       tryExit();
-    }, 2000);
+    }, 2400);
     return () => {
       clearTimeout(timer);
       if (exitTimerRef.current) clearTimeout(exitTimerRef.current);

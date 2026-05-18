@@ -50,30 +50,19 @@ const PageLoader = memo(function PageLoader({ className, exiting = false }) {
         }
       `}</style>
 
-      <span className="rr-ekg-label mb-5 text-[12px] font-extrabold uppercase tracking-[0.3em] text-primary select-none">
+      <span className="rr-ekg-label mb-5 text-[14px] font-extrabold uppercase tracking-[0.3em] text-primary select-none">
         Ride Radar
       </span>
 
       <svg
-        viewBox="0 0 400 56"
+        viewBox="0 0 400 100"
         className="w-full fill-none"
         aria-hidden="true"
       >
-        {/*
-          Realistic EKG heartbeat — straight line segments only (no bezier curves):
-            0→80  : flat baseline lead-in
-            80→95 : subtle P wave (6px above baseline, triangle shape)
-            95→112: flat PR interval
-            112→128→140→150: sharp QRS complex — Q dip, R spike (25px above), S dip (20px below), return
-            150→172: flat ST segment
-            172→186→204: modest T wave (12px above baseline, triangle shape)
-            204→400: long flat tail reaching right edge
-          pathLength="1" normalises dasharray/dashoffset without manual length calculation.
-        */}
         <path
           pathLength="1"
           className="rr-ekg-line"
-          d="M 0 28 L 80 28 L 87 22 L 95 28 L 112 28 L 116 33 L 128 3 L 140 48 L 150 28 L 172 28 L 186 16 L 204 28 L 400 28"
+          d="M 0 50 L 100 50 L 104 58 L 116 8 L 128 80 L 140 50 L 170 50 L 184 30 L 200 50 L 400 50"
           strokeWidth="3"
           strokeLinecap="butt"
           strokeLinejoin="miter"
