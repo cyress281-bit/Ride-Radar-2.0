@@ -102,51 +102,47 @@ const RadarOverlay = memo(function RadarOverlay({
         </div>
       </div>
 
-      {/* Compact 2×2 action pad */}
-      <div className="absolute bottom-52 right-4 z-[15]">
-        <div className="overflow-hidden rounded-[28px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
-          <div className="grid grid-cols-2">
+      {/* Radar command bar — overlays AppHeader's left zone, bell/avatar remain in AppHeader */}
+      <div className="fixed top-0 left-0 right-0 z-[45] pt-safe pointer-events-none">
+        <div className="mx-auto px-4 h-14 max-w-xl flex items-center">
+          <div className="flex items-center gap-1 pointer-events-auto">
 
             {/* Live */}
             <button
               onClick={handleToggleLive}
               disabled={updateSettings.isPending}
               className={cn(
-                'rr-haptic flex flex-col items-center justify-center gap-1.5 px-5 py-4 min-h-[64px] transition-all active:scale-95 border-r border-b border-white/[0.06]',
+                'rr-haptic flex items-center gap-[3px] rounded-full px-2.5 py-1.5 min-h-[36px] text-[10px] font-bold transition-all active:scale-95',
                 isLiveMapVisible
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-foreground hover:bg-white/[0.04]',
+                  ? 'bg-primary/20 text-primary'
+                  : 'text-foreground/70 hover:bg-white/[0.06]',
                 justActivated && 'rr-lock'
               )}
-              aria-label={isLiveMapVisible ? 'LIVE — Tap to hide' : 'Go Live — appear on map'}
+              aria-label={isLiveMapVisible ? 'LIVE — tap to hide' : 'Go Live — appear on map'}
             >
-              <div className="flex h-5 w-5 items-center justify-center">
+              <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
                 {updateSettings.isPending ? (
-                  <Navigation className="h-4 w-4 animate-spin" />
+                  <Navigation className="h-3 w-3 animate-spin" />
                 ) : isLiveMapVisible ? (
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-foreground opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-foreground" />
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                   </span>
                 ) : (
-                  <Radio className="h-4 w-4 text-primary" />
+                  <Radio className="h-3 w-3" />
                 )}
               </div>
-              <span className="text-[11px] font-bold leading-none">
-                {updateSettings.isPending ? '…' : 'Live'}
-              </span>
+              <span>{updateSettings.isPending ? '…' : 'Live'}</span>
             </button>
 
             {/* Signal */}
             <button
               onClick={handleCreateBroadcast}
-              className="rr-haptic flex flex-col items-center justify-center gap-1.5 px-5 py-4 min-h-[64px] text-primary hover:bg-white/[0.04] transition-all active:scale-95 border-b border-white/[0.06]"
+              className="rr-haptic flex items-center gap-[3px] rounded-full px-2.5 py-1.5 min-h-[36px] text-[10px] font-bold text-primary hover:bg-white/[0.06] transition-all active:scale-95"
               aria-label="Create a signal"
             >
-              <div className="flex h-5 w-5 items-center justify-center">
-                <Plus className="h-4 w-4" />
-              </div>
-              <span className="text-[11px] font-bold leading-none">Signal</span>
+              <Plus className="h-3 w-3 shrink-0" />
+              <span>Signal</span>
             </button>
 
             {/* Locate */}
@@ -154,34 +150,33 @@ const RadarOverlay = memo(function RadarOverlay({
               onClick={handleRequestLocation}
               disabled={locating}
               className={cn(
-                'rr-haptic flex flex-col items-center justify-center gap-1.5 px-5 py-4 min-h-[64px] text-primary transition-all active:scale-95 border-r border-white/[0.06]',
-                !locating && 'hover:bg-white/[0.04]',
+                'rr-haptic flex items-center gap-[3px] rounded-full px-2.5 py-1.5 min-h-[36px] text-[10px] font-bold text-primary transition-all active:scale-95',
+                !locating && 'hover:bg-white/[0.06]',
                 justLocked && 'rr-lock'
               )}
-              aria-label="Center Radar on my area"
+              aria-label={hasUserLocation ? 'Center Radar on my area' : 'Find my location'}
             >
-              <div className="flex h-5 w-5 items-center justify-center">
+              <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center">
                 {locating ? (
-                  <Navigation className="h-4 w-4 animate-spin" />
+                  <Navigation className="h-3 w-3 animate-spin" />
                 ) : (
-                  <Crosshair className="h-4 w-4" />
+                  <Crosshair className="h-3 w-3" />
                 )}
               </div>
-              <span className="text-[11px] font-bold leading-none">
-                {locating ? 'Finding' : hasUserLocation ? 'Locate' : 'Find me'}
-              </span>
+              <span>{locating ? 'Finding' : hasUserLocation ? 'Locate' : 'Find me'}</span>
             </button>
+
+            {/* Separator before destructive action */}
+            <div className="h-3 w-px bg-white/20 mx-0.5 shrink-0" aria-hidden="true" />
 
             {/* Bike Down */}
             <button
               onClick={handleBikeDown}
-              className="rr-haptic flex flex-col items-center justify-center gap-1.5 px-5 py-4 min-h-[64px] text-destructive hover:bg-destructive/[0.06] transition-all active:scale-95"
+              className="rr-haptic flex items-center gap-[3px] rounded-full px-2.5 py-1.5 min-h-[36px] text-[10px] font-bold text-destructive hover:bg-destructive/[0.06] transition-all active:scale-95"
               aria-label="Report a bike down emergency"
             >
-              <div className="flex h-5 w-5 items-center justify-center">
-                <Siren className="h-4 w-4" />
-              </div>
-              <span className="text-[11px] font-bold leading-none">Bike Down</span>
+              <Siren className="h-3 w-3 shrink-0" />
+              <span>Bike Down</span>
             </button>
 
           </div>

@@ -1,12 +1,10 @@
 import { memo, useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, ChevronLeft, User } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { useUnreadCount } from '@/features/notifications/hooks/use-notifications';
-import { useSupabaseConnection } from '@/hooks/use-supabase-connection.js';
 import RRLogo from '@/components/RRLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Text } from '@/components/ui/primitives/Text';
@@ -89,21 +87,6 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const pageTitle = getPageTitle(pathname);
   const isBeta = import.meta.env.VITE_BETA_MODE === 'true';
 
-  // Realtime connection status drives the LIVE chip color on the radar.
-  // - 'subscribed'  → connected     → primary green
-  // - 'unknown'     → initializing  → muted neutral (avoids red flash on cold open)
-  // - anything else → disconnected  → emergency red
-  const { status: connectionStatus, isConnected } = useSupabaseConnection();
-  const isConnectionPending = connectionStatus === 'unknown';
-
-  // Read live map visibility from the settings cache (populated by useLiveMapPresence
-  // on the Radar screen). Only enabled on /home to avoid unnecessary background fetches.
-  const { data: radarSettings } = useQuery({
-    queryKey: ['settings', user?.id],
-    enabled: !!user?.id && isRadar,
-  });
-  const isLiveOnMap = radarSettings?.live_map_visible === true;
-
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -148,6 +131,8 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
           >
             <ChevronLeft className="h-6 w-6" aria-hidden="true" />
           </button>
+        ) : isRadar ? (
+          <div className="min-w-[44px]" aria-hidden="true" />
         ) : (
           <NavLink
             to="/home"
@@ -158,65 +143,29 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             )}
             aria-label="Ride Radar home"
           >
-            {isRadar ? (
-              <span className="text-sm font-extrabold uppercase tracking-[0.18em] text-primary rr-neon-green drop-shadow-[0_0_10px_hsl(var(--primary)/0.65)]">
-                Ride Radar
-              </span>
-            ) : (
-              <RRLogo size="md" glow={false} />
-            )}
+            <RRLogo size="md" glow={false} />
           </NavLink>
         )}
 
-        {/* Center: Page context */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none">
-          {isRadar ? (
-            <span
-              className={cn(
-                'flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em]',
-                isConnected
-                  ? 'text-primary'
-                  : isConnectionPending
-                    ? 'text-muted-foreground'
-                    : 'text-brand-emergency'
+        {/* Center: Page context — hidden on Radar (command bar owns the left zone) */}
+        {!isRadar && pageTitle && (
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none">
+            <HStack align="center" gap={2}>
+              <Text
+                variant="h3"
+                color="default"
+                className="text-base font-bold text-primary"
+              >
+                {pageTitle}
+              </Text>
+              {isBeta && (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/30">
+                  Beta
+                </span>
               )}
-            >
-              <span className="relative flex h-1.5 w-1.5">
-                {isConnected ? (
-                  <>
-                    <span className="animate-pulse-green absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
-                  </>
-                ) : isConnectionPending ? (
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-muted-foreground/60" />
-                ) : (
-                  <>
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-emergency opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-emergency" />
-                  </>
-                )}
-              </span>
-              {isConnected && isLiveOnMap ? "YOU'RE LIVE" : 'LIVE'}
-            </span>
-          ) : (
-            pageTitle && (
-              <HStack align="center" gap={2}>
-                <Text
-                  variant="h3"
-                  color="default"
-                  className="text-base font-bold text-primary"
-                >
-                  {pageTitle}
-                </Text>
-                {isBeta && (
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/30">
-                    Beta
-                  </span>
-                )}
-              </HStack>
-            )
-          )}
-        </div>
+            </HStack>
+          </div>
+        )}
 
         {/* Right: Actions */}
         <HStack align="center" gap={1} role="group" aria-label="Header actions">
