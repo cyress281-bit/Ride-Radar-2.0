@@ -17,7 +17,7 @@ const PageLoader = memo(function PageLoader({ className, exiting = false }) {
           stroke-dasharray: 1;
           stroke-dashoffset: 1;
           animation: rr-ekg-draw 2.4s ease-in-out infinite;
-          filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.6));
+          filter: drop-shadow(0 0 5px hsl(var(--primary) / 0.55));
         }
         .rr-ekg-label {
           animation: rr-ekg-label 2.4s ease-in-out infinite;
@@ -32,8 +32,8 @@ const PageLoader = memo(function PageLoader({ className, exiting = false }) {
         }
         @keyframes rr-ekg-label {
           0%   { opacity: 0; }
-          10%  { opacity: 0.45; }
-          70%  { opacity: 0.45; }
+          10%  { opacity: 0.6; }
+          70%  { opacity: 0.6; }
           90%  { opacity: 0; }
           100% { opacity: 0; }
         }
@@ -45,36 +45,40 @@ const PageLoader = memo(function PageLoader({ className, exiting = false }) {
           }
           .rr-ekg-label {
             animation: none;
-            opacity: 0.45;
+            opacity: 0.6;
           }
         }
       `}</style>
 
-      <div className="flex flex-col items-center gap-5">
-        <svg
-          viewBox="0 0 280 60"
-          className="w-[86vw] max-w-[620px] fill-none"
-          aria-hidden="true"
-        >
-          {/*
-            Smooth EKG: cubic-bezier P wave and T wave; sharp angular QRS complex.
-            pathLength="1" normalises the total length so dasharray/dashoffset
-            work without manual length calculation.
-          */}
-          <path
-            pathLength="1"
-            className="rr-ekg-line"
-            d="M 0 30 L 40 30 C 44 30 48 18 56 18 C 64 18 68 30 72 30 L 90 30 L 96 34 L 108 2 L 118 46 L 128 30 L 148 30 C 155 30 165 12 172 12 C 179 12 193 30 200 30 L 280 30"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+      <span className="rr-ekg-label mb-5 text-[12px] font-extrabold uppercase tracking-[0.3em] text-primary select-none">
+        Ride Radar
+      </span>
 
-        <span className="rr-ekg-label text-[9px] font-extrabold uppercase tracking-[0.3em] text-primary select-none">
-          Ride Radar
-        </span>
-      </div>
+      <svg
+        viewBox="0 0 400 56"
+        className="w-full fill-none"
+        aria-hidden="true"
+      >
+        {/*
+          Realistic EKG heartbeat — straight line segments only (no bezier curves):
+            0→80  : flat baseline lead-in
+            80→95 : subtle P wave (6px above baseline, triangle shape)
+            95→112: flat PR interval
+            112→128→140→150: sharp QRS complex — Q dip, R spike (25px above), S dip (20px below), return
+            150→172: flat ST segment
+            172→186→204: modest T wave (12px above baseline, triangle shape)
+            204→400: long flat tail reaching right edge
+          pathLength="1" normalises dasharray/dashoffset without manual length calculation.
+        */}
+        <path
+          pathLength="1"
+          className="rr-ekg-line"
+          d="M 0 28 L 80 28 L 87 22 L 95 28 L 112 28 L 116 33 L 128 3 L 140 48 L 150 28 L 172 28 L 186 16 L 204 28 L 400 28"
+          strokeWidth="3"
+          strokeLinecap="butt"
+          strokeLinejoin="miter"
+        />
+      </svg>
 
       <span className="sr-only">Loading</span>
     </div>
