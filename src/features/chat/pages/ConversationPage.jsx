@@ -30,7 +30,7 @@ import { Skeleton } from '@/components/ui/skeleton';
  */
 function ConversationSkeleton() {
   return (
-    <VStack className="h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px)-6rem-env(safe-area-inset-bottom,0px))] min-h-0 overflow-hidden">
+    <VStack className="h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px)-3.5rem-env(safe-area-inset-bottom,0px))] min-h-0 overflow-hidden">
       <HStack align="center" gap={3} className="px-4 py-3 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl shrink-0">
         <Skeleton className="h-10 w-10 rounded-full" />
         <VStack gap={1.5} flex={1}>
@@ -243,7 +243,7 @@ function ConversationPage() {
   }
 
   return (
-    <VStack className="w-full h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px)-6rem-env(safe-area-inset-bottom,0px))] min-h-0 bg-background relative overflow-hidden">
+    <VStack className="w-full h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px)-3.5rem-env(safe-area-inset-bottom,0px))] min-h-0 bg-background relative overflow-hidden">
       {/* Header */}
       <HStack
         align="center"

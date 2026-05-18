@@ -21,8 +21,6 @@ import {
   Clock,
   Radio,
   Lock,
-  MapPin,
-  Calendar,
   Images,
   User,
   Ban,
@@ -214,12 +212,6 @@ function RiderProfilePage() {
       .trim();
   }, [profile]);
 
-  const joinDate = useMemo(() => {
-    if (!profile?.created_at) return null;
-    const date = new Date(profile.created_at);
-    return date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
-  }, [profile?.created_at]);
-
   const {
     data: riderPosts = [],
     isLoading: postsLoading,
@@ -360,7 +352,7 @@ function RiderProfilePage() {
             {/* Stats Row — neon brand colors */}
             {canSeeDetails && (
               <HStack gap={2} className="w-full mt-1">
-                <StatPill icon={Radio} label="Signals" value={activeBroadcasts.length} isLoading={isBroadcastsLoading} brand="green" />
+                <StatPill icon={Radio} label="Signals" value={activeBroadcasts.length} isLoading={isBroadcastsLoading} brand="green" onClick={() => setActiveTab('broadcasts')} />
                 <StatPill icon={Bike} label="Bike" value={bikeLabel || 'Not set'} brand="radar" />
                 <StatPill icon={Users} label="Crew" value={crewCount} isLoading={crewCountLoading} brand="amber" />
               </HStack>
@@ -517,12 +509,9 @@ function RiderProfilePage() {
       {/* Tabs — only shown when details are visible */}
       {canSeeDetails && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-3 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
+          <TabsList className="w-full grid grid-cols-2 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
             <TabsTrigger value="broadcasts" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
               <Radio className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Signals
-            </TabsTrigger>
-            <TabsTrigger value="about" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-              <User className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> About
             </TabsTrigger>
             <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
               <Images className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Shots
@@ -543,49 +532,6 @@ function RiderProfilePage() {
             ) : (
               <EmptyState icon={Radio} title="No active signals" description="This rider has no active signals." />
             )}
-          </TabsContent>
-
-          <TabsContent value="about" className="mt-4">
-            <VStack gap={3} className="stagger-children">
-              {(bikeLabel || profile?.location || joinDate) && (
-                <div className="surface-card overflow-hidden divide-y divide-white/[0.06] rounded-xl">
-                  {bikeLabel && (
-                    <div className="flex items-center gap-3 px-4 py-3.5">
-                      <Bike className="h-4 w-4 text-primary shrink-0" />
-                      <VStack gap={0.5}>
-                        <Text variant="micro" className="text-primary font-semibold uppercase tracking-wide">Bike</Text>
-                        <Text variant="bodySm" className="font-semibold">{bikeLabel}</Text>
-                      </VStack>
-                    </div>
-                  )}
-                  {profile?.location && (
-                    <div className="flex items-center gap-3 px-4 py-3.5">
-                      <MapPin className="h-4 w-4 text-brand-radar shrink-0" />
-                      <VStack gap={0.5}>
-                        <Text variant="micro" className="text-brand-radar font-semibold uppercase tracking-wide">Location</Text>
-                        <Text variant="bodySm" className="font-semibold">{profile.location}</Text>
-                      </VStack>
-                    </div>
-                  )}
-                  {joinDate && (
-                    <div className="flex items-center gap-3 px-4 py-3.5">
-                      <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <VStack gap={0.5}>
-                        <Text variant="micro" color="muted">Joined</Text>
-                        <Text variant="micro" color="muted">{joinDate}</Text>
-                      </VStack>
-                    </div>
-                  )}
-                </div>
-              )}
-              {!bikeLabel && !profile?.location && !joinDate && (
-                <EmptyState
-                  icon={User}
-                  title="No rider details"
-                  description="Bike, location, and joined date will appear here when available."
-                />
-              )}
-            </VStack>
           </TabsContent>
 
           <TabsContent value="media" className="mt-4">

@@ -1,5 +1,5 @@
 import React, { useMemo, memo, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useProfileBatch } from '@/hooks/use-profile-batch.js';
@@ -29,11 +29,12 @@ import { ErrorState } from '@/components/shared/ErrorState';
 function ConversationsPage() {
   const { user } = useAuthState();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
-  const [activeTab, setActiveTab] = useState('chats');
+  const [activeTab, setActiveTab] = useState(() => location.state?.tab === 'crew' ? 'crew' : 'chats');
   const { data: conversations = [], isLoading, isError, error, refetch } = useConversations();
   const { data: pendingRequests = [] } = useConnectionRequests();
   const { blockedIds } = useBlockedIds();

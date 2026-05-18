@@ -54,7 +54,6 @@ function savePadPosition(pos) {
  * - Location error banner
  */
 const RadarOverlay = memo(function RadarOverlay({
-  activeCount,
   hasUserLocation,
   usingOfflineSnapshot,
   requestLocation,
@@ -171,25 +170,26 @@ const RadarOverlay = memo(function RadarOverlay({
 
   return (
     <>
-      {/* Top info pill */}
-      <div className="absolute top-header-offset left-4 right-4 z-10 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full backdrop-blur-xl bg-surface/80 border border-white/[0.10] px-4 py-2 shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
-          <span className="h-2 w-2 rounded-full bg-primary animate-pulse-green" />
-          <span className="text-xs font-bold text-foreground">
-            {activeCount} {activeCount === 1 ? 'signal' : 'signals'}
-          </span>
-          {!hasUserLocation && (
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground border-l border-white/[0.04] pl-3">
-              US overview
-            </span>
-          )}
-          {usingOfflineSnapshot && (
-            <span className="text-xs font-bold uppercase tracking-wider text-brand-radar border-l border-white/[0.04] pl-3">
-              Offline
-            </span>
-          )}
+      {/* Top context pill */}
+      {(!hasUserLocation || usingOfflineSnapshot) && (
+        <div className="absolute top-header-offset left-4 right-4 z-10 flex justify-center pointer-events-none">
+          <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full backdrop-blur-xl bg-surface/80 border border-white/[0.10] px-4 py-2 shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
+            {!hasUserLocation && (
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                US overview
+              </span>
+            )}
+            {usingOfflineSnapshot && (
+              <span className={cn(
+                'text-xs font-bold uppercase tracking-wider text-brand-radar',
+                !hasUserLocation && 'border-l border-white/[0.04] pl-3'
+              )}>
+                Offline
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Draggable 2×2 action pad */}
       <div

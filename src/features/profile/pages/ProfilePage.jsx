@@ -6,10 +6,10 @@
  */
 
 import { useState, useMemo, memo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
-import { Edit2, Settings, LogOut, Radio, Users, ShieldCheck, Bike, MapPin, Calendar, Camera, User, Images } from 'lucide-react';
+import { Edit2, Settings, LogOut, Radio, Users, ShieldCheck, Bike, Camera, Images } from 'lucide-react';
 import { Badge } from '@/components/shared/Badge';
 import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
 import OptimizedImage from '@/components/shared/OptimizedImage';
@@ -32,6 +32,7 @@ import StatPill from '@/features/profile/components/StatPill.jsx';
 function ProfilePage() {
   const { user, profile } = useAuthState();
   const { signOut } = useAuthActions();
+  const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const [activeTab, setActiveTab] = useState('broadcasts');
@@ -104,12 +105,6 @@ function ProfilePage() {
     return parts.join(' ') || null;
   }, [displayProfile]);
 
-  const joinDate = useMemo(() => {
-    if (!displayProfile?.created_at && !user?.created_at) return null;
-    const date = new Date(displayProfile?.created_at || user?.created_at);
-    return date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
-  }, [displayProfile?.created_at, user?.created_at]);
-
   if (!user) {
     return <LoadingState variant="section" message="Loading profile..." />;
   }
@@ -173,6 +168,15 @@ function ProfilePage() {
               </Text>
             )}
 
+            {bikeLabel && (
+              <HStack align="center" gap={2} className="rounded-full border border-primary/20 bg-primary/[0.08] px-3 py-1.5 text-primary">
+                <Bike className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                <Text variant="micro" className="font-semibold text-primary truncate">
+                  {bikeLabel}
+                </Text>
+              </HStack>
+            )}
+
             {/* Stats Row — neon brand colors */}
             <HStack gap={2} className="w-full mt-1">
               <StatPill
@@ -181,6 +185,7 @@ function ProfilePage() {
                 value={active.length}
                 isLoading={broadcastsLoading}
                 brand="green"
+                onClick={() => setActiveTab('broadcasts')}
               />
               <StatPill
                 icon={Users}
@@ -188,12 +193,14 @@ function ProfilePage() {
                 value={connectionsCount}
                 isLoading={connectionsLoading}
                 brand="radar"
+                onClick={() => navigate('/messages', { state: { tab: 'crew' } })}
               />
               <StatPill
                 icon={ShieldCheck}
                 label="Status"
                 value={displayProfile?.is_public === false ? 'Private' : 'Public'}
                 brand="amber"
+                onClick={() => navigate('/settings')}
               />
             </HStack>
 
@@ -245,12 +252,9 @@ function ProfilePage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-3 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
+        <TabsList className="w-full grid grid-cols-2 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
           <TabsTrigger value="broadcasts" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
             <Radio className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Signals
-          </TabsTrigger>
-          <TabsTrigger value="about" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-            <User className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> About
           </TabsTrigger>
           <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
             <Images className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Shots
@@ -286,48 +290,6 @@ function ProfilePage() {
                 </Text>
               )}
             </>
-          )}
-        </TabsContent>
-
-        {/* About Tab */}
-        <TabsContent value="about" className="mt-4">
-          {(bikeLabel || displayProfile?.location || joinDate) ? (
-            <div className="surface-card overflow-hidden divide-y divide-white/[0.06] rounded-xl">
-              {bikeLabel && (
-                <div className="flex items-center gap-3 px-4 py-3.5">
-                  <Bike className="h-4 w-4 text-primary shrink-0" />
-                  <VStack gap={0.5}>
-                    <Text variant="micro" className="text-primary font-semibold uppercase tracking-wide">Bike</Text>
-                    <Text variant="bodySm" className="font-semibold">{bikeLabel}</Text>
-                  </VStack>
-                </div>
-              )}
-              {displayProfile?.location && (
-                <div className="flex items-center gap-3 px-4 py-3.5">
-                  <MapPin className="h-4 w-4 text-brand-radar shrink-0" />
-                  <VStack gap={0.5}>
-                    <Text variant="micro" className="text-brand-radar font-semibold uppercase tracking-wide">Location</Text>
-                    <Text variant="bodySm" className="font-semibold">{displayProfile.location}</Text>
-                  </VStack>
-                </div>
-              )}
-              {joinDate && (
-                <div className="flex items-center gap-3 px-4 py-3.5">
-                  <Calendar className="h-4 w-4 text-brand-amber shrink-0" />
-                  <VStack gap={0.5}>
-                    <Text variant="micro" color="muted">Joined</Text>
-                    <Text variant="micro" color="muted">{joinDate}</Text>
-                  </VStack>
-                </div>
-              )}
-            </div>
-          ) : (
-            <EmptyState
-              icon={User}
-              title="About you"
-              description="Edit your profile to add bike info, location, and more."
-              action={{ label: 'Edit Profile', onClick: () => setEditing(true) }}
-            />
           )}
         </TabsContent>
 

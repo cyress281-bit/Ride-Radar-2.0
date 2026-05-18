@@ -197,7 +197,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
                   </>
                 )}
               </span>
-              {isConnected && isLiveOnMap ? "YOU'RE LIVE" : 'LIVE'}
+              {isLiveOnMap ? 'LIVE' : 'OFFLINE'}
             </span>
           ) : (
             pageTitle && (
