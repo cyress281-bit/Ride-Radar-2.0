@@ -95,7 +95,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
   );
 
   return (
-    <div className="p-3 pb-safe bg-background/80 backdrop-blur-xl border-t border-white/[0.06]">
+    <div className="p-3 bg-background/80 backdrop-blur-xl border-t border-white/[0.06]">
       {/* Image preview thumbnail */}
       {previewUrl && (
         <div className="mb-2 max-w-xl mx-auto">

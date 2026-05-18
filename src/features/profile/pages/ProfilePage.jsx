@@ -169,9 +169,9 @@ function ProfilePage() {
             )}
 
             {bikeLabel && (
-              <HStack align="center" gap={2} className="rounded-full border border-primary/20 bg-primary/[0.08] px-3 py-1.5 text-primary">
+              <HStack align="center" gap={2} className="max-w-full min-w-0 rounded-full border border-primary/20 bg-primary/[0.08] px-3 py-1.5 text-primary">
                 <Bike className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-                <Text variant="micro" className="font-semibold text-primary truncate">
+                <Text variant="micro" className="min-w-0 truncate font-semibold text-primary">
                   {bikeLabel}
                 </Text>
               </HStack>

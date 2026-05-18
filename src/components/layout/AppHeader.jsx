@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { useUnreadCount } from '@/features/notifications/hooks/use-notifications';
+import { getOrCreateSettings } from '@/features/settings/api/settings-api.js';
+import { settingsKeys } from '@/features/settings/hooks/use-settings.js';
 import { useSupabaseConnection } from '@/hooks/use-supabase-connection.js';
 import RRLogo from '@/components/RRLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -97,11 +99,17 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { status: connectionStatus, isConnected } = useSupabaseConnection();
   const isConnectionPending = connectionStatus === 'unknown';
 
-  // Read live map visibility from the settings cache (populated by useLiveMapPresence
-  // on the Radar screen). Only enabled on /home to avoid unnecessary background fetches.
+  // Read live map visibility only on /home to avoid unnecessary background fetches.
   const { data: radarSettings } = useQuery({
-    queryKey: ['settings', user?.id],
+    queryKey: settingsKeys.detail(user?.id),
+    queryFn: async () => {
+      const { data, error } = await getOrCreateSettings(user.id);
+      if (error) throw error;
+      return data;
+    },
     enabled: !!user?.id && isRadar,
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
   });
   const isLiveOnMap = radarSettings?.live_map_visible === true;
 
