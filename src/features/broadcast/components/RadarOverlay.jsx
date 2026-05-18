@@ -6,10 +6,51 @@ import { toast } from 'sonner';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useUpdateSettings } from '@/features/settings/hooks/use-settings.js';
 
+// ── Draggable pad constants ────────────────────────────────────────────────
+const PAD_WIDTH = 172;
+const PAD_HEIGHT_WITH_HANDLE = 164; // 32px handle + ~132px 2×2 grid
+const STORAGE_KEY = 'rr:radar-pad-position';
+const MARGIN = 16;
+const MIN_TOP = 128;         // below header (56px) + safe-area + signal pill
+const BOTTOM_CLEARANCE = 152; // above bottom sheet peek (68px) + bottom nav (~68px) + margins
+
+function clampPos(left, top) {
+  return {
+    left: Math.max(MARGIN, Math.min(Math.max(MARGIN, window.innerWidth - PAD_WIDTH - MARGIN), left)),
+    top: Math.max(MIN_TOP, Math.min(Math.max(MIN_TOP, window.innerHeight - PAD_HEIGHT_WITH_HANDLE - BOTTOM_CLEARANCE), top)),
+  };
+}
+
+function getDefaultPos() {
+  return clampPos(
+    window.innerWidth - PAD_WIDTH - MARGIN,
+    window.innerHeight - PAD_HEIGHT_WITH_HANDLE - 208,
+  );
+}
+
+function readSavedPadPosition() {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed.left !== 'number' || typeof parsed.top !== 'number') return null;
+    return clampPos(parsed.left, parsed.top);
+  } catch {
+    return null;
+  }
+}
+
+function savePadPosition(pos) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(pos));
+  } catch {}
+}
+// ──────────────────────────────────────────────────────────────────────────────
+
 /**
  * Floating UI overlays for the radar view:
  * - Top signal-count pill
- * - Right-side control card (Go Live, Signal, Locate)
+ * - Draggable control card (Go Live, Signal, Locate, Bike Down)
  * - Location error banner
  */
 const RadarOverlay = memo(function RadarOverlay({
@@ -80,6 +121,54 @@ const RadarOverlay = memo(function RadarOverlay({
     return undefined;
   }, [locating, hasUserLocation, geoError]);
 
+  // ── Draggable pad ──────────────────────────────────────────────────────────
+  const [padPos, setPadPos] = useState(() => readSavedPadPosition() ?? getDefaultPos());
+  const dragRef = useRef({ dragging: false, startX: 0, startY: 0, startLeft: 0, startTop: 0 });
+  const lastTapRef = useRef(0);
+
+  const handlePadPointerDown = useCallback((e) => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      // Double-tap: snap back to default bottom-right position
+      lastTapRef.current = 0;
+      const pos = getDefaultPos();
+      setPadPos(pos);
+      savePadPosition(pos);
+      return;
+    }
+    lastTapRef.current = now;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = {
+      dragging: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      startLeft: padPos.left,
+      startTop: padPos.top,
+    };
+  }, [padPos]);
+
+  const handlePadPointerMove = useCallback((e) => {
+    if (!dragRef.current.dragging) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    setPadPos(clampPos(dragRef.current.startLeft + dx, dragRef.current.startTop + dy));
+  }, []);
+
+  const handlePadPointerUp = useCallback((e) => {
+    if (!dragRef.current.dragging) return;
+    dragRef.current.dragging = false;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      savePadPosition(clampPos(dragRef.current.startLeft + dx, dragRef.current.startTop + dy));
+    }
+  }, []);
+
+  const handlePadPointerCancel = useCallback(() => {
+    dragRef.current.dragging = false;
+  }, []);
+  // ────────────────────────────────────────────────────────────────────────────
+
   return (
     <>
       {/* Top info pill */}
@@ -102,9 +191,35 @@ const RadarOverlay = memo(function RadarOverlay({
         </div>
       </div>
 
-      {/* Compact 2×2 action pad */}
-      <div className="absolute bottom-52 right-4 z-[15]">
+      {/* Draggable 2×2 action pad */}
+      <div
+        className="absolute z-[15]"
+        style={{ left: padPos.left, top: padPos.top }}
+      >
         <div className="overflow-hidden rounded-[28px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
+
+          {/* Drag handle — pointer events captured here only */}
+          <div
+            onPointerDown={handlePadPointerDown}
+            onPointerMove={handlePadPointerMove}
+            onPointerUp={handlePadPointerUp}
+            onPointerCancel={handlePadPointerCancel}
+            style={{ touchAction: 'none' }}
+            className="flex flex-col items-center justify-center gap-[5px] h-8 border-b border-white/[0.06] cursor-grab active:cursor-grabbing select-none"
+            aria-label="Drag to reposition controls. Double-tap to reset."
+          >
+            <div className="flex gap-[5px]">
+              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
+              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
+              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
+            </div>
+            <div className="flex gap-[5px]">
+              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
+              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
+              <span className="h-[3px] w-[3px] rounded-full bg-white/25" />
+            </div>
+          </div>
+
           <div className="grid grid-cols-2">
 
             {/* Live */}
