@@ -225,8 +225,7 @@ export default function ProfileEditForm({ profile, onDone }) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <div className="rr-kicker mb-1">Your profile</div>
-            <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Edit profile</h1>
+            <h1 className="font-display text-xl font-bold tracking-tight text-foreground">Edit Profile</h1>
           </div>
           <div className="flex gap-2">
             <Button
@@ -249,14 +248,14 @@ export default function ProfileEditForm({ profile, onDone }) {
         </div>
 
         {/* Avatar Upload */}
-        <div className="rr-glass-panel p-4">
+        <div className="rounded-xl border border-white/[0.06] bg-surface/40 p-4">
           <div className="flex items-center gap-4">
             <div className="relative shrink-0">
               <div className="rr-avatar-ring">
                 {avatarPreview ? (
                   <img
                     src={avatarPreview}
-                    className="relative h-16 w-16 rounded-full border border-primary/30 object-cover"
+                    className="relative h-16 w-16 rounded-full border border-white/[0.10] object-cover"
                     alt=""
                   />
                 ) : (
@@ -269,7 +268,7 @@ export default function ProfileEditForm({ profile, onDone }) {
                 <Camera className="h-3 w-3 text-primary-foreground" />
               </div>
             </div>
-            <label className="rr-shimmer-button flex min-w-0 flex-1 cursor-pointer justify-center rounded-full border border-primary/25 bg-primary/10 px-4 py-2.5 text-center text-sm font-bold text-primary transition-colors hover:bg-primary/15 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/80">
+            <label className="flex min-w-0 flex-1 cursor-pointer justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-center text-sm font-medium text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-foreground focus-within:border-primary/30">
               <input
                 type="file"
                 accept="image/*"
@@ -288,15 +287,15 @@ export default function ProfileEditForm({ profile, onDone }) {
         </div>
 
         {/* Form Fields */}
-        <div className="rr-glass-panel space-y-4 p-4">
+        <div className="rounded-xl border border-white/[0.06] bg-surface/40 space-y-4 p-4">
           <FormField
             control={form.control}
             name="display_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="rr-kicker">Display name</FormLabel>
+                <FormLabel className="text-xs font-medium text-muted-foreground">Display name</FormLabel>
                 <FormControl>
-                  <Input {...field} className="rr-premium-input rounded-xl" />
+                  <Input {...field} className="rounded-xl" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -308,12 +307,12 @@ export default function ProfileEditForm({ profile, onDone }) {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="rr-kicker">Username</FormLabel>
+                <FormLabel className="text-xs font-medium text-muted-foreground">Username</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     className={cn(
-                      'rr-premium-input rounded-xl',
+                      'rounded-xl',
                       usernameAvailable === false && 'border-brand-emergency focus-visible:ring-brand-emergency'
                     )}
                     placeholder="unique_handle"
@@ -347,7 +346,7 @@ export default function ProfileEditForm({ profile, onDone }) {
               name="bike_year"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="rr-kicker">Year</FormLabel>
+                  <FormLabel className="text-xs font-medium text-muted-foreground">Year</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -356,7 +355,7 @@ export default function ProfileEditForm({ profile, onDone }) {
                       min={1900}
                       max={currentYear + 1}
                       value={field.value || ''}
-                      className="rr-premium-input rounded-xl"
+                      className="rounded-xl"
                     />
                   </FormControl>
                   <FormMessage />
@@ -368,11 +367,11 @@ export default function ProfileEditForm({ profile, onDone }) {
               name="bike_make"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="rr-kicker">Bike make</FormLabel>
+                  <FormLabel className="text-xs font-medium text-muted-foreground">Bike make</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      className="rr-premium-input rounded-xl"
+                      className="rounded-xl"
                       list="profile-bike-make-options"
                     />
                   </FormControl>
@@ -392,11 +391,11 @@ export default function ProfileEditForm({ profile, onDone }) {
             name="bike_model"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="rr-kicker">Bike model</FormLabel>
+                <FormLabel className="text-xs font-medium text-muted-foreground">Bike model</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
-                    className="rr-premium-input rounded-xl"
+                    className="rounded-xl"
                     list="profile-bike-model-options"
                   />
                 </FormControl>
@@ -415,7 +414,7 @@ export default function ProfileEditForm({ profile, onDone }) {
             name="bike_photo_url"
             render={({ field }) => (
               <FormItem>
-                <p className="text-sm font-medium leading-none rr-kicker">Bike photo</p>
+                <p className="text-xs font-medium text-muted-foreground">Bike photo</p>
                 <FormControl>
                   <BikePhotoUploader
                     image={bikePhotoLocal || field.value}
@@ -439,11 +438,11 @@ export default function ProfileEditForm({ profile, onDone }) {
             name="bio"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="rr-kicker">Bio</FormLabel>
+                <FormLabel className="text-xs font-medium text-muted-foreground">Bio</FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
-                    className="rr-premium-input rounded-xl"
+                    className="rounded-xl"
                     maxLength={220}
                     rows={3}
                   />

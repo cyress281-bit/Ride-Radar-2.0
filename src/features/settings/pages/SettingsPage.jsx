@@ -276,7 +276,7 @@ function SettingsPage() {
       </Link>
 
       {/* Profile Section */}
-      <SettingsSection title="Profile" icon={User}>
+      <SettingsSection title="Your Account" icon={User}>
         <Link to="/profile" className="block">
           <HStack align="center" gap={3} className="px-4 py-4 hover:bg-white/[0.02] transition-colors">
             <AvatarWithStatus
