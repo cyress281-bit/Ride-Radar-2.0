@@ -16,17 +16,19 @@ const BottomNav = memo(function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50"
+      className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-safe"
       aria-label="Main navigation"
     >
       <div
         className={cn(
-          'w-full',
-          'bg-surface/90 backdrop-blur-2xl',
-          'border-t border-white/[0.06]'
+          'mx-auto max-w-xl mb-2',
+          'bg-surface/85 backdrop-blur-xl',
+          'border border-white/[0.08]',
+          'rounded-2xl overflow-hidden',
+          'shadow-[0_-4px_24px_hsl(0_0%_0%/0.35)]'
         )}
       >
-        <div className="mx-auto max-w-xl flex items-center justify-around pb-safe">
+        <div className="flex items-center justify-around">
           {TABS.map((tab) => {
             const isActive =
               pathname === tab.to ||

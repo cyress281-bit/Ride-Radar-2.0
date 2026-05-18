@@ -92,13 +92,13 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
     <div
       ref={sheetRef}
       className={cn(
-        'absolute left-0 right-0 z-20 bg-surface/90 backdrop-blur-[32px] border-t border-white/[0.06] rounded-t-[24px] transition-transform duration-300 ease-out min-h-[56px]',
-        sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-56px)]'
+        'absolute left-0 right-0 z-20 bg-surface/90 backdrop-blur-[32px] border-t border-white/[0.06] rounded-t-[24px] transition-transform duration-300 ease-out min-h-[68px]',
+        sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-68px)]'
       )}
       style={{
-        bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
+        bottom: 'calc(68px + env(safe-area-inset-bottom, 0px))',
         maxHeight: sheetOpen
-          ? 'calc(100svh - 72px - env(safe-area-inset-bottom, 0px))'
+          ? 'calc(100svh - 68px - env(safe-area-inset-bottom, 0px))'
           : '70vh',
       }}
       {...sheetTouchHandlers}
@@ -108,9 +108,9 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
         onClick={() => setSheetOpen((v) => !v)}
         className="w-full flex flex-col items-center pt-3 pb-2 min-h-[44px] active:scale-[0.96] active:opacity-80 transition-all duration-150"
       >
-        <span className="h-1 w-10 rounded-full bg-white/20" />
+        <span className="h-1 w-12 rounded-full bg-white/30" />
         <HStack gap={2} align="center" className="mt-2">
-          <Radio className="w-3 h-3 text-primary" />
+          <Radio className="w-3.5 h-3.5 text-primary" />
           <Text variant="micro" className="text-foreground font-semibold">
             {peekLabel}
           </Text>

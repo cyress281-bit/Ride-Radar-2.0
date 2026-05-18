@@ -105,7 +105,7 @@ const RadarOverlay = memo(function RadarOverlay({
       {/* Radar command bar — overlays AppHeader's left zone, bell/avatar remain in AppHeader */}
       <div className="fixed top-0 left-0 right-0 z-[45] pt-safe pointer-events-none">
         <div className="mx-auto px-4 h-14 max-w-xl flex items-center">
-          <div className="flex items-center gap-1 pointer-events-auto">
+          <div className="flex items-center gap-0.5 pointer-events-auto bg-black/50 backdrop-blur-xl border border-white/[0.08] rounded-full px-1.5 py-1 shadow-[0_2px_16px_hsl(0_0%_0%/0.4)]">
 
             {/* Live */}
             <button
