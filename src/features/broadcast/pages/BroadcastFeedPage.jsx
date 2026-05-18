@@ -10,7 +10,6 @@ import { useBottomSheet } from '@/features/broadcast/hooks/use-bottom-sheet.js';
 import LiveMap from '@/features/map/components/LiveMap';
 import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
 import RadarOverlay from '@/features/broadcast/components/RadarOverlay';
-import RadarCommandBar from '@/features/broadcast/components/RadarCommandBar';
 import RadarBottomSheet from '@/features/broadcast/components/RadarBottomSheet';
 
 const RADAR_OFFLINE_SNAPSHOT_KEY = 'rr:radar-offline-snapshot';
@@ -214,7 +213,10 @@ function BroadcastFeedPage() {
         activeCount={activeCount}
         hasUserLocation={hasUserLocation}
         usingOfflineSnapshot={usingOfflineSnapshot}
+        requestLocation={handleRequestLocation}
+        locating={locating}
         geoError={geoError}
+        isLiveMapVisible={isLiveMapVisible}
       />
 
       <RadarBottomSheet
@@ -240,13 +242,6 @@ function BroadcastFeedPage() {
         peekLabel={peekLabel}
         totalCount={visibleBroadcasts.length}
         hasUserLocation={hasUserLocation}
-      />
-      <RadarCommandBar
-        requestLocation={handleRequestLocation}
-        locating={locating}
-        hasUserLocation={hasUserLocation}
-        isLiveMapVisible={isLiveMapVisible}
-        userId={user?.id}
       />
     </div>
   );

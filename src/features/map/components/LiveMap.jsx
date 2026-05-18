@@ -548,6 +548,7 @@ function LiveMap({
                 </Popup>
               </Marker>
             ))}
+            {variant === 'radar' && <CenterOnUserButton userLat={userLat} userLng={userLng} />}
           </MapContainer>
         </div>
         {variant !== 'radar' && <SignalList items={items} userLat={userLat} userLng={userLng} variant={variant} />}
