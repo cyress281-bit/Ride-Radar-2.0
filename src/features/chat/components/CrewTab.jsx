@@ -10,8 +10,14 @@ import { toast } from 'sonner';
 import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils.js';
-import { MessageSquare, Loader2, Users, UserMinus } from 'lucide-react';
+import { MessageSquare, Loader2, Users, UserMinus, MoreHorizontal } from 'lucide-react';
 
 const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUserId }) {
   const navigate = useNavigate();
@@ -99,14 +105,26 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
               : <MessageSquare className="w-3.5 h-3.5" />}
             Message
           </button>
-          <button
-            type="button"
-            onClick={() => setConfirming(true)}
-            className="flex items-center justify-center h-8 w-8 rounded-full border border-white/[0.06] text-muted-foreground hover:text-brand-emergency hover:border-brand-emergency/30 hover:bg-brand-emergency/10 transition-colors"
-            aria-label="Remove friend"
-          >
-            <UserMinus className="w-3.5 h-3.5" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center justify-center h-8 w-8 rounded-full border border-white/[0.06] text-muted-foreground hover:text-foreground hover:bg-surface-elevated transition-colors"
+                aria-label="More options"
+              >
+                <MoreHorizontal className="w-3.5 h-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[140px]">
+              <DropdownMenuItem
+                onClick={() => setConfirming(true)}
+                className="text-brand-emergency focus:text-brand-emergency focus:bg-brand-emergency/10 cursor-pointer"
+              >
+                <UserMinus className="w-3.5 h-3.5" />
+                Remove friend
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </HStack>
       )}
     </div>

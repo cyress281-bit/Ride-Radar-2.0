@@ -15,6 +15,7 @@ import {
   sendConnectionRequest,
   acceptConnectionRequest,
   declineConnectionRequest,
+  cancelConnectionRequest,
 } from '@/features/connections/api/connections-api.js';
 
 /** Query key factory for connection requests. */
@@ -201,6 +202,46 @@ export function useAcceptConnectionRequest() {
         description: error?.message || 'Please try again.',
         variant: 'destructive',
       });
+    },
+  });
+}
+
+/**
+ * Mutation hook to cancel an outgoing connection request.
+ * Optimistically removes the row from the sent list.
+ * @returns {import('@tanstack/react-query').UseMutationResult<null, Error, string>}
+ */
+export function useCancelConnectionRequest() {
+  const { user } = useAuthState();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (requestId) => {
+      const { data, error } = await cancelConnectionRequest(requestId);
+      if (error) throw error;
+      return data;
+    },
+    onMutate: async (requestId) => {
+      const sentKey = connectionRequestKeys.sent(user?.id);
+      await queryClient.cancelQueries({ queryKey: sentKey });
+      const previous = queryClient.getQueryData(sentKey);
+      queryClient.setQueryData(sentKey, (old = []) =>
+        old.filter((r) => r.id !== requestId)
+      );
+      return { previous, sentKey };
+    },
+    onError: (_error, _requestId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(context.sentKey, context.previous);
+      }
+      toast({
+        title: 'Failed to cancel request',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: connectionRequestKeys.all });
     },
   });
 }

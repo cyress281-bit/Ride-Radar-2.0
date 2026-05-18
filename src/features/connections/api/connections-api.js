@@ -194,6 +194,24 @@ export async function acceptConnectionRequest(requestId) {
 }
 
 /**
+ * Cancel a sent (outgoing) connection request.
+ * Only the sender can cancel — RLS enforces from_user_id = auth.uid().
+ * @param {string} requestId
+ * @returns {Promise<{data: null, error: Error|null}>}
+ */
+export async function cancelConnectionRequest(requestId) {
+  if (!isValidUuid(requestId)) return { data: null, error: new Error('Invalid requestId') };
+
+  const { error } = await supabase
+    .from('connection_requests')
+    .delete()
+    .eq('id', requestId)
+    .eq('status', 'pending');
+
+  return { data: null, error };
+}
+
+/**
  * Decline a connection request.
  * @param {string} requestId
  * @returns {Promise<{data: null, error: Error|null}>}

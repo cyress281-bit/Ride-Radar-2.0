@@ -8,7 +8,6 @@
 import { useCallback, useEffect, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
   LogOut,
   ShieldCheck,
   Trash2,
@@ -269,14 +268,6 @@ function SettingsPage() {
 
   return (
     <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
-      {/* Back link */}
-      <Link
-        to="/profile"
-        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 pressable self-start"
-      >
-        <ArrowLeft className="h-4 w-4" /> Profile
-      </Link>
-
       {/* Profile Section */}
       <SettingsSection title="Your Account" icon={User}>
         <Link to="/profile" className="block">

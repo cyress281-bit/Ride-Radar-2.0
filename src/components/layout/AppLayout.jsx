@@ -79,8 +79,9 @@ const AppLayout = memo(function AppLayout() {
         className={cn(
           isRadar
             ? 'fixed inset-0 z-0'
-            : 'relative z-10 mx-auto max-w-xl overflow-x-hidden pt-16 pb-nav-safe'
+            : 'relative z-10 mx-auto max-w-xl overflow-x-hidden pb-nav-safe'
         )}
+        style={!isRadar ? { paddingTop: 'calc(3.5rem + env(safe-area-inset-top, 0px))' } : undefined}
         role="main"
       >
         <Outlet />

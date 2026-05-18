@@ -15,7 +15,6 @@ import { getProfileByUserId } from '@/features/profile/api/profile-api';
 import { getOrCreateConversation } from '@/lib/conversationUtils';
 import { isValidUuid } from '@/lib/utils';
 import {
-  ArrowLeft,
   Bike,
   UserPlus,
   MessageCircle,
@@ -262,12 +261,6 @@ function RiderProfilePage() {
   if (!hasValidUserId) {
     return (
       <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 pressable"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back
-        </button>
         <EmptyState icon={User} title="Invalid rider link" description="The profile URL appears to be malformed." />
       </div>
     );
@@ -286,12 +279,6 @@ function RiderProfilePage() {
   if (isProfileError || !profile) {
     return (
       <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 pressable"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back
-        </button>
         <ErrorState
           title="Rider not found"
           message={profileError?.message || 'Rider profile not found or private.'}
@@ -303,15 +290,6 @@ function RiderProfilePage() {
 
   return (
     <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        aria-label="Go back"
-        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1 pressable self-start"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back
-      </button>
-
       {/* Profile Header Card */}
       <div className="relative overflow-hidden rounded-2xl backdrop-blur-xl bg-surface/80 border border-white/[0.06] shadow-[0_8px_32px_hsl(var(--primary)/0.04)]">
         <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />

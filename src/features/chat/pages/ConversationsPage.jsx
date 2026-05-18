@@ -13,7 +13,6 @@ import { supabase } from '@/lib/supabase.js';
 import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
 import { MessageSquare, Search, RefreshCw, UserPlus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
-import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { LoadingState } from '@/components/shared/LoadingState';
@@ -96,25 +95,10 @@ function ConversationsPage() {
     setTimeout(() => setIsRefreshing(false), 600);
   }, [refetch]);
 
-  const hasUnread = unreadMap.size > 0;
-
   return (
     <VStack gap={4} className="px-4 pt-4 pb-8 max-w-2xl mx-auto">
-      {/* Header */}
-      <HStack justify="between" align="center" className="px-1">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Text as="h1" variant="h1" color="default" className="rr-aggressive-heading">
-              Messages
-            </Text>
-            {hasUnread && (
-              <span
-                className="absolute -top-1 -right-3 h-2.5 w-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary)_/_0.8)]"
-                aria-label="Unread messages"
-              />
-            )}
-          </div>
-        </div>
+      {/* Controls */}
+      <HStack justify="end" align="center" className="px-1">
         <HStack gap={2} align="center">
           <button
             type="button"

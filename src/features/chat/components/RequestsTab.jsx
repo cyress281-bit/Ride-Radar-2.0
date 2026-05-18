@@ -5,6 +5,7 @@ import {
   useSentRequests,
   useAcceptConnectionRequest,
   useDeclineConnectionRequest,
+  useCancelConnectionRequest,
 } from '@/features/connections/hooks/use-connection-requests.js';
 import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
 import { useProfileBatch } from '@/hooks/use-profile-batch.js';
@@ -91,6 +92,7 @@ const IncomingRequestRow = memo(function IncomingRequestRow({ request, senderPro
 
 const OutgoingRequestRow = memo(function OutgoingRequestRow({ request, recipientProfile }) {
   const navigate = useNavigate();
+  const { mutate: cancelRequest, isPending: isCancelling } = useCancelConnectionRequest();
 
   return (
     <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md opacity-70">
@@ -116,9 +118,19 @@ const OutgoingRequestRow = memo(function OutgoingRequestRow({ request, recipient
         </VStack>
       </button>
 
-      <HStack align="center" gap={1.5} className="shrink-0">
-        <Clock className="w-3.5 h-3.5 text-brand-amber" />
-        <Text variant="micro" className="text-brand-amber font-medium">Sent</Text>
+      <HStack align="center" gap={2} className="shrink-0">
+        <HStack align="center" gap={1.5}>
+          <Clock className="w-3.5 h-3.5 text-brand-amber" />
+          <Text variant="micro" className="text-brand-amber font-medium">Sent</Text>
+        </HStack>
+        <button
+          type="button"
+          onClick={() => cancelRequest(request.id)}
+          disabled={isCancelling}
+          className="flex items-center justify-center px-2.5 py-1 rounded-full text-[11px] font-semibold border border-white/[0.08] text-muted-foreground hover:text-brand-emergency hover:border-brand-emergency/30 disabled:opacity-50 transition-colors"
+        >
+          {isCancelling ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Cancel'}
+        </button>
       </HStack>
     </div>
   );

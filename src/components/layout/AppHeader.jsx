@@ -85,8 +85,9 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { data: unreadCount = 0 } = useUnreadCount(user?.id);
   const isRadar = pathname === '/home';
   const isHome = pathname === '/home';
+  const isConversation = /^\/messages\/.+/.test(pathname);
   const isTransparent = isOverlay || isRadar;
-  const pageTitle = getPageTitle(pathname);
+  const pageTitle = isConversation ? '' : getPageTitle(pathname);
   const isBeta = import.meta.env.VITE_BETA_MODE === 'true';
 
   // Realtime connection status drives the LIVE chip color on the radar.
@@ -115,7 +116,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
 
   const avatarUrl = profile?.avatar_url;
   const displayName = profile?.display_name || profile?.username || 'Rider';
-  const showBackButton = !isHome;
+  const showBackButton = !isHome && !isConversation;
 
   return (
     <header
