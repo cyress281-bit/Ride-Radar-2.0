@@ -159,8 +159,12 @@ const NotificationItem = memo(function NotificationItem({
   const typeColors = getTypeColors(notification.type);
   const isEmergency = EMERGENCY_TYPES.has(notification.type);
 
-  // Swipe-to-dismiss state
+  // px left to trigger the reveal; how far the card sits when revealed
+  const SWIPE_THRESHOLD = 60;
+  const SWIPE_REVEAL_OFFSET = -80;
+
   const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isDeleteRevealed, setIsDeleteRevealed] = useState(false);
   const touchStartX = useRef(0);
   const isDragging = useRef(false);
 
@@ -172,41 +176,59 @@ const NotificationItem = memo(function NotificationItem({
   const handleTouchMove = useCallback((e) => {
     if (!isDragging.current) return;
     const diff = e.touches[0].clientX - touchStartX.current;
-    // Only allow left swipe
-    if (diff < 0) {
-      setSwipeOffset(Math.max(diff, -100));
+    // Base offset accounts for already-revealed state so swiping right closes it
+    const baseOffset = isDeleteRevealed ? SWIPE_REVEAL_OFFSET : 0;
+    const newOffset = baseOffset + diff;
+    if (newOffset <= 0) {
+      setSwipeOffset(Math.max(newOffset, -100));
     }
-  }, []);
+  }, [isDeleteRevealed, SWIPE_REVEAL_OFFSET]);
 
   const handleTouchEnd = useCallback(() => {
     isDragging.current = false;
-    if (swipeOffset < -60) {
-      onDelete?.(notification);
-      setSwipeOffset(0);
+    if (swipeOffset < -SWIPE_THRESHOLD) {
+      // Past threshold: hold card open so the delete button is visible
+      setIsDeleteRevealed(true);
+      setSwipeOffset(SWIPE_REVEAL_OFFSET);
     } else {
+      // Under threshold: snap back and hide delete zone
+      setIsDeleteRevealed(false);
       setSwipeOffset(0);
     }
-  }, [swipeOffset, onDelete, notification]);
+  }, [swipeOffset, SWIPE_THRESHOLD, SWIPE_REVEAL_OFFSET]);
+
+  const handleDelete = useCallback(() => {
+    onDelete?.(notification);
+    setSwipeOffset(0);
+    setIsDeleteRevealed(false);
+  }, [onDelete, notification]);
 
   const handleClick = useCallback(() => {
+    // When delete is revealed, a tap on the card closes it rather than navigating
+    if (isDeleteRevealed) {
+      setIsDeleteRevealed(false);
+      setSwipeOffset(0);
+      return;
+    }
     if (isUnread && onMarkRead) {
       onMarkRead(notification);
     }
     if (href) {
       navigate(href);
     }
-  }, [isUnread, onMarkRead, notification, href, navigate]);
+  }, [isDeleteRevealed, isUnread, onMarkRead, notification, href, navigate]);
 
   return (
     <div className="relative overflow-hidden">
-      {/* Swipe background — also tappable as a delete button */}
-      {onDelete && (
+      {/* Delete zone — rendered only when the card has moved so it never bleeds through at rest.
+          Fixed width matches the reveal offset so the X is fully exposed when held open. */}
+      {onDelete && (swipeOffset < 0 || isDeleteRevealed) && (
         <button
-          onClick={() => onDelete(notification)}
+          onClick={handleDelete}
           aria-label="Delete notification"
-          className="absolute inset-y-0 right-0 flex w-full items-center justify-end bg-brand-emergency/20 pr-4"
+          className="absolute inset-y-0 right-0 flex w-20 items-center justify-center bg-brand-emergency"
         >
-          <X className="h-5 w-5 text-brand-emergency" />
+          <X className="h-5 w-5 text-white" />
         </button>
       )}
 
