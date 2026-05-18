@@ -1,4 +1,5 @@
 import React, { memo, useCallback } from 'react';
+import { Image as ImageIcon } from 'lucide-react';
 import { cn, timeAgo } from '@/lib/utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
@@ -41,7 +42,8 @@ const ConversationItem = memo(function ConversationItem({
 
   const hasUnread = unreadCount > 0;
   const lastPreview = conversation.last_message?.body || conversation.last_message_preview;
-  const lastMessage = lastPreview || (conversation.last_message_at ? '📷 Photo' : '');
+  const hasPhotoPreview = !lastPreview && !!conversation.last_message_at;
+  const lastMessage = lastPreview || (hasPhotoPreview ? 'Photo' : '');
 
   return (
     <button
@@ -104,16 +106,30 @@ const ConversationItem = memo(function ConversationItem({
           </HStack>
 
           <HStack align="center" justify="between" gap={2}>
-            <Text
-              variant="caption"
-              color={hasUnread ? 'default' : 'muted'}
-              truncate
-              className={cn(hasUnread && 'text-foreground font-medium')}
-            >
-              {lastMessage || 'Start a conversation'}
-            </Text>
+            <HStack align="center" gap={1.5} className="min-w-0">
+              {hasPhotoPreview && (
+                <ImageIcon
+                  className={cn(
+                    'h-3.5 w-3.5 shrink-0',
+                    hasUnread ? 'text-foreground' : 'text-muted-foreground'
+                  )}
+                  aria-hidden="true"
+                />
+              )}
+              <Text
+                variant="caption"
+                color={hasUnread ? 'default' : 'muted'}
+                truncate
+                className={cn(hasUnread && 'text-foreground font-medium')}
+              >
+                {lastMessage || 'Start a conversation'}
+              </Text>
+            </HStack>
             {hasUnread && (
-              <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold shrink-0 shadow-[0_0_10px_rgba(57,255,20,0.35)]">
+              <span
+                className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold shrink-0 shadow-[0_0_10px_rgba(57,255,20,0.35)]"
+                aria-label={`${unreadCount} unread ${unreadCount === 1 ? 'message' : 'messages'}`}
+              >
                 {unreadCount}
               </span>
             )}

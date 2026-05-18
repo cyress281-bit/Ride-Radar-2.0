@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils.js';
 import { MAX_MESSAGE_LENGTH } from '@/lib/constants.js';
-import { Send, Paperclip, X } from 'lucide-react';
+import { Send, ImagePlus, X } from 'lucide-react';
 import { HStack } from '@/components/ui/primitives/Stack';
 import { toast } from 'sonner';
 
@@ -129,7 +129,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
           tabIndex={-1}
         />
 
-        {/* Attachment button */}
+        {/* Photo attachment button */}
         <button
           type="button"
           disabled={disabled || isSending}
@@ -143,9 +143,9 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
               ? 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
               : 'bg-surface/80 border-white/[0.06] text-muted-foreground hover:bg-surface-elevated hover:text-foreground hover:border-primary/15',
           )}
-          aria-label="Attach image"
+          aria-label="Attach photo"
         >
-          <Paperclip className="w-5 h-5" />
+          <ImagePlus className="w-5 h-5" />
         </button>
 
         {/* Textarea */}

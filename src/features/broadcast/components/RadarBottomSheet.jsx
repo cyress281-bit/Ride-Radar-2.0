@@ -2,16 +2,17 @@ import { memo, useMemo, useEffect } from 'react';
 import { SlidersHorizontal, ChevronUp, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import RRLogo from '@/components/RRLogo';
+import { SIGNAL_TYPE_ICONS } from '@/components/brand/SignalIcon';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack } from '@/components/ui/primitives/Stack';
 import RadarBroadcastList from './RadarBroadcastList';
 
 const FILTER_TYPES = [
-  { id: 'all', label: 'All' },
-  { id: 'alert', label: 'Warnings' },
-  { id: 'solo_ride', label: 'Riders' },
-  { id: 'iso', label: 'Help' },
-  { id: 'event', label: 'Events' },
+  { id: 'all', label: 'All', Icon: Radio },
+  { id: 'alert', label: 'Warnings', Icon: SIGNAL_TYPE_ICONS.alert },
+  { id: 'solo_ride', label: 'Riders', Icon: SIGNAL_TYPE_ICONS.solo_ride },
+  { id: 'iso', label: 'Help', Icon: SIGNAL_TYPE_ICONS.iso },
+  { id: 'event', label: 'Events', Icon: SIGNAL_TYPE_ICONS.event },
 ];
 
 const FILTER_STYLES = {
@@ -150,18 +151,20 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
           <div className="flex flex-1 items-center gap-2 overflow-x-auto px-1 scroll-hide [-webkit-overflow-scrolling:touch]">
             {FILTER_TYPES.map((f) => {
               const fStyle = FILTER_STYLES[f.id];
+              const Icon = f.Icon;
               return (
                 <button
                   key={f.id}
                   onClick={() => setFilter(f.id)}
                   disabled={isPending}
                   className={cn(
-                    'shrink-0 rounded-full px-4 py-2 min-h-[44px] text-xs font-bold transition-all duration-150 active:scale-[0.96] active:opacity-80 disabled:opacity-50 border',
+                    'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 min-h-[44px] text-xs font-bold transition-all duration-150 active:scale-[0.96] active:opacity-80 disabled:opacity-50 border',
                     filter === f.id
                       ? fStyle.active
                       : cn('bg-white/5 text-muted-foreground border-transparent', fStyle.inactive)
                   )}
                 >
+                  <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   {f.label}
                 </button>
               );

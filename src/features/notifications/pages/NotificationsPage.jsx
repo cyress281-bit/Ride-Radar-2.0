@@ -9,7 +9,7 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Check, Activity, Radio, WifiOff } from 'lucide-react';
+import { Check, Activity, Bell, WifiOff } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import RRLogo from '@/components/RRLogo';
 import { Button } from '@/components/ui/button';
@@ -115,7 +115,7 @@ function NotificationEmptyState() {
       <div className="pointer-events-none absolute top-1/2 left-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/5 blur-3xl" />
       <div className="absolute top-16 right-10 left-10 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       <div className="relative z-10 mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
-        <Radio className="h-7 w-7 text-primary" />
+        <Bell className="h-7 w-7 text-primary" />
       </div>
       <div className="relative z-10 flex items-center justify-center gap-2 mb-2">
         <RRLogo size="sm" className="opacity-70" />

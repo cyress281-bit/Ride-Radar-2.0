@@ -666,7 +666,35 @@
   }
 
   .rr-map-marker-alert { color: hsl(var(--alert)); }
-  .rr-map-marker-bike-down { color: hsl(var(--destructive)); }
+  .rr-map-marker-bike-down {
+    width: 40px;
+    height: 40px;
+    margin: 2px;
+    border-radius: 10px;
+    color: hsl(var(--destructive));
+    transform: rotate(45deg);
+    border-color: hsl(var(--destructive) / 0.55);
+    box-shadow:
+      0 0 0 3px hsl(var(--destructive) / 0.12),
+      0 0 28px hsl(var(--destructive) / 0.38),
+      0 14px 30px hsl(0 0% 0% / 0.58);
+  }
+  .rr-map-marker-bike-down span {
+    inset: 12px;
+    border-radius: 3px;
+  }
+  .rr-map-marker-bike-down::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 3px;
+    height: 18px;
+    border-radius: 999px;
+    background: hsl(var(--destructive-foreground));
+    box-shadow: 0 0 10px hsl(var(--destructive-foreground) / 0.65);
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
   .rr-map-marker-solo { color: hsl(var(--solo)); }
   .rr-map-marker-iso { color: hsl(var(--iso)); }
   .rr-map-marker-event { color: hsl(var(--event)); }

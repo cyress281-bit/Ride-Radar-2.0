@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { ShieldAlert, Search, CalendarClock, Wrench, Siren } from 'lucide-react';
+import { ShieldAlert, CalendarClock, Wrench, Siren } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 
@@ -11,8 +11,7 @@ const styles = {
     dot: 'bg-solo',
   },
   iso: {
-    Icon: Search,
-    Accent: Wrench,
+    Icon: Wrench,
     shell: 'border-iso/30 bg-iso/8 text-iso shadow-[inset_0_1px_0_hsl(0_0%_100%/0.06)]',
     beam: 'bg-iso/45',
     dot: 'bg-iso',
@@ -37,6 +36,14 @@ const styles = {
   },
 };
 
+export const SIGNAL_TYPE_ICONS = {
+  solo_ride: OfficialMotorcycleIcon,
+  iso: Wrench,
+  event: CalendarClock,
+  alert: ShieldAlert,
+  bike_down: Siren,
+};
+
 /**
  * Memoized signal icon - rendered once per BroadcastCard in the feed.
  * Props (type, size) are stable primitive values that rarely change,
@@ -45,7 +52,6 @@ const styles = {
 const SignalIcon = memo(function SignalIcon({ type = 'solo_ride', size = 'md', className }) {
   const config = styles[type] || styles.solo_ride;
   const Icon = config.Icon;
-  const Accent = config.Accent;
   const sizes = {
     sm: 'w-10 h-10 rounded-xl',
     md: 'w-12 h-12 rounded-2xl',
@@ -63,7 +69,6 @@ const SignalIcon = memo(function SignalIcon({ type = 'solo_ride', size = 'md', c
       ) : (
         <Icon className={cn('relative z-10', iconSizes[size])} strokeWidth={2.35} />
       )}
-      {Accent && <Accent className="absolute right-1.5 top-1.5 h-3.5 w-3.5 rounded-full bg-background/75 p-0.5 text-current" strokeWidth={2.4} />}
     </div>
   );
 });

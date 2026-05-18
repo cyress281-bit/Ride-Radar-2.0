@@ -24,7 +24,7 @@ import {
   Lock,
   MapPin,
   Calendar,
-  Grid3X3,
+  Images,
   User,
   Ban,
   Loader2,
@@ -541,13 +541,13 @@ function RiderProfilePage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full grid grid-cols-3 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
             <TabsTrigger value="broadcasts" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-              <Radio className="w-3.5 h-3.5" /> Signals
+              <Radio className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Signals
             </TabsTrigger>
             <TabsTrigger value="about" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-              <User className="w-3.5 h-3.5" /> About
+              <User className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> About
             </TabsTrigger>
             <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-              <Grid3X3 className="w-3.5 h-3.5" /> Shots
+              <Images className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Shots
             </TabsTrigger>
           </TabsList>
 
@@ -617,7 +617,7 @@ function RiderProfilePage() {
               <ErrorState title="Shots unavailable" onRetry={refetchPosts} />
             ) : riderPosts.length === 0 ? (
               <EmptyState
-                icon={Grid3X3}
+                icon={Images}
                 title="No shots yet"
                 description="This rider hasn't shared any shots yet."
               />

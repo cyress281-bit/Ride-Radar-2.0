@@ -11,7 +11,7 @@ import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
-import { MessageCircle, Loader2, Users, UserMinus } from 'lucide-react';
+import { MessageSquare, Loader2, Users, UserMinus } from 'lucide-react';
 
 const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUserId }) {
   const navigate = useNavigate();
@@ -96,7 +96,7 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
           >
             {openChat.isPending
               ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              : <MessageCircle className="w-3.5 h-3.5" />}
+              : <MessageSquare className="w-3.5 h-3.5" />}
             Message
           </button>
           <button

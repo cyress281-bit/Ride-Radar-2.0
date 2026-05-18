@@ -1,6 +1,5 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Route } from 'lucide-react';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
@@ -81,15 +80,7 @@ const BroadcastTypeSelector = memo(function BroadcastTypeSelector({ onSelect }) 
             )}
           >
             <HStack gap={3} align="center" className="px-4 py-3.5">
-              {group.id === 'solo_ride' ? (
-                <div className="relative shrink-0 border overflow-hidden flex items-center justify-center w-12 h-12 rounded-2xl border-primary/30 bg-primary/10 text-primary shadow-[inset_0_1px_0_hsl(0_0%_100%/0.06)]">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_20%,hsl(0_0%_100%/0.12),transparent_42%)]" />
-                  <div className="absolute inset-1 rounded-[inherit] border border-current/10" />
-                  <Route className="relative z-10 w-6 h-6" strokeWidth={2.35} />
-                </div>
-              ) : (
-                <SignalIcon type={group.id} size="md" />
-              )}
+              <SignalIcon type={group.id} size="md" />
               <VStack gap={0.5} flex>
                 <Text variant="body" className={cn('font-bold', styles.text)}>
                   {group.label}

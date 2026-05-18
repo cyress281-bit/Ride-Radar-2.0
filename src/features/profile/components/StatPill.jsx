@@ -14,7 +14,7 @@ const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading, b
     <div className="flex-1 surface-card p-3 text-center">
       <div className="flex items-center justify-center mb-1.5">
         <div className={cn('flex h-7 w-7 items-center justify-center rounded-full border', style.border, style.bg)}>
-          <Icon className={cn('h-3.5 w-3.5', style.text)} />
+          <Icon className={cn('h-3.5 w-3.5', style.text)} strokeWidth={2} />
         </div>
       </div>
       <Text variant="bodySm" className={cn('block font-bold truncate', style.text)}>

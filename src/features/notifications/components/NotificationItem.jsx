@@ -11,11 +11,11 @@ import {
   Bell,
   UserPlus,
   UserCheck,
-  MessageCircle,
   MessageSquare,
   Megaphone,
   AlertTriangle,
-  Radio,
+  CalendarClock,
+  Info,
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
@@ -59,21 +59,22 @@ function getIconForType(type) {
       return UserCheck;
     case 'message':
     case 'new_message':
-      return MessageCircle;
+      return MessageSquare;
     case 'broadcast_comment':
     case 'post_comment':
       return MessageSquare;
     case 'broadcast':
+    case 'announcement':
+      return Megaphone;
     case 'rsvp':
     case 'event_reminder':
-      return Megaphone;
+      return CalendarClock;
     case 'bike_down':
     case 'sos':
     case 'alert':
       return AlertTriangle;
     case 'system':
-    case 'announcement':
-      return Radio;
+      return Info;
     default:
       return Bell;
   }
@@ -244,7 +245,10 @@ const NotificationItem = memo(function NotificationItem({
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-foreground">{notification.title}</span>
             {isUnread && (
-              <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.8)]" />
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.8)]" />
+                New
+              </span>
             )}
           </div>
 

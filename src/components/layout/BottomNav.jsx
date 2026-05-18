@@ -56,11 +56,10 @@ const BottomNav = memo(function BottomNav() {
                 <VStack align="center" gap={0.5}>
                   <Icon
                     className={cn(
-                      'transition-all duration-200',
+                      'transition-colors duration-200',
                       'h-[22px] w-[22px]'
                     )}
-                    strokeWidth={isActive ? 2.5 : 1.5}
-                    fill={isActive ? 'hsl(var(--primary) / 0.12)' : 'none'}
+                    strokeWidth={2}
                     aria-hidden="true"
                   />
 

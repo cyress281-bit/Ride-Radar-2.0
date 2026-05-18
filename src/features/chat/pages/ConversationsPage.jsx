@@ -11,7 +11,7 @@ import RequestsTab from '@/features/chat/components/RequestsTab.jsx';
 import RiderSearch from '@/features/chat/components/RiderSearch.jsx';
 import { supabase } from '@/lib/supabase.js';
 import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
-import { MessageCircle, Search, RefreshCw } from 'lucide-react';
+import { MessageSquare, Search, RefreshCw, UserPlus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
@@ -108,7 +108,10 @@ function ConversationsPage() {
               Messages
             </Text>
             {hasUnread && (
-              <span className="absolute -top-1 -right-3 h-2.5 w-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary)_/_0.8)]" />
+              <span
+                className="absolute -top-1 -right-3 h-2.5 w-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_hsl(var(--primary)_/_0.8)]"
+                aria-label="Unread messages"
+              />
             )}
           </div>
         </div>
@@ -161,6 +164,7 @@ function ConversationsPage() {
               : 'bg-surface/60 border border-white/[0.06] text-muted-foreground hover:text-foreground',
           )}
         >
+          <MessageSquare className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" aria-hidden="true" />
           Chats
         </button>
         <button
@@ -173,6 +177,7 @@ function ConversationsPage() {
               : 'bg-surface/60 border border-white/[0.06] text-muted-foreground hover:text-foreground',
           )}
         >
+          <Users className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" aria-hidden="true" />
           Friends
         </button>
         <button
@@ -185,6 +190,7 @@ function ConversationsPage() {
               : 'bg-surface/60 border border-white/[0.06] text-muted-foreground hover:text-foreground',
           )}
         >
+          <UserPlus className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" aria-hidden="true" />
           Requests
           {pendingCount > 0 && (
             <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold text-white flex items-center justify-center">
@@ -247,7 +253,7 @@ function ConversationsPage() {
                 />
               ) : (
                 <EmptyState
-                  icon={MessageCircle}
+                  icon={MessageSquare}
                   title="No rider messages yet."
                   description="Find a rider or start a signal to open a conversation."
                   action={{ label: 'Find a Rider', onClick: () => navigate('/home'), variant: 'default' }}

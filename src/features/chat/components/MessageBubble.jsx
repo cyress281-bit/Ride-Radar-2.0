@@ -2,7 +2,7 @@ import React, { memo, useState, useRef, useCallback } from 'react';
 import { cn, timeAgo } from '@/lib/utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
-import { Check, Smile } from 'lucide-react';
+import { Check, ImageOff, Smile } from 'lucide-react';
 
 /**
  * Single message bubble.
@@ -85,13 +85,14 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
           {message.image_url && (
             <div className={cn('rounded-xl overflow-hidden', message.body && 'mb-2')}>
               {imageError ? (
-                <div className="flex items-center justify-center w-full max-w-[260px] h-16 rounded-xl bg-white/[0.05] border border-white/[0.08]">
+                <div className="flex items-center justify-center gap-2 w-full max-w-[260px] h-16 rounded-xl bg-white/[0.05] border border-white/[0.08]">
+                  <ImageOff className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                   <span className="text-xs text-muted-foreground">Photo unavailable</span>
                 </div>
               ) : (
                 <img
                   src={message.image_url}
-                  alt="Photo"
+                  alt="Attached photo"
                   className="w-full max-w-[260px] rounded-xl object-cover block"
                   loading="lazy"
                   onError={() => setImageError(true)}

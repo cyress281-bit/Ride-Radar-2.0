@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShieldAlert, Route, Search, CalendarClock, ArrowLeft, Upload, MapPin, Users, Siren, LocateFixed } from 'lucide-react';
+import { ArrowLeft, Upload, MapPin, Users, LocateFixed, Wrench } from 'lucide-react';
 import AlertPhotoUploader from './AlertPhotoUploader';
 import AlertPinMap from './AlertPinMap';
 import { useRadarLocation } from '@/features/broadcast/hooks/use-radar-location';
@@ -22,11 +22,11 @@ import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 
 const TYPES = [
-  { id: 'solo_ride', label: 'Ride Now', desc: 'Open a live riding signal', icon: Route, color: 'solo' },
-  { id: 'event', label: 'Plan a Meetup', desc: 'Stage a meetup or group ride', icon: CalendarClock, color: 'event' },
-  { id: 'iso', label: 'Need Help', desc: 'Find wrench help or a bike crew', icon: Search, color: 'iso' },
-  { id: 'alert', label: 'Road Warning', desc: 'Road hazard, one-way broadcast', icon: ShieldAlert, color: 'alert' },
-  { id: 'bike_down', label: 'Bike Down', desc: 'Fast safety alert — accident or rider down', icon: Siren, color: 'bike_down' },
+  { id: 'solo_ride', label: 'Ride Now', desc: 'Open a live riding signal', color: 'solo' },
+  { id: 'event', label: 'Plan a Meetup', desc: 'Stage a meetup or group ride', color: 'event' },
+  { id: 'iso', label: 'Need Help', desc: 'Find wrench help or a bike crew', color: 'iso' },
+  { id: 'alert', label: 'Road Warning', desc: 'Road hazard, one-way broadcast', color: 'alert' },
+  { id: 'bike_down', label: 'Bike Down', desc: 'Fast safety alert — accident or rider down', color: 'bike_down' },
 ];
 
 const TYPE_STYLE_MAP = {
@@ -285,7 +285,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             <Label id="isoSubtype-label" className="rr-kicker text-muted-foreground mb-1 block">What do you need?</Label>
             <div role="radiogroup" aria-labelledby="isoSubtype-label" className="grid grid-cols-2 gap-2">
               {[
-                { value: 'mechanic', label: 'Mechanic', icon: ShieldAlert },
+                { value: 'mechanic', label: 'Mechanic', icon: Wrench },
                 { value: 'bike_crew', label: 'Bike Crew', icon: Users },
               ].map((opt) => (
                 <button

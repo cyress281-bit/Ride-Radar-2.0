@@ -7,6 +7,7 @@ import { VStack } from '@/components/ui/primitives/Stack';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { LoadingState } from '@/components/shared/LoadingState';
 import { Radio } from 'lucide-react';
+import { SIGNAL_TYPE_ICONS } from '@/components/brand/SignalIcon';
 
 /**
  * Virtualized list of broadcasts for the radar bottom sheet.
@@ -66,33 +67,35 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
     const emptyStates = {
       all: hasUserLocation
         ? {
+            icon: Radio,
             title: 'Radar is quiet nearby.',
             description: "You'll see nearby rides, events, help requests, and warnings here.",
             action: { label: 'Start a signal', onClick: () => navigate('/broadcast') },
           }
         : {
+            icon: Radio,
             title: 'Enable location to see nearby signals',
             description: 'Radar is showing a US overview. Tap the locate button to scan your area.',
             action: { label: 'Start a signal', onClick: () => navigate('/broadcast') },
           },
       alert: hasUserLocation
-        ? { title: 'No warnings nearby.', description: 'Roads are clear. Ride safe.' }
-        : { title: 'Enable location to see warnings.', description: 'Tap Find me to scan your area.', action: noLocAction },
+        ? { icon: SIGNAL_TYPE_ICONS.alert, title: 'No warnings nearby.', description: 'Roads are clear. Ride safe.' }
+        : { icon: SIGNAL_TYPE_ICONS.alert, title: 'Enable location to see warnings.', description: 'Tap Find me to scan your area.', action: noLocAction },
       solo_ride: hasUserLocation
-        ? { title: 'No riders nearby right now.', description: "Start a ride signal when you're out.", action: { label: 'Ride Now', onClick: () => navigate('/broadcast') } }
-        : { title: 'Enable location to find riders.', description: 'Tap Find me to scan your area.', action: noLocAction },
+        ? { icon: SIGNAL_TYPE_ICONS.solo_ride, title: 'No riders nearby right now.', description: "Start a ride signal when you're out.", action: { label: 'Ride Now', onClick: () => navigate('/broadcast') } }
+        : { icon: SIGNAL_TYPE_ICONS.solo_ride, title: 'Enable location to find riders.', description: 'Tap Find me to scan your area.', action: noLocAction },
       iso: hasUserLocation
-        ? { title: 'No help requests nearby.', description: 'Find crew or mechanical support when you need it.', action: { label: 'Request Help', onClick: () => navigate('/broadcast') } }
-        : { title: 'Enable location to see help requests.', description: 'Tap Find me to scan your area.', action: noLocAction },
+        ? { icon: SIGNAL_TYPE_ICONS.iso, title: 'No help requests nearby.', description: 'Find crew or mechanical support when you need it.', action: { label: 'Request Help', onClick: () => navigate('/broadcast') } }
+        : { icon: SIGNAL_TYPE_ICONS.iso, title: 'Enable location to see help requests.', description: 'Tap Find me to scan your area.', action: noLocAction },
       event: hasUserLocation
-        ? { title: 'No events nearby this week.', description: 'Plan a meetup, bike night, or group ride.', action: { label: 'Plan a Meetup', onClick: () => navigate('/broadcast') } }
-        : { title: 'Enable location to see events.', description: 'Tap Find me to scan your area.', action: noLocAction },
+        ? { icon: SIGNAL_TYPE_ICONS.event, title: 'No events nearby this week.', description: 'Plan a meetup, bike night, or group ride.', action: { label: 'Plan a Meetup', onClick: () => navigate('/broadcast') } }
+        : { icon: SIGNAL_TYPE_ICONS.event, title: 'Enable location to see events.', description: 'Tap Find me to scan your area.', action: noLocAction },
     };
     const emptyConfig = emptyStates[filter] || emptyStates.all;
 
     return (
       <EmptyState
-        icon={Radio}
+        icon={emptyConfig.icon}
         title={emptyConfig.title}
         description={emptyConfig.description}
         action={emptyConfig.action}

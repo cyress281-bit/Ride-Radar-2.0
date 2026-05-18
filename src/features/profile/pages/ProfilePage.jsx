@@ -9,7 +9,7 @@ import { useState, useMemo, memo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
-import { Edit2, Settings, LogOut, Radio, Users, ShieldCheck, Bike, MapPin, Calendar, Camera, User, Grid3X3 } from 'lucide-react';
+import { Edit2, Settings, LogOut, Radio, Users, ShieldCheck, Bike, MapPin, Calendar, Camera, User, Images } from 'lucide-react';
 import { Badge } from '@/components/shared/Badge';
 import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
 import OptimizedImage from '@/components/shared/OptimizedImage';
@@ -247,13 +247,13 @@ function ProfilePage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full grid grid-cols-3 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
           <TabsTrigger value="broadcasts" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-            <Radio className="w-3.5 h-3.5" /> Signals
+            <Radio className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Signals
           </TabsTrigger>
           <TabsTrigger value="about" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-            <User className="w-3.5 h-3.5" /> About
+            <User className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> About
           </TabsTrigger>
           <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-            <Grid3X3 className="w-3.5 h-3.5" /> Shots
+            <Images className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Shots
           </TabsTrigger>
         </TabsList>
 
@@ -356,7 +356,7 @@ function ProfilePage() {
                 Add Shot
               </button>
               <EmptyState
-                icon={Grid3X3}
+                icon={Images}
                 title="No shots yet"
                 description="Share bike photos, ride moments, or group shots here."
               />

@@ -14,10 +14,10 @@ import {
   Trash2,
   Mail,
   FileText,
-  Database,
   Download,
   Check,
   Smartphone,
+  AppWindow,
   Bell,
   MapPin,
   Eye,
@@ -25,7 +25,9 @@ import {
   ChevronRight,
   User,
   Settings2,
-  Heart,
+  ChartNoAxesColumn,
+  ClipboardCheck,
+  BadgeInfo,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -79,7 +81,7 @@ const SettingsRow = memo(function SettingsRow({
       )}
     >
       <div className="flex h-8 w-8 shrink-0 items-center justify-center">
-        <Icon className={cn('h-5 w-5', danger ? 'text-brand-emergency' : 'text-primary')} />
+        <Icon className={cn('h-5 w-5', danger ? 'text-brand-emergency' : 'text-primary')} strokeWidth={2} />
       </div>
       <VStack flex className="min-w-0">
         <Text variant="bodySm" className={cn('font-semibold', danger && 'text-brand-emergency')}>
@@ -366,7 +368,7 @@ function SettingsPage() {
         )}
         <div className="border-t border-border/40">
           <SettingsRow
-            icon={Heart}
+            icon={ChartNoAxesColumn}
             label="Anonymous usage analytics"
             desc="Help improve the app (no personal data collected)"
             toggle={settings?.analytics_enabled !== false}
@@ -416,14 +418,14 @@ function SettingsPage() {
         )}
         <div className="border-t border-border/40">
           <SettingsRow
-            icon={Smartphone}
+            icon={BadgeInfo}
             label="App Version"
             value={import.meta.env.VITE_APP_VERSION || 'dev'}
           />
         </div>
         <div className="border-t border-border/40">
           <SettingsRow
-            icon={Smartphone}
+            icon={AppWindow}
             label="Environment"
             value={
               import.meta.env.PROD
@@ -448,7 +450,7 @@ function SettingsPage() {
         </div>
         <div className="border-t border-border/40">
           <Link to="/review-readiness" className="block">
-            <SettingsRow icon={Database} label="Data Safety Summary" desc="Store review disclosure checklist" />
+            <SettingsRow icon={ClipboardCheck} label="Data Safety Summary" desc="Store review disclosure checklist" />
           </Link>
         </div>
         <div className="border-t border-border/40">
