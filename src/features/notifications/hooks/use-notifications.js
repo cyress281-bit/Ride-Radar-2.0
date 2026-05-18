@@ -260,6 +260,8 @@ export function useMarkAllAsRead() {
 
 /**
  * Mutation hook to delete a notification.
+ * Optimistically removes the item from all cached notification lists
+ * so the UI updates immediately on swipe, with rollback on error.
  */
 export function useDeleteNotification() {
   const qc = useQueryClient();
@@ -270,15 +272,29 @@ export function useDeleteNotification() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_data, _notificationId) => {
-      qc.invalidateQueries({ queryKey: notificationKeys.all });
+    onMutate: async (notificationId) => {
+      await qc.cancelQueries({ queryKey: notificationKeys.all });
+      const previousData = qc.getQueriesData({ queryKey: notificationKeys.all });
+      qc.setQueriesData({ queryKey: notificationKeys.all }, (old) => {
+        if (!Array.isArray(old)) return old;
+        return old.filter((n) => n.id !== notificationId);
+      });
+      return { previousData };
     },
-    onError: (error) => {
+    onError: (error, _notificationId, context) => {
+      if (context?.previousData) {
+        context.previousData.forEach(([queryKey, data]) => {
+          qc.setQueryData(queryKey, data);
+        });
+      }
       toast({
         title: 'Failed to delete notification',
         description: error?.message || 'Please try again.',
         variant: 'destructive',
       });
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: notificationKeys.all });
     },
   });
 }

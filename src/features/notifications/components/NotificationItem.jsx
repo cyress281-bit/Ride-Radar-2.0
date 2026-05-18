@@ -199,11 +199,15 @@ const NotificationItem = memo(function NotificationItem({
 
   return (
     <div className="relative overflow-hidden">
-      {/* Swipe background */}
+      {/* Swipe background — also tappable as a delete button */}
       {onDelete && (
-        <div className="absolute inset-y-0 right-0 flex w-full items-center justify-end bg-brand-emergency/20 pr-4">
+        <button
+          onClick={() => onDelete(notification)}
+          aria-label="Delete notification"
+          className="absolute inset-y-0 right-0 flex w-full items-center justify-end bg-brand-emergency/20 pr-4"
+        >
           <X className="h-5 w-5 text-brand-emergency" />
-        </div>
+        </button>
       )}
 
       <div
