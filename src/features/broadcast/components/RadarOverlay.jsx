@@ -5,9 +5,6 @@ import { cn } from '@/lib/utils.js';
  * Floating UI overlays for the radar view:
  * - Top signal-count pill
  * - Location error banner
- *
- * Radar command actions (Live, Signal, Locate, Bike Down) now live
- * inside AppHeader, accessed via RadarCommandContext.
  */
 const RadarOverlay = memo(function RadarOverlay({
   activeCount,
