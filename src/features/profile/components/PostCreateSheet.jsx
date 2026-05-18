@@ -52,7 +52,7 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
 
   const handleSubmit = useCallback(async () => {
     if (photos.length === 0) {
-      setError('Add at least one photo.');
+      setError('Add at least one photo to create a shot.');
       return;
     }
     setError('');
@@ -60,7 +60,7 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
       await createPost.mutateAsync({ userId, caption: caption.trim() || undefined, photos });
       handleClose();
     } catch (err) {
-      setError(err?.message || 'Failed to create post. Please try again.');
+      setError(err?.message || 'Failed to create shot. Please try again.');
     }
   }, [photos, caption, userId, createPost, handleClose]);
 
@@ -75,7 +75,7 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
       className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto animate-fade-up"
       role="dialog"
       aria-modal="true"
-      aria-label="Create post"
+      aria-label="Create shot"
     >
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 border-b border-white/[0.06] bg-surface/80 backdrop-blur-xl">
@@ -87,7 +87,7 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
         >
           <X className="h-5 w-5" />
         </button>
-        <Text variant="bodySm" className="font-bold">New Post</Text>
+        <Text variant="bodySm" className="font-bold">New Shot</Text>
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
@@ -101,9 +101,9 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
           {createPost.isPending ? (
             <span className="flex items-center gap-1.5">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Posting…
+              Sharing…
             </span>
-          ) : 'Post'}
+          ) : 'Share'}
         </button>
       </div>
 
@@ -126,9 +126,6 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
               >
                 <X className="h-3.5 w-3.5" />
               </button>
-              <span className="absolute bottom-1 left-1 text-[10px] font-bold text-white/60 tabular-nums select-none">
-                {idx + 1}
-              </span>
             </div>
           ))}
 

@@ -28,7 +28,7 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, c
       await deletePost.mutateAsync({ postId: post.id, userId });
       onClose();
     } catch (err) {
-      setError(err?.message || 'Failed to delete post. Please try again.');
+      setError(err?.message || 'Failed to delete shot. Please try again.');
       setConfirmDelete(false);
     }
   }, [post?.id, userId, deletePost, onClose]);
@@ -40,7 +40,7 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, c
       className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto animate-fade-up"
       role="dialog"
       aria-modal="true"
-      aria-label="Post"
+      aria-label="Shot"
     >
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 border-b border-white/[0.06] bg-surface/80 backdrop-blur-xl">
@@ -51,13 +51,15 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, c
         >
           <X className="h-5 w-5" />
         </button>
-        <Text variant="bodySm" className="font-bold">Post</Text>
+        <div className="absolute left-1/2 -translate-x-1/2 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 shadow-[0_8px_24px_hsl(var(--background)/0.25)]">
+          <Text variant="bodySm" className="font-extrabold tracking-wide text-foreground">Shot</Text>
+        </div>
         {canDelete && (
           <button
             onClick={() => setConfirmDelete(true)}
             disabled={deletePost.isPending}
             className="flex items-center justify-center h-9 w-9 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
-            aria-label="Delete post"
+            aria-label="Delete shot"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -153,9 +155,9 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, c
             onClick={(e) => e.stopPropagation()}
           >
             <VStack gap={3}>
-              <Text variant="bodySm" className="font-bold text-center">Delete this post?</Text>
+              <Text variant="bodySm" className="font-bold text-center">Delete this shot?</Text>
               <Text variant="caption" color="muted" className="block text-center">
-                This permanently removes the post and all its photos.
+                This permanently removes the shot and all its photos.
               </Text>
               <div className="grid grid-cols-2 gap-3">
                 <button

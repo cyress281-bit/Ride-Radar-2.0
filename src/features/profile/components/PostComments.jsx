@@ -72,7 +72,6 @@ const PostComments = memo(function PostComments({ postId, postOwnerId, currentUs
   const inputId = useId();
   const [body, setBody] = useState('');
   const [deletingId, setDeletingId] = useState(null);
-  const inputRef = useRef(null);
   const bottomRef = useRef(null);
   const prevLengthRef = useRef(null);
 
@@ -166,7 +165,6 @@ const PostComments = memo(function PostComments({ postId, postOwnerId, currentUs
       {/* Composer */}
       <div className="sticky bottom-0 flex items-center gap-2 px-4 py-3 border-t border-white/[0.06] bg-surface/95 backdrop-blur-xl">
         <input
-          ref={inputRef}
           id={inputId}
           type="text"
           value={body}

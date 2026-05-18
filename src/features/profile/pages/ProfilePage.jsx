@@ -9,7 +9,7 @@ import { useState, useMemo, memo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
-import { Edit2, Settings, LogOut, Radio, Users, ShieldCheck, Bike, MapPin, Calendar, Grid3X3, User } from 'lucide-react';
+import { Edit2, Settings, LogOut, Radio, Users, ShieldCheck, Bike, MapPin, Calendar, Camera, User, Grid3X3 } from 'lucide-react';
 import { Badge } from '@/components/shared/Badge';
 import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
 import OptimizedImage from '@/components/shared/OptimizedImage';
@@ -139,7 +139,7 @@ function ProfilePage() {
                   <OptimizedImage
                     src={displayProfile.avatar_url}
                     alt=""
-                    containerClassName="h-24 w-24 shrink-0 rounded-full"
+                    containerClassName="h-28 w-28 shrink-0 rounded-full"
                     className="rounded-full"
                     objectFit="cover"
                     loading="eager"
@@ -149,13 +149,11 @@ function ProfilePage() {
                     onError={() => setAvatarError(true)}
                   />
                 ) : (
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-brand-radar/20 to-brand-amber/20 font-display text-3xl font-bold text-primary">
+                  <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-brand-radar/20 to-brand-amber/20 font-display text-4xl font-bold text-primary">
                     {displayProfile?.display_name?.[0]?.toUpperCase() || '?'}
                   </div>
                 )}
               </div>
-              {/* Online indicator */}
-              <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-background bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
             </div>
 
             {/* Name & Username */}
@@ -255,7 +253,7 @@ function ProfilePage() {
             <User className="w-3.5 h-3.5" /> About
           </TabsTrigger>
           <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-            <Grid3X3 className="w-3.5 h-3.5" /> Posts
+            <Grid3X3 className="w-3.5 h-3.5" /> Shots
           </TabsTrigger>
         </TabsList>
 
@@ -317,8 +315,8 @@ function ProfilePage() {
                 <div className="flex items-center gap-3 px-4 py-3.5">
                   <Calendar className="h-4 w-4 text-brand-amber shrink-0" />
                   <VStack gap={0.5}>
-                    <Text variant="micro" className="text-brand-amber font-semibold uppercase tracking-wide">Joined</Text>
-                    <Text variant="bodySm" className="font-semibold">{joinDate}</Text>
+                    <Text variant="micro" color="muted">Joined</Text>
+                    <Text variant="micro" color="muted">{joinDate}</Text>
                   </VStack>
                 </div>
               )}
@@ -333,22 +331,55 @@ function ProfilePage() {
           )}
         </TabsContent>
 
-        {/* Posts Tab */}
+        {/* Shots Tab */}
         <TabsContent value="media" className="mt-4">
           {postsLoading ? (
-            <LoadingState variant="section" message="Loading posts..." />
+            <LoadingState variant="section" message="Loading shots..." />
           ) : postsFailed ? (
             <ErrorState
-              title="Posts unavailable"
-              message={postsError?.message || 'Could not load posts.'}
+              title="Shots unavailable"
+              message={postsError?.message || 'Could not load shots.'}
               onRetry={refetchPosts}
             />
+          ) : posts.length === 0 ? (
+            <VStack gap={4}>
+              <button
+                onClick={() => setCreateSheetOpen(true)}
+                className={cn(
+                  'w-full flex items-center justify-center gap-2 rounded-full',
+                  'bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground',
+                  'transition-all hover:bg-primary/90 active:scale-95',
+                  'shadow-[0_4px_20px_hsl(var(--primary)/0.35)]'
+                )}
+              >
+                <Camera className="h-4 w-4" />
+                Add Shot
+              </button>
+              <EmptyState
+                icon={Grid3X3}
+                title="No shots yet"
+                description="Share bike photos, ride moments, or group shots here."
+              />
+            </VStack>
           ) : (
-            <PostGrid
-              posts={posts}
-              onPostClick={setSelectedPost}
-              onAddPost={() => setCreateSheetOpen(true)}
-            />
+            <VStack gap={4}>
+              <button
+                onClick={() => setCreateSheetOpen(true)}
+                className={cn(
+                  'w-full flex items-center justify-center gap-2 rounded-full',
+                  'bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground',
+                  'transition-all hover:bg-primary/90 active:scale-95',
+                  'shadow-[0_4px_20px_hsl(var(--primary)/0.35)]'
+                )}
+              >
+                <Camera className="h-4 w-4" />
+                Add Shot
+              </button>
+              <PostGrid
+                posts={posts}
+                onPostClick={setSelectedPost}
+              />
+            </VStack>
           )}
 
           <PostCreateSheet

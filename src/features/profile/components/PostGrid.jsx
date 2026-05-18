@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Grid3X3, Images, Plus } from 'lucide-react';
+import { Camera, Images, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -14,7 +14,7 @@ const PostGrid = memo(function PostGrid({
   posts = [],
   onPostClick,
   onAddPost,
-  emptyDescription = 'Share bike photos, ride moments, or group pictures here.',
+  emptyDescription = 'Share bike photos, ride moments, or group shots here.',
 }) {
   return (
     <div>
@@ -29,18 +29,18 @@ const PostGrid = memo(function PostGrid({
           )}
         >
           <Plus className="h-4 w-4" />
-          Add Post
+          Add Shot
         </button>
       )}
 
       {posts.length === 0 ? (
         <EmptyState
-          icon={Grid3X3}
-          title="No posts yet"
+          icon={Camera}
+          title="No shots yet"
           description={emptyDescription}
         />
       ) : (
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {posts.map((post) => {
             const firstPhoto = post.user_post_photos?.[0];
             const isMulti = (post.user_post_photos?.length ?? 0) > 1;
@@ -49,33 +49,39 @@ const PostGrid = memo(function PostGrid({
               <button
                 key={post.id}
                 onClick={() => onPostClick(post)}
-                className="relative aspect-square overflow-hidden rounded-lg bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className={cn(
+                  'group relative aspect-[4/3] overflow-hidden rounded-xl border border-white/[0.08] bg-surface',
+                  'shadow-[0_10px_30px_hsl(var(--background)/0.25)] transition-all duration-200',
+                  'hover:-translate-y-0.5 hover:border-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+                )}
               >
                 {firstPhoto ? (
                   <OptimizedImage
                     src={firstPhoto.image_url}
-                    alt={post.caption || 'Post photo'}
+                    alt={post.caption || 'Shot photo'}
                     containerClassName="h-full w-full"
-                    className="h-full w-full transition-transform duration-300 hover:scale-105"
+                    className="h-full w-full transition-transform duration-500 group-hover:scale-[1.03]"
                     objectFit="cover"
                     loading="lazy"
                     showSkeleton
                   />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center bg-surface">
-                    <Grid3X3 className="h-6 w-6 text-muted-foreground/40" />
+                    <Camera className="h-6 w-6 text-muted-foreground/40" />
                   </div>
                 )}
 
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/10 opacity-80 transition-opacity group-hover:opacity-95" />
+
                 {isMulti && (
-                  <div className="absolute top-1.5 right-1.5 flex items-center rounded-full bg-black/60 px-1.5 py-0.5">
+                  <div className="absolute top-2 right-2 flex items-center rounded-full bg-black/55 px-2 py-1 backdrop-blur-sm">
                     <Images className="h-3 w-3 text-white" />
                   </div>
                 )}
 
                 {post.caption && (
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                    <Text variant="micro" className="text-white line-clamp-1">{post.caption}</Text>
+                  <div className="absolute inset-x-0 bottom-0 p-3">
+                    <Text variant="micro" className="text-white/95 line-clamp-2 text-left leading-snug">{post.caption}</Text>
                   </div>
                 )}
               </button>

@@ -20,7 +20,6 @@ import {
   UserPlus,
   MessageCircle,
   Clock,
-  ShieldCheck,
   Radio,
   Lock,
   MapPin,
@@ -30,6 +29,7 @@ import {
   Ban,
   Loader2,
   UserMinus,
+  Users,
 } from 'lucide-react';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/shared/OptimizedImage';
@@ -38,6 +38,7 @@ import { isExpired } from '@/lib/broadcastUtils';
 import { useBroadcastsByAuthor } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { useIsBlocked } from '@/features/safety/hooks/use-blocks.js';
 import { useIsFriend, useRemoveFriendship, friendshipKeys } from '@/features/connections/hooks/use-friendships.js';
+import { getFriendshipsCount } from '@/features/connections/api/connections-api.js';
 import {
   useConnectionRequestWith,
   useSendConnectionRequest,
@@ -188,6 +189,16 @@ function RiderProfilePage() {
 
   const canSeeDetails = !isBlocked && (isMeRoute || isFriend || profile?.is_public !== false);
 
+  const { data: crewCount = 0, isLoading: crewCountLoading } = useQuery({
+    queryKey: ['connections-count', userId],
+    enabled: canSeeDetails && hasValidUserId,
+    queryFn: async () => {
+      const { data, error } = await getFriendshipsCount(userId);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const activeBroadcasts = useMemo(
     () =>
       canSeeDetails
@@ -315,7 +326,7 @@ function RiderProfilePage() {
                   <OptimizedImage
                     src={profile.avatar_url}
                     alt=""
-                    containerClassName="h-24 w-24 shrink-0 rounded-full"
+                    containerClassName="h-28 w-28 shrink-0 rounded-full"
                     className="rounded-full"
                     objectFit="cover"
                     loading="eager"
@@ -325,14 +336,11 @@ function RiderProfilePage() {
                     onError={() => setAvatarError(true)}
                   />
                 ) : (
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-brand-radar/20 to-brand-amber/20 font-display text-3xl font-bold text-primary">
+                  <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-brand-radar/20 to-brand-amber/20 font-display text-4xl font-bold text-primary">
                     {canSeeDetails ? profile.display_name?.[0]?.toUpperCase() || '?' : '?'}
                   </div>
                 )}
               </div>
-              {canSeeDetails && (
-                <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-background bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
-              )}
             </div>
 
             {/* Name & Username */}
@@ -357,6 +365,12 @@ function RiderProfilePage() {
               )}
             </VStack>
 
+            {canSeeDetails && profile.bio && (
+              <Text variant="body" color="default" align="center" className="max-w-sm text-pretty">
+                {profile.bio}
+              </Text>
+            )}
+
             {/* Connection Status */}
             {isBlocked && (
               <HStack align="center" gap={1.5} className="px-3 py-1.5 rounded-full bg-brand-emergency/10 border border-brand-emergency/20">
@@ -370,7 +384,7 @@ function RiderProfilePage() {
               <HStack gap={2} className="w-full mt-1">
                 <StatPill icon={Radio} label="Signals" value={activeBroadcasts.length} isLoading={isBroadcastsLoading} brand="green" />
                 <StatPill icon={Bike} label="Bike" value={bikeLabel || 'Not set'} brand="radar" />
-                <StatPill icon={ShieldCheck} label="Status" value={profile.is_public === false ? 'Private' : 'Public'} brand="amber" />
+                <StatPill icon={Users} label="Crew" value={crewCount} isLoading={crewCountLoading} brand="amber" />
               </HStack>
             )}
 
@@ -533,7 +547,7 @@ function RiderProfilePage() {
               <User className="w-3.5 h-3.5" /> About
             </TabsTrigger>
             <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
-              <Grid3X3 className="w-3.5 h-3.5" /> Posts
+              <Grid3X3 className="w-3.5 h-3.5" /> Shots
             </TabsTrigger>
           </TabsList>
 
@@ -577,35 +591,40 @@ function RiderProfilePage() {
                   )}
                   {joinDate && (
                     <div className="flex items-center gap-3 px-4 py-3.5">
-                      <Calendar className="h-4 w-4 text-brand-amber shrink-0" />
+                      <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                       <VStack gap={0.5}>
-                        <Text variant="micro" className="text-brand-amber font-semibold uppercase tracking-wide">Joined</Text>
-                        <Text variant="bodySm" className="font-semibold">{joinDate}</Text>
+                        <Text variant="micro" color="muted">Joined</Text>
+                        <Text variant="micro" color="muted">{joinDate}</Text>
                       </VStack>
                     </div>
                   )}
                 </div>
               )}
-              {profile?.bio && (
-                <div className="surface-card p-4 rounded-xl">
-                  <Text variant="bodySm" color="muted" className="leading-relaxed text-pretty">
-                    {profile.bio}
-                  </Text>
-                </div>
+              {!bikeLabel && !profile?.location && !joinDate && (
+                <EmptyState
+                  icon={User}
+                  title="No rider details"
+                  description="Bike, location, and joined date will appear here when available."
+                />
               )}
             </VStack>
           </TabsContent>
 
           <TabsContent value="media" className="mt-4">
             {postsLoading ? (
-              <LoadingState variant="section" message="Loading posts..." />
+              <LoadingState variant="section" message="Loading shots..." />
             ) : postsFailed ? (
-              <ErrorState title="Posts unavailable" onRetry={refetchPosts} />
+              <ErrorState title="Shots unavailable" onRetry={refetchPosts} />
+            ) : riderPosts.length === 0 ? (
+              <EmptyState
+                icon={Grid3X3}
+                title="No shots yet"
+                description="This rider hasn't shared any shots yet."
+              />
             ) : (
               <PostGrid
                 posts={riderPosts}
                 onPostClick={setSelectedPost}
-                emptyDescription="This rider hasn't shared any posts yet."
               />
             )}
           </TabsContent>
