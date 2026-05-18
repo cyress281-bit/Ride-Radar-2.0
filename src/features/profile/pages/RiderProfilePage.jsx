@@ -58,6 +58,7 @@ import { ErrorState } from '@/components/shared/ErrorState';
 import { useUserPosts } from '@/features/profile/hooks/use-user-posts';
 import PostGrid from '@/features/profile/components/PostGrid';
 import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
+import StatPill from '@/features/profile/components/StatPill.jsx';
 
 function RiderProfilePage() {
   const { userId } = useParams();
@@ -300,7 +301,7 @@ function RiderProfilePage() {
           <VStack align="center" gap={3}>
             {/* Avatar with gradient ring */}
             <div className="relative">
-              <div className="rr-avatar-ring animate-glow-pulse">
+              <div className="rr-avatar-ring">
                 {canSeeDetails && profile.avatar_url && !avatarError ? (
                   <OptimizedImage
                     src={profile.avatar_url}
@@ -321,14 +322,14 @@ function RiderProfilePage() {
                 )}
               </div>
               {canSeeDetails && (
-                <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-background bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.8)]" />
+                <span className="absolute bottom-1 right-1 h-5 w-5 rounded-full border-[3px] border-background bg-primary shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
               )}
             </div>
 
             {/* Name & Username */}
             <VStack align="center" gap={0.5}>
               <HStack align="center" gap={2}>
-                <Text as="h1" variant="h2" color="default" align="center" className={cn(canSeeDetails && 'rr-neon-green')}>
+                <Text as="h1" variant="h2" color="default" align="center" className={cn(canSeeDetails && 'font-bold')}>
                   {canSeeDetails ? profile.display_name : 'Private Rider'}
                 </Text>
                 {isFriend && (
@@ -545,50 +546,39 @@ function RiderProfilePage() {
 
           <TabsContent value="about" className="mt-4">
             <VStack gap={3} className="stagger-children">
-              {bikeLabel && (
-                <div className="surface-card p-4 border-l-2 border-l-primary rounded-r-xl">
-                  <HStack align="center" gap={3}>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.12)]">
-                      <Bike className="h-5 w-5 text-primary" />
+              {(bikeLabel || profile?.location || joinDate) && (
+                <div className="surface-card overflow-hidden divide-y divide-white/[0.06] rounded-xl">
+                  {bikeLabel && (
+                    <div className="flex items-center gap-3 px-4 py-3.5">
+                      <Bike className="h-4 w-4 text-primary shrink-0" />
+                      <VStack gap={0.5}>
+                        <Text variant="micro" className="text-primary font-semibold uppercase tracking-wide">Bike</Text>
+                        <Text variant="bodySm" className="font-semibold">{bikeLabel}</Text>
+                      </VStack>
                     </div>
-                    <VStack gap={0.5}>
-                      <Text variant="micro" className="text-primary font-bold uppercase tracking-wider">Bike</Text>
-                      <Text variant="bodySm" className="font-semibold">{bikeLabel}</Text>
-                    </VStack>
-                  </HStack>
+                  )}
+                  {profile?.location && (
+                    <div className="flex items-center gap-3 px-4 py-3.5">
+                      <MapPin className="h-4 w-4 text-brand-radar shrink-0" />
+                      <VStack gap={0.5}>
+                        <Text variant="micro" className="text-brand-radar font-semibold uppercase tracking-wide">Location</Text>
+                        <Text variant="bodySm" className="font-semibold">{profile.location}</Text>
+                      </VStack>
+                    </div>
+                  )}
+                  {joinDate && (
+                    <div className="flex items-center gap-3 px-4 py-3.5">
+                      <Calendar className="h-4 w-4 text-brand-amber shrink-0" />
+                      <VStack gap={0.5}>
+                        <Text variant="micro" className="text-brand-amber font-semibold uppercase tracking-wide">Joined</Text>
+                        <Text variant="bodySm" className="font-semibold">{joinDate}</Text>
+                      </VStack>
+                    </div>
+                  )}
                 </div>
               )}
-
-              {profile?.location && (
-                <div className="surface-card p-4 border-l-2 border-l-brand-radar rounded-r-xl">
-                  <HStack align="center" gap={3}>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-radar/20 bg-brand-radar/10 shadow-[0_0_12px_hsl(var(--brand-radar)/0.12)]">
-                      <MapPin className="h-5 w-5 text-brand-radar" />
-                    </div>
-                    <VStack gap={0.5}>
-                      <Text variant="micro" className="text-brand-radar font-bold uppercase tracking-wider">Location</Text>
-                      <Text variant="bodySm" className="font-semibold">{profile.location}</Text>
-                    </VStack>
-                  </HStack>
-                </div>
-              )}
-
-              {joinDate && (
-                <div className="surface-card p-4 border-l-2 border-l-brand-amber rounded-r-xl">
-                  <HStack align="center" gap={3}>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-amber/20 bg-brand-amber/10 shadow-[0_0_12px_hsl(var(--brand-amber)/0.12)]">
-                      <Calendar className="h-5 w-5 text-brand-amber" />
-                    </div>
-                    <VStack gap={0.5}>
-                      <Text variant="micro" className="text-brand-amber font-bold uppercase tracking-wider">Joined</Text>
-                      <Text variant="bodySm" className="font-semibold">{joinDate}</Text>
-                    </VStack>
-                  </HStack>
-                </div>
-              )}
-
               {profile?.bio && (
-                <div className="surface-card p-4 border-l-2 border-l-white/[0.08] rounded-r-xl">
+                <div className="surface-card p-4 rounded-xl">
                   <Text variant="bodySm" color="muted" className="leading-relaxed text-pretty">
                     {profile.bio}
                   </Text>
@@ -630,28 +620,5 @@ function RiderProfilePage() {
     </VStack>
   );
 }
-
-const BRAND_STYLES = {
-  green:  { border: 'border-primary/20', bg: 'bg-primary/10', text: 'text-primary', glow: 'shadow-[0_0_12px_hsl(var(--primary)/0.15)]' },
-  radar:  { border: 'border-brand-radar/20', bg: 'bg-brand-radar/10', text: 'text-brand-radar', glow: 'shadow-[0_0_12px_hsl(var(--brand-radar)/0.15)]' },
-  amber:  { border: 'border-brand-amber/20', bg: 'bg-brand-amber/10', text: 'text-brand-amber', glow: 'shadow-[0_0_12px_hsl(var(--brand-amber)/0.15)]' },
-};
-
-const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading, brand = 'green' }) {
-  const style = BRAND_STYLES[brand];
-  return (
-    <div className="flex-1 surface-card p-3 text-center">
-      <div className="flex items-center justify-center mb-1.5">
-        <div className={cn('flex h-7 w-7 items-center justify-center rounded-full border', style.border, style.bg, style.glow)}>
-          <Icon className={cn('h-3.5 w-3.5', style.text)} />
-        </div>
-      </div>
-      <Text variant="bodySm" className={cn('font-bold truncate', style.text)}>
-        {isLoading ? '—' : value}
-      </Text>
-      <Text variant="micro" color="muted">{label}</Text>
-    </div>
-  );
-});
 
 export default memo(RiderProfilePage);

@@ -226,7 +226,7 @@ export default function ProfileEditForm({ profile, onDone }) {
         <div className="flex items-center justify-between">
           <div>
             <div className="rr-kicker mb-1">Your profile</div>
-            <h1 className="font-display text-2xl font-bold tracking-tight rr-neon-green">Edit profile</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Edit profile</h1>
           </div>
           <div className="flex gap-2">
             <Button
@@ -244,15 +244,6 @@ export default function ProfileEditForm({ profile, onDone }) {
               className="rounded-full border border-white/[0.08] hover:bg-white/[0.04] hover:text-foreground"
             >
               <X className="h-4 w-4" />
-            </Button>
-            <Button
-              type="submit"
-              size="icon"
-              aria-label="Save changes"
-              disabled={updateMutation.isPending || isUploading || checkingUsername || (shouldCheckUsername && usernameAvailable === false)}
-              className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_16px_hsl(var(--primary)/0.4)] animate-glow-pulse"
-            >
-              <Save className="h-4 w-4" />
             </Button>
           </div>
         </div>

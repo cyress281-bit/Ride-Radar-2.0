@@ -78,10 +78,7 @@ const SettingsRow = memo(function SettingsRow({
         disabled && 'opacity-50 cursor-not-allowed'
       )}
     >
-      <div className={cn(
-        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
-        danger ? 'bg-brand-emergency/10' : 'bg-primary/10'
-      )}>
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center">
         <Icon className={cn('h-5 w-5', danger ? 'text-brand-emergency' : 'text-primary')} />
       </div>
       <VStack flex className="min-w-0">
@@ -119,15 +116,14 @@ const SettingsSection = memo(function SettingsSection({ title, icon: Icon, child
       'overflow-hidden surface-card',
       danger && 'border-brand-emergency/20'
     )}>
-      <HStack align="center" gap={2} className={cn(
-        'px-4 py-3 border-b',
-        danger ? 'border-brand-emergency/10' : 'border-border/40'
+      <div className={cn(
+        'px-4 py-2.5 border-b',
+        danger ? 'border-brand-emergency/10' : 'border-white/[0.05]'
       )}>
-        {Icon && <Icon className={cn('h-4 w-4', danger ? 'text-brand-emergency' : 'text-primary')} />}
-        <Text variant="micro" className={cn('font-bold uppercase tracking-wider', danger ? 'text-brand-emergency' : 'text-muted-foreground')}>
+        <Text variant="micro" className={cn('font-semibold uppercase tracking-wider', danger ? 'text-brand-emergency' : 'text-muted-foreground')}>
           {title}
         </Text>
-      </HStack>
+      </div>
       <VStack>{children}</VStack>
       {error && (
         <HStack align="center" gap={2} className="border-t border-border/40 px-4 py-3">
@@ -387,7 +383,7 @@ function SettingsPage() {
             onClick={handleInstallApp}
             className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left hover:bg-white/[0.02] transition-colors"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.1)]">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center">
               <Download className="h-5 w-5 text-primary" />
             </div>
             <VStack flex>
@@ -399,7 +395,7 @@ function SettingsPage() {
         )}
         {isInstalled && (
           <div className="flex items-center gap-3 px-4 py-3.5">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.1)]">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center">
               <Check className="h-5 w-5 text-primary" />
             </div>
             <VStack flex>
@@ -478,7 +474,7 @@ function SettingsPage() {
             onClick={handleSignOut}
             className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left hover:bg-brand-emergency/5 transition-colors"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-emergency/10">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center">
               <LogOut className="h-5 w-5 text-brand-emergency" />
             </div>
             <VStack flex>
