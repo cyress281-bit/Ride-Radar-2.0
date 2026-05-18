@@ -92,13 +92,13 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
     <div
       ref={sheetRef}
       className={cn(
-        'absolute left-0 right-0 z-20 bg-surface/90 backdrop-blur-[32px] border-t border-white/[0.06] rounded-t-[24px] transition-transform duration-300 ease-out min-h-[68px]',
-        sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-68px)]'
+        'absolute left-0 right-0 z-20 bg-surface/90 backdrop-blur-[32px] border-t border-white/[0.12] rounded-t-[24px] transition-transform duration-300 ease-out min-h-[60px]',
+        sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-60px)]'
       )}
       style={{
-        bottom: 'calc(68px + env(safe-area-inset-bottom, 0px))',
+        bottom: 'calc(var(--rr-nav-h) + env(safe-area-inset-bottom, 0px))',
         maxHeight: sheetOpen
-          ? 'calc(100svh - 68px - env(safe-area-inset-bottom, 0px))'
+          ? 'calc(100svh - var(--rr-nav-h) - env(safe-area-inset-bottom, 0px))'
           : '70vh',
       }}
       {...sheetTouchHandlers}
@@ -106,16 +106,16 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
       {/* Sheet handle */}
       <button
         onClick={() => setSheetOpen((v) => !v)}
-        className="w-full flex flex-col items-center pt-3 pb-2 min-h-[44px] active:scale-[0.96] active:opacity-80 transition-all duration-150"
+        className="w-full flex flex-col items-center pt-2.5 pb-2 min-h-[44px] active:scale-[0.96] active:opacity-80 transition-all duration-150"
       >
-        <span className="h-1 w-12 rounded-full bg-white/30" />
-        <HStack gap={2} align="center" className="mt-2">
+        <span className="h-1 w-14 rounded-full bg-white/40" />
+        <HStack gap={2} align="center" className="mt-1.5">
           <Radio className="w-3.5 h-3.5 text-primary" />
           <Text variant="micro" className="text-foreground font-semibold">
             {peekLabel}
           </Text>
           <ChevronUp
-            className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform', sheetOpen && 'rotate-180')}
+            className={cn('h-3.5 w-3.5 text-foreground/50 transition-transform', sheetOpen && 'rotate-180')}
           />
         </HStack>
       </button>

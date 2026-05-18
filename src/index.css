@@ -57,6 +57,7 @@
     --input: 240 14% 10%;
     --ring: 107 100% 54%;
     --radius: 0.75rem;
+    --rr-nav-h: 56px;
 
     /* Extended semantic surfaces */
     --card: 240 14% 6%;
@@ -432,8 +433,7 @@
   }
   /* Combined safe-area + fixed spacing utilities for nav-aware layouts */
   .pb-nav-safe {
-    /* 6rem (96px) bottom nav height + safe area inset */
-    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
   }
 
   /* ---------- Standardized Shadows ---------- */
@@ -630,7 +630,7 @@
 
   /* Lift Leaflet attribution above the floating bottom nav pill on radar */
   .rr-radar-map .leaflet-bottom.leaflet-right {
-    bottom: calc(68px + env(safe-area-inset-bottom, 0px) + 12px);
+    bottom: calc(var(--rr-nav-h) + env(safe-area-inset-bottom, 0px) + 12px);
   }
 
   /* Map markers */
@@ -711,7 +711,7 @@
   }
 
   .top-header-offset {
-    top: calc(56px + env(safe-area-inset-top, 0px) + 8px);
+    top: calc(56px + env(safe-area-inset-top, 0px) + 4px);
   }
 }
 

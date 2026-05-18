@@ -21,7 +21,7 @@ const BottomNav = memo(function BottomNav() {
     >
       <div
         className={cn(
-          'mx-auto max-w-xl mb-2',
+          'mx-auto max-w-xl',
           'bg-surface/85 backdrop-blur-xl',
           'border border-white/[0.08]',
           'rounded-2xl overflow-hidden',
