@@ -155,7 +155,7 @@ function ConversationsPage() {
           type="button"
           onClick={() => setActiveTab('chats')}
           className={cn(
-            'px-4 py-1.5 rounded-full text-sm font-semibold transition-colors',
+            'min-h-[44px] px-4 py-1.5 rounded-full text-sm font-semibold transition-colors',
             activeTab === 'chats'
               ? 'bg-primary text-primary-foreground'
               : 'bg-surface/60 border border-white/[0.06] text-muted-foreground hover:text-foreground',
@@ -167,7 +167,7 @@ function ConversationsPage() {
           type="button"
           onClick={() => setActiveTab('crew')}
           className={cn(
-            'px-4 py-1.5 rounded-full text-sm font-semibold transition-colors',
+            'min-h-[44px] px-4 py-1.5 rounded-full text-sm font-semibold transition-colors',
             activeTab === 'crew'
               ? 'bg-primary text-primary-foreground'
               : 'bg-surface/60 border border-white/[0.06] text-muted-foreground hover:text-foreground',
@@ -179,7 +179,7 @@ function ConversationsPage() {
           type="button"
           onClick={() => setActiveTab('requests')}
           className={cn(
-            'relative px-4 py-1.5 rounded-full text-sm font-semibold transition-colors',
+            'relative min-h-[44px] px-4 py-1.5 rounded-full text-sm font-semibold transition-colors',
             activeTab === 'requests'
               ? 'bg-primary text-primary-foreground'
               : 'bg-surface/60 border border-white/[0.06] text-muted-foreground hover:text-foreground',

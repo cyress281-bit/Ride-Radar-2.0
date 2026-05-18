@@ -108,7 +108,7 @@ const ConversationItem = memo(function ConversationItem({
               variant="caption"
               color={hasUnread ? 'default' : 'muted'}
               truncate
-              className={cn(hasUnread && 'text-foreground/80 font-medium')}
+              className={cn(hasUnread && 'text-foreground font-medium')}
             >
               {lastMessage || 'Start a conversation'}
             </Text>

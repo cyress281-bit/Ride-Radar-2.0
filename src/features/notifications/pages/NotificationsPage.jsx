@@ -62,14 +62,14 @@ function VirtualNotificationList({ notifications, onMarkRead, onDelete }) {
 
 function NotificationHeader({ unreadCount }) {
   return (
-    <div className="relative mb-5 overflow-hidden rounded-[20px] border border-primary/10 bg-surface/80 backdrop-blur-xl p-5">
+    <div className="relative mb-3 overflow-hidden rounded-[20px] border border-primary/10 bg-surface/80 backdrop-blur-xl p-4">
       <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-primary/10" />
-      <div className="absolute bottom-4 left-5 right-5 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      <div className="absolute bottom-3 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       <div className="relative z-10">
-        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
           <Activity className="h-3.5 w-3.5 text-primary" /> Activity feed
         </div>
-        <h1 className="mb-1 text-4xl font-bold tracking-tight text-foreground rr-heading">Notifications</h1>
+        <h1 className="mb-1 text-3xl font-bold tracking-tight text-foreground rr-heading">Notifications</h1>
         <p className="text-sm text-muted-foreground">
           {unreadCount > 0 ? (
             <span className="flex items-center gap-1.5">
@@ -204,12 +204,12 @@ export default function NotificationsPage() {
   if (notificationsError) return <ErrorState />;
 
   return (
-    <div className="px-5 pt-5 pb-8">
+    <div className="px-5 pt-3 pb-8">
       <NotificationHeader unreadCount={unreadCount} />
 
       {unreadCount > 0 && (
         <div className="mb-4 flex justify-end">
-          <Button variant="ghost" size="sm" onClick={handleMarkAllRead} className="rounded-full text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors">
+          <Button variant="ghost" size="sm" onClick={handleMarkAllRead} className="min-h-[44px] rounded-full text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors">
             <Check className="mr-1 h-3.5 w-3.5" /> Mark all as read
           </Button>
         </div>
