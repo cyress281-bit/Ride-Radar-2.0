@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { Button } from '@/components/ui/button';
@@ -53,8 +53,19 @@ function RemovedSignalScreen({ onBack, onHome }) {
 function BroadcastDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuthState();
   const hasValidBroadcastId = isValidUuid(id);
+
+  useEffect(() => {
+    if (location.hash !== '#comments') return;
+    const el = document.getElementById('comments');
+    if (!el) return;
+    const timer = setTimeout(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [location.hash]);
 
   const { data: broadcast, isLoading: isBroadcastLoading, isError: isBroadcastError } = useQuery({
     queryKey: broadcastKeys.detail(id),
@@ -531,12 +542,14 @@ function BroadcastDetailPage() {
       )}
 
       {/* Comments */}
-      <BroadcastComments
-        broadcastId={broadcast.id}
-        broadcastAuthorId={broadcast.author_id}
-        currentUserId={user?.id}
-        isActive={broadcast.status === 'active'}
-      />
+      <div id="comments">
+        <BroadcastComments
+          broadcastId={broadcast.id}
+          broadcastAuthorId={broadcast.author_id}
+          currentUserId={user?.id}
+          isActive={broadcast.status === 'active'}
+        />
+      </div>
     </div>
   );
 }

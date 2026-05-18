@@ -55,7 +55,7 @@ export default function ConnectionRequestCard({ request, fromProfile, onAccept, 
           variant="outline"
           onClick={() => onDecline(request)}
           disabled={isDeclining || isAccepting}
-          className="rounded-full border-brand-emergency/30 text-brand-emergency hover:bg-brand-emergency/10 active:scale-95 disabled:opacity-50"
+          className="rounded-full border-brand-emergency/30 text-brand-emergency hover:bg-brand-emergency/10 active:scale-95 min-h-[44px] disabled:opacity-50"
         >
           <X className="mr-1 h-3.5 w-3.5" /> Decline
         </Button>

@@ -220,6 +220,15 @@ function RiderProfilePage() {
   });
 
   useEffect(() => {
+    if (!canSeeDetails && openPostId) {
+      setSearchParams(prev => {
+        prev.delete('openPost');
+        return prev;
+      }, { replace: true });
+    }
+  }, [canSeeDetails, openPostId, setSearchParams]);
+
+  useEffect(() => {
     if (!openPostId || postsLoading || riderPosts.length === 0) return;
     const post = riderPosts.find((p) => p.id === openPostId);
     if (!post) {
