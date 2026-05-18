@@ -601,36 +601,40 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         )}
 
         {/* Publish button */}
-        <Button
-          type="submit"
-          disabled={!canPost || post.isPending || !user}
-          className={cn(
-            'w-full h-14 rounded-full mt-2 text-base font-bold pressable transition-all duration-200',
-            type === 'bike_down'
-              ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
-              : type === 'alert'
-                ? 'bg-alert hover:bg-alert/90 text-alert-foreground'
+        <div className={cn(
+          type === 'bike_down' && 'sticky bottom-0 z-10 pb-2 pt-1 bg-background'
+        )}>
+          <Button
+            type="submit"
+            disabled={!canPost || post.isPending || !user}
+            className={cn(
+              'w-full h-14 rounded-full mt-2 text-base font-bold pressable transition-all duration-200',
+              type === 'bike_down'
+                ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
+                : type === 'alert'
+                  ? 'bg-alert hover:bg-alert/90 text-alert-foreground'
+                  : type === 'event'
+                    ? 'bg-event hover:bg-event/90 text-event-foreground'
+                    : type === 'iso'
+                      ? 'bg-iso hover:bg-iso/90 text-iso-foreground'
+                      : 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
+            )}
+          >
+            {post.isPending
+              ? 'Sending...'
+              : type === 'solo_ride'
+                ? 'Send Ride Signal'
                 : type === 'event'
-                  ? 'bg-event hover:bg-event/90 text-event-foreground'
-                  : type === 'iso'
-                    ? 'bg-iso hover:bg-iso/90 text-iso-foreground'
-                    : 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
-          )}
-        >
-          {post.isPending
-            ? 'Sending...'
-            : type === 'solo_ride'
-              ? 'Send Ride Signal'
-              : type === 'event'
-                ? 'Create Meetup'
-                : type === 'bike_down'
-                  ? 'Send Bike Down Alert'
-                  : type === 'iso' && isoSubtype === 'mechanic'
-                    ? 'Request Help'
-                    : type === 'iso' && isoSubtype === 'bike_crew'
-                      ? 'Send Crew Request'
-                      : 'Send Warning'}
-        </Button>
+                  ? 'Create Meetup'
+                  : type === 'bike_down'
+                    ? 'Send Bike Down Alert'
+                    : type === 'iso' && isoSubtype === 'mechanic'
+                      ? 'Request Help'
+                      : type === 'iso' && isoSubtype === 'bike_crew'
+                        ? 'Send Crew Request'
+                        : 'Send Warning'}
+          </Button>
+        </div>
       </form>
     </div>
   );

@@ -25,14 +25,19 @@ const markerClassMap = {
 export function getMarkerIcon(type) {
   const markerClass = markerClassMap[type] || markerClassMap.solo_ride;
   if (!markerIconCache.has(type)) {
+    const isBikeDown = type === 'bike_down';
+    const size = isBikeDown ? 44 : 34;
+    const anchor = isBikeDown ? 22 : 17;
+    const popupOffset = isBikeDown ? -23 : -18;
+    const arriveClass = isBikeDown ? ' rr-arrive' : '';
     markerIconCache.set(
       type,
       divIcon({
         className: 'rr-map-marker-wrapper',
-        html: `<span class="rr-map-marker ${markerClass}" aria-hidden="true"><span></span></span>`,
-        iconSize: [34, 34],
-        iconAnchor: [17, 17],
-        popupAnchor: [0, -18],
+        html: `<span class="rr-map-marker ${markerClass}${arriveClass}" aria-hidden="true"><span></span></span>`,
+        iconSize: [size, size],
+        iconAnchor: [anchor, anchor],
+        popupAnchor: [0, popupOffset],
       })
     );
   }
