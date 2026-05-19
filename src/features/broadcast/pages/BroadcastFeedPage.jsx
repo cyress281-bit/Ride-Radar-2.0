@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useTransition, memo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState, useTransition, memo, useRef } from 'react';
 import { useNearbyBroadcasts } from '@/features/broadcast/hooks/use-nearby-broadcasts.js';
 import { useLiveMapPresence } from '@/features/map/hooks/use-live-map.js';
 import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
@@ -75,6 +75,8 @@ function BroadcastFeedPage() {
   } = useBottomSheet();
 
   const [offlineSnapshot, setOfflineSnapshot] = useState(readRadarOfflineSnapshot);
+  const [locateCount, setLocateCount] = useState(0);
+  const handleRequestLocation = useCallback(() => setLocateCount((c) => c + 1), []);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('rank');
   const [isPending, startTransition] = useTransition();
@@ -208,7 +210,7 @@ function BroadcastFeedPage() {
           isLoading={isLoadingBroadcasts && !usingOfflineSnapshot}
           variant="radar"
           className="h-full w-full"
-          fitKey={hasUserLocation ? 'self' : 'default'}
+          fitKey={hasUserLocation ? `self-${locateCount}` : 'default'}
           focusUserLocation={hasUserLocation}
           showSelfLocation={hasUserLocation}
           offlineMode={usingOfflineSnapshot}
@@ -221,6 +223,7 @@ function BroadcastFeedPage() {
       <RadarOverlay
         activeCount={activeCount}
         hasUserLocation={hasUserLocation}
+        onLocate={handleRequestLocation}
         usingOfflineSnapshot={usingOfflineSnapshot}
         geoError={geoError}
         isLiveMapVisible={isLiveMapVisible}

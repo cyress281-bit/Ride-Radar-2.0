@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   CalendarClock,
   Clock,
-  Crosshair,
   LocateFixed,
   MapPin,
   RefreshCw,
@@ -137,24 +136,6 @@ const InvalidateMapSize = memo(function InvalidateMapSize({ resizeKey }) {
   return null;
 });
 
-const CenterOnUserButton = memo(function CenterOnUserButton({ userLat, userLng }) {
-  const map = useMap();
-  const handleClick = useCallback(() => {
-    map.setView([userLat, userLng], 15, { animate: true, duration: 0.45 });
-  }, [map, userLat, userLng]);
-
-  if (!isValidCoordinate(userLat, userLng)) return null;
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="rr-haptic absolute left-3 top-header-offset z-[430] flex h-11 w-11 items-center justify-center rounded-full bg-background/80 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.28),0_0_24px_hsl(var(--primary)/0.18)] rr-shadow-md backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-      aria-label="Center map on my location"
-    >
-      <Crosshair className="h-5 w-5" aria-hidden="true" />
-    </button>
-  );
-});
 
 function formatSnapshotAge(timestamp) {
   if (!timestamp) return 'cached';
@@ -565,7 +546,6 @@ function LiveMap({
                 </Popup>
               </Marker>
             ))}
-            {variant === 'radar' && <CenterOnUserButton userLat={userLat} userLng={userLng} />}
           </MapContainer>
         </div>
         {variant !== 'radar' && <SignalList items={items} userLat={userLat} userLng={userLng} variant={variant} />}
