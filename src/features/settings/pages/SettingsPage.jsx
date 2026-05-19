@@ -309,7 +309,7 @@ function SettingsPage() {
     <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
       {/* Profile Section */}
       <SettingsSection title="Your Account" icon={User}>
-        <Link to="/profile" className="block">
+        <Link to="/settings/account" className="block">
           <HStack align="center" gap={3} className="px-4 py-4 hover:bg-white/[0.02] transition-colors">
             <AvatarWithStatus
               url={profile?.avatar_url}

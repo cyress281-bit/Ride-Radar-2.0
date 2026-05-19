@@ -20,6 +20,7 @@ const ROUTE_TITLES = {
   '/notifications': 'Notifications',
   '/admin': 'Admin',
   '/settings': 'Settings',
+  '/settings/account': 'Account',
   '/messages': 'Messages',
   '/broadcast': 'Send a Signal',
 };
