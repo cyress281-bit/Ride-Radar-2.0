@@ -511,7 +511,7 @@ function LiveMap({
               crossOrigin="anonymous"
               detectRetina={false}
               keepBuffer={4}
-              updateWhenIdle
+              updateWhenIdle={false}
               updateWhenZooming={false}
               eventHandlers={tileEventHandlers}
             />

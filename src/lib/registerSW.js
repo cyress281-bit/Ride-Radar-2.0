@@ -56,7 +56,7 @@ export async function registerServiceWorker() {
       // Only clear stale caches from previous app versions
       if ('caches' in window) {
         const cacheNames = await caches.keys();
-        const stalePrefixes = ['radar-map-tile-cache', 'supabase-storage-cache'];
+        const stalePrefixes = ['supabase-storage-cache'];
         await Promise.all(
           cacheNames
             .filter((name) => stalePrefixes.some((p) => name.includes(p)))
