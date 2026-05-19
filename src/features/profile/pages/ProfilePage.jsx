@@ -5,11 +5,11 @@
  * and supports inline editing via ProfileEditForm.
  */
 
-import { useState, useMemo, memo, useCallback, useEffect } from 'react';
+import { useState, useMemo, memo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
-import { Edit2, Settings, LogOut, Radio, Users, ShieldCheck, Bike, Camera, Images } from 'lucide-react';
+import { useAuthState } from '@/features/auth/hooks/use-auth';
+import { Edit2, Settings, Radio, Users, ShieldCheck, Bike, Camera, Images } from 'lucide-react';
 import { Badge } from '@/components/shared/Badge';
 import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
 import OptimizedImage from '@/components/shared/OptimizedImage';
@@ -31,12 +31,10 @@ import StatPill from '@/features/profile/components/StatPill.jsx';
 
 function ProfilePage() {
   const { user, profile } = useAuthState();
-  const { signOut } = useAuthActions();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const [activeTab, setActiveTab] = useState('broadcasts');
-  const [isSigningOut, setIsSigningOut] = useState(false);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
 
@@ -46,15 +44,6 @@ function ProfilePage() {
     window.__rrDebug = window.__rrDebug || {};
     window.__rrDebug.profileHasMounted = true;
   }, []);
-
-  const handleSignOut = useCallback(async () => {
-    setIsSigningOut(true);
-    try {
-      await signOut();
-    } finally {
-      setIsSigningOut(false);
-    }
-  }, [signOut]);
 
   const {
     data: myBroadcasts = [],
@@ -127,12 +116,25 @@ function ProfilePage() {
   return (
     <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
       {/* Identity Card */}
-      <div className="relative overflow-hidden rounded-2xl backdrop-blur-xl bg-surface/80 border border-white/[0.06] shadow-[0_8px_32px_hsl(var(--primary)/0.04)]">
+      <div className="relative overflow-hidden rounded-2xl backdrop-blur-xl bg-surface/85 border border-white/[0.08] shadow-[0_8px_32px_hsl(var(--primary)/0.04),inset_0_1px_0_hsl(0_0%_100%/0.04)]">
         {/* Subtle radial glow */}
         <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-brand-radar/[0.06] blur-3xl pointer-events-none" />
 
         <div className="relative p-6">
+          <Link
+            to="/settings"
+            aria-label="Settings"
+            className={cn(
+              'absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full',
+              'border border-white/[0.10] bg-white/[0.035] text-muted-foreground backdrop-blur-xl',
+              'transition-all hover:border-primary/30 hover:bg-primary/[0.08] hover:text-primary active:scale-95',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+            )}
+          >
+            <Settings className="h-4 w-4" />
+          </Link>
+
           <VStack align="center" gap={3}>
             {/* Avatar with neon green ring */}
             <div className="relative">
@@ -211,48 +213,22 @@ function ProfilePage() {
               />
             </HStack>
 
-            {/* Action Buttons */}
-            <HStack gap={3} className="w-full mt-1">
+            {/* Action Button */}
+            <div className="mt-1 flex w-full justify-center">
               <button
                 onClick={() => setEditing(true)}
                 className={cn(
-                  'flex-1 flex items-center justify-center gap-2 rounded-full',
-                  'bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground',
-                  'transition-all hover:bg-primary/90 active:scale-95',
-                  'shadow-[0_4px_20px_hsl(var(--primary)/0.35)]'
+                  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-5 py-2.5',
+                  'border border-white/[0.10] bg-white/[0.035] text-sm font-bold text-foreground backdrop-blur-xl',
+                  'transition-all hover:border-primary/35 hover:bg-primary/[0.08] hover:text-primary active:scale-95',
+                  'shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04),0_0_18px_hsl(var(--primary)/0.08)]',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
                 )}
               >
-                <Edit2 className="h-4 w-4" />
+                <Edit2 className="h-4 w-4 text-primary" />
                 Edit Profile
               </button>
-              <Link to="/settings" className="shrink-0">
-                <button
-                  aria-label="Settings"
-                  className={cn(
-                    'h-11 w-11 rounded-full border border-brand-radar/30 bg-brand-radar/10',
-                    'flex items-center justify-center text-brand-radar',
-                    'transition-all hover:bg-brand-radar/20 active:scale-95',
-                    'shadow-[0_0_12px_hsl(var(--brand-radar)/0.15)]'
-                  )}
-                >
-                  <Settings className="h-4 w-4" />
-                </button>
-              </Link>
-              <button
-                onClick={handleSignOut}
-                disabled={isSigningOut}
-                aria-label="Sign out"
-                className={cn(
-                  'h-11 w-11 rounded-full border border-brand-emergency/30 bg-brand-emergency/10',
-                  'flex items-center justify-center text-brand-emergency',
-                  'transition-all hover:bg-brand-emergency/20 active:scale-95',
-                  'shadow-[0_0_12px_hsl(var(--brand-emergency)/0.15)]',
-                  'disabled:opacity-50 disabled:cursor-not-allowed'
-                )}
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </HStack>
+            </div>
           </VStack>
         </div>
       </div>
