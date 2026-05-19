@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import AppHeader from './AppHeader';
@@ -19,6 +19,38 @@ import OfflineBanner from '@/components/OfflineBanner';
 const AppLayout = memo(function AppLayout() {
   const { pathname } = useLocation();
   const isRadar = pathname === '/home';
+
+  // iOS Safari cold-start: env(safe-area-inset-bottom) resolves as 0 on fixed-layout
+  // pages until a scrollable document renders. Force a synchronous layout to commit
+  // viewport safe-area metrics, then track real height for the bottom sheet.
+  useEffect(() => {
+    const html = document.documentElement;
+
+    // Temporarily overflow the document by 1px so iOS computes env() during the
+    // forced reflow below. Restoring immediately means no visual flash.
+    const saved = html.style.minHeight;
+    html.style.minHeight = 'calc(100% + 1px)';
+    void html.offsetHeight; // synchronous reflow — iOS commits env() values here
+    html.style.minHeight = saved;
+
+    const updateVh = () => {
+      const h = window.visualViewport?.height ?? window.innerHeight;
+      html.style.setProperty('--rr-viewport-height', `${Math.round(h)}px`);
+    };
+    updateVh();
+    const raf = requestAnimationFrame(updateVh);
+    const timer = setTimeout(updateVh, 50);
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', updateVh);
+    window.addEventListener('resize', updateVh);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+      vv?.removeEventListener('resize', updateVh);
+      window.removeEventListener('resize', updateVh);
+    };
+  }, []);
+
   return (
     <div
       className={cn(
