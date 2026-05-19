@@ -20,34 +20,63 @@ const AppLayout = memo(function AppLayout() {
   const { pathname } = useLocation();
   const isRadar = pathname === '/home';
 
-  // iOS Safari cold-start: env(safe-area-inset-bottom) resolves as 0 on fixed-layout
-  // pages until a scrollable document renders. Force a synchronous layout to commit
-  // viewport safe-area metrics, then track real height for the bottom sheet.
+  // iOS Safari cold-start: env(safe-area-inset-bottom) stays 0 until the browser
+  // observes a scroll event on a scrollable document. void offsetHeight does NOT
+  // trigger this — only an actual scroll event does. Profile fixes it naturally
+  // because its tall content makes the page scrollable so ScrollToTop fires a real
+  // scroll. Fix: briefly overflow by 2 px, fire an instant scroll to position 2,
+  // then restore. The HTML spec guarantees scroll events fire before rAF callbacks
+  // in the same rendering update, so by raf1 iOS has committed the safe-area value.
+  // AppBootLoader covers the UI for ≥2.4 s so no visual flash reaches the user.
   useEffect(() => {
     const html = document.documentElement;
+    let raf1, raf2, raf3;
+    const savedMinH = html.style.minHeight;
+    const savedScrollBehavior = html.style.scrollBehavior;
 
-    // Temporarily overflow the document by 1px so iOS computes env() during the
-    // forced reflow below. Restoring immediately means no visual flash.
-    const saved = html.style.minHeight;
-    html.style.minHeight = 'calc(100% + 1px)';
-    void html.offsetHeight; // synchronous reflow — iOS commits env() values here
-    html.style.minHeight = saved;
+    html.style.minHeight = 'calc(100% + 2px)';
+    html.style.scrollBehavior = 'auto'; // bypass css scroll-behavior:smooth
+    window.scrollTo(0, 2);
+
+    raf1 = requestAnimationFrame(() => {
+      // Scroll event has fired — iOS safe-area metrics are now committed.
+      // Read the actual env() value via a fixed probe and expose as a CSS var
+      // so that all consumers (translate, pb-safe, etc.) get the correct value
+      // even on the very first paint the user sees.
+      const probe = document.createElement('div');
+      probe.style.cssText =
+        'position:fixed;bottom:0;left:0;width:0;height:0;padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none;visibility:hidden;';
+      document.body.appendChild(probe);
+      const safeBottom = parseFloat(getComputedStyle(probe).paddingBottom) || 0;
+      probe.remove();
+      html.style.setProperty('--rr-safe-area-bottom', `${safeBottom}px`);
+
+      window.scrollTo(0, 0);
+      raf2 = requestAnimationFrame(() => {
+        html.style.minHeight = savedMinH;
+        html.style.scrollBehavior = savedScrollBehavior;
+      });
+    });
 
     const updateVh = () => {
       const h = window.visualViewport?.height ?? window.innerHeight;
       html.style.setProperty('--rr-viewport-height', `${Math.round(h)}px`);
     };
     updateVh();
-    const raf = requestAnimationFrame(updateVh);
+    raf3 = requestAnimationFrame(updateVh);
     const timer = setTimeout(updateVh, 50);
     const vv = window.visualViewport;
     vv?.addEventListener('resize', updateVh);
     window.addEventListener('resize', updateVh);
     return () => {
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(raf1);
+      if (raf2 !== undefined) cancelAnimationFrame(raf2);
+      cancelAnimationFrame(raf3);
       clearTimeout(timer);
       vv?.removeEventListener('resize', updateVh);
       window.removeEventListener('resize', updateVh);
+      html.style.minHeight = savedMinH;
+      html.style.scrollBehavior = savedScrollBehavior;
     };
   }, []);
 

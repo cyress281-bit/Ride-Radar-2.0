@@ -94,7 +94,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
       ref={sheetRef}
       className={cn(
         'absolute left-0 right-0 z-20 bg-surface/90 backdrop-blur-[32px] border-t border-white/[0.12] rounded-t-[24px] transition-transform duration-300 ease-out min-h-[60px]',
-        sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-60px-var(--rr-nav-h)-env(safe-area-inset-bottom,0px))]'
+        sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-60px-var(--rr-nav-h)-var(--rr-safe-area-bottom,env(safe-area-inset-bottom,0px)))]'
       )}
       style={{
         bottom: '0',
@@ -134,7 +134,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
         {...contentTouchHandlers}
         className={cn(
           'overscroll-contain [-webkit-overflow-scrolling:touch]',
-          sheetOpen ? 'overflow-y-auto max-h-[75svh] px-4 pb-[calc(var(--rr-nav-h)+env(safe-area-inset-bottom,0px)+1.5rem)]' : 'overflow-hidden max-h-0'
+          sheetOpen ? 'overflow-y-auto max-h-[75svh] px-4 pb-[calc(var(--rr-nav-h)+var(--rr-safe-area-bottom,env(safe-area-inset-bottom,0px))+1.5rem)]' : 'overflow-hidden max-h-0'
         )}
       >
         {/* Expanded category summary */}

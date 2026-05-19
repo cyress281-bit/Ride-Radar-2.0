@@ -426,14 +426,14 @@
 
   /* ---------- Safe Area ---------- */
   .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px));
   }
   .pt-safe {
     padding-top: env(safe-area-inset-top, 0px);
   }
   /* Combined safe-area + fixed spacing utilities for nav-aware layouts */
   .pb-nav-safe {
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(4.5rem + var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)));
   }
 
   /* ---------- Standardized Shadows ---------- */
@@ -630,7 +630,7 @@
 
   /* Lift Leaflet attribution above the floating bottom nav pill on radar */
   .rr-radar-map .leaflet-bottom.leaflet-right {
-    bottom: calc(var(--rr-nav-h) + env(safe-area-inset-bottom, 0px) + 12px);
+    bottom: calc(var(--rr-nav-h) + var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)) + 12px);
   }
 
   /* Map markers */
@@ -731,7 +731,7 @@
    ------------------------------------------------------------------ */
 @supports (padding: max(0px)) {
   .pb-safe {
-    padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+    padding-bottom: max(var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)), 0px);
   }
 
   .pt-safe {
