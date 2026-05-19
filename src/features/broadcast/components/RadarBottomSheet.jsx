@@ -98,7 +98,9 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
       )}
       style={{
         bottom: '0',
-        maxHeight: sheetOpen ? '100svh' : '70vh',
+        maxHeight: sheetOpen
+          ? 'var(--rr-viewport-height, 100svh)'
+          : 'calc(var(--rr-viewport-height, 100svh) * 0.7)',
       }}
       {...sheetTouchHandlers}
     >

@@ -190,6 +190,32 @@ function BroadcastFeedPage() {
     return 'Radar is quiet nearby';
   }, [visibleBroadcasts, visibleRiderMarkers]);
 
+  // iOS Safari cold-start fix: visualViewport.height may not be settled on the
+  // first paint, causing svh/dvh/vh units and env(safe-area-inset-bottom) to be
+  // incorrect. We write --rr-viewport-height from JS immediately, after the next
+  // frame (rAF), and after 50 ms, so the sheet maxHeight and any CSS variable
+  // consumers self-correct without requiring navigation to trigger a re-mount.
+  useEffect(() => {
+    const update = () => {
+      const h = window.visualViewport?.height ?? window.innerHeight;
+      document.documentElement.style.setProperty('--rr-viewport-height', `${Math.round(h)}px`);
+    };
+    update();
+    const raf = requestAnimationFrame(update);
+    const timer = setTimeout(update, 50);
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', update);
+    vv?.addEventListener('scroll', update);
+    window.addEventListener('resize', update);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(timer);
+      vv?.removeEventListener('resize', update);
+      vv?.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-background">
       {/* Full-screen map */}
