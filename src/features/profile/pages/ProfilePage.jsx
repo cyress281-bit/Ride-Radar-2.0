@@ -5,7 +5,7 @@
  * and supports inline editing via ProfileEditForm.
  */
 
-import { useState, useMemo, memo, useCallback } from 'react';
+import { useState, useMemo, memo, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthState, useAuthActions } from '@/features/auth/hooks/use-auth';
@@ -39,6 +39,13 @@ function ProfilePage() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+
+  // DEV: mark that ProfilePage has mounted so layout debug can distinguish bad vs good state
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    window.__rrDebug = window.__rrDebug || {};
+    window.__rrDebug.profileHasMounted = true;
+  }, []);
 
   const handleSignOut = useCallback(async () => {
     setIsSigningOut(true);

@@ -1,4 +1,4 @@
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import AppHeader from './AppHeader';
@@ -16,9 +16,53 @@ import OfflineBanner from '@/components/OfflineBanner';
  * - Radar grid overlay + subtle neon ambient glow
  * - Deep space black background
  */
+// DEV ONLY — captures all layout metrics the debugger needs
+function captureLayoutMetrics(label) {
+  if (!import.meta.env.DEV) return;
+  const html = document.documentElement;
+
+  // Probe env(safe-area-inset-bottom) live
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;bottom:0;left:0;width:0;height:0;padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none;visibility:hidden;';
+  document.body.appendChild(probe);
+  const envSafeBottom = parseFloat(getComputedStyle(probe).paddingBottom) || 0;
+  probe.remove();
+
+  const cs = getComputedStyle(html);
+  const rrSafeAreaBottom = cs.getPropertyValue('--rr-safe-area-bottom').trim();
+  const rrViewportHeight = cs.getPropertyValue('--rr-viewport-height').trim();
+  const rrNavH = cs.getPropertyValue('--rr-nav-h').trim();
+
+  const navEl = document.querySelector('[data-rr-nav]');
+  const navRect = navEl?.getBoundingClientRect() ?? null;
+  const navPbSafe = navEl ? getComputedStyle(navEl).paddingBottom : null;
+
+  const sheetEl = document.querySelector('[data-rr-sheet]');
+  const sheetRect = sheetEl?.getBoundingClientRect() ?? null;
+  const sheetTransform = sheetEl ? getComputedStyle(sheetEl).transform : null;
+
+  const vv = window.visualViewport;
+
+  console.groupCollapsed(`[RR Debug] ${label} — profileHasMounted=${!!window.__rrDebug?.profileHasMounted}`);
+  console.log('window.innerHeight:', window.innerHeight);
+  console.log('visualViewport.height:', vv?.height, ' offsetTop:', vv?.offsetTop);
+  console.log('html.clientHeight:', html.clientHeight, ' scrollHeight:', html.scrollHeight);
+  console.log('body.clientHeight:', document.body.clientHeight, ' scrollHeight:', document.body.scrollHeight);
+  console.log('env(safe-area-inset-bottom) probe:', envSafeBottom, 'px');
+  console.log('--rr-safe-area-bottom:', rrSafeAreaBottom || '(unset)');
+  console.log('--rr-viewport-height:', rrViewportHeight || '(unset)');
+  console.log('--rr-nav-h:', rrNavH || '(unset)');
+  console.log('BottomNav rect:', navRect ? `top=${navRect.top.toFixed(1)} bottom=${navRect.bottom.toFixed(1)} height=${navRect.height.toFixed(1)}` : 'not found');
+  console.log('BottomNav pb-safe computed paddingBottom:', navPbSafe);
+  console.log('RadarSheet rect:', sheetRect ? `top=${sheetRect.top.toFixed(1)} bottom=${sheetRect.bottom.toFixed(1)} height=${sheetRect.height.toFixed(1)}` : 'not found');
+  console.log('RadarSheet transform:', sheetTransform);
+  console.groupEnd();
+}
+
 const AppLayout = memo(function AppLayout() {
   const { pathname } = useLocation();
   const isRadar = pathname === '/home';
+  const captureTimerRef = useRef(null);
 
   // iOS Safari cold-start: env(safe-area-inset-bottom) stays 0 until the browser
   // observes a scroll event on a scrollable document. void offsetHeight does NOT
@@ -79,6 +123,17 @@ const AppLayout = memo(function AppLayout() {
       html.style.scrollBehavior = savedScrollBehavior;
     };
   }, []);
+
+  // DEV: capture layout metrics 300ms after each route change to give DOM time to settle
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    clearTimeout(captureTimerRef.current);
+    captureTimerRef.current = setTimeout(() => {
+      const label = `route=${pathname} [${window.__rrDebug?.profileHasMounted ? 'GOOD-after-profile' : 'BAD-cold'}]`;
+      captureLayoutMetrics(label);
+    }, 300);
+    return () => clearTimeout(captureTimerRef.current);
+  }, [pathname]);
 
   return (
     <div
