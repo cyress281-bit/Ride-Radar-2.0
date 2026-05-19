@@ -4,8 +4,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
 import BroadcastForm from '@/features/broadcast/components/BroadcastForm';
 import BroadcastTypeSelector from '@/features/broadcast/components/BroadcastTypeSelector';
-import { Text } from '@/components/ui/primitives/Text';
-import { VStack } from '@/components/ui/primitives/Stack';
 
 /**
  * Broadcast creation page — Electric Neon Dashboard Mode Selector.
@@ -37,20 +35,8 @@ function BroadcastCreatePage() {
   if (!type) {
     return (
       <div className="px-5 pt-6 pb-nav-safe bg-background min-h-dvh">
-        <VStack gap={6}>
-          {/* Header */}
-          <VStack gap={1}>
-            <Text as="h1" variant="h1" className="rr-heading text-2xl">
-              Send a Signal
-            </Text>
-            <Text variant="bodySm" color="muted">
-              Choose what you want to send to nearby riders.
-            </Text>
-          </VStack>
-
-          {/* Type selector */}
-          <BroadcastTypeSelector onSelect={setType} />
-        </VStack>
+        {/* Type selector */}
+        <BroadcastTypeSelector onSelect={setType} />
       </div>
     );
   }

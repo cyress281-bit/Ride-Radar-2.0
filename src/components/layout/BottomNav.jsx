@@ -16,12 +16,12 @@ const BottomNav = memo(function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-safe"
+      className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-safe pointer-events-none"
       aria-label="Main navigation"
     >
       <div
         className={cn(
-          'mx-auto max-w-xl',
+          'mx-auto max-w-xl pointer-events-auto',
           'bg-surface/85 backdrop-blur-xl',
           'border border-white/[0.08]',
           'rounded-2xl overflow-hidden',

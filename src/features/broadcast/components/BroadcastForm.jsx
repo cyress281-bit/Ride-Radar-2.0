@@ -255,25 +255,18 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
 
   return (
-    <div className="px-5 pt-5 pb-nav-safe bg-background scroll-smooth">
-      <button onClick={onBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 min-h-[44px] px-1 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Send a Signal
+    <div className="px-5 pt-5 bg-background scroll-smooth">{/* AppLayout <main> applies pb-nav-safe globally */}
+      <button onClick={onBack} aria-label="Back to signal type" className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-3 min-h-[44px] px-1 transition-colors">
+        <ArrowLeft className="w-4 h-4" />
       </button>
 
       {/* Type header */}
-      <HStack gap={3} align="center" className="mb-2">
-        <SignalIcon type={type} size="md" />
+      <HStack gap={3} align="center" className="mb-4">
+        <SignalIcon type={type} size="sm" />
         <VStack gap={0.5}>
-          <Text as="h1" variant="h2" className={cn('rr-heading text-lg', typeStyles.text)}>{typeMeta.label}</Text>
+          <Text as="h1" variant="h2" className={cn('rr-heading text-base', typeStyles.text)}>{typeMeta.label}</Text>
         </VStack>
       </HStack>
-      <Text variant="bodySm" color="muted" className="mb-6">
-        {type === 'solo_ride' && "Let nearby riders know you're out."}
-        {type === 'event' && 'Plan a meetup, bike night, or group ride.'}
-        {type === 'iso' && 'Ask nearby riders for help, crew, or mechanical support.'}
-        {type === 'alert' && 'Warn nearby riders about a road issue or hazard.'}
-        {type === 'bike_down' && 'Fast safety alert — accident or rider down nearby.'}
-      </Text>
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rr-surface p-5 relative overflow-hidden">
@@ -602,7 +595,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
         {/* Publish button */}
         <div className={cn(
-          type === 'bike_down' && 'sticky bottom-0 z-10 pb-2 pt-1 bg-background'
+          type === 'bike_down' && 'sticky bottom-0 z-[60] pb-nav-safe pt-1 bg-background'
         )}>
           <Button
             type="submit"

@@ -113,6 +113,20 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   });
   const isLiveOnMap = radarSettings?.live_map_visible === true;
 
+  // chipVariant drives the LIVE/OFFLINE chip appearance:
+  //   'connected'  → isLiveOnMap=true + realtime connected  → green + pulse
+  //   'degraded'   → isLiveOnMap=true + realtime down       → amber + no pulse
+  //   'pending'    → initializing (unknown status)           → muted + no pulse
+  //   'offline'    → isLiveOnMap=false                       → muted + no pulse
+  const chipVariant =
+    !isLiveOnMap || isConnectionPending
+      ? isConnectionPending
+        ? 'pending'
+        : 'offline'
+      : isConnected
+        ? 'connected'
+        : 'degraded';
+
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -183,26 +197,23 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             <span
               className={cn(
                 'flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em]',
-                isConnected
+                chipVariant === 'connected'
                   ? 'text-primary'
-                  : isConnectionPending
-                    ? 'text-muted-foreground'
-                    : 'text-brand-emergency'
+                  : chipVariant === 'degraded'
+                    ? 'text-amber-400'
+                    : 'text-muted-foreground'
               )}
             >
               <span className="relative flex h-1.5 w-1.5">
-                {isConnected ? (
+                {chipVariant === 'connected' ? (
                   <>
                     <span className="animate-pulse-green absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
                   </>
-                ) : isConnectionPending ? (
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-muted-foreground/60" />
+                ) : chipVariant === 'degraded' ? (
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400" />
                 ) : (
-                  <>
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-emergency opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-emergency" />
-                  </>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-muted-foreground/60" />
                 )}
               </span>
               {isLiveOnMap ? 'LIVE' : 'OFFLINE'}
