@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, useTransition, memo, useRef } from 'react';
+import { useEffect, useMemo, useState, useTransition, memo, useRef } from 'react';
 import { useNearbyBroadcasts } from '@/features/broadcast/hooks/use-nearby-broadcasts.js';
 import { useLiveMapPresence } from '@/features/map/hooks/use-live-map.js';
 import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
@@ -63,13 +63,7 @@ function BroadcastFeedPage() {
   const isOnline = useOnlineStatus();
   const radarViewport = useRadarViewport();
 
-  const { userLoc, hasUserLocation, geoError, locating, requestLocation, effectiveLoc } = useRadarLocation();
-  const [locateCount, setLocateCount] = useState(0);
-
-  const handleRequestLocation = useCallback(() => {
-    setLocateCount((count) => count + 1);
-    requestLocation();
-  }, [requestLocation]);
+  const { userLoc, hasUserLocation, geoError, effectiveLoc } = useRadarLocation();
   const {
     sheetOpen,
     setSheetOpen,
@@ -209,7 +203,7 @@ function BroadcastFeedPage() {
           isLoading={isLoadingBroadcasts && !usingOfflineSnapshot}
           variant="radar"
           className="h-full w-full"
-          fitKey={hasUserLocation ? `self-${locateCount}` : 'default'}
+          fitKey={hasUserLocation ? 'self' : 'default'}
           focusUserLocation={hasUserLocation}
           showSelfLocation={hasUserLocation}
           offlineMode={usingOfflineSnapshot}
@@ -223,8 +217,6 @@ function BroadcastFeedPage() {
         activeCount={activeCount}
         hasUserLocation={hasUserLocation}
         usingOfflineSnapshot={usingOfflineSnapshot}
-        requestLocation={handleRequestLocation}
-        locating={locating}
         geoError={geoError}
         isLiveMapVisible={isLiveMapVisible}
         sheetOpen={sheetOpen}
@@ -253,6 +245,7 @@ function BroadcastFeedPage() {
         peekLabel={peekLabel}
         totalCount={visibleBroadcasts.length}
         hasUserLocation={hasUserLocation}
+        liveRiders={visibleRiderMarkers}
       />
     </div>
   );

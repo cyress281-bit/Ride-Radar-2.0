@@ -1,4 +1,5 @@
 import { memo, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { SlidersHorizontal, ChevronUp, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import RRLogo from '@/components/RRLogo';
@@ -24,7 +25,64 @@ const FILTER_STYLES = {
 };
 
 /**
- * Draggable bottom sheet containing stories, filters, sort, and the broadcast list.
+ * Compact row for a single live rider in the presence section.
+ * Links to their profile if user_id is available.
+ */
+const LiveRiderRow = memo(function LiveRiderRow({ rider }) {
+  const userId = rider.user_id || rider.userId;
+  const initial = (rider.display_name || 'R').charAt(0).toUpperCase();
+
+  const content = (
+    <HStack align="center" gap={2.5} className="px-2.5 py-2 rounded-xl border border-primary/[0.08] bg-primary/[0.04]">
+      {/* Avatar with live indicator */}
+      <div className="relative shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 border border-primary/30">
+        {rider.avatar_url ? (
+          <img
+            src={rider.avatar_url}
+            alt=""
+            className="h-8 w-8 rounded-full object-cover"
+          />
+        ) : (
+          <span className="text-xs font-bold text-primary leading-none">{initial}</span>
+        )}
+        {/* Pulsing live dot */}
+        <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-60" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary border border-background" />
+        </span>
+      </div>
+
+      {/* Name + vehicle */}
+      <div className="flex-1 min-w-0">
+        <Text variant="caption" className="font-semibold truncate block">
+          {rider.display_name || 'Rider'}
+        </Text>
+        {rider.vehicle_label && (
+          <Text variant="micro" color="muted" className="truncate block">
+            {rider.vehicle_label}
+          </Text>
+        )}
+      </div>
+
+      {/* Status label */}
+      <Text variant="micro" color="muted" className="shrink-0 font-mono-data tracking-wide">
+        Live nearby
+      </Text>
+    </HStack>
+  );
+
+  if (userId) {
+    return (
+      <Link to={`/profile/${userId}`} className="block pressable">
+        {content}
+      </Link>
+    );
+  }
+  return content;
+});
+
+/**
+ * Draggable bottom sheet containing live riders, filters, sort, and the broadcast list.
  * Electric Neon Edition.
  *
  * @param {Object} props
@@ -52,6 +110,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
   peekLabel,
   totalCount,
   hasUserLocation,
+  liveRiders = [],
 }) {
   // Close the sheet with Escape key when open
   useEffect(() => {
@@ -144,6 +203,26 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
             <Text variant="micro" color="muted" className="font-medium">
               {categorySummary}
             </Text>
+          </div>
+        )}
+
+        {/* Live riders nearby — presence section */}
+        {sheetOpen && liveRiders.length > 0 && (
+          <div className="pb-3 pt-1">
+            <HStack align="center" gap={1.5} className="px-1 pb-2">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+              </span>
+              <Text variant="micro" className="font-bold text-foreground/80 uppercase tracking-wider">
+                Live riders nearby
+              </Text>
+            </HStack>
+            <div className="flex flex-col gap-1.5">
+              {liveRiders.map((rider) => (
+                <LiveRiderRow key={rider.user_id || rider.userId} rider={rider} />
+              ))}
+            </div>
           </div>
         )}
 

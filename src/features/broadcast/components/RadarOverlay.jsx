@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Crosshair, Plus, Navigation, Radio, Siren } from 'lucide-react';
+import { Plus, Navigation, Radio, Siren } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { toast } from 'sonner';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
@@ -8,7 +8,7 @@ import { useUpdateSettings } from '@/features/settings/hooks/use-settings.js';
 
 // ── Draggable pad constants ────────────────────────────────────────────────
 const PAD_WIDTH = 136;
-const PAD_HEIGHT_WITH_HANDLE = 128; // 24px handle + ~104px 2×2 grid
+const PAD_HEIGHT_WITH_HANDLE = 128; // 24px handle + ~104px 2+1 grid
 const STORAGE_KEY = 'rr:radar-pad-position';
 const MARGIN = 16;
 const MIN_TOP = 128;          // below header (56px) + safe-area + signal pill
@@ -59,14 +59,12 @@ function savePadPosition(pos) {
 /**
  * Floating UI overlays for the radar view:
  * - Top signal-count pill
- * - Draggable control card (Go Live, Signal, Locate, Bike Down)
+ * - Draggable control card (Go Live, Signal, Bike Down)
  * - Location error banner
  */
 const RadarOverlay = memo(function RadarOverlay({
   hasUserLocation,
   usingOfflineSnapshot,
-  requestLocation,
-  locating,
   geoError,
   isLiveMapVisible,
   sheetOpen = false,
@@ -85,15 +83,6 @@ const RadarOverlay = memo(function RadarOverlay({
 
   const handleCreateBroadcast = useCallback(() => navigate('/broadcast'), [navigate]);
   const handleBikeDown = useCallback(() => navigate('/broadcast?type=bike_down'), [navigate]);
-
-  const [justLocked, setJustLocked] = useState(false);
-  const prevLocatingRef = useRef(locating);
-  const hasInitiatedRequestRef = useRef(false);
-
-  const handleRequestLocation = useCallback(() => {
-    hasInitiatedRequestRef.current = true;
-    requestLocation?.();
-  }, [requestLocation]);
 
   const handleToggleLive = useCallback(async () => {
     if (!user?.id || updateSettings.isPending) return;
@@ -114,21 +103,6 @@ const RadarOverlay = memo(function RadarOverlay({
       });
     }
   }, [user?.id, isLiveMapVisible, updateSettings]);
-
-  useEffect(() => {
-    const wasLocating = prevLocatingRef.current;
-    prevLocatingRef.current = locating;
-    if (wasLocating && !locating && hasUserLocation && !geoError) {
-      setJustLocked(true);
-      if (hasInitiatedRequestRef.current) {
-        hasInitiatedRequestRef.current = false;
-        try { navigator.vibrate?.(15); } catch {}
-      }
-      const timer = setTimeout(() => setJustLocked(false), 700);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [locating, hasUserLocation, geoError]);
 
   // ── Draggable pad ──────────────────────────────────────────────────────────
   const [padPos, setPadPos] = useState(() => readSavedPadPosition() ?? getDefaultPos());
@@ -162,7 +136,6 @@ const RadarOverlay = memo(function RadarOverlay({
   const handlePadPointerDown = useCallback((e) => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      // Double-tap: snap back to default bottom-right position
       lastTapRef.current = 0;
       const pos = getDefaultPos();
       setPadPos(pos);
@@ -225,7 +198,7 @@ const RadarOverlay = memo(function RadarOverlay({
         </div>
       )}
 
-      {/* Draggable 2×2 action pad */}
+      {/* Draggable action pad — 3 actions: Live | Signal top row, Bike Down full width */}
       <div
         className={cn(
           'absolute z-[25] transition-all duration-300',
@@ -237,7 +210,7 @@ const RadarOverlay = memo(function RadarOverlay({
       >
         <div className="overflow-hidden rounded-[18px] backdrop-blur-xl bg-black/80 border border-white/[0.12] shadow-[0_0_12px_hsl(var(--primary)/0.10)]">
 
-          {/* Drag handle — pointer events captured here only */}
+          {/* Drag handle */}
           <div
             onPointerDown={handlePadPointerDown}
             onPointerMove={handlePadPointerMove}
@@ -303,33 +276,10 @@ const RadarOverlay = memo(function RadarOverlay({
               <span className="text-xs font-bold leading-none">Signal</span>
             </button>
 
-            {/* Locate */}
-            <button
-              onClick={handleRequestLocation}
-              disabled={locating && !geoError}
-              className={cn(
-                'rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-foreground/65 transition-all active:scale-95 border-r border-white/[0.04]',
-                (!locating || geoError) && 'hover:bg-white/[0.04]',
-                justLocked && 'rr-lock'
-              )}
-              aria-label="Center Radar on my area"
-            >
-              <div className="flex h-5 w-5 items-center justify-center">
-                {(locating && !geoError) ? (
-                  <Navigation className="h-[18px] w-[18px] animate-spin" />
-                ) : (
-                  <Crosshair className="h-[18px] w-[18px]" />
-                )}
-              </div>
-              <span className="text-xs font-bold leading-none">
-                {(locating && !geoError) ? 'Finding' : hasUserLocation ? 'Locate' : 'Find me'}
-              </span>
-            </button>
-
-            {/* Bike Down */}
+            {/* Bike Down — spans full width */}
             <button
               onClick={handleBikeDown}
-              className="rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-destructive hover:bg-destructive/[0.06] transition-all active:scale-95"
+              className="rr-haptic col-span-2 flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-destructive hover:bg-destructive/[0.06] transition-all active:scale-95"
               aria-label="Report a bike down emergency"
             >
               <div className="flex h-5 w-5 items-center justify-center">
