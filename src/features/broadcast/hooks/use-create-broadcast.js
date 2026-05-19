@@ -37,18 +37,6 @@ export function useCreateBroadcast() {
         throw new Error('Please wait a moment before trying again.');
       }
 
-      const { data: settings, error: settingsError } = await supabase
-        .from('user_settings')
-        .select('live_map_visible')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (settingsError) {
-        logger.error('[useCreateBroadcast] Settings error:', settingsError);
-        throw settingsError;
-      }
-
-      const showApproximateLocation = settings?.live_map_visible !== false;
       const now = new Date();
 
       // Calculate expiration
@@ -91,7 +79,7 @@ export function useCreateBroadcast() {
       }
 
       // Event: geocode address then approximate
-      if (broadcastData.type === 'event' && exactLocationText && showApproximateLocation) {
+      if (broadcastData.type === 'event' && exactLocationText) {
         try {
           geocodeResult = await geocodeAddress(exactLocationText);
           if (geocodeResult) {
@@ -120,7 +108,7 @@ export function useCreateBroadcast() {
             broadcastData.lng,
             `${user.id}:${now.toISOString()}:alert:pin`
           );
-        } else if (exactLocationText && showApproximateLocation) {
+        } else if (exactLocationText) {
           try {
             geocodeResult = await geocodeAddress(exactLocationText);
             if (geocodeResult) {
@@ -132,6 +120,11 @@ export function useCreateBroadcast() {
             }
           } catch (error) {
             logger.warn('[useCreateBroadcast] Alert geocoding failed:', error);
+          }
+          if (broadcastData.type === 'bike_down' && !frozenLocation) {
+            throw new Error(
+              'We could not locate that address. Try adding a nearby street, landmark, or city.'
+            );
           }
         }
       }

@@ -172,6 +172,10 @@ function BroadcastFeedPage() {
       (b) => b.type === 'solo_ride' || (b.type === 'iso' && ((b.isoSubtype || b.iso_subtype) === 'bike_crew'))
     ).length;
     const events = visibleBroadcasts.filter((b) => b.type === 'event').length;
+    const eventsThisWeek = visibleBroadcasts.filter(
+      (b) => b.type === 'event' && b.event_date &&
+        new Date(b.event_date) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    ).length;
     const riders = visibleRiderMarkers.length;
     const total = visibleBroadcasts.length;
 
@@ -179,7 +183,8 @@ function BroadcastFeedPage() {
     if (alerts > 0) return alerts === 1 ? 'Warning nearby' : `${alerts} warnings nearby`;
     if (help > 0) return help === 1 ? 'Help request nearby' : `${help} help requests nearby`;
     if (rides > 0) return rides === 1 ? 'Ride forming nearby' : `${rides} rides nearby`;
-    if (events > 0) return 'Events nearby this week';
+    if (eventsThisWeek > 0) return 'Events nearby this week';
+    if (events > 0) return 'Events nearby';
     if (riders > 0) return riders === 1 ? '1 rider nearby' : `${riders} riders nearby`;
     if (total > 0) return total === 1 ? '1 signal nearby' : `${total} signals nearby`;
     if (!hasUserLocation) return 'Tap locate to scan your area';
