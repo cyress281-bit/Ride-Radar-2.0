@@ -5,7 +5,7 @@
  * Each toggle saves immediately. Grouped sections as glassmorphism cards.
  */
 
-import { useCallback, useEffect, memo } from 'react';
+import { useCallback, useEffect, memo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   LogOut,
@@ -54,6 +54,11 @@ import { ErrorState } from '@/components/shared/ErrorState';
 
 /**
  * Settings row with icon, label, chevron, and optional value/toggle.
+ *
+ * Toggle rows render as a <div> so the Radix Switch (itself a <button>) is not
+ * nested inside another <button> — invalid HTML that causes browsers to suppress
+ * pointer events on the inner Switch when the outer button is disabled.
+ * Navigation rows (onClick) render as <button> as before.
  */
 const SettingsRow = memo(function SettingsRow({
   icon: Icon,
@@ -66,19 +71,16 @@ const SettingsRow = memo(function SettingsRow({
   onClick,
   disabled,
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled || !!toggle}
-      className={cn(
-        'w-full flex items-center gap-3.5 px-4 py-3.5 text-left transition-colors',
-        'hover:bg-white/[0.02] active:bg-white/[0.04]',
-        danger && 'hover:bg-brand-emergency/5',
-        onClick && 'cursor-pointer',
-        disabled && 'opacity-50 cursor-not-allowed'
-      )}
-    >
+  const isToggleRow = toggle !== undefined;
+
+  const sharedBase = cn(
+    'w-full flex items-center gap-3.5 px-4 py-3.5 text-left transition-colors',
+    danger ? 'hover:bg-brand-emergency/5' : 'hover:bg-white/[0.02]',
+    disabled && 'opacity-50'
+  );
+
+  const contents = (
+    <>
       <div className="flex h-8 w-8 shrink-0 items-center justify-center">
         <Icon className={cn('h-5 w-5', danger ? 'text-brand-emergency' : 'text-primary')} strokeWidth={2} />
       </div>
@@ -90,7 +92,7 @@ const SettingsRow = memo(function SettingsRow({
           <Text variant="caption" color="muted">{desc}</Text>
         )}
       </VStack>
-      {toggle !== undefined && (
+      {isToggleRow && (
         <Switch
           checked={toggle}
           onCheckedChange={onToggle}
@@ -98,12 +100,27 @@ const SettingsRow = memo(function SettingsRow({
           className="data-[state=checked]:bg-primary data-[state=checked]:shadow-[0_0_12px_hsl(var(--primary)/0.4)]"
         />
       )}
-      {value && toggle === undefined && (
+      {value && !isToggleRow && (
         <Text variant="caption" color="muted" className="shrink-0">{value}</Text>
       )}
-      {onClick && toggle === undefined && (
+      {onClick && !isToggleRow && (
         <ChevronRight className={cn('h-4 w-4 shrink-0', danger ? 'text-brand-emergency/50' : 'text-muted-foreground')} />
       )}
+    </>
+  );
+
+  if (isToggleRow) {
+    return <div className={sharedBase}>{contents}</div>;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(sharedBase, 'active:bg-white/[0.04]', onClick && 'cursor-pointer', disabled && 'cursor-not-allowed')}
+    >
+      {contents}
     </button>
   );
 });
@@ -163,6 +180,28 @@ function SettingsPage() {
   } = useSettings(user?.id);
 
   const { mutate: saveSettings, isPending: isSaving } = useUpdateSettings();
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
+
+  const handleProfileVisibilityToggle = useCallback(
+    async (v) => {
+      if (!user?.id || isProfileSaving) return;
+      setIsProfileSaving(true);
+      try {
+        const { error } = await supabase
+          .from('user_profiles')
+          .update({ is_public: v })
+          .eq('user_id', user.id);
+        if (error) {
+          logger.warn('[Settings] Failed to update profile visibility:', error);
+        } else {
+          await refreshProfile();
+        }
+      } finally {
+        setIsProfileSaving(false);
+      }
+    },
+    [user?.id, isProfileSaving, refreshProfile]
+  );
 
   // Sync analytics opt-in when settings load
   useEffect(() => {
@@ -307,18 +346,8 @@ function SettingsPage() {
             label="Public profile preview"
             desc="Allow others to see your profile without connecting"
             toggle={profile?.is_public !== false}
-            onToggle={async (v) => {
-              const { error } = await supabase
-                .from('user_profiles')
-                .update({ is_public: v })
-                .eq('user_id', user.id);
-              if (error) {
-                logger.warn('[Settings] Failed to update profile visibility:', error);
-              } else {
-                await refreshProfile();
-              }
-            }}
-            disabled={isSaving}
+            onToggle={handleProfileVisibilityToggle}
+            disabled={isSaving || isProfileSaving}
           />
         </div>
       </SettingsSection>
