@@ -105,8 +105,13 @@ const RadarOverlay = memo(function RadarOverlay({
   }, [user?.id, isLiveMapVisible, updateSettings]);
 
   // ── Draggable pad ──────────────────────────────────────────────────────────
+  // padPos drives the committed (state) position — used only when NOT dragging.
+  // During active drag we mutate padElRef.current.style directly to avoid
+  // React re-renders on every pointermove frame.
   const [padPos, setPadPos] = useState(() => readSavedPadPosition() ?? getDefaultPos());
+  const padElRef = useRef(null);
   const dragRef = useRef({ dragging: false, startX: 0, startY: 0, startLeft: 0, startTop: 0 });
+  const rafRef = useRef(null);
   const lastTapRef = useRef(0);
 
   useEffect(() => {
@@ -144,6 +149,8 @@ const RadarOverlay = memo(function RadarOverlay({
     }
     lastTapRef.current = now;
     e.currentTarget.setPointerCapture(e.pointerId);
+    // Disable transition during drag so CSS doesn't fight pointer moves
+    if (padElRef.current) padElRef.current.style.transition = 'none';
     dragRef.current = {
       dragging: true,
       startX: e.clientX,
@@ -155,23 +162,47 @@ const RadarOverlay = memo(function RadarOverlay({
 
   const handlePadPointerMove = useCallback((e) => {
     if (!dragRef.current.dragging) return;
-    const dx = e.clientX - dragRef.current.startX;
-    const dy = e.clientY - dragRef.current.startY;
-    setPadPos(clampPos(dragRef.current.startLeft + dx, dragRef.current.startTop + dy));
+    if (rafRef.current) return; // already scheduled
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      if (!dragRef.current.dragging) return;
+      const dx = e.clientX - dragRef.current.startX;
+      const dy = e.clientY - dragRef.current.startY;
+      const { left, top } = clampPos(dragRef.current.startLeft + dx, dragRef.current.startTop + dy);
+      // Direct DOM mutation — zero React re-renders during drag
+      if (padElRef.current) {
+        padElRef.current.style.left = `${left}px`;
+        padElRef.current.style.top = `${top}px`;
+      }
+    });
   }, []);
 
   const handlePadPointerUp = useCallback((e) => {
     if (!dragRef.current.dragging) return;
     dragRef.current.dragging = false;
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
     const dx = e.clientX - dragRef.current.startX;
     const dy = e.clientY - dragRef.current.startY;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-      savePadPosition(clampPos(dragRef.current.startLeft + dx, dragRef.current.startTop + dy));
-    }
+    const moved = Math.abs(dx) > 3 || Math.abs(dy) > 3;
+    const finalPos = moved
+      ? clampPos(dragRef.current.startLeft + dx, dragRef.current.startTop + dy)
+      : { left: dragRef.current.startLeft, top: dragRef.current.startTop };
+    // Restore transition, commit final position to React state (single re-render)
+    if (padElRef.current) padElRef.current.style.transition = '';
+    setPadPos(finalPos);
+    if (moved) savePadPosition(finalPos);
   }, []);
 
   const handlePadPointerCancel = useCallback(() => {
+    if (!dragRef.current.dragging) return;
     dragRef.current.dragging = false;
+    if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
+    if (padElRef.current) padElRef.current.style.transition = '';
+    // Snap back to committed position
+    if (padElRef.current) {
+      padElRef.current.style.left = `${dragRef.current.startLeft}px`;
+      padElRef.current.style.top = `${dragRef.current.startTop}px`;
+    }
   }, []);
   // ────────────────────────────────────────────────────────────────────────────
 
@@ -200,10 +231,11 @@ const RadarOverlay = memo(function RadarOverlay({
 
       {/* Draggable action pad — 3 actions: Live | Signal top row, Bike Down full width */}
       <div
+        ref={padElRef}
         className={cn(
-          'absolute z-[25] transition-all duration-300',
+          'absolute z-[25]',
           sheetOpen
-            ? 'opacity-0 scale-95 pointer-events-none'
+            ? 'opacity-0 scale-95 pointer-events-none transition-all duration-300'
             : 'opacity-100 scale-100 pointer-events-auto'
         )}
         style={{ left: padPos.left, top: padPos.top }}
