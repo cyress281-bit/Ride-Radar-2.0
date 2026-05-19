@@ -50,6 +50,9 @@ export const PRESENCE_TTL_MS = 10 * 60 * 1000;
 /** Interval between heartbeat updates (4 minutes). */
 export const HEARTBEAT_INTERVAL_MS = 4 * 60 * 1000;
 
+/** TTL written to expires_at when the app goes to background (2 minutes). */
+export const BACKGROUND_GRACE_MS = 2 * 60 * 1000;
+
 /** How often to refresh presence state from the server (30 seconds). */
 export const PRESENCE_REFRESH_MS = 30 * 1000;
 

@@ -3,7 +3,7 @@
  * auto-publish with heartbeat, and throttled location updates.
  */
 
-import { useEffect, useId, useRef } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
@@ -12,7 +12,9 @@ import { buildPresenceLocation, isValidCoordinate } from '@/lib/geocoding.js';
 
 import { logger } from '@/lib/logger.js';
 import { captureError } from '@/lib/sentry.js';
-import { HEARTBEAT_INTERVAL_MS, PRESENCE_REFRESH_MS } from '@/lib/constants.js';
+import { HEARTBEAT_INTERVAL_MS, PRESENCE_REFRESH_MS, BACKGROUND_GRACE_MS } from '@/lib/constants.js';
+
+const LIVE_SESSION_KEY = 'rr:live-session';
 
 export const presenceKeys = {
   all: ['live-map-presence'],
@@ -44,6 +46,24 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
   // when auth context returns new object references.
   const profileRef = useRef(profile);
   profileRef.current = profile;
+
+  // ── Fix C: session-level live-active tracking ──────────────────────────────
+  // sessionStorage is cleared on tab close / force-close, so this naturally
+  // detects "was Live in a previous session" on app reopen.
+  const [sessionLiveActive, setSessionLiveActive] = useState(
+    () => sessionStorage.getItem(LIVE_SESSION_KEY) === '1'
+  );
+
+  const markLiveSessionActive = useCallback(() => {
+    sessionStorage.setItem(LIVE_SESSION_KEY, '1');
+    setSessionLiveActive(true);
+  }, []);
+
+  const clearLiveSession = useCallback(() => {
+    sessionStorage.removeItem(LIVE_SESSION_KEY);
+    setSessionLiveActive(false);
+  }, []);
+  // ────────────────────────────────────────────────────────────────────────────
 
   const settingsQuery = useQuery({
     queryKey: ['settings', userId],
@@ -132,11 +152,45 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     };
   }, [instanceId, queryClient, userId]);
 
+  // ── Fix B: background/visibilitychange safety ──────────────────────────────
+  // Stable refs let us use a single event listener (empty deps) that always
+  // reads current values, avoiding listener churn on every settings change.
+  const settingsDataRef = useRef(null);
+  settingsDataRef.current = settingsQuery.data ?? null;
+  const userIdRef = useRef(userId);
+  userIdRef.current = userId;
+  const sessionActiveRef = useRef(sessionLiveActive);
+  sessionActiveRef.current = sessionLiveActive;
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'hidden') return;
+      if (!settingsDataRef.current?.live_map_visible) return;
+      if (!sessionActiveRef.current) return; // skip if in resume-prompt state
+      if (!userIdRef.current) return;
+
+      // Shorten the presence TTL to BACKGROUND_GRACE_MS so force-close
+      // causes the row to expire within that window instead of up to 10 min.
+      supabase
+        .from('live_map_presence')
+        .update({ expires_at: new Date(Date.now() + BACKGROUND_GRACE_MS).toISOString() })
+        .eq('user_id', userIdRef.current)
+        .then(({ error }) => {
+          if (error) logger.warn('[useLiveMapPresence] Background expire failed:', error);
+        });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []); // intentionally empty — reads current values via stable refs
+  // ────────────────────────────────────────────────────────────────────────────
+
   // Auto-publish presence
   const lastPublishRef = useRef(0);
 
   useEffect(() => {
-    if (!options.autoPublish || !settingsQuery.data?.live_map_visible) return;
+    // Fix C: gate on sessionLiveActive — no publish while resume prompt is pending
+    if (!options.autoPublish || !settingsQuery.data?.live_map_visible || !sessionLiveActive) return;
     if (!isValidCoordinate(currentLocation?.lat, currentLocation?.lng)) return;
 
     const now = Date.now();
@@ -187,6 +241,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     currentLocation?.accuracyMeters,
     options.autoPublish,
     options.source,
+    sessionLiveActive,
     settingsQuery.data?.live_map_visible,
     settingsQuery.data?.live_map_location_precision,
     userId,
@@ -195,7 +250,8 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
 
   // Heartbeat
   useEffect(() => {
-    if (!options.autoPublish || !settingsQuery.data?.live_map_visible) return;
+    // Fix C: gate on sessionLiveActive — no heartbeat while resume prompt is pending
+    if (!options.autoPublish || !settingsQuery.data?.live_map_visible || !sessionLiveActive) return;
     if (!isValidCoordinate(currentLocation?.lat, currentLocation?.lng)) return;
 
     const heartbeat = window.setInterval(() => {
@@ -245,11 +301,18 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     currentLocation?.accuracyMeters,
     options.autoPublish,
     options.source,
+    sessionLiveActive,
     settingsQuery.data?.live_map_visible,
     settingsQuery.data?.live_map_location_precision,
     userId,
     queryClient,
   ]);
+
+  // Fix C: true when settings are loaded, Live is on, but this session hasn't
+  // yet established an active presence (i.e. app was reopened with stale Live state).
+  const needsResumePrompt = settingsQuery.isSuccess
+    && settingsQuery.data?.live_map_visible === true
+    && !sessionLiveActive;
 
   return {
     markers: presenceQuery.data || [],
@@ -258,5 +321,8 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     isLiveMapVisible: settingsQuery.data?.live_map_visible === true,
     isLoading: presenceQuery.isLoading || settingsQuery.isLoading || myPresenceQuery.isLoading,
     error: presenceQuery.error || settingsQuery.error || myPresenceQuery.error || null,
+    needsResumePrompt,
+    markLiveSessionActive,
+    clearLiveSession,
   };
 }

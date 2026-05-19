@@ -91,7 +91,7 @@ function BroadcastFeedPage() {
   const sourceBroadcasts = usingOfflineSnapshot ? offlineSnapshot.broadcasts : hasUserLocation ? nearbyBroadcasts : [];
   const isLoadingBroadcasts = hasUserLocation ? isLoadingNearby : false;
 
-  const { markers: riderMarkers, isLiveMapVisible } = useLiveMapPresence(
+  const { markers: riderMarkers, isLiveMapVisible, needsResumePrompt, markLiveSessionActive, clearLiveSession } = useLiveMapPresence(
     { lat: userLoc.lat, lng: userLoc.lng, accuracyMeters: userLoc.accuracyMeters },
     { autoPublish: true, source: 'radar' }
   );
@@ -220,6 +220,9 @@ function BroadcastFeedPage() {
         geoError={geoError}
         isLiveMapVisible={isLiveMapVisible}
         sheetOpen={sheetOpen}
+        needsResumePrompt={needsResumePrompt}
+        markLiveSessionActive={markLiveSessionActive}
+        clearLiveSession={clearLiveSession}
       />
 
       <RadarBottomSheet

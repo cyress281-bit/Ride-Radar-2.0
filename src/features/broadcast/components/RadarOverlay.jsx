@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils.js';
 import { toast } from 'sonner';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useUpdateSettings } from '@/features/settings/hooks/use-settings.js';
+import { clearPresence } from '@/features/map/api/map-api.js';
 import BottomSheet from '@/components/layout/BottomSheet';
 
 // ── Draggable pad constants ────────────────────────────────────────────────
@@ -78,6 +79,10 @@ const RadarOverlay = memo(function RadarOverlay({
   geoError,
   isLiveMapVisible,
   sheetOpen = false,
+  // Fix C — resume awareness callbacks from useLiveMapPresence
+  needsResumePrompt = false,
+  markLiveSessionActive,
+  clearLiveSession,
 }) {
   const navigate = useNavigate();
   const { user } = useAuthState();
@@ -86,6 +91,15 @@ const RadarOverlay = memo(function RadarOverlay({
   const justActivatedTimerRef = useRef(null);
   const [showLiveConfirm, setShowLiveConfirm] = useState(false);
   const [confirmSkipFuture, setConfirmSkipFuture] = useState(false);
+
+  // Fix C — Resume Live sheet state
+  const [showResumeSheet, setShowResumeSheet] = useState(false);
+  const resumeResolvedRef = useRef(false);
+
+  // Open resume sheet as soon as the hook reports a pending resume
+  useEffect(() => {
+    if (needsResumePrompt) setShowResumeSheet(true);
+  }, [needsResumePrompt]);
 
   useEffect(() => {
     return () => {
@@ -96,16 +110,24 @@ const RadarOverlay = memo(function RadarOverlay({
   const handleCreateBroadcast = useCallback(() => navigate('/broadcast'), [navigate]);
   const handleBikeDown = useCallback(() => navigate('/broadcast?type=bike_down'), [navigate]);
 
+  // Shared helper: expire presence row + update settings to OFF
+  const performLiveOff = useCallback(async () => {
+    clearLiveSession?.();
+    try {
+      await updateSettings.mutateAsync({ userId: user?.id, updates: { live_map_visible: false } });
+      // Fix A: immediately delete presence row so other riders stop seeing the user
+      clearPresence(user?.id).catch(() => {});
+    } catch (err) {
+      toast.error('Could not update live status', { description: err?.message || 'Please try again' });
+    }
+  }, [user?.id, updateSettings, clearLiveSession]);
+
   const handleToggleLive = useCallback(async () => {
     if (!user?.id || updateSettings.isPending) return;
     const turningOn = !isLiveMapVisible;
-    // Turning OFF — no confirmation needed, toggle immediately
+    // Turning OFF — no confirmation, clear presence immediately (Fix A)
     if (!turningOn) {
-      try {
-        await updateSettings.mutateAsync({ userId: user.id, updates: { live_map_visible: false } });
-      } catch (err) {
-        toast.error('Could not update live status', { description: err?.message || 'Please try again' });
-      }
+      await performLiveOff();
       return;
     }
     // Turning ON — show confirmation unless user previously opted out
@@ -115,6 +137,7 @@ const RadarOverlay = memo(function RadarOverlay({
       return;
     }
     // Already confirmed — activate directly
+    markLiveSessionActive?.(); // Fix C: mark session active before async
     try {
       await updateSettings.mutateAsync({ userId: user.id, updates: { live_map_visible: true } });
       setJustActivated(true);
@@ -123,11 +146,12 @@ const RadarOverlay = memo(function RadarOverlay({
     } catch (err) {
       toast.error('Could not update live status', { description: err?.message || 'Please try again' });
     }
-  }, [user?.id, isLiveMapVisible, updateSettings]);
+  }, [user?.id, isLiveMapVisible, updateSettings, performLiveOff, markLiveSessionActive]);
 
   const handleLiveConfirm = useCallback(async () => {
     setShowLiveConfirm(false);
     if (confirmSkipFuture) persistSkipLiveConfirm();
+    markLiveSessionActive?.(); // Fix C: mark session active before async
     try {
       await updateSettings.mutateAsync({ userId: user?.id, updates: { live_map_visible: true } });
       setJustActivated(true);
@@ -136,7 +160,30 @@ const RadarOverlay = memo(function RadarOverlay({
     } catch (err) {
       toast.error('Could not update live status', { description: err?.message || 'Please try again' });
     }
-  }, [user?.id, updateSettings, confirmSkipFuture]);
+  }, [user?.id, updateSettings, confirmSkipFuture, markLiveSessionActive]);
+
+  // Fix C — Resume Live sheet handlers
+  const handleResumeLive = useCallback(() => {
+    resumeResolvedRef.current = true;
+    markLiveSessionActive?.();
+    setShowResumeSheet(false);
+  }, [markLiveSessionActive]);
+
+  const handleResumeStayOffline = useCallback(async () => {
+    resumeResolvedRef.current = true;
+    setShowResumeSheet(false);
+    await performLiveOff();
+  }, [performLiveOff]);
+
+  // Called by BottomSheet onClose (backdrop tap / swipe dismiss)
+  const handleResumeSheetClose = useCallback(async () => {
+    if (resumeResolvedRef.current) {
+      resumeResolvedRef.current = false; // reset for next time
+      return;
+    }
+    // Implicit close — treat as Stay Offline (safer default)
+    await performLiveOff();
+  }, [performLiveOff]);
 
   // ── Draggable pad ──────────────────────────────────────────────────────────
   // padPos drives the committed (state) position — used only when NOT dragging.
@@ -367,6 +414,48 @@ const RadarOverlay = memo(function RadarOverlay({
           </div>
         </div>
       )}
+
+      {/* Resume Live? sheet — shown when app reopens with stale live_map_visible = true */}
+      <BottomSheet
+        isOpen={showResumeSheet}
+        onClose={handleResumeSheetClose}
+        title="Resume Live?"
+        height="auto"
+      >
+        <div className="flex flex-col gap-5 pt-1">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 border border-primary/25 shadow-[0_0_28px_hsl(var(--primary)/0.22)]">
+              <Radio className="h-7 w-7 text-primary" />
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 text-center">
+            <p className="text-sm text-foreground leading-relaxed">
+              You were Live in your last session. Nearby riders will be able to see your live presence while Live is active.
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Resume to appear on the Radar map, or stay offline to keep your presence hidden.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2.5 pb-1">
+            <button
+              type="button"
+              onClick={handleResumeLive}
+              className="rr-haptic w-full flex items-center justify-center gap-2 h-12 rounded-full bg-primary text-primary-foreground text-sm font-bold shadow-[0_0_22px_hsl(var(--primary)/0.22),inset_0_1px_0_hsl(0_0%_100%/0.28)] hover:bg-primary/90 active:scale-[0.97] transition-all"
+            >
+              <Radio className="h-4 w-4" />
+              Resume Live
+            </button>
+            <button
+              type="button"
+              onClick={handleResumeStayOffline}
+              disabled={updateSettings.isPending}
+              className="rr-haptic w-full flex items-center justify-center h-11 rounded-full border border-white/[0.08] text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-white/[0.04] active:scale-[0.97] transition-all disabled:opacity-50"
+            >
+              Stay Offline
+            </button>
+          </div>
+        </div>
+      </BottomSheet>
 
       {/* Go Live confirmation sheet */}
       <BottomSheet
