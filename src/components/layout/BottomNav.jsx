@@ -11,13 +11,14 @@ const TABS = [
   { to: '/profile', icon: User, label: 'Profile' },
 ];
 
-const BottomNav = memo(function BottomNav() {
+const BottomNav = memo(function BottomNav({ isOverlay = false }) {
   const { pathname } = useLocation();
 
   return (
     <nav
       data-rr-nav
       className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-safe pointer-events-none"
+      style={isOverlay ? { bottom: 'var(--rr-viewport-offset-bottom, 0px)' } : undefined}
       aria-label="Main navigation"
     >
       <div

@@ -122,6 +122,21 @@ const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, var
   return null;
 });
 
+const InvalidateMapSize = memo(function InvalidateMapSize({ resizeKey }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => map.invalidateSize());
+    const timer = window.setTimeout(() => map.invalidateSize(), 120);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [map, resizeKey]);
+
+  return null;
+});
+
 const CenterOnUserButton = memo(function CenterOnUserButton({ userLat, userLng }) {
   const map = useMap();
   const handleClick = useCallback(() => {
@@ -358,6 +373,7 @@ function LiveMap({
   offlineMode = false,
   offlineSnapshotAt,
   isLiveMapVisible = false,
+  resizeKey = 0,
 }) {
   const [mapError, setMapError] = useState(false);
   const [autoFitDisabled, setAutoFitDisabled] = useState(false);
@@ -519,6 +535,7 @@ function LiveMap({
               eventHandlers={tileEventHandlers}
             />
             <FitMapToItems items={items} userLat={userLat} userLng={userLng} variant={variant} disabled={variant === 'radar' && autoFitDisabled} focusUserLocation={focusUserLocation} fitKey={fitKey} />
+            <InvalidateMapSize resizeKey={resizeKey} />
             {showSelfLocation && hasUserLocation && (
               <Marker position={[userLat, userLng]} icon={isLiveMapVisible ? getSelfMarkerIconLive() : getSelfMarkerIcon()}>
                 <Popup>
@@ -573,6 +590,7 @@ export default memo(LiveMap, (prev, next) => {
     prev.showSelfLocation === next.showSelfLocation &&
     prev.offlineMode === next.offlineMode &&
     prev.offlineSnapshotAt === next.offlineSnapshotAt &&
-    prev.isLiveMapVisible === next.isLiveMapVisible
+    prev.isLiveMapVisible === next.isLiveMapVisible &&
+    prev.resizeKey === next.resizeKey
   );
 });

@@ -135,7 +135,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
         {...contentTouchHandlers}
         className={cn(
           'overscroll-contain [-webkit-overflow-scrolling:touch]',
-          sheetOpen ? 'overflow-y-auto max-h-[75svh] px-4 pb-[calc(var(--rr-nav-h)+var(--rr-safe-area-bottom,env(safe-area-inset-bottom,0px))+1.5rem)]' : 'overflow-hidden max-h-0'
+          sheetOpen ? 'overflow-y-auto max-h-[calc(var(--rr-viewport-height,100svh)*0.75)] px-4 pb-[calc(var(--rr-nav-h)+var(--rr-safe-area-bottom,env(safe-area-inset-bottom,0px))+1.5rem)]' : 'overflow-hidden max-h-0'
         )}
       >
         {/* Expanded category summary */}

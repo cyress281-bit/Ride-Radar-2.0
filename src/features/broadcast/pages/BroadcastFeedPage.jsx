@@ -7,6 +7,7 @@ import { useOnlineStatus } from '@/hooks/use-online-status.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useRadarLocation } from '@/features/broadcast/hooks/use-radar-location.js';
 import { useBottomSheet } from '@/features/broadcast/hooks/use-bottom-sheet.js';
+import { useRadarViewport } from '@/features/broadcast/hooks/use-radar-viewport.js';
 import LiveMap from '@/features/map/components/LiveMap';
 import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
 import RadarOverlay from '@/features/broadcast/components/RadarOverlay';
@@ -60,6 +61,7 @@ function getAuthorId(broadcast) {
 function BroadcastFeedPage() {
   const { user } = useAuthState();
   const isOnline = useOnlineStatus();
+  const radarViewport = useRadarViewport();
 
   const { userLoc, hasUserLocation, geoError, locating, requestLocation, effectiveLoc } = useRadarLocation();
   const [locateCount, setLocateCount] = useState(0);
@@ -191,7 +193,10 @@ function BroadcastFeedPage() {
   }, [visibleBroadcasts, visibleRiderMarkers]);
 
   return (
-    <div className="fixed inset-0 bg-background">
+    <div
+      className="fixed left-0 right-0 top-0 overflow-hidden bg-background"
+      style={{ height: 'var(--rr-viewport-height, 100dvh)' }}
+    >
       {/* Full-screen map */}
       <div className="absolute inset-0 z-0">
         <LiveMap
@@ -210,6 +215,7 @@ function BroadcastFeedPage() {
           offlineMode={usingOfflineSnapshot}
           offlineSnapshotAt={offlineSnapshot?.cachedAt}
           isLiveMapVisible={isLiveMapVisible}
+          resizeKey={radarViewport.version}
         />
       </div>
 

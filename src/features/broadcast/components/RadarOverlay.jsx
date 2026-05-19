@@ -14,17 +14,26 @@ const MARGIN = 16;
 const MIN_TOP = 128;          // below header (56px) + safe-area + signal pill
 const BOTTOM_CLEARANCE = 144; // above bottom sheet peek (60px) + bottom nav (56px) + margins
 
-function clampPos(left, top) {
+function getViewportSize() {
   return {
-    left: Math.max(MARGIN, Math.min(Math.max(MARGIN, window.innerWidth - PAD_WIDTH - MARGIN), left)),
-    top: Math.max(MIN_TOP, Math.min(Math.max(MIN_TOP, window.innerHeight - PAD_HEIGHT_WITH_HANDLE - BOTTOM_CLEARANCE), top)),
+    width: window.visualViewport?.width ?? window.innerWidth,
+    height: window.visualViewport?.height ?? window.innerHeight,
+  };
+}
+
+function clampPos(left, top) {
+  const viewport = getViewportSize();
+  return {
+    left: Math.max(MARGIN, Math.min(Math.max(MARGIN, viewport.width - PAD_WIDTH - MARGIN), left)),
+    top: Math.max(MIN_TOP, Math.min(Math.max(MIN_TOP, viewport.height - PAD_HEIGHT_WITH_HANDLE - BOTTOM_CLEARANCE), top)),
   };
 }
 
 function getDefaultPos() {
+  const viewport = getViewportSize();
   return clampPos(
-    window.innerWidth - PAD_WIDTH - MARGIN,
-    window.innerHeight - PAD_HEIGHT_WITH_HANDLE - 168,
+    viewport.width - PAD_WIDTH - MARGIN,
+    viewport.height - PAD_HEIGHT_WITH_HANDLE - 168,
   );
 }
 
@@ -125,6 +134,30 @@ const RadarOverlay = memo(function RadarOverlay({
   const [padPos, setPadPos] = useState(() => readSavedPadPosition() ?? getDefaultPos());
   const dragRef = useRef({ dragging: false, startX: 0, startY: 0, startLeft: 0, startTop: 0 });
   const lastTapRef = useRef(0);
+
+  useEffect(() => {
+    const reclampPad = () => {
+      if (dragRef.current.dragging) return;
+      setPadPos((pos) => clampPos(pos.left, pos.top));
+    };
+    const frame = requestAnimationFrame(reclampPad);
+    const timer = setTimeout(reclampPad, 250);
+    const visualViewport = window.visualViewport;
+
+    window.addEventListener('resize', reclampPad, { passive: true });
+    window.addEventListener('orientationchange', reclampPad, { passive: true });
+    visualViewport?.addEventListener('resize', reclampPad, { passive: true });
+    visualViewport?.addEventListener('scroll', reclampPad, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(timer);
+      window.removeEventListener('resize', reclampPad);
+      window.removeEventListener('orientationchange', reclampPad);
+      visualViewport?.removeEventListener('resize', reclampPad);
+      visualViewport?.removeEventListener('scroll', reclampPad);
+    };
+  }, []);
 
   const handlePadPointerDown = useCallback((e) => {
     const now = Date.now();
