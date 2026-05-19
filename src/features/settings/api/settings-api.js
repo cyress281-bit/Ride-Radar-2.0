@@ -126,11 +126,39 @@ export async function updateSettings(userId, updates) {
 }
 
 /**
+ * Remove all files under a storage folder prefix (best-effort, non-fatal).
+ * @param {string} bucket
+ * @param {string} prefix e.g. "avatars/user-uuid"
+ */
+async function purgeStorageFolder(bucket, prefix) {
+  const { data: files } = await supabase.storage.from(bucket).list(prefix, { limit: 1000 });
+  if (!files?.length) return;
+  const paths = files.map((f) => `${prefix}/${f.name}`);
+  const { error } = await supabase.storage.from(bucket).remove(paths);
+  if (error) logger.warn(`[deleteAccount] Storage removal failed for ${prefix} (non-fatal):`, error);
+}
+
+/**
  * Delete the current user's account via RPC.
+ * Attempts to remove user-owned storage objects first (best-effort).
  *
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
 export async function deleteAccount() {
+  // Purge user-owned storage before removing the DB row so we still have
+  // auth.uid() available and storage RLS can verify ownership.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user?.id) {
+    const userId = user.id;
+    await Promise.allSettled([
+      purgeStorageFolder('uploads', `avatars/${userId}`),
+      purgeStorageFolder('uploads', `bikes/${userId}`),
+      purgeStorageFolder('uploads', `posts/${userId}`),
+      purgeStorageFolder('uploads', `events/${userId}`),
+      purgeStorageFolder('uploads', `alerts/${userId}`),
+    ]);
+  }
+
   const { data, error } = await supabase.rpc('delete_user_account');
 
   if (error) logger.error('[deleteAccount] Error:', error);

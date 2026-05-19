@@ -494,6 +494,12 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {/* Bike Down fields */}
         {type === 'bike_down' && (
           <VStack gap={5}>
+            <div className="flex items-start gap-2.5 rounded-xl border border-destructive/25 bg-destructive/8 px-3.5 py-3">
+              <span className="mt-0.5 text-destructive" aria-hidden="true">⚠</span>
+              <p className="text-xs leading-snug text-destructive/90 font-medium">
+                Bike Down alerts are community safety signals, not emergency services. If someone may be injured or in danger, <strong>call 911 first</strong>.
+              </p>
+            </div>
             <VStack gap={2}>
               <Label htmlFor="approximateArea" className="rr-kicker text-muted-foreground mb-1 block">Where did you see it?</Label>
               <Input

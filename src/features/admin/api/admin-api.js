@@ -158,7 +158,7 @@ export async function getPendingReportCount() {
   const { count, error } = await supabase
     .from('reports')
     .select('*', { count: 'exact', head: true })
-    .neq('status', 'closed');
+    .in('status', ['open', 'reviewed']);
   return { data: count ?? 0, error };
 }
 

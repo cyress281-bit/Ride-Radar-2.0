@@ -334,8 +334,8 @@ function SettingsPage() {
       <SettingsSection title="Account" icon={ShieldCheck}>
         <SettingsRow
           icon={Bell}
-          label="Push notifications"
-          desc="Receive push notifications on your device"
+          label="In-app notifications"
+          desc="Get notified about rides, messages, and connections"
           toggle={settings?.notifications_enabled !== false}
           onToggle={(v) => handleToggle('notifications_enabled', v)}
           disabled={isSaving}

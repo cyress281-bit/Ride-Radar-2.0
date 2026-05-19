@@ -47,7 +47,7 @@ export const createReport = throttle(async function createReport({
       target_user_id,
       reason,
       details: details?.trim() || null,
-      status: 'pending',
+      status: 'open',
     })
     .select()
     .single();
@@ -90,7 +90,6 @@ export async function createBlock({ blocker_user_id, blocked_user_id, reason }) 
     .insert({
       blocker_user_id,
       blocked_user_id,
-      reason: reason?.trim() || null,
     })
     .select()
     .single();

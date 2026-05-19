@@ -115,7 +115,7 @@ function AdminReportsContent() {
 
       const { error } = await supabase
         .from('reports')
-        .update({ status: 'closed', details: updatedDetails })
+        .update({ status: 'resolved', details: updatedDetails })
         .eq('id', report.id);
       if (error) throw error;
 
@@ -133,7 +133,7 @@ function AdminReportsContent() {
             r.id === report.id
               ? {
                   ...r,
-                  status: 'closed',
+                  status: 'resolved',
                   details: `${r.details || ''}\nAdmin action taken: ${actionNote}`.trim(),
                 }
               : r
@@ -166,7 +166,7 @@ function AdminReportsContent() {
       const updatedDetails = `${report.details || ''}\nAdmin action taken: profile made private`.trim();
       await supabase
         .from('reports')
-        .update({ status: 'closed', details: updatedDetails })
+        .update({ status: 'resolved', details: updatedDetails })
         .eq('id', report.id);
     },
     onMutate: (report) => {
@@ -180,7 +180,7 @@ function AdminReportsContent() {
             r.id === report.id
               ? {
                   ...r,
-                  status: 'closed',
+                  status: 'resolved',
                   details: `${r.details || ''}\nAdmin action taken: profile made private`.trim(),
                 }
               : r
@@ -231,7 +231,7 @@ function AdminReportsContent() {
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-display text-xl font-bold">Reports</h2>
         <span className="text-xs text-muted-foreground">
-          {reportsData.filter((r) => r.status !== 'closed').length} open
+          {reportsData.filter((r) => r.status === 'open' || r.status === 'reviewed').length} open
         </span>
       </div>
 
@@ -281,7 +281,7 @@ function AdminReportsContent() {
                   onClick={() =>
                     setStatus.mutate({
                       id: report.id,
-                      status: 'reviewing',
+                      status: 'reviewed',
                       note: report.details,
                     })
                   }
@@ -296,7 +296,7 @@ function AdminReportsContent() {
                   onClick={() =>
                     setStatus.mutate({
                       id: report.id,
-                      status: 'closed',
+                      status: 'dismissed',
                       note: `${report.details || ''}\nAdmin dismissed report.`.trim(),
                     })
                   }
@@ -310,7 +310,7 @@ function AdminReportsContent() {
                   onClick={() =>
                     setStatus.mutate({
                       id: report.id,
-                      status: 'closed',
+                      status: 'resolved',
                       note: `${report.details || ''}\nAdmin marked report resolved.`.trim(),
                     })
                   }
