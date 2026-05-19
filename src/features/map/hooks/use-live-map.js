@@ -41,6 +41,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
   const queryClient = useQueryClient();
   const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const userId = user?.id;
+  const invalidateTimerRef = useRef(null);
 
   // Keep a stable ref to the latest profile to avoid effect churn
   // when auth context returns new object references.
@@ -127,13 +128,20 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
   useEffect(() => {
     if (!userId) return;
 
+    const debouncedInvalidateAll = () => {
+      if (invalidateTimerRef.current) clearTimeout(invalidateTimerRef.current);
+      invalidateTimerRef.current = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: presenceKeys.all });
+      }, 2000);
+    };
+
     const channel = supabase
       .channel(`live-map-presence-realtime-${userId}-${instanceId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'live_map_presence' },
         (payload) => {
-          queryClient.invalidateQueries({ queryKey: presenceKeys.all });
+          debouncedInvalidateAll();
           const changedUserId = payload.new?.user_id || payload.old?.user_id;
           if (changedUserId === userId) {
             queryClient.invalidateQueries({ queryKey: presenceKeys.me(userId) });
@@ -148,6 +156,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
       });
 
     return () => {
+      if (invalidateTimerRef.current) clearTimeout(invalidateTimerRef.current);
       supabase.removeChannel(channel);
     };
   }, [instanceId, queryClient, userId]);

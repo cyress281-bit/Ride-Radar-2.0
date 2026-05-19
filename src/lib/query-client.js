@@ -74,40 +74,6 @@ export function prefetchBroadcastDetail(qc, broadcastId) {
 }
 
 /**
- * Prefetch home-screen data (conversations + notifications).
- * @param {QueryClient} qc
- */
-export function prefetchHomeData(qc) {
-  // Prefetch active broadcasts list
-  qc.prefetchQuery({
-    queryKey: ['broadcasts', 'active'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('broadcasts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data || [];
-    },
-    staleTime: 30000,
-  });
-
-  // Prefetch nearby riders count
-  qc.prefetchQuery({
-    queryKey: ['riders', 'nearby', 'count'],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from('user_presence')
-        .select('*', { count: 'exact', head: true });
-      if (error) throw error;
-      return count ?? 0;
-    },
-    staleTime: 30000,
-  });
-}
-
-/**
  * Prefetch messages for a conversation.
  * @param {QueryClient} qc
  * @param {string} conversationId
