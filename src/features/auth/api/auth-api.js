@@ -97,6 +97,19 @@ export async function resetPassword(email) {
 }
 
 /**
+ * Request an email change for the current user.
+ * @param {string} email
+ * @returns {Promise<{ data: object|null, error: Error|null }>}
+ */
+export async function updateEmail(email) {
+  const { data, error } = await supabase.auth.updateUser(
+    { email },
+    { emailRedirectTo: `${window.location.origin}/settings/account` }
+  );
+  return { data, error };
+}
+
+/**
  * Update the current user's password.
  * @param {string} newPassword
  * @returns {Promise<{ data: object|null, error: Error|null }>}

@@ -32,6 +32,7 @@ import {
   onAuthStateChange,
   updatePassword as apiUpdatePassword,
   resetPassword as apiResetPassword,
+  updateEmail as apiUpdateEmail,
 } from '@/features/auth/api/auth-api.js';
 
 // ------------------------------------------------------------------
@@ -390,6 +391,12 @@ export function useAuthProvider() {
     return data;
   }, []);
 
+  const updateUserEmail = useCallback(async (email) => {
+    const { data, error } = await apiUpdateEmail(email);
+    if (error) throw error;
+    return data;
+  }, []);
+
   const refreshProfile = useCallback(async () => {
     if (user?.id) {
       const { data: { session } } = await supabase.auth.getSession();
@@ -424,9 +431,10 @@ export function useAuthProvider() {
       signOut: signOutUser,
       updatePassword: updateUserPassword,
       resetPassword: resetUserPassword,
+      updateEmail: updateUserEmail,
       refreshProfile,
     }),
-    [signIn, signUp, signInWithProvider, signOutUser, updateUserPassword, resetUserPassword, refreshProfile]
+    [signIn, signUp, signInWithProvider, signOutUser, updateUserPassword, resetUserPassword, updateUserEmail, refreshProfile]
   );
 
   return { state, actions };
@@ -450,7 +458,7 @@ export function useAuthState() {
 
 /**
  * Consume the auth actions context (stable; does not trigger on state changes).
- * @returns {{ signIn: Function, signUp: Function, signInWithProvider: Function, signOut: Function, updatePassword: Function, resetPassword: Function, refreshProfile: Function }}
+ * @returns {{ signIn: Function, signUp: Function, signInWithProvider: Function, signOut: Function, updatePassword: Function, resetPassword: Function, updateEmail: Function, refreshProfile: Function }}
  */
 export function useAuthActions() {
   const context = useContext(AuthActionsContext);

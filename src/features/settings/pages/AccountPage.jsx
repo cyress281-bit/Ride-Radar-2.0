@@ -6,11 +6,13 @@
  * rendered as disabled rows to avoid fake controls.
  */
 
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import * as z from 'zod';
 import {
   ArrowLeft,
   AtSign,
+  AlertCircle,
   CheckCircle2,
   ChevronRight,
   KeyRound,
@@ -21,13 +23,19 @@ import {
   ShieldCheck,
   Sparkles,
   User,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthActions, useAuthState } from '@/features/auth/hooks/use-auth.js';
+import { getSession } from '@/features/auth/api/auth-api.js';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
+
+const emailSchema = z.string().trim().email('Enter a valid email address.');
 
 function getInitial(profile, user) {
   const source = profile?.display_name || user?.email || 'Rider';
@@ -35,13 +43,24 @@ function getInitial(profile, user) {
 }
 
 function getProviderLabel(user) {
-  const providers = user?.identities
-    ?.map((identity) => identity.provider)
-    .filter(Boolean);
-  const provider = providers?.[0] || user?.app_metadata?.provider || 'email';
+  const providers = new Set(
+    user?.identities
+      ?.map((identity) => identity.provider)
+      .filter(Boolean)
+  );
+  if (user?.app_metadata?.provider) providers.add(user.app_metadata.provider);
+  if (providers.size === 0) providers.add('email');
 
-  if (provider === 'email') return 'Email and password';
-  return provider.charAt(0).toUpperCase() + provider.slice(1);
+  return Array.from(providers)
+    .map((provider) => provider === 'email' ? 'Email and password' : provider.charAt(0).toUpperCase() + provider.slice(1))
+    .join(', ');
+}
+
+function formatSessionExpiry(session) {
+  if (!session?.expires_at) return 'Session managed by Supabase Auth';
+  const expiresAt = new Date(session.expires_at * 1000);
+  if (!Number.isFinite(expiresAt.getTime())) return 'Session managed by Supabase Auth';
+  return `Access token refreshes before ${expiresAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
 }
 
 const Section = memo(function Section({ title, icon: Icon, children }) {
@@ -121,13 +140,33 @@ const AccountRow = memo(function AccountRow({
 
 function AccountPage() {
   const { user, profile } = useAuthState();
-  const { resetPassword } = useAuthActions();
+  const { resetPassword, updateEmail } = useAuthActions();
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [currentSession, setCurrentSession] = useState(null);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+  const [emailChangeSent, setEmailChangeSent] = useState(false);
 
   const displayName = profile?.display_name || user?.user_metadata?.full_name || user?.email || 'Rider';
   const email = user?.email || '';
   const providerLabel = useMemo(() => getProviderLabel(user), [user]);
+
+  useEffect(() => {
+    let active = true;
+    getSession()
+      .then(({ data }) => {
+        if (active) setCurrentSession(data?.session ?? null);
+      })
+      .catch(() => {
+        if (active) setCurrentSession(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handlePasswordReset = async () => {
     if (!email || isSendingReset) return;
@@ -144,6 +183,47 @@ function AccountPage() {
       });
     } finally {
       setIsSendingReset(false);
+    }
+  };
+
+  const handleOpenEmailDialog = () => {
+    setNewEmail('');
+    setEmailError('');
+    setEmailChangeSent(false);
+    setEmailDialogOpen(true);
+  };
+
+  const handleEmailChange = async (event) => {
+    event.preventDefault();
+    if (isUpdatingEmail) return;
+
+    const parsed = emailSchema.safeParse(newEmail);
+    if (!parsed.success) {
+      setEmailError(parsed.error.issues[0]?.message || 'Enter a valid email address.');
+      return;
+    }
+
+    const nextEmail = parsed.data.toLowerCase();
+    if (nextEmail === email.toLowerCase()) {
+      setEmailError('That is already your current account email.');
+      return;
+    }
+
+    setIsUpdatingEmail(true);
+    setEmailError('');
+    try {
+      await updateEmail(nextEmail);
+      setEmailChangeSent(true);
+      toast.success('Email change requested', {
+        description: 'Check your inbox. Supabase may require confirmation from both email addresses.',
+      });
+    } catch (err) {
+      setEmailError(err?.message || 'Supabase could not start the email change.');
+      toast.error('Email change failed', {
+        description: err?.message || 'Please try again.',
+      });
+    } finally {
+      setIsUpdatingEmail(false);
     }
   };
 
@@ -210,9 +290,8 @@ function AccountPage() {
             <AccountRow
               icon={Mail}
               label="Change email"
-              desc="Email change support is not enabled in this app yet"
-              disabled
-              status="Coming soon"
+              desc="Start Supabase email confirmation for a new address"
+              onClick={handleOpenEmailDialog}
             />
           </div>
         </Section>
@@ -234,16 +313,16 @@ function AccountPage() {
             <AccountRow
               icon={Sparkles}
               label="Passkeys"
-              desc="Passkey sign-in is not implemented yet"
+              desc="Not available yet. Requires a full WebAuthn/passkey account flow."
               disabled
-              status="Coming soon"
+              status="Not available"
             />
           </div>
           <div className="border-t border-border/40">
             <AccountRow
               icon={Link2}
               label="Linked sign-in methods"
-              desc="Provider linking is not implemented yet"
+              desc="Provider linking is not enabled in this app"
               value={providerLabel}
               disabled
               status="Read only"
@@ -252,10 +331,11 @@ function AccountPage() {
           <div className="border-t border-border/40">
             <AccountRow
               icon={Laptop}
-              label="Active sessions and devices"
-              desc="Session/device management is not implemented yet"
+              label="Current session"
+              desc={formatSessionExpiry(currentSession)}
+              value={currentSession ? 'Active' : 'Unavailable'}
               disabled
-              status="Coming soon"
+              status="Read only"
             />
           </div>
         </Section>
@@ -269,6 +349,93 @@ function AccountPage() {
           </HStack>
         </div>
       </VStack>
+
+      {emailDialogOpen && (
+        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 px-4 pb-[calc(var(--rr-nav-h)+var(--rr-safe-area-bottom,env(safe-area-inset-bottom,0px))+1rem)] pt-20 backdrop-blur-sm sm:items-center sm:pb-4">
+          <form
+            onSubmit={handleEmailChange}
+            className="w-full max-w-md overflow-hidden rounded-[24px] border border-white/[0.08] bg-surface/95 shadow-[0_20px_60px_hsl(0_0%_0%/0.45)] backdrop-blur-xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="change-email-title"
+          >
+            <HStack align="center" justify="between" className="border-b border-white/[0.06] px-5 py-4">
+              <VStack gap={0.5}>
+                <Text id="change-email-title" variant="body" className="font-bold">Change email</Text>
+                <Text variant="caption" color="muted">Supabase will confirm the new address.</Text>
+              </VStack>
+              <button
+                type="button"
+                onClick={() => setEmailDialogOpen(false)}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-white/[0.05] hover:text-foreground"
+                aria-label="Close change email"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </HStack>
+
+            <VStack gap={4} className="px-5 py-5">
+              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
+                <Text variant="micro" color="muted" className="font-semibold uppercase tracking-wider">Current email</Text>
+                <Text variant="bodySm" className="mt-1 font-semibold">{email}</Text>
+              </div>
+
+              <label htmlFor="account-new-email" className="space-y-2">
+                <Text variant="micro" color="muted" className="font-semibold uppercase tracking-wider">
+                  New email
+                </Text>
+                <Input
+                  id="account-new-email"
+                  type="email"
+                  value={newEmail}
+                  onChange={(event) => {
+                    setNewEmail(event.target.value);
+                    setEmailError('');
+                    setEmailChangeSent(false);
+                  }}
+                  placeholder="new@email.com"
+                  autoComplete="email"
+                  disabled={isUpdatingEmail || emailChangeSent}
+                />
+              </label>
+
+              {emailError && (
+                <HStack align="start" gap={2} className="rounded-xl border border-brand-emergency/20 bg-brand-emergency/10 px-3 py-2.5">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-brand-emergency" />
+                  <Text variant="caption" className="text-brand-emergency">{emailError}</Text>
+                </HStack>
+              )}
+
+              {emailChangeSent && (
+                <HStack align="start" gap={2} className="rounded-xl border border-primary/20 bg-primary/10 px-3 py-2.5">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <Text variant="caption" className="text-primary">
+                    Email change requested. Depending on Supabase Auth settings, confirmation may be required from both the current and new inbox.
+                  </Text>
+                </HStack>
+              )}
+
+              <HStack gap={2} className="pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setEmailDialogOpen(false)}
+                >
+                  Close
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={isUpdatingEmail || emailChangeSent}
+                >
+                  {isUpdatingEmail ? 'Sending...' : 'Send confirmation'}
+                </Button>
+              </HStack>
+            </VStack>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
