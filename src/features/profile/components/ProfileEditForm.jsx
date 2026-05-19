@@ -153,7 +153,7 @@ export default function ProfileEditForm({ profile, onDone }) {
             ? uploadImage(avatarLocal.file, 'uploads', `avatars/${user.id}/${Date.now()}.webp`)
             : values.avatar_url,
           bikePhotoLocal
-            ? uploadImage(bikePhotoLocal.file, 'uploads', `bikes/${user.id}/${Date.now()}.webp`)
+            ? uploadImage(bikePhotoLocal.file, 'uploads', `bikes/${user.id}/${Date.now()}.webp`, 'bike')
             : values.bike_photo_url,
         ]);
 

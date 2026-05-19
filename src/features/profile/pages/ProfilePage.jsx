@@ -28,6 +28,7 @@ import PostGrid from '@/features/profile/components/PostGrid';
 import PostCreateSheet from '@/features/profile/components/PostCreateSheet';
 import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
 import StatPill from '@/features/profile/components/StatPill.jsx';
+import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
 
 function ProfilePage() {
   const { user, profile } = useAuthState();
@@ -232,6 +233,12 @@ function ProfilePage() {
           </VStack>
         </div>
       </div>
+
+      <ProfileBikePhotoCard
+        src={displayProfile?.bike_photo_url}
+        title="My Bike"
+        bikeLabel={bikeLabel}
+      />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

@@ -57,6 +57,7 @@ import { useUserPosts } from '@/features/profile/hooks/use-user-posts';
 import PostGrid from '@/features/profile/components/PostGrid';
 import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
 import StatPill from '@/features/profile/components/StatPill.jsx';
+import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
 
 function RiderProfilePage() {
   const { userId } = useParams();
@@ -504,6 +505,14 @@ function RiderProfilePage() {
             This profile is private. Add them as a friend to see more details.
           </Text>
         </div>
+      )}
+
+      {canSeeDetails && (
+        <ProfileBikePhotoCard
+          src={profile?.bike_photo_url}
+          title="Bike"
+          bikeLabel={bikeLabel}
+        />
       )}
 
       {/* Tabs — only shown when details are visible */}

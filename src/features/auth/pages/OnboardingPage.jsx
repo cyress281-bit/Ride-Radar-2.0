@@ -243,7 +243,8 @@ export default function OnboardingPage() {
           ? uploadImage(
               bikePhotoLocal.file,
               'uploads',
-              `bikes/${user.id}/${Date.now()}.webp`
+              `bikes/${user.id}/${Date.now()}.webp`,
+              'bike'
             ).catch((err) => {
               logger.warn('[Onboarding] Bike photo upload failed:', err);
               return '';
