@@ -63,7 +63,7 @@ function BroadcastFeedPage() {
   const isOnline = useOnlineStatus();
   const radarViewport = useRadarViewport();
 
-  const { userLoc, hasUserLocation, geoError, effectiveLoc } = useRadarLocation();
+  const { userLoc, hasUserLocation, geoError, effectiveLoc, requestLocation } = useRadarLocation();
   const {
     sheetOpen,
     setSheetOpen,
@@ -76,7 +76,13 @@ function BroadcastFeedPage() {
 
   const [offlineSnapshot, setOfflineSnapshot] = useState(readRadarOfflineSnapshot);
   const [locateCount, setLocateCount] = useState(0);
-  const handleRequestLocation = useCallback(() => setLocateCount((c) => c + 1), []);
+  const handleRequestLocation = useCallback(() => {
+    if (hasUserLocation) {
+      setLocateCount((c) => c + 1);
+    } else {
+      requestLocation();
+    }
+  }, [hasUserLocation, requestLocation]);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('rank');
   const [isPending, startTransition] = useTransition();

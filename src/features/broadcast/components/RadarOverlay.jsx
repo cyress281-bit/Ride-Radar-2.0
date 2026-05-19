@@ -292,10 +292,7 @@ const RadarOverlay = memo(function RadarOverlay({
     <>
       {/* Top context pill */}
       {(!hasUserLocation || usingOfflineSnapshot) && (
-        <div className={cn(
-          'absolute top-header-offset right-4 z-10 flex justify-center pointer-events-none',
-          hasUserLocation ? 'left-16' : 'left-4'
-        )}>
+        <div className="absolute top-header-offset left-16 right-4 z-10 flex justify-center pointer-events-none">
           <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full backdrop-blur-xl bg-surface/80 border border-white/[0.10] px-4 py-2 shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
             {!hasUserLocation && (
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -314,17 +311,15 @@ const RadarOverlay = memo(function RadarOverlay({
         </div>
       )}
 
-      {/* Locate / center-on-me button — fixed top-left, outside map stacking context */}
-      {hasUserLocation && (
-        <button
-          type="button"
-          onClick={onLocate}
-          className="rr-haptic absolute left-3 top-header-offset z-[25] flex h-11 w-11 items-center justify-center rounded-full bg-background/80 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.28),0_0_24px_hsl(var(--primary)/0.18)] rr-shadow-md backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          aria-label="Center map on my location"
-        >
-          <Crosshair className="h-5 w-5" aria-hidden="true" />
-        </button>
-      )}
+      {/* Locate button — always visible; requests location if not yet granted, recenters if already have it */}
+      <button
+        type="button"
+        onClick={onLocate}
+        className="rr-haptic absolute left-3 top-header-offset z-[25] flex h-11 w-11 items-center justify-center rounded-full bg-background/80 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.28),0_0_24px_hsl(var(--primary)/0.18)] rr-shadow-md backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        aria-label={hasUserLocation ? 'Center map on my location' : 'Find my location'}
+      >
+        <Crosshair className="h-5 w-5" aria-hidden="true" />
+      </button>
 
       {/* Draggable action pad — 3 actions: Live | Signal top row, Bike Down full width */}
       <div
