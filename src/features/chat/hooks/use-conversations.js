@@ -69,9 +69,9 @@ export function useConversations() {
 
           logger.debug('[useConversations] Conversation updated in-place');
           queryClient.setQueryData(['conversations', userId], (old = []) => {
-            const updated = old.map((c) =>
-              c.id === payload.new.id ? payload.new : c
-            );
+            const updated = old
+              .map((c) => (c.id === payload.new.id ? payload.new : c))
+              .filter((c) => c.status !== 'archived');
             return updated.sort(
               (a, b) =>
                 new Date(b.last_message_at || 0).getTime() -

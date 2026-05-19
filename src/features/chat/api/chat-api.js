@@ -11,6 +11,7 @@ export async function getConversations(userId) {
     .from('conversations')
     .select('*')
     .contains('participant_ids', [userId])
+    .neq('status', 'archived')
     .order('last_message_at', { ascending: false });
 
   return { data, error };
