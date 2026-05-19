@@ -221,6 +221,7 @@ function BroadcastFeedPage() {
         locating={locating}
         geoError={geoError}
         isLiveMapVisible={isLiveMapVisible}
+        sheetOpen={sheetOpen}
       />
 
       <RadarBottomSheet

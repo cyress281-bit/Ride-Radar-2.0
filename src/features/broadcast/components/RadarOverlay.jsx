@@ -60,6 +60,7 @@ const RadarOverlay = memo(function RadarOverlay({
   locating,
   geoError,
   isLiveMapVisible,
+  sheetOpen = false,
 }) {
   const navigate = useNavigate();
   const { user } = useAuthState();
@@ -193,7 +194,12 @@ const RadarOverlay = memo(function RadarOverlay({
 
       {/* Draggable 2×2 action pad */}
       <div
-        className="absolute z-[25]"
+        className={cn(
+          'absolute z-[25] transition-all duration-300',
+          sheetOpen
+            ? 'opacity-0 scale-95 pointer-events-none'
+            : 'opacity-100 scale-100 pointer-events-auto'
+        )}
         style={{ left: padPos.left, top: padPos.top }}
       >
         <div className="overflow-hidden rounded-[18px] backdrop-blur-xl bg-black/80 border border-white/[0.12] shadow-[0_0_12px_hsl(var(--primary)/0.10)]">
