@@ -1,11 +1,19 @@
 <svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="256" height="256" rx="56" fill="#080808"/>
-  <circle cx="78" cy="170" r="28" stroke="#beff00" stroke-width="12"/>
-  <circle cx="182" cy="170" r="28" stroke="#beff00" stroke-width="12"/>
-  <path d="M78 170h30l24-44 24 44h26" stroke="#beff00" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M121 126h38l24-24" stroke="#beff00" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M108 96h30" stroke="#beff00" stroke-width="12" stroke-linecap="round"/>
-  <path d="M138 96l18 30" stroke="#beff00" stroke-width="12" stroke-linecap="round"/>
-  <path d="M168 102h26" stroke="#beff00" stroke-width="10" stroke-linecap="round"/>
-  <path d="M56 148c13-33 40-52 81-52" stroke="#beff00" stroke-width="8" stroke-linecap="round" opacity="0.45"/>
+  <!-- Rear wheel -->
+  <circle cx="59" cy="181" r="32" stroke="#beff00" stroke-width="13"/>
+  <!-- Front wheel -->
+  <circle cx="197" cy="181" r="27" stroke="#beff00" stroke-width="12"/>
+  <!-- Swingarm: rear axle to frame junction -->
+  <path d="M59 181 L85 149" stroke="#beff00" stroke-width="12" stroke-linecap="round"/>
+  <!-- Horizontal engine/lower frame rail -->
+  <path d="M85 149 L165 149" stroke="#beff00" stroke-width="12" stroke-linecap="round"/>
+  <!-- Frame and tank hump outline -->
+  <path d="M85 149 L96 112 L133 91 L165 112 L165 149" stroke="#beff00" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Front fork -->
+  <path d="M165 149 L181 112 L197 181" stroke="#beff00" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Left handlebar -->
+  <path d="M181 112 L160 96" stroke="#beff00" stroke-width="11" stroke-linecap="round"/>
+  <!-- Right handlebar -->
+  <path d="M181 112 L208 96" stroke="#beff00" stroke-width="11" stroke-linecap="round"/>
 </svg>
