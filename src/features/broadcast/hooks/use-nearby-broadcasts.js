@@ -36,16 +36,6 @@ function readOfflineSnapshot() {
 // Read once at module init to avoid parsing localStorage on every render
 const initialOfflineSnapshot = readOfflineSnapshot();
 
-export function cacheOfflineSnapshot(broadcasts) {
-  try {
-    window.localStorage.setItem(
-      OFFLINE_SNAPSHOT_KEY,
-      JSON.stringify({ broadcasts: broadcasts.slice(0, 100), cachedAt: Date.now() })
-    );
-  } catch {
-    // Storage may be full
-  }
-}
 
 /**
  * Hook to fetch nearby broadcasts with real-time updates.
