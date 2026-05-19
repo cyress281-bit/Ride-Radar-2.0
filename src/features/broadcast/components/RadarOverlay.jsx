@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils.js';
 import { toast } from 'sonner';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useUpdateSettings } from '@/features/settings/hooks/use-settings.js';
+import BottomSheet from '@/components/layout/BottomSheet';
 
 // ── Draggable pad constants ────────────────────────────────────────────────
 const PAD_WIDTH = 136;
@@ -54,6 +55,15 @@ function savePadPosition(pos) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(pos));
   } catch {}
 }
+
+// ── Go Live confirmation preference ───────────────────────────────────────────
+const LIVE_CONFIRM_SKIP_KEY = 'rr:live-confirm-skip';
+function hasSkippedLiveConfirm() {
+  try { return window.localStorage.getItem(LIVE_CONFIRM_SKIP_KEY) === '1'; } catch { return false; }
+}
+function persistSkipLiveConfirm() {
+  try { window.localStorage.setItem(LIVE_CONFIRM_SKIP_KEY, '1'); } catch {}
+}
 // ──────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -74,6 +84,8 @@ const RadarOverlay = memo(function RadarOverlay({
   const updateSettings = useUpdateSettings();
   const [justActivated, setJustActivated] = useState(false);
   const justActivatedTimerRef = useRef(null);
+  const [showLiveConfirm, setShowLiveConfirm] = useState(false);
+  const [confirmSkipFuture, setConfirmSkipFuture] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -86,23 +98,45 @@ const RadarOverlay = memo(function RadarOverlay({
 
   const handleToggleLive = useCallback(async () => {
     if (!user?.id || updateSettings.isPending) return;
-    try {
-      const turningOn = !isLiveMapVisible;
-      await updateSettings.mutateAsync({
-        userId: user.id,
-        updates: { live_map_visible: turningOn },
-      });
-      if (turningOn) {
-        setJustActivated(true);
-        if (justActivatedTimerRef.current) clearTimeout(justActivatedTimerRef.current);
-        justActivatedTimerRef.current = setTimeout(() => setJustActivated(false), 700);
+    const turningOn = !isLiveMapVisible;
+    // Turning OFF — no confirmation needed, toggle immediately
+    if (!turningOn) {
+      try {
+        await updateSettings.mutateAsync({ userId: user.id, updates: { live_map_visible: false } });
+      } catch (err) {
+        toast.error('Could not update live status', { description: err?.message || 'Please try again' });
       }
+      return;
+    }
+    // Turning ON — show confirmation unless user previously opted out
+    if (!hasSkippedLiveConfirm()) {
+      setConfirmSkipFuture(false);
+      setShowLiveConfirm(true);
+      return;
+    }
+    // Already confirmed — activate directly
+    try {
+      await updateSettings.mutateAsync({ userId: user.id, updates: { live_map_visible: true } });
+      setJustActivated(true);
+      if (justActivatedTimerRef.current) clearTimeout(justActivatedTimerRef.current);
+      justActivatedTimerRef.current = setTimeout(() => setJustActivated(false), 700);
     } catch (err) {
-      toast.error('Could not update live status', {
-        description: err?.message || 'Please try again',
-      });
+      toast.error('Could not update live status', { description: err?.message || 'Please try again' });
     }
   }, [user?.id, isLiveMapVisible, updateSettings]);
+
+  const handleLiveConfirm = useCallback(async () => {
+    setShowLiveConfirm(false);
+    if (confirmSkipFuture) persistSkipLiveConfirm();
+    try {
+      await updateSettings.mutateAsync({ userId: user?.id, updates: { live_map_visible: true } });
+      setJustActivated(true);
+      if (justActivatedTimerRef.current) clearTimeout(justActivatedTimerRef.current);
+      justActivatedTimerRef.current = setTimeout(() => setJustActivated(false), 700);
+    } catch (err) {
+      toast.error('Could not update live status', { description: err?.message || 'Please try again' });
+    }
+  }, [user?.id, updateSettings, confirmSkipFuture]);
 
   // ── Draggable pad ──────────────────────────────────────────────────────────
   // padPos drives the committed (state) position — used only when NOT dragging.
@@ -333,6 +367,77 @@ const RadarOverlay = memo(function RadarOverlay({
           </div>
         </div>
       )}
+
+      {/* Go Live confirmation sheet */}
+      <BottomSheet
+        isOpen={showLiveConfirm}
+        onClose={() => setShowLiveConfirm(false)}
+        title="Go Live?"
+        height="auto"
+      >
+        <div className="flex flex-col gap-5 pt-1">
+          {/* Icon */}
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/15 border border-primary/25 shadow-[0_0_28px_hsl(var(--primary)/0.22)]">
+              <Radio className="h-7 w-7 text-primary" />
+            </div>
+          </div>
+
+          {/* Body copy */}
+          <div className="flex flex-col gap-2 text-center">
+            <p className="text-sm text-foreground leading-relaxed">
+              Nearby riders will be able to see your live presence on the Radar map and nearby riders feed while Live is active.
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Only riders within the nearby Radar area can see your live presence. You can turn Live off anytime.
+            </p>
+          </div>
+
+          {/* Don't show again */}
+          <button
+            type="button"
+            onClick={() => setConfirmSkipFuture((v) => !v)}
+            className="flex items-center gap-3 rounded-xl px-3.5 py-3 border border-white/[0.06] bg-white/[0.03] active:opacity-70 transition-opacity"
+          >
+            <span
+              className={cn(
+                'flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors duration-150',
+                confirmSkipFuture ? 'bg-primary border-primary' : 'border-white/25 bg-transparent'
+              )}
+            >
+              {confirmSkipFuture && (
+                <svg className="h-2.5 w-2.5 text-primary-foreground" viewBox="0 0 12 9" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="1,4.5 4.5,8 11,1" />
+                </svg>
+              )}
+            </span>
+            <span className="text-xs text-muted-foreground font-medium">Don&apos;t show again</span>
+          </button>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-2.5 pb-1">
+            <button
+              type="button"
+              onClick={handleLiveConfirm}
+              disabled={updateSettings.isPending}
+              className="rr-haptic w-full flex items-center justify-center gap-2 h-12 rounded-full bg-primary text-primary-foreground text-sm font-bold shadow-[0_0_22px_hsl(var(--primary)/0.22),inset_0_1px_0_hsl(0_0%_100%/0.28)] hover:bg-primary/90 active:scale-[0.97] transition-all disabled:opacity-50"
+            >
+              {updateSettings.isPending
+                ? <Navigation className="h-4 w-4 animate-spin" />
+                : <Radio className="h-4 w-4" />
+              }
+              Go Live
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowLiveConfirm(false)}
+              className="rr-haptic w-full flex items-center justify-center h-11 rounded-full border border-white/[0.08] text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-white/[0.04] active:scale-[0.97] transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </BottomSheet>
     </>
   );
 });
