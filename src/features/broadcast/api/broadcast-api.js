@@ -147,6 +147,28 @@ export async function removeBroadcast(id) {
 }
 
 /**
+ * Resolve a Bike Down signal — marks the rider as safe.
+ * Sets status='expired' so the signal leaves Radar immediately,
+ * and stamps resolved_at so the detail page can show "Rider found safe."
+ * Only the author can do this (enforced by RLS: auth.uid() = author_id).
+ * @param {string} id
+ * @param {string} [note]
+ * @returns {Promise<{data: null, error: Error|null}>}
+ */
+export async function resolveBroadcast(id, note) {
+  const { error } = await supabase
+    .from('broadcasts')
+    .update({
+      status: 'expired',
+      resolved_at: new Date().toISOString(),
+      resolved_note: note?.trim() || null,
+    })
+    .eq('id', id);
+  if (error) logger.error('[resolveBroadcast] Error:', error);
+  return { data: null, error };
+}
+
+/**
  * Fetch all broadcasts by a given author.
  *
  * @param {string} authorId

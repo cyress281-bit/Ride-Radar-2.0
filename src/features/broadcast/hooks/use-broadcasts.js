@@ -8,6 +8,7 @@ import {
   getBroadcastById,
   getBroadcastsByAuthor,
   removeBroadcast,
+  resolveBroadcast,
   updateBroadcast,
 } from '@/features/broadcast/api/broadcast-api.js';
 import { toast } from '@/components/ui/use-toast';
@@ -130,6 +131,34 @@ export function useRemoveBroadcast() {
     onError: (error) => {
       toast({
         title: 'Failed to remove signal',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+/**
+ * Mutation hook to resolve a Bike Down signal (rider found safe).
+ * Sets status='expired' + resolved_at so the detail page can show "Rider found safe."
+ * Invalidates the same cache keys as useRemoveBroadcast.
+ * Navigation after resolution is handled by the caller.
+ */
+export function useResolveBroadcast() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, note }) => {
+      const { error } = await resolveBroadcast(id, note);
+      if (error) throw error;
+    },
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: broadcastKeys.all });
+      qc.invalidateQueries({ queryKey: broadcastKeys.detail(id) });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Failed to resolve signal',
         description: error?.message || 'Please try again.',
         variant: 'destructive',
       });

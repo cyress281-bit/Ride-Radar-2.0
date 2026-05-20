@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, memo, useCallback, useEffect, useRef } from 'react';
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, Trash2, Loader2, AlertCircle, Pencil } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, Trash2, Loader2, AlertCircle, Pencil, ShieldCheck } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import AlertPhotoGrid from '@/components/shared/AlertPhotoGrid';
 import { Text } from '@/components/ui/primitives/Text';
@@ -20,7 +20,7 @@ import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { toast } from '@/components/ui/use-toast';
 import { getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
 import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
-import { broadcastKeys, useRemoveBroadcast, useUpdateBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
+import { broadcastKeys, useRemoveBroadcast, useUpdateBroadcast, useResolveBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
 import BroadcastComments from '@/features/broadcast/components/BroadcastComments.jsx';
 
 function RemovedSignalScreen({ onBack, onHome }) {
@@ -36,6 +36,33 @@ function RemovedSignalScreen({ onBack, onHome }) {
         <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
         <p className="text-[13px] font-semibold text-muted-foreground mb-2">Signal removed</p>
         <p className="text-[13px] text-muted-foreground">This signal was removed by its owner.</p>
+        <button
+          onClick={onHome}
+          className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
+        >
+          Back to Radar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ResolvedSignalScreen({ onBack, onHome, resolvedNote }) {
+  return (
+    <div className="px-5 pt-5">
+      <button
+        onClick={onBack}
+        className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1"
+      >
+        <ArrowLeft className="w-4 h-4" /> Back
+      </button>
+      <div className="surface-card p-10 text-center">
+        <ShieldCheck className="mx-auto mb-4 h-10 w-10 text-green-500 opacity-80" />
+        <p className="text-[13px] font-semibold text-foreground/90 mb-2">Rider found safe</p>
+        <p className="text-[13px] text-muted-foreground">This Bike Down signal was marked resolved.</p>
+        {resolvedNote && (
+          <p className="mt-2 text-[13px] text-muted-foreground italic">{resolvedNote}</p>
+        )}
         <button
           onClick={onHome}
           className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
@@ -122,9 +149,12 @@ function BroadcastDetailPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
   const [editError, setEditError] = useState('');
+  const [confirmResolve, setConfirmResolve] = useState(false);
+  const [resolveError, setResolveError] = useState('');
 
   const removeSignal = useRemoveBroadcast();
   const updateSignal = useUpdateBroadcast();
+  const resolveSignal = useResolveBroadcast();
 
   const qc = useQueryClient();
   const wasLoaded = useRef(false);
@@ -197,6 +227,17 @@ function BroadcastDetailPage() {
     }
   }, [id, removeSignal, navigate]);
 
+  const handleResolve = useCallback(async () => {
+    setResolveError('');
+    try {
+      await resolveSignal.mutateAsync({ id });
+      navigate('/home');
+    } catch (err) {
+      setResolveError(err?.message || 'Failed to resolve signal. Please try again.');
+      setConfirmResolve(false);
+    }
+  }, [id, resolveSignal, navigate]);
+
   if (!hasValidBroadcastId) {
     return (
       <div className="px-5 pt-5">
@@ -254,6 +295,9 @@ function BroadcastDetailPage() {
   }
 
   if (broadcast.status !== 'active' && user?.id !== broadcast.author_id) {
+    if (broadcast.resolved_at) {
+      return <ResolvedSignalScreen onBack={handleGoBack} onHome={() => navigate('/home')} resolvedNote={broadcast.resolved_note} />;
+    }
     return <RemovedSignalScreen onBack={handleGoBack} onHome={() => navigate('/home')} />;
   }
 
@@ -441,23 +485,34 @@ function BroadcastDetailPage() {
       {/* Owner controls */}
       {isAuthor && (
         <div className="mt-4 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-4">
-          {!editOpen && !confirmRemove ? (
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={handleEditOpen}
-                className="flex items-center justify-center gap-2 rounded-full border border-white/[0.10] bg-white/[0.04] px-5 py-2.5 text-sm font-bold transition-all hover:bg-white/[0.08] active:scale-95"
-              >
-                <Pencil className="h-4 w-4" />
-                Edit Signal
-              </button>
-              <button
-                onClick={() => setConfirmRemove(true)}
-                className="flex items-center justify-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-5 py-2.5 text-sm font-bold text-destructive transition-all hover:bg-destructive/20 active:scale-95"
-              >
-                <Trash2 className="h-4 w-4" />
-                Remove Signal
-              </button>
-            </div>
+          {!editOpen && !confirmRemove && !confirmResolve ? (
+            <VStack gap={3}>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={handleEditOpen}
+                  className="flex items-center justify-center gap-2 rounded-full border border-white/[0.10] bg-white/[0.04] px-5 py-2.5 text-sm font-bold transition-all hover:bg-white/[0.08] active:scale-95"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit Signal
+                </button>
+                <button
+                  onClick={() => setConfirmRemove(true)}
+                  className="flex items-center justify-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-5 py-2.5 text-sm font-bold text-destructive transition-all hover:bg-destructive/20 active:scale-95"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Remove Signal
+                </button>
+              </div>
+              {isBikeDown && (
+                <button
+                  onClick={() => setConfirmResolve(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-full border border-green-500/30 bg-green-600/15 px-5 py-2.5 text-sm font-bold text-green-400 transition-all hover:bg-green-600/25 active:scale-95"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  Mark Safe
+                </button>
+              )}
+            </VStack>
           ) : editOpen ? (
             <VStack gap={3}>
               {canEditTitle && (
@@ -508,6 +563,36 @@ function BroadcastDetailPage() {
                   {updateSignal.isPending ? (
                     <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…</>
                   ) : 'Save Changes'}
+                </button>
+              </div>
+            </VStack>
+          ) : confirmResolve ? (
+            <VStack gap={3}>
+              <Text variant="caption" color="muted" className="block text-center">
+                Rider is safe? This will close the Bike Down signal and remove it from Radar.
+              </Text>
+              {resolveError && (
+                <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3" role="alert">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-destructive mt-0.5" aria-hidden="true" />
+                  <Text variant="caption" className="text-destructive">{resolveError}</Text>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setConfirmResolve(false)}
+                  disabled={resolveSignal.isPending}
+                  className="rounded-full border border-white/[0.06] py-2.5 text-sm font-bold transition-colors hover:bg-white/[0.06] disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleResolve}
+                  disabled={resolveSignal.isPending}
+                  className="rounded-full bg-green-600 py-2.5 text-sm font-bold text-white transition-all hover:bg-green-700 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {resolveSignal.isPending ? (
+                    <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Resolving…</>
+                  ) : 'Mark Rider Safe'}
                 </button>
               </div>
             </VStack>
