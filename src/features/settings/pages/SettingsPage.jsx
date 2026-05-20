@@ -14,6 +14,7 @@ import {
   Trash2,
   Mail,
   FileText,
+  ScrollText,
   Download,
   Check,
   Smartphone,
@@ -461,9 +462,14 @@ function SettingsPage() {
 
       {/* Support */}
       <SettingsSection title="Support" icon={Mail}>
-        <Link to="/privacy-policy" className="block">
-          <SettingsRow icon={FileText} label="Privacy Policy" desc="Data collection, location, uploads, and deletion" />
+        <Link to="/terms-of-use" className="block">
+          <SettingsRow icon={ScrollText} label="Terms of Use" desc="Rules, responsibilities, and app limitations" />
         </Link>
+        <div className="border-t border-border/40">
+          <Link to="/privacy-policy" className="block">
+            <SettingsRow icon={FileText} label="Privacy Policy" desc="Data collection, location, uploads, and deletion" />
+          </Link>
+        </div>
         <div className="border-t border-border/40">
           <Link to="/safety-disclaimer" className="block">
             <SettingsRow icon={ShieldAlert} label="Safety Disclaimer" desc="Emergency reminders and app limitations" />
