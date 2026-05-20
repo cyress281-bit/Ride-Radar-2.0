@@ -22,7 +22,6 @@ RETURNS TABLE (
   is_official boolean,
   alert_type text,
   alert_photos jsonb,
-  iso_subtype text,
   created_at timestamptz,
   expires_at timestamptz,
   distance_miles double precision
@@ -53,7 +52,6 @@ BEGIN
       b.is_official,
       b.alert_type,
       b.alert_photos,
-      b.iso_subtype,
       b.created_at,
       b.expires_at,
       (ST_Distance(
@@ -103,7 +101,6 @@ BEGIN
     c.is_official,
     c.alert_type,
     c.alert_photos,
-    c.iso_subtype,
     c.created_at,
     c.expires_at,
     c.distance_miles
