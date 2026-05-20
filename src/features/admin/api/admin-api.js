@@ -274,6 +274,24 @@ function applyRepeatOffset(baseDate, i, repeat) {
   return d;
 }
 
+function normalizeLocationText(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ');
+}
+
+function toIsoDateTime(value, fieldLabel) {
+  const raw = String(value || '').trim();
+  if (!raw) {
+    throw new Error(`${fieldLabel} is required.`);
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`${fieldLabel} must be a valid date and time.`);
+  }
+
+  return parsed.toISOString();
+}
+
 /**
  * Create a new official Meetup/Event broadcast (admin action).
  * Geocodes the location text and stores approximated coordinates.
@@ -357,6 +375,131 @@ export async function createAdminEvent({ title, locationText, eventDate, eventEn
   }
 
   return { data: { created: count }, error: null };
+}
+
+/**
+ * Update an existing official Meetup/Event broadcast (admin action).
+ * Only supports event broadcasts and only a limited set of editable fields.
+ *
+ * @param {string} id
+ * @param {object} fields
+ * @returns {Promise<ApiResult>}
+ */
+export async function updateAdminEvent(id, fields = {}) {
+  await assertAdmin();
+
+  if (!id || !String(id).trim()) {
+    return { data: null, error: new Error('Event id is required.') };
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from('broadcasts')
+    .select('id, type, title, body, location_name, frozen_lat, frozen_lng, event_date, expires_at, author_id')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (fetchError) return { data: null, error: fetchError };
+  if (!existing) return { data: null, error: new Error('Event not found.') };
+  if (existing.type !== 'event') {
+    return { data: null, error: new Error('Only event broadcasts can be edited from Admin Events.') };
+  }
+
+  const updates = {};
+
+  if (Object.prototype.hasOwnProperty.call(fields, 'title')) {
+    const nextTitle = String(fields.title || '').trim();
+    if (nextTitle.length < 3) {
+      return { data: null, error: new Error('Title must be at least 3 characters.') };
+    }
+    if (nextTitle.length > 120) {
+      return { data: null, error: new Error('Title must be 120 characters or fewer.') };
+    }
+    updates.title = nextTitle;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(fields, 'body')) {
+    const nextBody = String(fields.body || '').trim();
+    if (nextBody.length > 500) {
+      return { data: null, error: new Error('Description must be 500 characters or fewer.') };
+    }
+    updates.body = nextBody || null;
+  }
+
+  const hasLocationField = Object.prototype.hasOwnProperty.call(fields, 'locationText');
+  if (hasLocationField) {
+    const nextLocationText = normalizeLocationText(fields.locationText);
+    const currentLocationText = normalizeLocationText(existing.location_name);
+
+    if (!nextLocationText) {
+      return { data: null, error: new Error('Location is required.') };
+    }
+
+    if (nextLocationText !== currentLocationText) {
+      let geocodeResult;
+      try {
+        geocodeResult = await geocodeAddress(nextLocationText);
+      } catch {
+        return { data: null, error: new Error('Geocoding service unavailable. Please try again.') };
+      }
+
+      if (!geocodeResult) {
+        return {
+          data: null,
+          error: new Error('Could not locate that address. Try adding a city, landmark, or street.'),
+        };
+      }
+
+      const frozenLocation = approximateLocation(
+        geocodeResult.lat,
+        geocodeResult.lng,
+        `${existing.author_id || 'admin'}:${new Date().toISOString()}:event:${nextLocationText}`
+      );
+
+      if (!frozenLocation) {
+        return { data: null, error: new Error('Location geocoding failed. Please try a different address.') };
+      }
+
+      updates.location_name = nextLocationText;
+      updates.frozen_lat = frozenLocation.lat;
+      updates.frozen_lng = frozenLocation.lng;
+    }
+  }
+
+  const resolvedEventDateInput = Object.prototype.hasOwnProperty.call(fields, 'eventDate')
+    ? fields.eventDate
+    : existing.event_date;
+  const resolvedEventEndInput = Object.prototype.hasOwnProperty.call(fields, 'eventEndTime')
+    ? fields.eventEndTime
+    : existing.expires_at;
+
+  const resolvedEventDate = resolvedEventDateInput ? toIsoDateTime(resolvedEventDateInput, 'Start time') : null;
+  const resolvedEventEndTime = resolvedEventEndInput ? toIsoDateTime(resolvedEventEndInput, 'End time') : null;
+
+  if (!resolvedEventDate) {
+    return { data: null, error: new Error('Start time is required.') };
+  }
+  if (!resolvedEventEndTime) {
+    return { data: null, error: new Error('End time is required.') };
+  }
+  if (new Date(resolvedEventEndTime) <= new Date(resolvedEventDate)) {
+    return { data: null, error: new Error('End time must be after start time.') };
+  }
+
+  updates.event_date = resolvedEventDate;
+  updates.expires_at = resolvedEventEndTime;
+
+  if (Object.keys(updates).length === 0) {
+    return { data: existing, error: null };
+  }
+
+  const { data, error } = await supabase
+    .from('broadcasts')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .maybeSingle();
+
+  return { data, error };
 }
 
 /**

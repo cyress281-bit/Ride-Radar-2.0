@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, CalendarPlus, MapPin, Clock } from 'lucide-react';
+import { CalendarDays, CalendarPlus, Clock, MapPin, Pencil } from 'lucide-react';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import CreateEventDialog from '@/features/admin/components/CreateEventDialog.jsx';
+import EditEventDialog from '@/features/admin/components/EditEventDialog.jsx';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -16,45 +17,60 @@ function formatEventDate(iso) {
   });
 }
 
-function EventRow({ event }) {
+function EventRow({ event, onEdit }) {
   const isPast = event.event_date ? new Date(event.event_date) < new Date() : false;
 
   return (
     <div className="rounded-[20px] border border-border bg-surface p-4 transition hover:bg-surface-elevated">
-      <div className="mb-1.5 flex flex-wrap items-center gap-2">
-        <span
-          className={
-            event.status === 'active'
-              ? 'text-[10px] font-bold uppercase tracking-widest text-primary'
-              : 'text-[10px] font-bold uppercase tracking-widest text-muted-foreground'
-          }
-        >
-          {event.status}
-        </span>
-        {isPast && (
-          <span className="rounded-full bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-            Past
-          </span>
-        )}
-      </div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="mb-1.5 flex flex-wrap items-center gap-2">
+            <span
+              className={
+                event.status === 'active'
+                  ? 'text-[10px] font-bold uppercase tracking-widest text-primary'
+                  : 'text-[10px] font-bold uppercase tracking-widest text-muted-foreground'
+              }
+            >
+              {event.status}
+            </span>
+            {isPast && (
+              <span className="rounded-full bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                Past
+              </span>
+            )}
+          </div>
 
-      <div className="mb-1 text-sm font-semibold leading-snug">{event.title || '(untitled)'}</div>
+          <div className="mb-1 text-sm font-semibold leading-snug">{event.title || '(untitled)'}</div>
 
-      {event.location_name && (
-        <div className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="h-3 w-3 shrink-0" />
-          {event.location_name}
+          {event.location_name && (
+            <div className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="h-3 w-3 shrink-0" />
+              <span className="truncate">{event.location_name}</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="h-3 w-3 shrink-0" />
+            {formatEventDate(event.event_date)}
+            {event.expires_at && (
+              <span className="text-muted-foreground/60">
+                {' '}→ {formatEventDate(event.expires_at)}
+              </span>
+            )}
+          </div>
         </div>
-      )}
 
-      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-        <Clock className="h-3 w-3 shrink-0" />
-        {formatEventDate(event.event_date)}
-        {event.expires_at && (
-          <span className="text-muted-foreground/60">
-            {' '}→ {formatEventDate(event.expires_at)}
-          </span>
-        )}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => onEdit?.(event)}
+          aria-label={`Edit ${event.title || 'event'}`}
+          className="shrink-0 border border-white/[0.06] bg-white/[0.03] text-muted-foreground hover:border-primary/25 hover:bg-primary/10 hover:text-primary"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );
@@ -86,6 +102,8 @@ function AdminEventsContent() {
   const qc = useQueryClient();
   const { broadcasts, isLoading } = useAdminData();
   const [createOpen, setCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
   const { upcoming, past } = useMemo(() => {
     const all = (broadcasts.data?.data || []).filter((b) => b.type === 'event');
@@ -139,7 +157,14 @@ function AdminEventsContent() {
           </p>
           <div className="space-y-2">
             {upcoming.map((e) => (
-              <EventRow key={e.id} event={e} />
+              <EventRow
+                key={e.id}
+                event={e}
+                onEdit={(event) => {
+                  setSelectedEvent(event);
+                  setEditOpen(true);
+                }}
+              />
             ))}
           </div>
         </section>
@@ -152,7 +177,14 @@ function AdminEventsContent() {
           </p>
           <div className="space-y-2">
             {past.map((e) => (
-              <EventRow key={e.id} event={e} />
+              <EventRow
+                key={e.id}
+                event={e}
+                onEdit={(event) => {
+                  setSelectedEvent(event);
+                  setEditOpen(true);
+                }}
+              />
             ))}
           </div>
         </section>
@@ -161,6 +193,18 @@ function AdminEventsContent() {
       <CreateEventDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
+        onSuccess={() => {
+          qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] });
+        }}
+      />
+
+      <EditEventDialog
+        event={selectedEvent}
+        open={editOpen}
+        onOpenChange={(nextOpen) => {
+          setEditOpen(nextOpen);
+          if (!nextOpen) setSelectedEvent(null);
+        }}
         onSuccess={() => {
           qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] });
         }}
