@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { CalendarPlus, Clock, MapPin, X } from 'lucide-react';
+import { AlertCircle, CalendarPlus, CheckCircle2, Clock, Loader2, MapPin, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createAdminEvent } from '@/features/admin/api/admin-api.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { geocodeAddress } from '@/lib/geocoding.js';
 import { cn } from '@/lib/utils.js';
 
 const schema = z
@@ -48,6 +49,7 @@ const schema = z
 export default function CreateEventDialog({ open, onOpenChange, onSuccess }) {
   const qc = useQueryClient();
   const [apiError, setApiError] = useState(null);
+  const [debouncedLocationText, setDebouncedLocationText] = useState('');
 
   const {
     register,
@@ -69,12 +71,33 @@ export default function CreateEventDialog({ open, onOpenChange, onSuccess }) {
     },
   });
 
+  const locationTextValue = watch('locationText') || '';
+  const normalizedLocationText = String(locationTextValue).trim().replace(/\s+/g, ' ');
+
   useEffect(() => {
     if (!open) {
       reset();
       setApiError(null);
+      setDebouncedLocationText('');
     }
   }, [open, reset]);
+
+  useEffect(() => {
+    if (!open) return;
+    const timer = setTimeout(() => {
+      setDebouncedLocationText(normalizedLocationText);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [normalizedLocationText, open]);
+
+  const locationPreview = useQuery({
+    queryKey: ['admin', 'event-location-preview', debouncedLocationText],
+    queryFn: () => geocodeAddress(debouncedLocationText),
+    enabled: open && debouncedLocationText.length >= 4,
+    staleTime: 7 * 24 * 60 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
   const create = useMutation({
     mutationFn: (values) =>
@@ -108,6 +131,10 @@ export default function CreateEventDialog({ open, onOpenChange, onSuccess }) {
   const titleLen = watch('title')?.length || 0;
   const bodyLen = watch('body')?.length || 0;
   const repeatValue = watch('repeat');
+  const canPreviewLocation = normalizedLocationText.length >= 4;
+  const isLocationPreviewCurrent = normalizedLocationText === debouncedLocationText;
+  const showLocationChecking =
+    canPreviewLocation && (!isLocationPreviewCurrent || locationPreview.isFetching);
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -210,6 +237,50 @@ export default function CreateEventDialog({ open, onOpenChange, onSuccess }) {
                   <Text variant="caption" className="text-brand-emergency">{errors.locationText.message}</Text>
                 ) : (
                   <Text variant="caption" color="muted">Used to geocode the event. Be specific — city, landmark, or street.</Text>
+                )}
+                {canPreviewLocation && (
+                  <div
+                    className={cn(
+                      'rounded-xl border px-3 py-2.5 text-xs',
+                      showLocationChecking
+                        ? 'border-primary/20 bg-primary/5 text-muted-foreground'
+                        : locationPreview.isError
+                        ? 'border-alert/25 bg-alert/5 text-alert'
+                        : locationPreview.data
+                        ? 'border-primary/25 bg-primary/5 text-foreground'
+                        : 'border-white/[0.08] bg-white/[0.03] text-muted-foreground'
+                    )}
+                    aria-live="polite"
+                  >
+                    {showLocationChecking ? (
+                      <HStack align="center" gap={2}>
+                        <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-primary" aria-hidden="true" />
+                        <span>Checking location...</span>
+                      </HStack>
+                    ) : locationPreview.isError ? (
+                      <HStack align="start" gap={2}>
+                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        <span>Could not check location right now. You can still try creating the event.</span>
+                      </HStack>
+                    ) : locationPreview.data ? (
+                      <HStack align="start" gap={2}>
+                        <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
+                        <span className="min-w-0">
+                          <span className="block font-medium text-foreground">
+                            Located: {locationPreview.data.displayName}
+                          </span>
+                          <span className="mt-0.5 block font-mono text-[10px] text-muted-foreground">
+                            {Number(locationPreview.data.lat).toFixed(4)}, {Number(locationPreview.data.lng).toFixed(4)}
+                          </span>
+                        </span>
+                      </HStack>
+                    ) : (
+                      <HStack align="start" gap={2}>
+                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        <span>Address not found — try adding city/state or a landmark.</span>
+                      </HStack>
+                    )}
+                  </div>
                 )}
               </VStack>
 
