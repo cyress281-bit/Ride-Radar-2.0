@@ -8,13 +8,32 @@ import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
 
 /**
- * Fetch all visible presence markers.
+ * Fetch nearby visible presence markers.
  * Uses server-side now() to avoid client clock skew.
  *
+ * @param {object} params
+ * @param {number|null} params.lat
+ * @param {number|null} params.lng
+ * @param {number} [params.radiusMiles]
+ * @param {string[]} [params.blockedUserIds]
  * @returns {Promise<{data: Array|null, error: Error|null}>}
  */
-export async function getLiveMapPresence() {
-  const { data, error } = await supabase.rpc('get_live_map_presence');
+export async function getLiveMapPresence({
+  lat,
+  lng,
+  radiusMiles = 50,
+  blockedUserIds = [],
+} = {}) {
+  if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) {
+    return { data: [], error: null };
+  }
+
+  const { data, error } = await supabase.rpc('get_live_map_presence', {
+    viewer_lat: Number(lat),
+    viewer_lng: Number(lng),
+    radius_miles: radiusMiles,
+    exclude_user_ids: blockedUserIds.length ? blockedUserIds : null,
+  });
 
   if (error) logger.error('[getLiveMapPresence] Error:', error);
   return { data, error };

@@ -12,9 +12,16 @@ import { buildPresenceLocation, isValidCoordinate } from '@/lib/geocoding.js';
 
 import { logger } from '@/lib/logger.js';
 import { captureError } from '@/lib/sentry.js';
-import { HEARTBEAT_INTERVAL_MS, PRESENCE_REFRESH_MS, BACKGROUND_GRACE_MS } from '@/lib/constants.js';
+import {
+  HEARTBEAT_INTERVAL_MS,
+  PRESENCE_REFRESH_MS,
+  BACKGROUND_GRACE_MS,
+  PRESENCE_TTL_MS,
+} from '@/lib/constants.js';
 
 const LIVE_SESSION_KEY = 'rr:live-session';
+const PRESENCE_PUBLISH_MIN_DISTANCE_METERS = 150;
+const PRESENCE_MIN_WRITE_INTERVAL_MS = 5000;
 
 export const presenceKeys = {
   all: ['live-map-presence'],
@@ -27,7 +34,27 @@ function getVehicleLabel(profile) {
 }
 
 function getExpiresAt() {
-  return new Date(Date.now() + 10 * 60 * 1000).toISOString();
+  return new Date(Date.now() + PRESENCE_TTL_MS).toISOString();
+}
+
+function distanceMeters(a, b) {
+  if (!a || !b) return Infinity;
+  const lat1 = Number(a.lat);
+  const lng1 = Number(a.lng);
+  const lat2 = Number(b.lat);
+  const lng2 = Number(b.lng);
+  if (![lat1, lng1, lat2, lng2].every(Number.isFinite)) return Infinity;
+
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const earthRadiusMeters = 6371000;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const rLat1 = toRad(lat1);
+  const rLat2 = toRad(lat2);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(rLat1) * Math.cos(rLat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * earthRadiusMeters * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
 /**
@@ -42,6 +69,16 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
   const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const userId = user?.id;
   const invalidateTimerRef = useRef(null);
+  const radiusMiles = options.radiusMiles ?? 50;
+  const blockedUserIds = Array.isArray(options.blockedUserIds) ? options.blockedUserIds : [];
+  const blockedUserIdsKey = JSON.stringify(blockedUserIds);
+  const hasPresenceLocation = isValidCoordinate(currentLocation?.lat, currentLocation?.lng);
+  const roundedPresenceLat = hasPresenceLocation
+    ? Math.round(Number(currentLocation.lat) * 1000) / 1000
+    : null;
+  const roundedPresenceLng = hasPresenceLocation
+    ? Math.round(Number(currentLocation.lng) * 1000) / 1000
+    : null;
 
   // Keep a stable ref to the latest profile to avoid effect churn
   // when auth context returns new object references.
@@ -96,10 +133,22 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
   });
 
   const presenceQuery = useQuery({
-    queryKey: presenceKeys.all,
-    enabled: !!userId,
+    queryKey: [
+      ...presenceKeys.all,
+      'nearby',
+      roundedPresenceLat,
+      roundedPresenceLng,
+      radiusMiles,
+      blockedUserIdsKey,
+    ],
+    enabled: !!userId && hasPresenceLocation,
     queryFn: async () => {
-      const { data, error } = await getLiveMapPresence();
+      const { data, error } = await getLiveMapPresence({
+        lat: currentLocation.lat,
+        lng: currentLocation.lng,
+        radiusMiles,
+        blockedUserIds,
+      });
       if (error) throw error;
       return data || [];
     },
@@ -196,6 +245,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
 
   // Auto-publish presence
   const lastPublishRef = useRef(0);
+  const lastPublishedCoordRef = useRef(null);
 
   useEffect(() => {
     // Fix C: gate on sessionLiveActive — no publish while resume prompt is pending
@@ -203,7 +253,13 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     if (!isValidCoordinate(currentLocation?.lat, currentLocation?.lng)) return;
 
     const now = Date.now();
-    if (now - lastPublishRef.current < 5000) return; // throttle 5s
+    if (now - lastPublishRef.current < PRESENCE_MIN_WRITE_INTERVAL_MS) return;
+
+    const coord = { lat: currentLocation.lat, lng: currentLocation.lng };
+    const moved = distanceMeters(lastPublishedCoordRef.current, coord);
+    // Skip if not moved enough and last publish was recent (heartbeat covers keep-alive)
+    if (lastPublishedCoordRef.current && moved < PRESENCE_PUBLISH_MIN_DISTANCE_METERS
+        && now - lastPublishRef.current < HEARTBEAT_INTERVAL_MS / 2) return;
 
     const doPublish = async () => {
       const lat = currentLocation.lat;
@@ -238,6 +294,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         logger.warn('[useLiveMapPresence] Publish failed:', error);
       } else {
         lastPublishRef.current = Date.now();
+        lastPublishedCoordRef.current = { lat, lng };
         queryClient.invalidateQueries({ queryKey: presenceKeys.all });
         queryClient.invalidateQueries({ queryKey: presenceKeys.me(userId) });
       }

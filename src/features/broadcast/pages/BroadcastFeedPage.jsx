@@ -101,7 +101,7 @@ function BroadcastFeedPage() {
 
   const { markers: riderMarkers, isLiveMapVisible, needsResumePrompt, markLiveSessionActive, clearLiveSession } = useLiveMapPresence(
     { lat: userLoc.lat, lng: userLoc.lng, accuracyMeters: userLoc.accuracyMeters },
-    { autoPublish: true, source: 'radar' }
+    { autoPublish: true, source: 'radar', radiusMiles: 50, blockedUserIds: Array.from(blockedIds) }
   );
 
   const visibleBroadcasts = useMemo(

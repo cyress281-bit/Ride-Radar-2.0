@@ -1,13 +1,37 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { preloadTilesAround } from '@/lib/tileCache.js';
 import { logger } from '@/lib/logger';
 
 const RADAR_LOCATION_CACHE_KEY = 'rr:last-radar-location';
 const RADAR_LOCATION_CACHE_MAX_AGE_MS = 15 * 60 * 1000;
+const ACTIVE_LOCATION_MIN_DISTANCE_METERS = 25;
+const PASSIVE_LOCATION_MIN_DISTANCE_METERS = 75;
+const ACTIVE_LOCATION_MAX_STALE_MS = 30 * 1000;
+const PASSIVE_LOCATION_MAX_STALE_MS = 90 * 1000;
 
 const US_CENTER = { lat: 39.8283, lng: -98.5795 };
 
 const emptyRadarLocation = { lat: null, lng: null, accuracyMeters: null, source: 'none' };
+
+function distanceMeters(a, b) {
+  if (!a || !b) return Infinity;
+  const lat1 = Number(a.lat);
+  const lng1 = Number(a.lng);
+  const lat2 = Number(b.lat);
+  const lng2 = Number(b.lng);
+  if (![lat1, lng1, lat2, lng2].every(Number.isFinite)) return Infinity;
+
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const earthRadiusMeters = 6371000;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const rLat1 = toRad(lat1);
+  const rLat2 = toRad(lat2);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(rLat1) * Math.cos(rLat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * earthRadiusMeters * Math.asin(Math.min(1, Math.sqrt(h)));
+}
 
 function readCachedRadarLocation() {
   try {
@@ -50,9 +74,31 @@ export function useRadarLocation() {
   const [userLoc, setUserLoc] = useState(readCachedRadarLocation);
   const [geoError, setGeoError] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [highAccuracyMode, setHighAccuracyMode] = useState(false);
+  const lastAcceptedLocationRef = useRef(null);
 
   const hasUserLocation = userLoc.lat != null && userLoc.lng != null;
   const effectiveLoc = hasUserLocation ? userLoc : US_CENTER;
+
+  const acceptLocation = useCallback((next, { force = false } = {}) => {
+    const previous = lastAcceptedLocationRef.current;
+    const now = Date.now();
+    const minDistance = highAccuracyMode
+      ? ACTIVE_LOCATION_MIN_DISTANCE_METERS
+      : PASSIVE_LOCATION_MIN_DISTANCE_METERS;
+    const maxStaleMs = highAccuracyMode
+      ? ACTIVE_LOCATION_MAX_STALE_MS
+      : PASSIVE_LOCATION_MAX_STALE_MS;
+    const movedMeters = distanceMeters(previous, next);
+    const stale = !previous?.acceptedAt || now - previous.acceptedAt >= maxStaleMs;
+
+    if (!force && previous && movedMeters < minDistance && !stale) return;
+
+    const accepted = { ...next, acceptedAt: now };
+    lastAcceptedLocationRef.current = accepted;
+    setUserLoc(next);
+    cacheRadarLocation(next);
+  }, [highAccuracyMode]);
 
   // Request location — user-initiated only
   const requestLocation = useCallback(() => {
@@ -71,8 +117,7 @@ export function useRadarLocation() {
           accuracyMeters: pos.coords.accuracy,
           source: 'live',
         };
-        setUserLoc(next);
-        cacheRadarLocation(next);
+        acceptLocation(next, { force: true });
         setGeoError(false);
         setLocating(false);
       },
@@ -83,7 +128,7 @@ export function useRadarLocation() {
       },
       { maximumAge: 30000, timeout: 9000, enableHighAccuracy: true }
     );
-  }, []);
+  }, [acceptLocation]);
 
   // Watch location once granted
   useEffect(() => {
@@ -96,14 +141,15 @@ export function useRadarLocation() {
           accuracyMeters: pos.coords.accuracy,
           source: 'live',
         };
-        setUserLoc(next);
-        cacheRadarLocation(next);
+        acceptLocation(next);
       },
       (err) => logger.warn('[Radar] Geolocation watch error:', err.message),
-      { maximumAge: 15000, timeout: 12000, enableHighAccuracy: true }
+      highAccuracyMode
+        ? { maximumAge: 10000, timeout: 12000, enableHighAccuracy: true }
+        : { maximumAge: 30000, timeout: 15000, enableHighAccuracy: false }
     );
     return () => { if (watchId != null) navigator.geolocation.clearWatch(watchId); };
-  }, [hasUserLocation]);
+  }, [acceptLocation, hasUserLocation, highAccuracyMode]);
 
   // Auto-refresh GPS on mount for returning users who have a cached location
   useEffect(() => {
@@ -122,5 +168,14 @@ export function useRadarLocation() {
     return () => clearTimeout(timer);
   }, [hasUserLocation, effectiveLoc.lat, effectiveLoc.lng]);
 
-  return { userLoc, hasUserLocation, geoError, locating, requestLocation, effectiveLoc };
+  return {
+    userLoc,
+    hasUserLocation,
+    geoError,
+    locating,
+    requestLocation,
+    effectiveLoc,
+    highAccuracyMode,
+    setHighAccuracyMode,
+  };
 }
