@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, CalendarPlus, Clock, MapPin, Pencil } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { CalendarDays, CalendarPlus, ChevronDown, Clock, Pencil, UserCircle2, ImageIcon, MapPin } from 'lucide-react';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import CreateEventDialog from '@/features/admin/components/CreateEventDialog.jsx';
 import EditEventDialog from '@/features/admin/components/EditEventDialog.jsx';
+import { getEventRsvpCounts } from '@/features/admin/api/admin-api.js';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils.js';
 
 function formatEventDate(iso) {
   if (!iso) return '—';
@@ -17,8 +19,20 @@ function formatEventDate(iso) {
   });
 }
 
-function EventRow({ event, onEdit }) {
+function DetailField({ label, value }) {
+  return (
+    <div className="min-w-0">
+      <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        {label}
+      </div>
+      <div className="break-words text-sm text-foreground/90">{value}</div>
+    </div>
+  );
+}
+
+function EventRow({ event, onEdit, isExpanded, onToggle, rsvpCount = 0, authorProfile }) {
   const isPast = event.event_date ? new Date(event.event_date) < new Date() : false;
+  const authorLabel = authorProfile?.display_name || authorProfile?.username || event.author_id || 'Unknown';
 
   return (
     <div className="rounded-[20px] border border-border bg-surface p-4 transition hover:bg-surface-elevated">
@@ -55,9 +69,28 @@ function EventRow({ event, onEdit }) {
             {formatEventDate(event.event_date)}
             {event.expires_at && (
               <span className="text-muted-foreground/60">
-                {' '}→ {formatEventDate(event.expires_at)}
+                {' '}to {formatEventDate(event.expires_at)}
               </span>
             )}
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+              {rsvpCount} RSVP{rsvpCount === 1 ? '' : 's'}
+            </span>
+            <span className="rounded-full border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              {authorProfile?.display_name || authorProfile?.username ? authorLabel : event.author_id}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onToggle?.(event.id)}
+              className="h-8 rounded-full px-3 text-xs"
+            >
+              Details
+              <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', isExpanded && 'rotate-180')} />
+            </Button>
           </div>
         </div>
 
@@ -72,6 +105,53 @@ function EventRow({ event, onEdit }) {
           <Pencil className="h-4 w-4" />
         </Button>
       </div>
+
+      {isExpanded && (
+        <div className="mt-4 rounded-[18px] border border-white/[0.06] bg-black/20 p-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <DetailField label="Title" value={event.title || '(untitled)'} />
+            <DetailField label="Status" value={event.status || 'unknown'} />
+            <DetailField label="Location" value={event.location_name || '—'} />
+            <DetailField label="RSVPs" value={String(rsvpCount)} />
+            <DetailField label="Start" value={formatEventDate(event.event_date)} />
+            <DetailField label="End" value={formatEventDate(event.expires_at)} />
+            <DetailField label="Author" value={authorLabel} />
+            <DetailField label="Author ID" value={event.author_id || '—'} />
+            <DetailField label="Created" value={formatEventDate(event.created_at)} />
+          </div>
+
+          {event.body && (
+            <div className="mt-4">
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Description
+              </div>
+              <div className="whitespace-pre-wrap rounded-[16px] border border-white/[0.06] bg-surface/70 p-3 text-sm text-foreground/90">
+                {event.body}
+              </div>
+            </div>
+          )}
+
+          {event.event_image_url && (
+            <div className="mt-4">
+              <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Event image
+              </div>
+              <a
+                href={event.event_image_url}
+                target="_blank"
+                rel="noreferrer"
+                className="block overflow-hidden rounded-[18px] border border-white/[0.06] bg-black/30"
+              >
+                <img
+                  src={event.event_image_url}
+                  alt={event.title || 'Event image'}
+                  className="h-52 w-full object-cover"
+                />
+              </a>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -100,10 +180,11 @@ export default function AdminEventsPage() {
 
 function AdminEventsContent() {
   const qc = useQueryClient();
-  const { broadcasts, isLoading } = useAdminData();
+  const { broadcasts, profiles, isLoading } = useAdminData();
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [expandedEventId, setExpandedEventId] = useState(null);
 
   const { upcoming, past } = useMemo(() => {
     const all = (broadcasts.data?.data || []).filter((b) => b.type === 'event');
@@ -116,6 +197,28 @@ function AdminEventsContent() {
       .sort((a, b) => new Date(b.event_date) - new Date(a.event_date));
     return { upcoming: up, past: pa };
   }, [broadcasts.data]);
+
+  const visibleEventIds = useMemo(
+    () => [...upcoming, ...past].map((event) => event.id),
+    [upcoming, past]
+  );
+
+  const { data: rsvpCountMap = {} } = useQuery({
+    queryKey: ['admin', 'event-rsvp-counts', visibleEventIds.join(',')],
+    queryFn: async () => {
+      const { data, error } = await getEventRsvpCounts(visibleEventIds);
+      if (error) throw error;
+      return data || {};
+    },
+    enabled: visibleEventIds.length > 0,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
+
+  const profileByUserId = useMemo(
+    () => new Map((profiles.data?.data || []).map((p) => [p.user_id || p.id, p])),
+    [profiles.data]
+  );
 
   if (isLoading) {
     return (
@@ -160,10 +263,14 @@ function AdminEventsContent() {
               <EventRow
                 key={e.id}
                 event={e}
+                rsvpCount={rsvpCountMap[e.id] ?? 0}
+                authorProfile={profileByUserId.get(e.author_id)}
+                isExpanded={expandedEventId === e.id}
                 onEdit={(event) => {
                   setSelectedEvent(event);
                   setEditOpen(true);
                 }}
+                onToggle={(id) => setExpandedEventId((current) => (current === id ? null : id))}
               />
             ))}
           </div>
@@ -180,10 +287,14 @@ function AdminEventsContent() {
               <EventRow
                 key={e.id}
                 event={e}
+                rsvpCount={rsvpCountMap[e.id] ?? 0}
+                authorProfile={profileByUserId.get(e.author_id)}
+                isExpanded={expandedEventId === e.id}
                 onEdit={(event) => {
                   setSelectedEvent(event);
                   setEditOpen(true);
                 }}
+                onToggle={(id) => setExpandedEventId((current) => (current === id ? null : id))}
               />
             ))}
           </div>

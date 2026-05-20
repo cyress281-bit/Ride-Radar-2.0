@@ -120,6 +120,43 @@ export async function getConversations() {
   return { data: data || [], error };
 }
 
+/**
+ * Fetch RSVP counts for a batch of event/broadcast ids.
+ * Returns a map keyed by broadcast_id with total RSVP counts.
+ *
+ * @param {string[]} eventIds
+ * @returns {Promise<ApiResult>}
+ */
+export async function getEventRsvpCounts(eventIds = []) {
+  await assertAdmin();
+
+  const uniqueIds = Array.from(
+    new Set((Array.isArray(eventIds) ? eventIds : []).filter((id) => typeof id === 'string' && id.length > 0))
+  );
+
+  if (uniqueIds.length === 0) {
+    return { data: {}, error: null };
+  }
+
+  const { data, error } = await supabase
+    .from('event_rsvps')
+    .select('broadcast_id')
+    .in('broadcast_id', uniqueIds);
+
+  if (error) return { data: null, error };
+
+  const counts = {};
+  for (const id of uniqueIds) {
+    counts[id] = 0;
+  }
+  for (const row of data || []) {
+    if (!row?.broadcast_id) continue;
+    counts[row.broadcast_id] = (counts[row.broadcast_id] || 0) + 1;
+  }
+
+  return { data: counts, error: null };
+}
+
 async function assertAdmin() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
