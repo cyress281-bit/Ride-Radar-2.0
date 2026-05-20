@@ -267,6 +267,13 @@ export async function expireBroadcast(id) {
   return { data, error };
 }
 
+function applyRepeatOffset(baseDate, i, repeat) {
+  const d = new Date(baseDate);
+  if (repeat === 'weekly') d.setDate(d.getDate() + i * 7);
+  else if (repeat === 'monthly') d.setMonth(d.getMonth() + i);
+  return d;
+}
+
 /**
  * Create a new official Meetup/Event broadcast (admin action).
  * Geocodes the location text and stores approximated coordinates.
@@ -280,7 +287,7 @@ export async function expireBroadcast(id) {
  * @param {string} [eventData.body]
  * @returns {Promise<ApiResult>}
  */
-export async function createAdminEvent({ title, locationText, eventDate, eventEndTime, body }) {
+export async function createAdminEvent({ title, locationText, eventDate, eventEndTime, body, repeat = 'none' }) {
   await assertAdmin();
 
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -312,26 +319,44 @@ export async function createAdminEvent({ title, locationText, eventDate, eventEn
     return { data: null, error: new Error('Location geocoding failed. Please try a different address.') };
   }
 
-  logger.info(`[admin] Creating event "${title}" @ ${locationText} on ${eventDate}`);
+  const count = repeat === 'weekly' ? 5 : repeat === 'monthly' ? 4 : 1;
+  const durationMs = new Date(eventEndTime) - new Date(eventDate);
+  const baseStart = new Date(eventDate);
 
-  const { data, error } = await supabase
-    .from('broadcasts')
-    .insert({
-      author_id: user.id,
-      type: 'event',
-      status: 'active',
-      title: title.trim(),
-      body: body?.trim() || null,
-      location_name: locationText.trim(),
-      frozen_lat: frozenLocation.lat,
-      frozen_lng: frozenLocation.lng,
-      event_date: new Date(eventDate).toISOString(),
-      expires_at: new Date(eventEndTime).toISOString(),
-    })
-    .select()
-    .single();
+  logger.info(`[admin] Creating event "${title}" @ ${locationText} on ${eventDate} (repeat=${repeat}, count=${count})`);
 
-  return { data, error };
+  for (let i = 0; i < count; i++) {
+    const occStart = applyRepeatOffset(baseStart, i, repeat);
+    const occEnd = new Date(occStart.getTime() + durationMs);
+
+    const { error } = await supabase
+      .from('broadcasts')
+      .insert({
+        author_id: user.id,
+        type: 'event',
+        status: 'active',
+        title: title.trim(),
+        body: body?.trim() || null,
+        location_name: locationText.trim(),
+        frozen_lat: frozenLocation.lat,
+        frozen_lng: frozenLocation.lng,
+        event_date: occStart.toISOString(),
+        expires_at: occEnd.toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return {
+        data: null,
+        error: new Error(
+          `Created ${i} of ${count} occurrence${count === 1 ? '' : 's'}. Insert failed: ${error.message}`
+        ),
+      };
+    }
+  }
+
+  return { data: { created: count }, error: null };
 }
 
 /**

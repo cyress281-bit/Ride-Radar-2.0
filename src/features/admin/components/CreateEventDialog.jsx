@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils.js';
 
 const schema = z
@@ -25,6 +26,7 @@ const schema = z
     eventDate: z.string().min(1, 'Start time is required'),
     eventEndTime: z.string().min(1, 'End time is required'),
     body: z.string().max(500, 'Description must be 500 characters or fewer'),
+    repeat: z.enum(['none', 'weekly', 'monthly']).default('none'),
   })
   .refine(
     (data) => {
@@ -53,6 +55,7 @@ export default function CreateEventDialog({ open, onOpenChange, onSuccess }) {
     formState: { errors, isValid },
     watch,
     reset,
+    setValue,
   } = useForm({
     resolver: zodResolver(schema),
     mode: 'onChange',
@@ -62,6 +65,7 @@ export default function CreateEventDialog({ open, onOpenChange, onSuccess }) {
       eventDate: '',
       eventEndTime: '',
       body: '',
+      repeat: 'none',
     },
   });
 
@@ -80,6 +84,7 @@ export default function CreateEventDialog({ open, onOpenChange, onSuccess }) {
         eventDate: values.eventDate,
         eventEndTime: values.eventEndTime,
         body: values.body,
+        repeat: values.repeat,
       }),
     onSuccess: (result) => {
       if (result.error) {
@@ -102,6 +107,7 @@ export default function CreateEventDialog({ open, onOpenChange, onSuccess }) {
 
   const titleLen = watch('title')?.length || 0;
   const bodyLen = watch('body')?.length || 0;
+  const repeatValue = watch('repeat');
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -266,6 +272,34 @@ export default function CreateEventDialog({ open, onOpenChange, onSuccess }) {
                   )}
                   <Text variant="caption" color="muted">{bodyLen} / 500</Text>
                 </div>
+              </VStack>
+
+              {/* Repeat */}
+              <VStack gap={1.5}>
+                <Label className="text-xs font-semibold text-foreground">Repeat</Label>
+                <ToggleGroup
+                  type="single"
+                  value={repeatValue}
+                  onValueChange={(v) => v && setValue('repeat', v, { shouldValidate: true })}
+                  className="justify-start flex-wrap"
+                >
+                  <ToggleGroupItem value="none" className="min-h-[40px] text-xs">
+                    Does not repeat
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="weekly" className="min-h-[40px] text-xs">
+                    Weekly
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="monthly" className="min-h-[40px] text-xs">
+                    Monthly
+                  </ToggleGroupItem>
+                </ToggleGroup>
+                <Text variant="caption" color="muted">
+                  {repeatValue === 'weekly'
+                    ? 'Creates 5 total events: this date plus 4 weekly occurrences.'
+                    : repeatValue === 'monthly'
+                    ? 'Creates 4 total events: this date plus 3 monthly occurrences.'
+                    : 'Creates 1 event.'}
+                </Text>
               </VStack>
 
               {/* Geocoding / API error */}
