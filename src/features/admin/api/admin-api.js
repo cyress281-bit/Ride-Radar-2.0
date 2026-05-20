@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
+import { geocodeAddress, approximateLocation } from '@/lib/geocoding.js';
 
 /**
  * @typedef {Object} ApiResult
@@ -263,6 +264,73 @@ export async function expireBroadcast(id) {
     .eq('id', id)
     .select()
     .maybeSingle();
+  return { data, error };
+}
+
+/**
+ * Create a new official Meetup/Event broadcast (admin action).
+ * Geocodes the location text and stores approximated coordinates.
+ * Author is always the current authenticated admin.
+ *
+ * @param {object} eventData
+ * @param {string} eventData.title
+ * @param {string} eventData.locationText
+ * @param {string} eventData.eventDate - datetime-local string or ISO
+ * @param {string} eventData.eventEndTime - datetime-local string or ISO; stored as expires_at
+ * @param {string} [eventData.body]
+ * @returns {Promise<ApiResult>}
+ */
+export async function createAdminEvent({ title, locationText, eventDate, eventEndTime, body }) {
+  await assertAdmin();
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { data: null, error: authError || new Error('Admin user not found.') };
+  }
+
+  let geocodeResult;
+  try {
+    geocodeResult = await geocodeAddress(locationText.trim());
+  } catch {
+    return { data: null, error: new Error('Geocoding service unavailable. Please try again.') };
+  }
+
+  if (!geocodeResult) {
+    return {
+      data: null,
+      error: new Error('Could not locate that address. Try adding a city, landmark, or street.'),
+    };
+  }
+
+  const frozenLocation = approximateLocation(
+    geocodeResult.lat,
+    geocodeResult.lng,
+    `${user.id}:${new Date().toISOString()}:event:${locationText}`
+  );
+
+  if (!frozenLocation) {
+    return { data: null, error: new Error('Location geocoding failed. Please try a different address.') };
+  }
+
+  logger.info(`[admin] Creating event "${title}" @ ${locationText} on ${eventDate}`);
+
+  const { data, error } = await supabase
+    .from('broadcasts')
+    .insert({
+      author_id: user.id,
+      type: 'event',
+      status: 'active',
+      title: title.trim(),
+      body: body?.trim() || null,
+      location_name: locationText.trim(),
+      frozen_lat: frozenLocation.lat,
+      frozen_lng: frozenLocation.lng,
+      event_date: new Date(eventDate).toISOString(),
+      expires_at: new Date(eventEndTime).toISOString(),
+    })
+    .select()
+    .single();
+
   return { data, error };
 }
 

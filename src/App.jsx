@@ -65,6 +65,7 @@ const AdminAnalyticsPage = lazy(() => import('./features/admin/pages/AdminAnalyt
 const AdminCompliancePage = lazy(() => import('./features/admin/pages/AdminCompliancePage'));
 const AdminMonitoringPage = lazy(() => import('./features/admin/pages/AdminMonitoringPage'));
 const AdminHealthPage = lazy(() => import('./features/admin/pages/AdminHealthPage'));
+const AdminEventsPage = lazy(() => import('./features/admin/pages/AdminEventsPage'));
 
 // ------------------------------------------------------------------
 // Route guards
@@ -390,6 +391,7 @@ const AppContent = memo(function AppContent() {
               <Route path="/admin/compliance" element={<AdminCompliancePage />} />
               <Route path="/admin/monitoring" element={<AdminMonitoringPage />} />
               <Route path="/admin/health" element={<AdminHealthPage />} />
+              <Route path="/admin/events" element={<AdminEventsPage />} />
             </Route>
           </Route>
         </Route>

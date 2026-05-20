@@ -12,6 +12,7 @@ import {
   FileCheck,
   Activity,
   Database,
+  CalendarDays,
 } from 'lucide-react';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
@@ -35,7 +36,7 @@ export default function AdminDashboardPage() {
       skeleton={
         <AdminLayout>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {Array.from({ length: 11 }).map((_, i) => (
+            {Array.from({ length: 12 }).map((_, i) => (
               <Skeleton key={i} className="h-28 w-full rounded-[20px]" />
             ))}
           </div>
@@ -95,7 +96,7 @@ function AdminDashboardContent() {
     return (
       <AdminLayout>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {Array.from({ length: 11 }).map((_, i) => (
+          {Array.from({ length: 12 }).map((_, i) => (
             <Skeleton key={i} className="h-28 w-full rounded-[20px]" />
           ))}
         </div>
@@ -122,6 +123,12 @@ function AdminDashboardContent() {
       value: activeBroadcastCountData?.data ?? broadcastsData.filter((b) => b.status === 'active').length,
       icon: Radio,
       onClick: () => navigate('/admin/broadcasts'),
+    },
+    {
+      title: 'Events',
+      value: broadcastsData.filter((b) => b.type === 'event').length || 'Manage',
+      icon: CalendarDays,
+      onClick: () => navigate('/admin/events'),
     },
     {
       title: 'Pending Reports',
