@@ -174,10 +174,10 @@ function BroadcastFeedPage() {
     ).length;
     const alerts = visibleBroadcasts.filter((b) => b.type === 'alert').length;
     const help = visibleBroadcasts.filter(
-      (b) => b.type === 'iso' && ((b.isoSubtype || b.iso_subtype) === 'mechanic')
+      (b) => b.type === 'iso' && b.iso_subtype === 'mechanic'
     ).length;
     const rides = visibleBroadcasts.filter(
-      (b) => b.type === 'solo_ride' || (b.type === 'iso' && ((b.isoSubtype || b.iso_subtype) === 'bike_crew'))
+      (b) => b.type === 'solo_ride' || (b.type === 'iso' && b.iso_subtype === 'bike_crew')
     ).length;
     const events = visibleBroadcasts.filter((b) => b.type === 'event').length;
     const eventsThisWeek = visibleBroadcasts.filter(

@@ -133,6 +133,7 @@ export function useCreateBroadcast() {
         author_id: user.id,
         type: broadcastData.type === 'bike_down' ? 'alert' : broadcastData.type,
         alert_type: broadcastData.type === 'bike_down' ? 'bike_down' : null,
+        iso_subtype: broadcastData.type === 'iso' ? (broadcastData.isoSubtype ?? null) : null,
         title: broadcastData.type === 'bike_down' ? 'Bike Down' : broadcastData.title,
         body: broadcastData.body || null,
         status: 'active',

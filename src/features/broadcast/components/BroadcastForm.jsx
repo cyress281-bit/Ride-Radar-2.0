@@ -598,6 +598,14 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             Location is needed for this signal. Enable location and try again.
           </p>
         )}
+        {isLocating && (type === 'solo_ride' || type === 'iso') && (
+          <p className="text-sm text-muted-foreground">Acquiring location…</p>
+        )}
+        {!geoError && !isLocating && coords.lat == null && (type === 'solo_ride' || type === 'iso') && (
+          <p role="alert" className="text-sm text-destructive">
+            Location services unavailable. This signal requires your location.
+          </p>
+        )}
 
         {/* Publish button */}
         <div className={cn(
