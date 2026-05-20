@@ -10,6 +10,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   LogOut,
   ShieldCheck,
+  ShieldAlert,
   Trash2,
   Mail,
   FileText,
@@ -463,6 +464,11 @@ function SettingsPage() {
         <Link to="/privacy-policy" className="block">
           <SettingsRow icon={FileText} label="Privacy Policy" desc="Data collection, location, uploads, and deletion" />
         </Link>
+        <div className="border-t border-border/40">
+          <Link to="/safety-disclaimer" className="block">
+            <SettingsRow icon={ShieldAlert} label="Safety Disclaimer" desc="Emergency reminders and app limitations" />
+          </Link>
+        </div>
         <div className="border-t border-border/40">
           <Link to="/support" className="block">
             <SettingsRow icon={Mail} label="Contact / Support" desc={SUPPORT_EMAIL} />
