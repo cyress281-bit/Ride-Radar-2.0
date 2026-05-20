@@ -46,7 +46,7 @@ All variables must be prefixed with `VITE_` to be exposed to the client.
 | `VITE_SUPABASE_URL` | Yes | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anon/public key |
 | `VITE_SENTRY_DSN` | No | Sentry error tracking DSN |
-| `VITE_SENTRY_ENVIRONMENT` | No | Sentry environment tag |
+| `VITE_APP_ENV` | No | App/Sentry environment tag; falls back to Vite mode |
 | `VITE_PLAUSIBLE_DOMAIN` | No | Plausible analytics domain |
 | `VITE_ENABLE_ANALYTICS` | No | Toggle analytics (`true`/`false`) |
 | `VITE_APP_VERSION` | No | App version for release tracking |

@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/react';
-import { logger } from './logger';
 import { useEffect } from 'react';
 import {
   createRoutesFromChildren,
@@ -11,13 +10,16 @@ import {
 /**
  * Initialize Sentry for error tracking and performance monitoring
  *
- * Only runs in production mode when VITE_SENTRY_DSN is configured.
+ * Only runs when VITE_SENTRY_DSN is configured.
  * Includes:
  * - Error tracking with context
- * - Performance monitoring
- * - Session replay for debugging
+ * - Conservative browser tracing
  * - React Router integration
  * - User context from Supabase auth
+ *
+ * Required Vercel env vars:
+ * - VITE_SENTRY_DSN: browser DSN from the Ride Radar Sentry project
+ * - VITE_APP_ENV: optional environment label, e.g. production, preview, beta
  */
 // PII patterns to scrub from all Sentry event data
 const SENSITIVE_PATTERNS = [
@@ -26,12 +28,53 @@ const SENSITIVE_PATTERNS = [
   /[a-f0-9]{32,}/gi, // long hex strings (API keys, hashes)
 ];
 
+const SENSITIVE_KEYS = [
+  'password',
+  'token',
+  'access_token',
+  'refresh_token',
+  'authorization',
+  'apikey',
+  'api_key',
+  'supabasekey',
+  'email',
+  'body',
+  'message',
+  'content',
+  'text',
+  'lat',
+  'lng',
+  'latitude',
+  'longitude',
+  'location',
+];
+
 function scrubString(str) {
   if (typeof str !== 'string') return str;
   return SENSITIVE_PATTERNS.reduce(
     (s, pattern) => s.replace(pattern, '[REDACTED]'),
     str
   );
+}
+
+function isSensitiveKey(key) {
+  const normalized = String(key || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+  return SENSITIVE_KEYS.some((sensitive) => normalized.includes(sensitive));
+}
+
+function scrubValue(value, key = '') {
+  if (isSensitiveKey(key)) return '[REDACTED]';
+  if (typeof value === 'string') return scrubString(value);
+  if (Array.isArray(value)) return value.map((item) => scrubValue(item));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([entryKey, entryValue]) => [
+        entryKey,
+        scrubValue(entryValue, entryKey),
+      ])
+    );
+  }
+  return value;
 }
 
 function scrubEvent(event) {
@@ -59,12 +102,13 @@ function scrubEvent(event) {
     event.breadcrumbs.forEach((bc) => {
       if (bc.message) bc.message = scrubString(bc.message);
       if (bc.data) {
-        Object.keys(bc.data).forEach((k) => {
-          bc.data[k] = scrubString(bc.data[k]);
-        });
+        bc.data = scrubValue(bc.data);
       }
     });
   }
+  if (event.extra) event.extra = scrubValue(event.extra);
+  if (event.contexts) event.contexts = scrubValue(event.contexts);
+  if (event.request) event.request = scrubValue(event.request);
   // Scrub user context (keep id but not email/name)
   if (event.user) {
     delete event.user.email;
@@ -77,11 +121,9 @@ function scrubEvent(event) {
 
 export function initializeSentry() {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
-  const environment = import.meta.env.VITE_SENTRY_ENVIRONMENT || 'production';
-  const isProd = import.meta.env.PROD;
+  const environment = import.meta.env.VITE_APP_ENV || import.meta.env.MODE;
 
-  // Only initialize in production with valid DSN
-  if (!isProd || !dsn) {
+  if (!dsn) {
     return;
   }
 
@@ -111,17 +153,9 @@ export function initializeSentry() {
         matchRoutes,
       }),
 
-      // Session replay for visual debugging
-      Sentry.replayIntegration({
-        // Only record sessions with errors (privacy-focused)
-        maskAllText: true,
-        blockAllMedia: true,
-        maskAllInputs: true,
-      }),
-
       // Breadcrumbs for console logs
       Sentry.breadcrumbsIntegration({
-        console: true,
+        console: false,
         dom: true,
         fetch: true,
         history: true,
@@ -129,12 +163,7 @@ export function initializeSentry() {
       }),
     ],
 
-    // Performance monitoring sample rate
-    tracesSampleRate: environment === 'production' ? 0.1 : 1.0, // 10% in prod, 100% in staging
-
-    // Session replay sample rates
-    replaysSessionSampleRate: 0.1, // 10% of sessions
-    replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
+    tracesSampleRate: environment === 'production' ? 0.05 : 0,
 
     // Filter out expected errors
     beforeSend(event, hint) {
@@ -191,7 +220,7 @@ export function initializeSentry() {
  * Call this when user signs in
  */
 export function setSentryUser(user, profile) {
-  if (!import.meta.env.PROD || !import.meta.env.VITE_SENTRY_DSN) return;
+  if (!import.meta.env.VITE_SENTRY_DSN) return;
 
   Sentry.setUser({
     id: user?.id,
@@ -207,7 +236,7 @@ export function setSentryUser(user, profile) {
  * Call this when user signs out
  */
 export function clearSentryUser() {
-  if (!import.meta.env.PROD || !import.meta.env.VITE_SENTRY_DSN) return;
+  if (!import.meta.env.VITE_SENTRY_DSN) return;
 
   Sentry.setUser(null);
 }
@@ -216,32 +245,31 @@ export function clearSentryUser() {
  * Add custom context to Sentry
  */
 export function setSentryContext(key, value) {
-  if (!import.meta.env.PROD || !import.meta.env.VITE_SENTRY_DSN) return;
+  if (!import.meta.env.VITE_SENTRY_DSN) return;
 
-  Sentry.setContext(key, value);
+  Sentry.setContext(key, scrubValue(value));
 }
 
 /**
  * Manually capture an error in Sentry
  */
 export function captureError(error, context = {}) {
-  if (!import.meta.env.PROD || !import.meta.env.VITE_SENTRY_DSN) {
-    logger.error('[Sentry] Error captured (dev mode):', error, context);
+  if (!import.meta.env.VITE_SENTRY_DSN) {
     return;
   }
 
-  Sentry.captureException(error, { extra: context });
+  Sentry.captureException(error, { extra: scrubValue(context) });
 }
 
 /**
  * Add a breadcrumb for debugging
  */
 export function addBreadcrumb(message, data = {}) {
-  if (!import.meta.env.PROD || !import.meta.env.VITE_SENTRY_DSN) return;
+  if (!import.meta.env.VITE_SENTRY_DSN) return;
 
   Sentry.addBreadcrumb({
-    message,
-    data,
+    message: scrubString(message),
+    data: scrubValue(data),
     level: 'info',
   });
 }
