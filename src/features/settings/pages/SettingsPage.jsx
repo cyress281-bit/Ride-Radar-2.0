@@ -480,7 +480,30 @@ function SettingsPage() {
             desc="Report bugs or suggest features"
             onClick={() => {
               const email = import.meta.env.VITE_SUPPORT_EMAIL || SUPPORT_EMAIL;
-              window.location.href = `mailto:${email}?subject=${encodeURIComponent('[Ride Radar Beta Feedback]')}`;
+              const subject = '[Ride Radar Beta Feedback]';
+              const ua = (navigator.userAgent || '').slice(0, 160);
+              const body = [
+                `App Version: ${import.meta.env.VITE_APP_VERSION || 'unknown'}`,
+                `Environment: ${import.meta.env.MODE || 'unknown'}`,
+                `Platform: ${navigator.platform || 'unknown'}`,
+                `Screen: ${window.innerWidth}x${window.innerHeight}`,
+                `User Agent: ${ua}`,
+                '',
+                'Describe the issue or feedback:',
+                '',
+                '',
+                'Steps to reproduce, if this is a bug:',
+                '1.',
+                '2.',
+                '3.',
+                '',
+                'Expected result:',
+                '',
+                '',
+                'Actual result:',
+                '',
+              ].join('\n');
+              window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             }}
           />
         </div>
