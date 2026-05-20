@@ -103,11 +103,16 @@ export function useCreateBroadcast() {
       // Alert / Bike Down: use pin coords first, then geocode text fallback
       if (broadcastData.type === 'alert' || broadcastData.type === 'bike_down') {
         if (broadcastData.lat != null && broadcastData.lng != null) {
-          frozenLocation = approximateLocation(
-            broadcastData.lat,
-            broadcastData.lng,
-            `${user.id}:${now.toISOString()}:alert:pin`
-          );
+          // Bike Down uses exact coords — the rider is broadcasting an emergency location.
+          // Road Warning presets still approximate (broadcastData.type === 'alert').
+          frozenLocation =
+            broadcastData.type === 'bike_down'
+              ? { lat: broadcastData.lat, lng: broadcastData.lng }
+              : approximateLocation(
+                  broadcastData.lat,
+                  broadcastData.lng,
+                  `${user.id}:${now.toISOString()}:alert:pin`
+                );
         } else if (exactLocationText) {
           try {
             geocodeResult = await geocodeAddress(exactLocationText);
