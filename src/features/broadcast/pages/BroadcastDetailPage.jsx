@@ -261,6 +261,7 @@ function BroadcastDetailPage() {
   const displayLabel = broadcast.alert_type === 'bike_down' ? 'Bike Down' : meta?.label;
   const isAuthor = user?.id === broadcast.author_id;
   const isAlert = broadcast.type === 'alert';
+  const isBikeDown = broadcast.alert_type === 'bike_down';
 
   const typeAccentClass = {
     solo_ride: 'border-l-[3px] border-l-primary shadow-[-3px_0_14px_hsl(var(--primary)/0.25)]',
@@ -418,6 +419,24 @@ function BroadcastDetailPage() {
           )
         )}
       </div>
+
+      {/* Bike Down responder safety reminder */}
+      {isBikeDown && (
+        <div className="mt-4 flex items-start gap-2.5 rounded-[20px] border border-destructive/25 bg-destructive/8 px-4 py-3.5" role="note">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden="true" />
+          <div>
+            <p className="text-sm font-semibold leading-snug text-destructive">
+              Call 911 first. Ride Radar is not an emergency service.
+            </p>
+            <p className="mt-1 text-xs leading-snug text-destructive/80">
+              If someone may be injured or in danger, contact emergency services before heading out.{' '}
+              <Link to="/safety-disclaimer" className="underline underline-offset-2 hover:text-destructive">
+                Safety info
+              </Link>
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Owner controls */}
       {isAuthor && (
