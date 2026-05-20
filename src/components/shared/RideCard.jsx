@@ -63,6 +63,7 @@ export const RideCard = memo(
       broadcast.media_url;
 
     const isVideo = mediaUrl && /\.(mp4|webm|mov)(\?.*)?$/i.test(mediaUrl);
+    const isOfficialEvent = broadcast.type === 'event' && broadcast.is_official === true;
 
     // Type-specific neon glow for cards
     const typeGlowClass =
@@ -123,8 +124,13 @@ export const RideCard = memo(
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
             {/* Type badge */}
-            <div className="absolute top-3 left-3">
+            <div className="absolute top-3 left-3 flex flex-wrap items-center gap-2">
               <Badge type={broadcast.type} alertType={broadcast.alert_type} />
+              {isOfficialEvent && (
+                <span className="inline-flex items-center rounded-full border border-event/30 bg-event/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-event-foreground backdrop-blur-md">
+                  Official
+                </span>
+              )}
             </div>
 
             {/* Title & body overlaid */}
@@ -208,6 +214,7 @@ export const RideCard = memo(
       prev.broadcast?.id === next.broadcast?.id &&
       prev.broadcast?.title === next.broadcast?.title &&
       prev.broadcast?.body === next.broadcast?.body &&
+      prev.broadcast?.is_official === next.broadcast?.is_official &&
       prev.broadcast?.expires_at === next.broadcast?.expires_at &&
       prev.broadcast?.created_at === next.broadcast?.created_at &&
       prev.author === next.author &&

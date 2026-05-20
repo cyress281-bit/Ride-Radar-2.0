@@ -277,6 +277,7 @@ function BroadcastDetailPage() {
   }[broadcast.type] || 'bg-muted text-muted-foreground border-border/50';
 
   const hasHeroImage = broadcast.type === 'event' && broadcast.event_image_url;
+  const isOfficialEvent = broadcast.type === 'event' && broadcast.is_official === true;
 
   return (
     <div className="px-5 pt-5 pb-8">
@@ -304,11 +305,18 @@ function BroadcastDetailPage() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5">
-            <div className={cn(
-              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-3 border backdrop-blur-md',
-              badgeClass
-            )}>
-              {displayLabel}
+            <div className="inline-flex flex-wrap items-center gap-2 mb-3">
+              <div className={cn(
+                'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest border backdrop-blur-md',
+                badgeClass
+              )}>
+                {displayLabel}
+              </div>
+              {isOfficialEvent && (
+                <span className="inline-flex items-center rounded-full border border-event/30 bg-event/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-event-foreground backdrop-blur-md">
+                  Official
+                </span>
+              )}
             </div>
             <Text as="h1" variant="h1" className="text-2xl sm:text-3xl font-extrabold text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] tracking-tight">
               {broadcast.title}
@@ -322,15 +330,22 @@ function BroadcastDetailPage() {
         <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/[0.04] blur-3xl pointer-events-none" />
 
         {!hasHeroImage && (
-          <div
-            className={cn(
-              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-4 border backdrop-blur-md',
-              badgeClass
+          <div className="inline-flex flex-wrap items-center gap-2 mb-4">
+            <div
+              className={cn(
+                'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest border backdrop-blur-md',
+                badgeClass
+              )}
+            >
+              {broadcast.type === 'solo_ride' && <OfficialMotorcycleIcon className="h-5 w-6 rounded-md" />}
+              {displayLabel}
+              {broadcast.iso_subtype && ` · ${broadcast.iso_subtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}`}
+            </div>
+            {isOfficialEvent && (
+              <span className="inline-flex items-center rounded-full border border-event/30 bg-event/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-event-foreground backdrop-blur-md">
+                Official
+              </span>
             )}
-          >
-            {broadcast.type === 'solo_ride' && <OfficialMotorcycleIcon className="h-5 w-6 rounded-md" />}
-            {displayLabel}
-            {broadcast.iso_subtype && ` · ${broadcast.iso_subtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}`}
           </div>
         )}
 
