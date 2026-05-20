@@ -18,9 +18,12 @@ import {
   Radio,
   MessageSquare,
   Users,
+  User,
+  Image,
   Lock,
 } from 'lucide-react';
-import { useAuthActions } from '@/features/auth/hooks/use-auth.js';
+import { useAuthActions, useAuthState } from '@/features/auth/hooks/use-auth.js';
+import { SUPPORT_EMAIL } from '@/lib/constants.js';
 import { deleteAccount } from '@/features/settings/api/settings-api.js';
 import { trackAccountDeleted } from '@/lib/analytics.js';
 import { logger } from '@/lib/logger.js';
@@ -33,6 +36,7 @@ export default function AccountDeletionPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { signOut } = useAuthActions();
+  const { user } = useAuthState();
 
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -115,6 +119,30 @@ export default function AccountDeletionPage() {
               Your account and associated data have been removed. Redirecting...
             </Text>
           </div>
+        ) : !user ? (
+          <div className="surface-card p-6 animate-fade-up">
+            <VStack gap={3}>
+              <HStack align="center" gap={2}>
+                <Lock className="h-5 w-5 text-muted-foreground shrink-0" />
+                <Text variant="bodySm" className="font-bold">Sign in required</Text>
+              </HStack>
+              <Text variant="caption" color="muted" className="leading-relaxed">
+                To delete your account, please sign in first. After signing in, return to this page and
+                confirm deletion.
+              </Text>
+              <Text variant="caption" color="muted" className="leading-relaxed">
+                If you cannot sign in, email{' '}
+                <a
+                  href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Data Deletion Request')}&body=${encodeURIComponent('Please delete the account associated with this email address.')}`}
+                  className="text-primary underline hover:text-primary/80 transition-colors"
+                >
+                  {SUPPORT_EMAIL}
+                </a>
+                {' '}with the email address associated with your account and request data deletion. We will
+                process your request within 30 days.
+              </Text>
+            </VStack>
+          </div>
         ) : (
           <VStack gap={4} className="animate-fade-up">
             {/* Warning Card */}
@@ -125,9 +153,11 @@ export default function AccountDeletionPage() {
                 <Text variant="bodySm" className="font-bold text-brand-emergency">Warning: irreversible action</Text>
               </HStack>
               <div className="space-y-3 relative z-10">
-                <WarningItem icon={Radio} text="Your profile, posts, and uploads will be permanently deleted" />
-                <WarningItem icon={MessageSquare} text="Your messages and conversations will be removed" />
-                <WarningItem icon={Users} text="Your connections and follower relationships will be cleared" />
+                <WarningItem icon={User} text="Your profile, avatar, bio, and bike details will be permanently deleted" />
+                <WarningItem icon={Radio} text="Your broadcasts, signals, and ride posts will be deleted" />
+                <WarningItem icon={MessageSquare} text="Your messages, conversations, and comments will be removed" />
+                <WarningItem icon={Users} text="Your connections, friendships, and notifications will be cleared" />
+                <WarningItem icon={Image} text="Your uploaded photos will be removed from storage" />
                 <WarningItem icon={Lock} text="This action cannot be reversed by support" />
               </div>
             </div>

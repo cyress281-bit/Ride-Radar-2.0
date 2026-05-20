@@ -90,10 +90,30 @@ export default function PrivacyPolicyPage() {
           </PolicySection>
 
           <PolicySection title="Account deletion" icon={UserX} accent="emergency">
-            <Text variant="caption" color="muted">
-              Users can request deletion from inside the app or through the public account deletion
-              page. Data is permanently removed and cannot be recovered.
-            </Text>
+            <VStack gap={2.5}>
+              <Text variant="caption" color="muted" className="leading-relaxed">
+                You can delete your account at any time from inside the app. Go to{' '}
+                <strong className="text-foreground">Settings → Delete Account</strong> and type DELETE to
+                confirm.
+              </Text>
+              <Text variant="caption" color="muted" className="leading-relaxed">
+                Deletion permanently removes your profile, display name, avatar, bike details, broadcasts,
+                signals, posts, comments, messages, conversations, connections, friendships, live map
+                presence, notifications, event RSVPs, and all uploaded photos. This action is immediate
+                and cannot be reversed by support.
+              </Text>
+              <Text variant="caption" color="muted" className="leading-relaxed">
+                If you cannot access the app, email{' '}
+                <a
+                  href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Data Deletion Request')}&body=${encodeURIComponent('Please delete the account associated with this email address.')}`}
+                  className="text-primary underline hover:text-primary/80 transition-colors"
+                >
+                  {SUPPORT_EMAIL}
+                </a>
+                {' '}with the email address associated with your account and request data deletion. We will
+                process your request within 30 days.
+              </Text>
+            </VStack>
           </PolicySection>
 
           <PolicySection title="Support" icon={Mail} accent="green">
