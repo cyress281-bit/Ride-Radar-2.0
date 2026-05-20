@@ -3,7 +3,7 @@ import { preloadTilesAround } from '@/lib/tileCache.js';
 import { logger } from '@/lib/logger';
 
 const RADAR_LOCATION_CACHE_KEY = 'rr:last-radar-location';
-const RADAR_LOCATION_CACHE_MAX_AGE_MS = 15 * 60 * 1000;
+const RADAR_LOCATION_CACHE_MAX_AGE_MS = 4 * 60 * 60 * 1000;
 const ACTIVE_LOCATION_MIN_DISTANCE_METERS = 25;
 const PASSIVE_LOCATION_MIN_DISTANCE_METERS = 75;
 const ACTIVE_LOCATION_MAX_STALE_MS = 30 * 1000;
@@ -151,12 +151,27 @@ export function useRadarLocation() {
     return () => { if (watchId != null) navigator.geolocation.clearWatch(watchId); };
   }, [acceptLocation, hasUserLocation, highAccuracyMode]);
 
-  // Auto-refresh GPS on mount for returning users who have a cached location
+  // Auto-refresh GPS on mount. Two paths:
+  // 1. Cache is fresh → refresh immediately (existing behavior, now with 4-hour TTL).
+  // 2. Cache is stale/absent → check permissions API (Chrome/Firefox/Safari 16+).
+  //    Only call requestLocation() if permission is already 'granted'. Never prompt.
+  //    iOS Safari ≤15 lacks navigator.permissions — falls through silently; the
+  //    extended TTL covers same-day reopen for those browsers.
   useEffect(() => {
     const cached = readCachedRadarLocation();
     if (cached.lat != null && cached.lng != null) {
       requestLocation();
+      return;
     }
+    if (!navigator.geolocation || !navigator.permissions) return;
+    let cancelled = false;
+    navigator.permissions
+      .query({ name: 'geolocation' })
+      .then((result) => {
+        if (!cancelled && result.state === 'granted') requestLocation();
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, [requestLocation]);
 
   // Preload map tiles around user location for offline use
