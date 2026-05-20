@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, CalendarPlus, ChevronDown, Clock, Pencil, UserCircle2, ImageIcon, MapPin } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CalendarDays, CalendarPlus, ChevronDown, Clock, Pencil, ShieldCheck, MapPin } from 'lucide-react';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import CreateEventDialog from '@/features/admin/components/CreateEventDialog.jsx';
 import EditEventDialog from '@/features/admin/components/EditEventDialog.jsx';
-import { getEventRsvpCounts } from '@/features/admin/api/admin-api.js';
+import { getEventRsvpCounts, toggleOfficialEvent } from '@/features/admin/api/admin-api.js';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils.js';
 
 function formatEventDate(iso) {
@@ -30,7 +31,17 @@ function DetailField({ label, value }) {
   );
 }
 
-function EventRow({ event, onEdit, isExpanded, onToggle, rsvpCount = 0, authorProfile }) {
+function EventRow({
+  event,
+  onEdit,
+  isExpanded,
+  onToggle,
+  onToggleOfficial,
+  officialActionLabel,
+  officialActionDisabled = false,
+  rsvpCount = 0,
+  authorProfile,
+}) {
   const isPast = event.event_date ? new Date(event.event_date) < new Date() : false;
   const authorLabel = authorProfile?.display_name || authorProfile?.username || event.author_id || 'Unknown';
 
@@ -48,6 +59,12 @@ function EventRow({ event, onEdit, isExpanded, onToggle, rsvpCount = 0, authorPr
             >
               {event.status}
             </span>
+            {event.is_official && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
+                <ShieldCheck className="h-3 w-3" />
+                Official
+              </span>
+            )}
             {isPast && (
               <span className="rounded-full bg-muted/40 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
                 Past
@@ -81,6 +98,17 @@ function EventRow({ event, onEdit, isExpanded, onToggle, rsvpCount = 0, authorPr
             <span className="rounded-full border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               {authorProfile?.display_name || authorProfile?.username ? authorLabel : event.author_id}
             </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onToggleOfficial?.(event)}
+              disabled={officialActionDisabled}
+              className="h-8 rounded-full px-3 text-xs"
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              {officialActionLabel}
+            </Button>
             <Button
               type="button"
               variant="ghost"
@@ -215,6 +243,28 @@ function AdminEventsContent() {
     refetchOnWindowFocus: false,
   });
 
+  const toggleOfficial = useMutation({
+    mutationFn: async ({ id, isOfficial }) => {
+      const { data, error } = await toggleOfficialEvent(id, isOfficial);
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] });
+      toast({
+        title: variables.isOfficial ? 'Event marked official' : 'Official flag removed',
+        description: 'Admin events refreshed.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Could not update official status',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const profileByUserId = useMemo(
     () => new Map((profiles.data?.data || []).map((p) => [p.user_id || p.id, p])),
     [profiles.data]
@@ -266,11 +316,16 @@ function AdminEventsContent() {
                 rsvpCount={rsvpCountMap[e.id] ?? 0}
                 authorProfile={profileByUserId.get(e.author_id)}
                 isExpanded={expandedEventId === e.id}
+                officialActionLabel={e.is_official ? 'Remove official' : 'Mark official'}
+                officialActionDisabled={toggleOfficial.isPending}
                 onEdit={(event) => {
                   setSelectedEvent(event);
                   setEditOpen(true);
                 }}
                 onToggle={(id) => setExpandedEventId((current) => (current === id ? null : id))}
+                onToggleOfficial={(event) =>
+                  toggleOfficial.mutate({ id: event.id, isOfficial: !event.is_official })
+                }
               />
             ))}
           </div>
@@ -290,11 +345,16 @@ function AdminEventsContent() {
                 rsvpCount={rsvpCountMap[e.id] ?? 0}
                 authorProfile={profileByUserId.get(e.author_id)}
                 isExpanded={expandedEventId === e.id}
+                officialActionLabel={e.is_official ? 'Remove official' : 'Mark official'}
+                officialActionDisabled={toggleOfficial.isPending}
                 onEdit={(event) => {
                   setSelectedEvent(event);
                   setEditOpen(true);
                 }}
                 onToggle={(id) => setExpandedEventId((current) => (current === id ? null : id))}
+                onToggleOfficial={(event) =>
+                  toggleOfficial.mutate({ id: event.id, isOfficial: !event.is_official })
+                }
               />
             ))}
           </div>

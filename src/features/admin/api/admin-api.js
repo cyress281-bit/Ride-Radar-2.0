@@ -540,6 +540,46 @@ export async function updateAdminEvent(id, fields = {}) {
 }
 
 /**
+ * Toggle the official flag on an existing event broadcast.
+ *
+ * @param {string} id
+ * @param {boolean} isOfficial
+ * @returns {Promise<ApiResult>}
+ */
+export async function toggleOfficialEvent(id, isOfficial) {
+  await assertAdmin();
+
+  if (!id || !String(id).trim()) {
+    return { data: null, error: new Error('Event id is required.') };
+  }
+
+  const { data: existing, error: fetchError } = await supabase
+    .from('broadcasts')
+    .select('id, type, is_official')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (fetchError) return { data: null, error: fetchError };
+  if (!existing) return { data: null, error: new Error('Event not found.') };
+  if (existing.type !== 'event') {
+    return { data: null, error: new Error('Only event broadcasts can be marked official.') };
+  }
+
+  const { data, error } = await supabase
+    .from('broadcasts')
+    .update({ is_official: Boolean(isOfficial) })
+    .eq('id', id)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    return { data: null, error: new Error(error.message || 'Failed to update official status.') };
+  }
+
+  return { data, error: null };
+}
+
+/**
  * Schedule a new occurrence of an existing event broadcast (admin action).
  * Creates a fresh broadcast row with a new event_date and the current admin as author.
  * Does NOT copy id, original author_id, created_at, updated_at, status, alert_type,
