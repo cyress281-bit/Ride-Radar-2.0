@@ -267,6 +267,61 @@ export async function expireBroadcast(id) {
 }
 
 /**
+ * Schedule a new occurrence of an existing event broadcast (admin action).
+ * Creates a fresh broadcast row with a new event_date and the current admin as author.
+ * Does NOT copy id, original author_id, created_at, updated_at, status, alert_type,
+ * alert_photos, iso_subtype, location (geography), RSVPs, comments, reports, or
+ * moderation state.
+ *
+ * @param {object} sourceBroadcast - The existing event broadcast to copy from
+ * @param {string} newEventDate - ISO string or date-parseable string for the new event_date
+ * @param {string} [newTitle] - Optional override for the title; falls back to source title
+ * @returns {Promise<ApiResult>}
+ */
+export async function scheduleEventOccurrence(sourceBroadcast, newEventDate, newTitle) {
+  await assertAdmin();
+
+  if (!sourceBroadcast) {
+    return { data: null, error: new Error('Source broadcast is required.') };
+  }
+  if (sourceBroadcast.type !== 'event') {
+    return { data: null, error: new Error('Only event broadcasts can have occurrences scheduled.') };
+  }
+
+  const parsedDate = new Date(newEventDate);
+  if (!newEventDate || isNaN(parsedDate.getTime())) {
+    return { data: null, error: new Error('A valid event date is required.') };
+  }
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { data: null, error: authError || new Error('Admin user not found.') };
+  }
+
+  logger.info(`[admin] Scheduling event occurrence from broadcast ${sourceBroadcast.id} → ${parsedDate.toISOString()}`);
+
+  const { data, error } = await supabase
+    .from('broadcasts')
+    .insert({
+      author_id: user.id,
+      type: 'event',
+      status: 'active',
+      title: newTitle?.trim() || sourceBroadcast.title,
+      body: sourceBroadcast.body || null,
+      frozen_lat: sourceBroadcast.frozen_lat,
+      frozen_lng: sourceBroadcast.frozen_lng,
+      location_name: sourceBroadcast.location_name,
+      event_image_url: sourceBroadcast.event_image_url || null,
+      event_date: parsedDate.toISOString(),
+      expires_at: null,
+    })
+    .select()
+    .single();
+
+  return { data, error };
+}
+
+/**
  * Delete a broadcast (admin action).
  * @param {string} id
  * @returns {Promise<ApiResult>}

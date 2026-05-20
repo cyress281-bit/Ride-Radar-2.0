@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Radio, Trash2, Search, Filter } from 'lucide-react';
+import { CalendarPlus, Radio, Trash2, Search, Filter } from 'lucide-react';
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { BROADCAST_META } from '@/lib/broadcastUtils.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
 import { expireBroadcast, deleteBroadcast } from '@/features/admin/api/admin-api.js';
+import ScheduleOccurrenceDialog from '@/features/admin/components/ScheduleOccurrenceDialog.jsx';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,7 @@ function AdminBroadcastsContent() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [schedulingBroadcast, setSchedulingBroadcast] = useState(null);
 
   const broadcastsData = broadcasts.data?.data || [];
   const profilesData = profiles.data?.data || [];
@@ -215,7 +217,7 @@ function AdminBroadcastsContent() {
               <div className="mb-2 text-xs text-muted-foreground">
                 By {author?.display_name || author?.username || b.user_id || 'Unknown'}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {b.status === 'active' && (
                   <Button
                     size="sm"
@@ -225,6 +227,16 @@ function AdminBroadcastsContent() {
                     className="rounded-full"
                   >
                     Expire
+                  </Button>
+                )}
+                {b.type === 'event' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setSchedulingBroadcast(b)}
+                    className="rounded-full"
+                  >
+                    <CalendarPlus className="h-3.5 w-3.5" /> Schedule next occurrence
                   </Button>
                 )}
                 <Button
@@ -247,6 +259,16 @@ function AdminBroadcastsContent() {
           </div>
         )}
       </div>
+
+      <ScheduleOccurrenceDialog
+        broadcast={schedulingBroadcast}
+        open={schedulingBroadcast !== null}
+        onOpenChange={(open) => { if (!open) setSchedulingBroadcast(null); }}
+        onSuccess={() => {
+          setSchedulingBroadcast(null);
+          qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] });
+        }}
+      />
     </AdminLayout>
   );
 }
