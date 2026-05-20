@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils.js';
+import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 
 function formatEventDate(iso) {
   if (!iso) return '—';
@@ -31,6 +32,26 @@ function DetailField({ label, value }) {
   );
 }
 
+function getEventTimeline(event, now) {
+  const expiresAt = event?.expires_at ? new Date(event.expires_at) : null;
+  const eventDate = event?.event_date ? new Date(event.event_date) : null;
+  const hasValidExpiresAt = expiresAt instanceof Date && !Number.isNaN(expiresAt.getTime());
+  const hasValidEventDate = eventDate instanceof Date && !Number.isNaN(eventDate.getTime());
+
+  const upcoming =
+    event?.type === 'event' &&
+    event?.status === 'active' &&
+    (
+      (hasValidExpiresAt && expiresAt > now) ||
+      (!hasValidExpiresAt && hasValidEventDate && eventDate >= now)
+    );
+
+  return {
+    upcoming,
+    past: !upcoming,
+  };
+}
+
 function EventRow({
   event,
   onEdit,
@@ -42,7 +63,7 @@ function EventRow({
   rsvpCount = 0,
   authorProfile,
 }) {
-  const isPast = event.event_date ? new Date(event.event_date) < new Date() : false;
+  const { past: isPast } = getEventTimeline(event, new Date());
   const authorLabel = authorProfile?.display_name || authorProfile?.username || event.author_id || 'Unknown';
 
   return (
@@ -218,11 +239,19 @@ function AdminEventsContent() {
     const all = (broadcasts.data?.data || []).filter((b) => b.type === 'event');
     const now = new Date();
     const up = all
-      .filter((b) => !b.event_date || new Date(b.event_date) >= now)
-      .sort((a, b) => new Date(a.event_date || 0) - new Date(b.event_date || 0));
+      .filter((event) => getEventTimeline(event, now).upcoming)
+      .sort((a, b) => {
+        const aTime = new Date(a.event_date || a.expires_at || 0).getTime();
+        const bTime = new Date(b.event_date || b.expires_at || 0).getTime();
+        return aTime - bTime;
+      });
     const pa = all
-      .filter((b) => b.event_date && new Date(b.event_date) < now)
-      .sort((a, b) => new Date(b.event_date) - new Date(a.event_date));
+      .filter((event) => getEventTimeline(event, now).past)
+      .sort((a, b) => {
+        const aTime = new Date(a.event_date || a.expires_at || 0).getTime();
+        const bTime = new Date(b.event_date || b.expires_at || 0).getTime();
+        return bTime - aTime;
+      });
     return { upcoming: up, past: pa };
   }, [broadcasts.data]);
 
@@ -251,6 +280,7 @@ function AdminEventsContent() {
     },
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] });
+      qc.invalidateQueries({ queryKey: broadcastKeys.all });
       toast({
         title: variables.isOfficial ? 'Event marked official' : 'Official flag removed',
         description: 'Admin events refreshed.',

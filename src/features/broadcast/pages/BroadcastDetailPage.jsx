@@ -312,16 +312,17 @@ function BroadcastDetailPage() {
               )}>
                 {displayLabel}
               </div>
-              {isOfficialEvent && (
-                <span className="inline-flex items-center rounded-full border border-event/30 bg-event/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-event-foreground backdrop-blur-md">
-                  Official
-                </span>
-              )}
             </div>
             <Text as="h1" variant="h1" className="text-2xl sm:text-3xl font-extrabold text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] tracking-tight">
               {broadcast.title}
             </Text>
           </div>
+        </div>
+      )}
+
+      {hasHeroImage && isOfficialEvent && (
+        <div className="mb-4 inline-flex items-center rounded-full border border-event/30 bg-event/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-event-foreground backdrop-blur-md">
+          Official
         </div>
       )}
 
