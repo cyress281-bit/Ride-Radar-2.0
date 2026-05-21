@@ -593,7 +593,7 @@ function LiveMap({
             center={center}
             zoom={hasUserLocation ? 11 : 4}
             minZoom={3}
-            maxZoom={19}
+            maxZoom={18}
             scrollWheelZoom={variant === 'full' || variant === 'radar'}
             className={cn('h-full w-full', mapError && 'leaflet-offline', variant === 'radar' && 'rr-radar-map')}
             preferCanvas
@@ -607,6 +607,8 @@ function LiveMap({
               subdomains="abcd"
               crossOrigin="anonymous"
               detectRetina={false}
+              maxZoom={18}
+              maxNativeZoom={18}
               keepBuffer={4}
               updateWhenIdle={false}
               updateWhenZooming={false}
