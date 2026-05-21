@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { Text } from '@/components/ui/primitives/Text';
@@ -15,15 +15,15 @@ const GROUPS = [
 
 const HELPER_COPY = {
   solo_ride:
-    'Shares that you are out riding now and open to nearby riders. It appears in Radar and the feed while active. It does not automatically turn on Go Live unless you use that flow.',
+    'Shows that you are out riding now and open to nearby riders. It appears in Radar, the feed, and the detail page while active, usually for 1 hour. Location is approximate by default; Precise is optional. It does not automatically turn on Go Live.',
   event:
-    'For planned rides, bike nights, or events. Shows in Radar, the feed, and the detail page. The meetup spot can be confirmed on the map and is meant to be exact.',
+    'For planned rides, bike nights, or events. It appears in Radar, the feed, and the detail page, and stays up until the event end time. The meetup spot is confirmed on the map and can be exact.',
   iso:
-    'Lets nearby riders know you need wrench help or a bike crew. It appears in Radar, the feed, and the detail page. Location stays approximate for privacy.',
+    'Lets nearby riders know you need wrench help or a bike crew. It appears in Radar, the feed, and the detail page, usually for 6 hours. Location stays approximate for privacy.',
   alert:
-    'Shares a temporary road hazard or condition with nearby riders. It appears in Radar, the feed, and the detail page. Use the nearest useful location, not more than you need to share.',
+    'Shares a temporary road hazard or condition with nearby riders. It appears in Radar, the feed, and the detail page, usually for a few hours based on the preset. Use the nearest useful location.',
   bike_down:
-    'For urgent rider or motorcycle-down situations. It appears prominently in Radar, the feed, and the detail page. Call 911 first if anyone may be injured. Ride Radar is not an emergency service.',
+    'For urgent rider or motorcycle-down situations. It appears prominently in Radar, the feed, and the detail page, even outside your immediate radius, usually for 6 hours or until resolved. Call 911 first if anyone may be injured. Ride Radar is not an emergency service.',
 };
 
 const HELPER_STORAGE_PREFIX = 'rr:signal-helper:seen-count:v1:';
@@ -109,52 +109,24 @@ const BroadcastTypeSelector = memo(function BroadcastTypeSelector({ onSelect }) 
     });
     return initial;
   });
+  const previousHelperOpenByTypeRef = useRef(null);
 
   useEffect(() => {
-    const raf =
-      typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'
-        ? window.requestAnimationFrame(() => {
-            let storageFailed = false;
-            GROUPS.forEach((group) => {
-              if (!bumpHelperSeenCount(group.id)) storageFailed = true;
-            });
+    if (typeof window === 'undefined') return;
 
-            if (storageFailed) {
-              setHelperOpenByType((current) => {
-                const next = { ...current };
-                GROUPS.forEach((group) => {
-                  next[group.id] = true;
-                });
-                return next;
-              });
-            }
-          })
-        : window.setTimeout(() => {
-            let storageFailed = false;
-            GROUPS.forEach((group) => {
-              if (!bumpHelperSeenCount(group.id)) storageFailed = true;
-            });
+    const previous = previousHelperOpenByTypeRef.current;
+    GROUPS.forEach((group) => {
+      const isOpen = helperOpenByType[group.id] ?? true;
+      const wasOpen = previous ? previous[group.id] ?? false : false;
+      const shouldCount = previous === null ? isOpen : !wasOpen && isOpen;
 
-            if (storageFailed) {
-              setHelperOpenByType((current) => {
-                const next = { ...current };
-                GROUPS.forEach((group) => {
-                  next[group.id] = true;
-                });
-                return next;
-              });
-            }
-          }, 0);
-
-    return () => {
-      if (typeof window === 'undefined') return;
-      if (typeof window.cancelAnimationFrame === 'function') {
-        window.cancelAnimationFrame(raf);
-      } else {
-        window.clearTimeout(raf);
+      if (shouldCount) {
+        bumpHelperSeenCount(group.id);
       }
-    };
-  }, []);
+    });
+
+    previousHelperOpenByTypeRef.current = helperOpenByType;
+  }, [helperOpenByType]);
 
   const handleToggleHelper = (signalType) => {
     setHelperOpenByType((current) => ({
