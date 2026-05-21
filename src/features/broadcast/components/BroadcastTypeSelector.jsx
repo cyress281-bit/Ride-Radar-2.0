@@ -62,7 +62,10 @@ const GROUP_STYLES = {
  */
 const BroadcastTypeSelector = memo(function BroadcastTypeSelector({ onSelect }) {
   return (
-    <VStack gap={3}>
+    <div className="relative isolate overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_50%),radial-gradient(circle_at_15%_12%,hsl(var(--cyan)/0.06),transparent_28%),radial-gradient(circle_at_85%_8%,hsl(var(--brand-amber)/0.05),transparent_24%)]" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(180deg,transparent_0%,hsl(240_20%_2%/_0.2)_100%)]" />
+      <VStack gap={3.5} className="relative z-10">
       {GROUPS.map((group, index) => {
         const styles = GROUP_STYLES[group.color];
         return (
@@ -73,19 +76,22 @@ const BroadcastTypeSelector = memo(function BroadcastTypeSelector({ onSelect }) 
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, duration: 0.3, ease: 'easeOut' }}
             className={cn(
-              'w-full text-left rounded-2xl border border-l-[3px] bg-surface-elevated/60 backdrop-blur-sm transition-all duration-200 pressable active:scale-[0.98]',
+              'w-full text-left rounded-3xl border border-l-[3px] bg-surface/86 backdrop-blur-2xl transition-all duration-200 pressable active:scale-[0.98] min-h-[92px]',
               styles.border,
               styles.borderLeft,
-              styles.hoverBorder
+              styles.hoverBorder,
+              'shadow-[0_18px_52px_hsl(0_0%_0%/0.28)] hover:shadow-[0_22px_60px_hsl(0_0%_0%/0.34)]'
             )}
           >
-            <HStack gap={3} align="center" className="px-4 py-3.5">
-              <SignalIcon type={group.id} size="md" />
-              <VStack gap={0.5} flex>
-                <Text variant="body" className={cn('font-bold', styles.text)}>
+            <HStack gap={3.5} align="center" className="px-5 py-4.5">
+              <div className={cn('flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border backdrop-blur-sm', styles.iconBorder, styles.iconBg)}>
+                <SignalIcon type={group.id} size="md" />
+              </div>
+              <VStack gap={0.35} flex className="min-w-0">
+                <Text variant="body" className={cn('font-extrabold tracking-[-0.02em]', styles.text)}>
                   {group.label}
                 </Text>
-                <Text variant="caption" color="muted" className="font-medium">
+                <Text variant="caption" color="muted" className="max-w-[20rem] text-pretty font-medium leading-snug">
                   {group.microcopy}
                 </Text>
               </VStack>
@@ -93,7 +99,8 @@ const BroadcastTypeSelector = memo(function BroadcastTypeSelector({ onSelect }) 
           </motion.button>
         );
       })}
-    </VStack>
+      </VStack>
+    </div>
   );
 });
 
