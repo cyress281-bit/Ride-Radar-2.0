@@ -57,6 +57,9 @@ function measureNavDebug(pathname) {
 
   const navRect = navEl.getBoundingClientRect();
   const navStyles = getComputedStyle(navEl);
+  const pillEl = navEl.firstElementChild;
+  const pillRect = pillEl?.getBoundingClientRect?.() ?? null;
+  const pillStyles = pillEl ? getComputedStyle(pillEl) : null;
   return {
     ...snapshot,
     navBottom: navStyles.bottom,
@@ -64,6 +67,11 @@ function measureNavDebug(pathname) {
     navRectTop: navRect.top,
     navRectBottom: navRect.bottom,
     navRectHeight: navRect.height,
+    pillMarginBottom: pillStyles?.marginBottom ?? '(missing)',
+    pillPaddingBottom: pillStyles?.paddingBottom ?? '(missing)',
+    pillRectTop: pillRect?.top ?? '(missing)',
+    pillRectBottom: pillRect?.bottom ?? '(missing)',
+    pillRectHeight: pillRect?.height ?? '(missing)',
   };
 }
 
@@ -263,6 +271,11 @@ const AppLayout = memo(function AppLayout() {
             <span className="text-muted-foreground">BottomNav rect top</span><span>{navDebug.navRectTop}</span>
             <span className="text-muted-foreground">BottomNav rect bottom</span><span>{navDebug.navRectBottom}</span>
             <span className="text-muted-foreground">BottomNav rect height</span><span>{navDebug.navRectHeight}</span>
+            <span className="text-muted-foreground">Inner pill margin-bottom</span><span>{navDebug.pillMarginBottom}</span>
+            <span className="text-muted-foreground">Inner pill padding-bottom</span><span>{navDebug.pillPaddingBottom}</span>
+            <span className="text-muted-foreground">Inner pill rect top</span><span>{navDebug.pillRectTop}</span>
+            <span className="text-muted-foreground">Inner pill rect bottom</span><span>{navDebug.pillRectBottom}</span>
+            <span className="text-muted-foreground">Inner pill rect height</span><span>{navDebug.pillRectHeight}</span>
           </div>
         </div>
       )}
