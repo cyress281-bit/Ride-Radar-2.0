@@ -79,29 +79,33 @@ const SOCIAL_PROOF = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const heroPanelClass = 'relative overflow-hidden rounded-[32px] border border-white/[0.07] bg-white/[0.035] px-6 py-7 shadow-[0_24px_90px_hsl(0_0%_0%/0.34),inset_0_1px_0_hsl(0_0%_100%/0.05)] backdrop-blur-2xl md:px-8 md:py-8';
+  const featureCardClass = 'group shrink-0 w-[260px] overflow-hidden rounded-[24px] border border-white/[0.07] bg-white/[0.035] p-5 shadow-[0_18px_60px_hsl(0_0%_0%/0.28),inset_0_1px_0_hsl(0_0%_100%/0.04)] backdrop-blur-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.96] relative';
 
   return (
     <div className="min-h-dvh bg-background flex flex-col overflow-hidden relative">
       {/* Multi-brand ambient background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,hsl(var(--brand-kawasaki)/0.08),transparent_50%)]" />
-        <div className="absolute top-0 right-0 w-[70vw] h-[70vw] max-w-[600px] max-h-[600px] bg-brand-yamaha/[0.04] rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 left-0 w-[60vw] h-[60vw] max-w-[500px] max-h-[500px] bg-brand-honda/[0.03] rounded-full blur-[100px]" />
-        <div className="absolute top-[40%] left-[20%] w-[40vw] h-[40vw] max-w-[350px] max-h-[350px] bg-brand-ducati/[0.04] rounded-full blur-[80px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,hsl(var(--primary)/0.16),transparent_30%),radial-gradient(circle_at_18%_78%,hsl(var(--brand-yamaha)/0.06),transparent_24%),radial-gradient(circle_at_82%_12%,hsl(var(--brand-ducati)/0.05),transparent_22%),linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--background)/0.98)_58%,hsl(var(--background))_100%)]" />
+        <div className="absolute inset-0 radar-grid-animated opacity-[0.08]" />
+        <div className="absolute left-1/2 top-[18%] h-[480px] w-[480px] -translate-x-1/2 rounded-full border border-primary/[0.07] opacity-60 blur-[1px]" />
+        <div className="absolute left-1/2 top-[24%] h-[280px] w-[280px] -translate-x-1/2 rounded-full border border-primary/[0.10] opacity-35" />
+        <div className="absolute left-1/2 top-[24%] h-[280px] w-[2px] -translate-x-1/2 bg-[linear-gradient(180deg,transparent,hsl(var(--primary)/0.28),transparent)] opacity-45" />
+        <div className="absolute bottom-[-6%] right-[-4%] h-[420px] w-[420px] rounded-full bg-brand-ducati/[0.04] blur-[120px]" />
       </div>
 
       {/* Header */}
       <header className="relative z-10 px-6 py-5 flex items-center justify-between max-w-5xl mx-auto w-full">
-        <HStack gap={2.5} align="center">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.035] px-3 py-2 shadow-[0_12px_32px_hsl(0_0%_0%/0.22)] backdrop-blur-xl">
           <RRLogo size="md" />
           <Text as="span" variant="h3" className="tracking-tight">
             Ride<span className="text-brand-kawasaki">Radar</span>
           </Text>
-        </HStack>
+        </div>
         <Button
           variant="ghost"
           onClick={() => navigate('/login')}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium active:scale-[0.96] rounded-full"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium active:scale-[0.96] rounded-full border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl"
         >
           Sign in
         </Button>
@@ -109,8 +113,10 @@ export default function LandingPage() {
 
       {/* Hero */}
       <main className="relative z-10 flex-1 max-w-5xl mx-auto w-full px-6 py-10 md:py-16 flex flex-col justify-center">
-        <VStack gap={8} className="max-w-2xl">
-          <VStack gap={6}>
+        <VStack gap={8} className="max-w-3xl">
+          <div className={heroPanelClass}>
+            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_0%_0%,hsl(var(--primary)/0.14),transparent_34%),radial-gradient(circle_at_100%_0%,hsl(var(--brand-yamaha)/0.07),transparent_26%),linear-gradient(135deg,transparent,transparent_52%,hsl(var(--primary)/0.05))]" />
+            <VStack gap={6} className="relative z-10">
             {/* Multi-brand rider pill */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface border border-white/[0.06] w-fit">
               <div className="flex -space-x-1">
@@ -121,18 +127,19 @@ export default function LandingPage() {
               <span className="text-xs text-muted-foreground font-medium">For riders of every brand</span>
             </div>
 
-            <RRLogo size="fill" className="mb-2 max-h-[110px] w-full max-w-[320px]" />
+            <RRLogo size="fill" className="mb-2 max-h-[110px] w-full max-w-[320px] drop-shadow-[0_0_28px_hsl(var(--primary)/0.16)]" />
 
             <Text as="h1" variant="h1" className="text-5xl md:text-7xl leading-[0.94]">
-              <span className="text-foreground">Signal out.</span>
+              <span className="text-foreground">Find riders.</span>
               <br />
-              <span className="text-brand-kawasaki">Find your </span>
-              <span className="text-brand-yamaha">ride.</span>
+              <span className="text-brand-kawasaki">Send signals.</span>
+              <br />
+              <span className="text-brand-yamaha">Stay connected.</span>
             </Text>
 
             <Text variant="body" color="muted" className="text-lg md:text-xl leading-relaxed max-w-xl font-medium">
-              A real-time radar for motorcyclists. Post a solo ride, find a mechanic,
-              rally a crew, or drop an alert — all within your orbit.
+              A real-time radar for motorcyclists. Broadcast a ride, find help, rally a crew,
+              or drop an alert - all within your orbit.
             </Text>
 
             <VStack gap={3} className="items-stretch sm:flex-row sm:items-center">
@@ -154,11 +161,12 @@ export default function LandingPage() {
               </button>
             </VStack>
           </VStack>
+          </div>
 
           {/* Social proof */}
-          <HStack gap={6} className="flex-wrap">
+          <HStack gap={3} className="flex-wrap">
             {SOCIAL_PROOF.map((item) => (
-              <VStack key={item.label} gap={0.5}>
+              <VStack key={item.label} gap={0.5} className="min-w-[96px] rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 shadow-[0_14px_36px_hsl(0_0%_0%/0.22)] backdrop-blur-xl">
                 <Text variant="h2" className="text-brand-ducati">{item.value}</Text>
                 <Text variant="micro" color="muted">{item.label}</Text>
               </VStack>
@@ -168,7 +176,18 @@ export default function LandingPage() {
 
         {/* Feature highlights */}
         <div className="mt-14 -mx-6 px-6">
-          <Text variant="micro" color="muted" className="mb-4 uppercase tracking-widest">Signal types</Text>
+          <HStack justify="between" align="end" className="mb-4">
+            <div>
+              <Text variant="micro" color="muted" className="uppercase tracking-widest">Signal types</Text>
+              <Text variant="bodySm" color="muted" className="mt-1 max-w-lg">
+                The core tools riders use to move together, get help, and stay aware.
+              </Text>
+            </div>
+            <div className="hidden md:flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-xs text-muted-foreground backdrop-blur-xl">
+              <span className="h-2 w-2 rounded-full bg-primary animate-pulse-green" />
+              Live preview
+            </div>
+          </HStack>
           <div className="flex gap-3 overflow-x-auto scroll-hide pb-2 -mx-6 px-6">
             {FEATURES.map((f) => {
               const Icon = f.icon;
@@ -176,7 +195,7 @@ export default function LandingPage() {
                 <div
                   key={f.label}
                   className={cn(
-                    'shrink-0 w-[260px] p-6 rounded-[20px] border surface-card transition-all duration-200 hover:scale-[1.02] relative overflow-hidden group active:scale-[0.96]',
+                    featureCardClass,
                     f.border,
                     f.glow
                   )}
@@ -189,12 +208,12 @@ export default function LandingPage() {
                   />
                   <div
                     className={cn(
-                      'absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-150 opacity-20',
+                      'absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 transition-transform duration-500 group-hover:scale-150 opacity-16',
                       f.bg
                     )}
                   />
                   <div className={cn('mb-4 relative z-10 flex items-center gap-2', f.color)}>
-                    <div className={cn('flex items-center justify-center w-9 h-9 rounded-full', f.bg)}>
+                    <div className={cn('flex items-center justify-center w-9 h-9 rounded-full border border-white/[0.06] bg-black/20', f.border)}>
                       <Icon className="w-4 h-4" strokeWidth={2.5} />
                     </div>
                   </div>

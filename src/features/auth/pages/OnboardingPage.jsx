@@ -369,15 +369,19 @@ export default function OnboardingPage() {
   const progressPercent = Math.round((completedSteps / steps.length) * 100);
 
   const modelSuggestions = getModelSuggestions(watchBikeMake);
+  const shellClass = 'relative z-10 w-full max-w-md rr-glass rounded-[1.5rem] px-6 py-8 border border-white/[0.06] bg-white/[0.035] shadow-[0_24px_90px_hsl(0_0%_0%/0.34),inset_0_1px_0_hsl(0_0%_100%/0.05)] backdrop-blur-2xl animate-fade-up';
+  const sectionClass = 'rr-glass rounded-[22px] p-4 border border-white/[0.06] bg-white/[0.035] backdrop-blur-xl shadow-[0_14px_40px_hsl(0_0%_0%/0.22)]';
+  const inputClass = 'h-12 bg-background/55 border-white/[0.08] rounded-2xl focus:ring-2 focus:ring-primary/35 focus:border-primary transition-all';
 
   return (
     <div className="min-h-dvh bg-background relative overflow-hidden flex flex-col items-center justify-center px-5 py-8 pb-safe">
-      <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-[0.08]" />
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.10),transparent_30%),linear-gradient(180deg,transparent,hsl(var(--background) / 0.58))]" />
+      <div className="absolute inset-0 radar-grid-animated pointer-events-none opacity-[0.10]" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.14),transparent_30%),radial-gradient(circle_at_50%_100%,hsl(var(--brand-radar)/0.06),transparent_32%),linear-gradient(180deg,transparent,hsl(var(--background) / 0.58))]" />
       <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-brand-radar/[0.04] rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-primary/[0.05] rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-primary/[0.06] rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute left-1/2 top-[18%] h-[380px] w-[380px] -translate-x-1/2 rounded-full border border-primary/[0.07] opacity-35 blur-[1px] pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-md rr-glass rounded-[1.25rem] px-6 py-8 border border-primary/10 animate-fade-up">
+      <div className={shellClass}>
         {/* Logo & Header */}
         <HStack gap={2.5} align="center" className="mb-6">
           <span className="rr-avatar-ring">
@@ -420,8 +424,8 @@ export default function OnboardingPage() {
                 className={cn(
                   'px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all duration-300',
                   step.done
-                    ? 'bg-primary/10 border-primary/30 text-primary'
-                    : 'bg-muted/30 border-border/40 text-muted-foreground'
+                    ? 'bg-primary/10 border-primary/30 text-primary shadow-[0_0_14px_hsl(var(--primary)/0.10)]'
+                    : 'bg-white/[0.03] border-white/[0.08] text-muted-foreground'
                 )}
               >
                 <step.icon className="w-3 h-3" />
@@ -435,7 +439,7 @@ export default function OnboardingPage() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Avatar */}
-            <div className="rr-glass rounded-xl p-4 border border-primary/10">
+            <div className={sectionClass}>
               <Label className="mb-3 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Profile picture
               </Label>
@@ -453,7 +457,7 @@ export default function OnboardingPage() {
                     </div>
                   )}
                 </span>
-                <label className="flex min-w-0 flex-1 cursor-pointer justify-center rounded-full border border-primary/25 bg-primary/10 px-4 py-2.5 text-center text-sm font-bold text-primary transition-all duration-150 hover:bg-primary/15 hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/80 active:scale-[0.96]">
+                <label className="flex min-w-0 flex-1 cursor-pointer justify-center rounded-full border border-primary/25 bg-primary/10 px-4 py-2.5 text-center text-sm font-bold text-primary transition-all duration-150 hover:bg-primary/15 hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/80 active:scale-[0.96] backdrop-blur-xl shadow-[0_10px_28px_hsl(0_0%_0%/0.18)]">
                   <input
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -477,7 +481,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Display Name */}
-            <div className="rr-glass rounded-xl p-4 border border-primary/10">
+            <div className={sectionClass}>
               <FormField
                 control={form.control}
                 name="display_name"
@@ -491,7 +495,7 @@ export default function OnboardingPage() {
                         placeholder="How riders see you"
                         autoComplete="nickname"
                         aria-required="true"
-                        className="h-12 bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className={inputClass}
                         {...field}
                       />
                     </FormControl>
@@ -507,7 +511,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Username */}
-            <div className="rr-glass rounded-xl p-4 border border-primary/10">
+            <div className={sectionClass}>
               <FormField
                 control={form.control}
                 name="username"
@@ -520,7 +524,7 @@ export default function OnboardingPage() {
                       <Input
                         placeholder="rider_handle"
                         autoComplete="off"
-                        className="h-12 bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className={inputClass}
                         {...field}
                         onBlur={async () => {
                           await checkUsernameUnique(field.value);
@@ -543,7 +547,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bio */}
-            <div className="rr-glass rounded-xl p-4 border border-primary/10">
+            <div className={sectionClass}>
               <FormField
                 control={form.control}
                 name="bio"
@@ -557,7 +561,7 @@ export default function OnboardingPage() {
                         placeholder="Your riding style, local area, and what kind of rides you like."
                         maxLength={220}
                         rows={3}
-                        className="bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all resize-none"
+                        className={cn(inputClass, 'resize-none')}
                         {...field}
                       />
                     </FormControl>
@@ -571,7 +575,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Year & Make */}
-            <div className="rr-glass rounded-xl p-4 grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2 border border-primary/10">
+            <div className={cn(sectionClass, 'grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2')}>
               <FormField
                 control={form.control}
                 name="bike_year"
@@ -587,7 +591,7 @@ export default function OnboardingPage() {
                         min={1900}
                         max={currentYear + 1}
                         placeholder="2024"
-                        className="h-12 bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className={inputClass}
                         {...field}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -611,7 +615,7 @@ export default function OnboardingPage() {
                       <Input
                         placeholder="Yamaha"
                         list="onboarding-bike-make-options"
-                        className="h-12 bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className={inputClass}
                         {...field}
                       />
                     </FormControl>
@@ -627,7 +631,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Model */}
-            <div className="rr-glass rounded-xl p-4 border border-primary/10">
+            <div className={sectionClass}>
               <FormField
                 control={form.control}
                 name="bike_model"
@@ -640,7 +644,7 @@ export default function OnboardingPage() {
                       <Input
                         placeholder="MT-09"
                         list="onboarding-bike-model-options"
-                        className="h-12 bg-background/60 border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                        className={inputClass}
                         {...field}
                       />
                     </FormControl>
@@ -661,7 +665,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Bike Photo */}
-            <div className="rr-glass rounded-xl p-4 border border-primary/10">
+            <div className={sectionClass}>
               <Label className="mb-3 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Bike photo
               </Label>
@@ -679,7 +683,7 @@ export default function OnboardingPage() {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <label className="flex h-11 cursor-pointer items-center justify-center rounded-full border border-border bg-background text-xs font-bold text-muted-foreground transition hover:border-primary/50 hover:text-primary active:scale-[0.96]">
+                    <label className="flex h-11 cursor-pointer items-center justify-center rounded-full border border-border bg-background/55 text-xs font-bold text-muted-foreground transition hover:border-primary/50 hover:text-primary active:scale-[0.96] backdrop-blur-xl">
                       <input
                         type="file"
                         accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -700,7 +704,7 @@ export default function OnboardingPage() {
                   </div>
                 </VStack>
               ) : (
-                <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-5 text-center transition hover:border-primary/50 hover:bg-primary/10 active:scale-[0.96]">
+                <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-white/[0.03] px-4 py-5 text-center transition hover:border-primary/50 hover:bg-primary/10 active:scale-[0.96] backdrop-blur-xl">
                   <input
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -708,7 +712,7 @@ export default function OnboardingPage() {
                     className="sr-only"
                     aria-label="Upload bike photo"
                   />
-                  <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
+                  <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary shadow-[0_0_18px_hsl(var(--primary)/0.12)]">
                     {bikeUploading ? (
                       <ImagePlus className="h-4 w-4 animate-pulse" />
                     ) : (
@@ -733,9 +737,9 @@ export default function OnboardingPage() {
 
             {/* Errors */}
             {(uploadError || saveProfile.isError) && (
-              <div
+            <div
                 role="alert"
-                className="flex items-start gap-2 rounded-xl border border-brand-emergency/25 bg-brand-emergency/5 p-3 text-sm text-brand-emergency"
+                className="flex items-start gap-2 rounded-xl border border-brand-emergency/25 bg-brand-emergency/5 p-3 text-sm text-brand-emergency backdrop-blur-xl shadow-[0_12px_30px_hsl(0_0%_0%/0.18)]"
               >
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 {uploadError || saveProfile.error?.message || 'Failed to create profile'}
@@ -746,7 +750,7 @@ export default function OnboardingPage() {
             <Button
               type="submit"
               disabled={saveProfile.isPending}
-              className="h-12 w-full rounded-full bg-primary text-primary-foreground text-base font-semibold hover:bg-primary/90 active:scale-[0.96] transition-all duration-150 animate-glow-pulse"
+              className="h-12 w-full rounded-full bg-primary text-primary-foreground text-base font-semibold hover:bg-primary/90 active:scale-[0.96] transition-all duration-150 animate-glow-pulse shadow-[0_18px_42px_hsl(var(--primary)/0.22),0_0_18px_hsl(var(--primary)/0.12)]"
             >
               {saveProfile.isPending ? 'Creating profile...' : 'Join the network'}
             </Button>
@@ -756,7 +760,7 @@ export default function OnboardingPage() {
               variant="ghost"
               onClick={handleSkip}
               disabled={saveProfile.isPending || skipLoading}
-              className="h-11 w-full rounded-full text-muted-foreground hover:text-foreground active:scale-[0.96] transition-all duration-150"
+              className="h-11 w-full rounded-full border border-white/[0.06] bg-white/[0.03] text-muted-foreground hover:text-foreground active:scale-[0.96] transition-all duration-150 backdrop-blur-xl"
             >
               {skipLoading ? 'Saving...' : 'Finish details later'}
             </Button>
