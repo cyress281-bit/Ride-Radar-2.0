@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
+import { createPortal } from 'react-dom';
+import * as L from 'leaflet';
+import 'leaflet.markercluster';
 import {
   AlertTriangle,
   CalendarClock,
@@ -14,7 +17,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
-import { getMarkerIcon, getRiderMarkerIcon, getSelfMarkerIcon, getSelfMarkerIconLive } from './MapMarker';
+import { getBroadcastClusterIcon, getMarkerIcon, getRiderMarkerIcon, getSelfMarkerIcon, getSelfMarkerIconLive } from './MapMarker';
 import MapPopup from './MapPopup';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils.js';
@@ -134,6 +137,76 @@ const InvalidateMapSize = memo(function InvalidateMapSize({ resizeKey }) {
   }, [map, resizeKey]);
 
   return null;
+});
+
+const BroadcastClusterLayer = memo(function BroadcastClusterLayer({ items, userLat, userLng }) {
+  const map = useMap();
+  const [popupTargets, setPopupTargets] = useState([]);
+
+  useEffect(() => {
+    if (!map || !items.length) {
+      setPopupTargets([]);
+      return undefined;
+    }
+
+    const clusterGroup = L.markerClusterGroup({
+      chunkedLoading: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+      spiderfyOnMaxZoom: false,
+      spiderfyDistanceMultiplier: 1,
+      disableClusteringAtZoom: 15,
+      maxClusterRadius: 60,
+      iconCreateFunction: getBroadcastClusterIcon,
+    });
+
+    const popupTargets = items.map((item) => {
+      const popupEl = document.createElement('div');
+      const marker = L.marker([item.lat, item.lng], {
+        icon: getMarkerIcon(item.markerType || item.type),
+        signalType: item.type,
+        alertType: item.alert_type || null,
+        isBikeDown: item.type === 'alert' && item.alert_type === 'bike_down',
+      });
+
+      marker.bindPopup(popupEl, {
+        closeButton: false,
+        autoPan: true,
+        autoPanPadding: [20, 20],
+        className: 'rr-map-popup',
+      });
+
+      marker.on('popupopen', () => {
+        popupEl.dataset.open = 'true';
+      });
+      marker.on('popupclose', () => {
+        popupEl.dataset.open = 'false';
+      });
+
+      popupEl.dataset.open = 'false';
+
+      clusterGroup.addLayer(marker);
+
+      return { key: item.id, item, popupEl };
+    });
+
+    map.addLayer(clusterGroup);
+    setPopupTargets(popupTargets);
+
+    return () => {
+      clusterGroup.clearLayers();
+      map.removeLayer(clusterGroup);
+      setPopupTargets([]);
+    };
+  }, [items, map, userLat, userLng]);
+
+  return popupTargets.map(({ key, item, popupEl }) =>
+    createPortal(
+      <MapPopup item={item} userLat={userLat} userLng={userLng} />,
+      popupEl,
+      key
+    )
+  );
 });
 
 const RadarAttributionTuning = memo(function RadarAttributionTuning() {
@@ -547,17 +620,34 @@ function LiveMap({
                 </Popup>
               </Marker>
             )}
-            {items.map((item) => (
-              <Marker
-                key={item.id}
-                position={[item.lat, item.lng]}
-                icon={item.type === 'rider_presence' ? getRiderMarkerIcon(item) : getMarkerIcon(item.markerType || item.type)}
-              >
-                <Popup>
-                  <MapPopup item={item} userLat={userLat} userLng={userLng} />
-                </Popup>
-              </Marker>
-            ))}
+            {variant === 'radar' ? (
+              <>
+                <BroadcastClusterLayer items={broadcastItems} userLat={userLat} userLng={userLng} />
+                {livePresenceItems.map((item) => (
+                  <Marker
+                    key={item.id}
+                    position={[item.lat, item.lng]}
+                    icon={getRiderMarkerIcon(item)}
+                  >
+                    <Popup>
+                      <MapPopup item={item} userLat={userLat} userLng={userLng} />
+                    </Popup>
+                  </Marker>
+                ))}
+              </>
+            ) : (
+              items.map((item) => (
+                <Marker
+                  key={item.id}
+                  position={[item.lat, item.lng]}
+                  icon={item.type === 'rider_presence' ? getRiderMarkerIcon(item) : getMarkerIcon(item.markerType || item.type)}
+                >
+                  <Popup>
+                    <MapPopup item={item} userLat={userLat} userLng={userLng} />
+                  </Popup>
+                </Marker>
+              ))
+            )}
           </MapContainer>
         </div>
         {variant !== 'radar' && <SignalList items={items} userLat={userLat} userLng={userLng} variant={variant} />}

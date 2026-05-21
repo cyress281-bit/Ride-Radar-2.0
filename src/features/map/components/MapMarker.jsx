@@ -16,6 +16,10 @@ const markerClassMap = {
   self: 'rr-map-marker-self',
 };
 
+function isBikeDownItem(item) {
+  return item?.signalType === 'alert' && item?.alertType === 'bike_down';
+}
+
 /**
  * Get a cached divIcon for broadcast/presence types.
  *
@@ -99,6 +103,48 @@ export function getSelfMarkerIconLive() {
     });
   }
   return selfMarkerIconLive;
+}
+
+/**
+ * Get a cached divIcon for broadcast clusters.
+ *
+ * Clusters are broadcast-only in Radar. Styling is driven by child marker
+ * options so Bike Down clusters can remain visually dominant.
+ *
+ * @param {import('leaflet').MarkerCluster} cluster
+ * @returns {import('leaflet').DivIcon}
+ */
+export function getBroadcastClusterIcon(cluster) {
+  const childMarkers = cluster.getAllChildMarkers();
+  const count = cluster.getChildCount();
+  const hasBikeDown = childMarkers.some((marker) => marker?.options?.isBikeDown || isBikeDownItem(marker?.options));
+  const hasWarningOrHelp = childMarkers.some((marker) => {
+    const signalType = marker?.options?.signalType;
+    const alertType = marker?.options?.alertType;
+    return signalType === 'alert' || signalType === 'iso' || alertType === 'bike_down';
+  });
+
+  const toneClass = hasBikeDown
+    ? 'rr-map-cluster-bike-down'
+    : hasWarningOrHelp
+      ? 'rr-map-cluster-warning'
+      : 'rr-map-cluster-normal';
+  const hint = hasBikeDown ? '!' : hasWarningOrHelp ? '⚠' : '';
+
+  const size = count >= 100 ? 56 : count >= 10 ? 50 : 44;
+  const iconAnchor = Math.round(size / 2);
+
+  return divIcon({
+    className: 'rr-map-cluster-wrapper',
+    html: `
+      <span class="rr-map-cluster ${toneClass}" aria-hidden="true" data-count="${count}">
+        <span class="rr-map-cluster-count">${count}</span>
+        ${hint ? `<span class="rr-map-cluster-hint">${hint}</span>` : ''}
+      </span>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [iconAnchor, iconAnchor],
+  });
 }
 
 /**
