@@ -14,6 +14,19 @@ import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils.js';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 
+function isOfficialToggleDebugEnabled() {
+  try {
+    return window.localStorage.getItem('rr_debug_official_toggle') === '1';
+  } catch {
+    return false;
+  }
+}
+
+function logOfficialToggleDebug(...args) {
+  if (!isOfficialToggleDebugEnabled()) return;
+  console.debug('[official-toggle]', ...args);
+}
+
 function formatEventDate(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleString(undefined, {
@@ -274,12 +287,30 @@ function AdminEventsContent() {
   });
 
   const toggleOfficial = useMutation({
-    mutationFn: async ({ id, isOfficial }) => {
+    mutationFn: async ({ id, isOfficial, event }) => {
+      logOfficialToggleDebug('click', {
+        id,
+        isOfficial,
+        row: event
+          ? {
+              id: event.id,
+              type: event.type,
+              status: event.status,
+              event_date: event.event_date,
+              expires_at: event.expires_at,
+              is_official: event.is_official,
+            }
+          : null,
+      });
       const { data, error } = await toggleOfficialEvent(id, isOfficial);
       if (error) throw error;
       return data;
     },
     onSuccess: (_data, variables) => {
+      logOfficialToggleDebug('success', {
+        id: variables.id,
+        isOfficial: variables.isOfficial,
+      });
       qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] });
       qc.invalidateQueries({ queryKey: broadcastKeys.all });
       toast({
@@ -287,7 +318,21 @@ function AdminEventsContent() {
         description: 'Admin events refreshed.',
       });
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      logOfficialToggleDebug('error', {
+        id: variables?.id,
+        isOfficial: variables?.isOfficial,
+        error: error
+          ? {
+              message: error.message,
+              code: error.code,
+              status: error.status,
+              statusCode: error.statusCode,
+              details: error.details,
+              hint: error.hint,
+            }
+          : null,
+      });
       toast({
         title: 'Could not update official status',
         description: error?.message || 'Please try again.',
@@ -361,7 +406,7 @@ function AdminEventsContent() {
                 }}
                 onToggle={(id) => setExpandedEventId((current) => (current === id ? null : id))}
                 onToggleOfficial={(event) =>
-                  toggleOfficial.mutate({ id: event.id, isOfficial: !event.is_official })
+                  toggleOfficial.mutate({ id: event.id, isOfficial: !event.is_official, event })
                 }
               />
             ))}
@@ -390,7 +435,7 @@ function AdminEventsContent() {
                 }}
                 onToggle={(id) => setExpandedEventId((current) => (current === id ? null : id))}
                 onToggleOfficial={(event) =>
-                  toggleOfficial.mutate({ id: event.id, isOfficial: !event.is_official })
+                  toggleOfficial.mutate({ id: event.id, isOfficial: !event.is_official, event })
                 }
               />
             ))}

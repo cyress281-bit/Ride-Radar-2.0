@@ -2,6 +2,23 @@ import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
 import { geocodeAddress, approximateLocation } from '@/lib/geocoding.js';
 
+function isOfficialToggleDebugEnabled() {
+  try {
+    return window.localStorage.getItem('rr_debug_official_toggle') === '1';
+  } catch {
+    return false;
+  }
+}
+
+function logOfficialToggleDebug(...args) {
+  if (!isOfficialToggleDebugEnabled()) return;
+  console.debug('[official-toggle]', ...args);
+}
+
+function buildOfficialToggleTraceId() {
+  return `ot-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 /**
  * @typedef {Object} ApiResult
  * @property {Array|object|null} data
@@ -686,17 +703,54 @@ export async function toggleOfficialEvent(id, isOfficial) {
     return { data: null, error: new Error('Event id is required.') };
   }
 
+  const traceId = buildOfficialToggleTraceId();
+  logOfficialToggleDebug(traceId, 'start', { id, isOfficial: Boolean(isOfficial) });
+
   const { data: existing, error: fetchError } = await supabase
     .from('broadcasts')
-    .select('id, type, is_official')
+    .select('id, type, status, event_date, expires_at, is_official')
     .eq('id', id)
     .maybeSingle();
+
+  logOfficialToggleDebug(traceId, 'fetched', {
+    id,
+    row: existing
+      ? {
+          id: existing.id,
+          type: existing.type,
+          status: existing.status,
+          event_date: existing.event_date,
+          expires_at: existing.expires_at,
+          is_official: existing.is_official,
+        }
+      : null,
+    error: fetchError
+      ? {
+          message: fetchError.message,
+          code: fetchError.code,
+          status: fetchError.status,
+          statusCode: fetchError.statusCode,
+          details: fetchError.details,
+          hint: fetchError.hint,
+        }
+      : null,
+  });
 
   if (fetchError) return { data: null, error: fetchError };
   if (!existing) return { data: null, error: new Error('Event not found.') };
   if (existing.type !== 'event') {
     return { data: null, error: new Error('Only event broadcasts can be marked official.') };
   }
+
+  logOfficialToggleDebug(traceId, 'before-update', {
+    id,
+    type: existing.type,
+    status: existing.status,
+    event_date: existing.event_date,
+    expires_at: existing.expires_at,
+    is_official: existing.is_official,
+    next_is_official: Boolean(isOfficial),
+  });
 
   const { data, error } = await supabase
     .from('broadcasts')
@@ -705,7 +759,42 @@ export async function toggleOfficialEvent(id, isOfficial) {
     .select()
     .maybeSingle();
 
+  logOfficialToggleDebug(traceId, 'update-response', {
+    id,
+    data: data
+      ? {
+          id: data.id,
+          type: data.type,
+          status: data.status,
+          event_date: data.event_date,
+          expires_at: data.expires_at,
+          is_official: data.is_official,
+        }
+      : null,
+    error: error
+      ? {
+          message: error.message,
+          code: error.code,
+          status: error.status,
+          statusCode: error.statusCode,
+          details: error.details,
+          hint: error.hint,
+        }
+      : null,
+  });
+
   if (error) {
+    logOfficialToggleDebug(traceId, 'raw-supabase-error', {
+      id,
+      error: {
+        message: error.message,
+        code: error.code,
+        status: error.status,
+        statusCode: error.statusCode,
+        details: error.details,
+        hint: error.hint,
+      },
+    });
     return { data: null, error: new Error(error.message || 'Failed to update official status.') };
   }
 
