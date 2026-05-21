@@ -36,7 +36,7 @@ const FAQS = [
   },
   {
     q: 'Official event review',
-    a: 'To request an Official badge review for an event, contact support with the event title, date/time, location, organizer name, website or social link, and why it should be reviewed.',
+    a: 'Open the event detail page and tap Request official review. Official badges are reviewed by Ride Radar admins and are not user-assigned. If you need help, contact support.',
     icon: Shield,
   },
 ];

@@ -19,29 +19,14 @@ import SafetyActions from '@/components/safety/SafetyActions';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { toast } from '@/components/ui/use-toast';
 import { getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
+import {
+  cancelOfficialEventRequest,
+  createOfficialEventRequest,
+  getLatestOfficialEventRequest,
+} from '@/features/broadcast/api/official-event-requests-api.js';
 import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
 import { broadcastKeys, useRemoveBroadcast, useUpdateBroadcast, useResolveBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
 import BroadcastComments from '@/features/broadcast/components/BroadcastComments.jsx';
-
-const OFFICIAL_REVIEW_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || 'support@rideradar.app';
-
-function buildOfficialReviewMailto(broadcast) {
-  const subject = 'Official Event Review Request';
-  const body = [
-    'Please review this event for an Official badge:',
-    '',
-    `Event title: ${broadcast?.title || ''}`,
-    `Event date/time: ${broadcast?.event_date ? new Date(broadcast.event_date).toLocaleString() : ''}`,
-    `Event location: ${broadcast?.location_name || ''}`,
-    'Organizer or business/club name:',
-    'Website or social link:',
-    'Contact email/phone:',
-    'Why should this event be reviewed?',
-    '',
-  ].join('\n');
-
-  return `mailto:${OFFICIAL_REVIEW_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
 
 function RemovedSignalScreen({ onBack, onHome }) {
   return (
@@ -94,6 +79,340 @@ function ResolvedSignalScreen({ onBack, onHome, resolvedNote }) {
   );
 }
 
+function formatOfficialEventRequestError(error) {
+  const message = String(error?.message || '').toLowerCase();
+
+  if (error?.code === '23505' || message.includes('duplicate key')) {
+    return 'A pending review request already exists for this event.';
+  }
+
+  if (error?.code === '42501' || message.includes('row-level security') || message.includes('permission denied')) {
+    return 'You do not have permission to submit this request.';
+  }
+
+  if (error?.code === '23503') {
+    return 'This event could not be found.';
+  }
+
+  if (error?.code === '23514') {
+    return 'Please check the form fields and try again.';
+  }
+
+  return error?.message || 'Something went wrong. Please try again.';
+}
+
+const OFFICIAL_REQUEST_QUERY_KEY = (broadcastId, requesterId) => ['official-event-request', broadcastId, requesterId];
+
+const OfficialEventReviewPanel = memo(function OfficialEventReviewPanel({ broadcast, user, profile, isAuthor, isOfficialEvent }) {
+  const queryClient = useQueryClient();
+  const [requestOpen, setRequestOpen] = useState(false);
+  const [organizerName, setOrganizerName] = useState('');
+  const [websiteOrSocial, setWebsiteOrSocial] = useState('');
+  const [contactInfo, setContactInfo] = useState('');
+  const [reason, setReason] = useState('');
+  const [requestError, setRequestError] = useState('');
+
+  const requestQueryKey = OFFICIAL_REQUEST_QUERY_KEY(broadcast?.id, user?.id);
+  const requestQuery = useQuery({
+    queryKey: requestQueryKey,
+    enabled: !!broadcast?.id && !!user?.id && isAuthor && broadcast?.type === 'event' && !isOfficialEvent,
+    queryFn: async () => {
+      const { data, error } = await getLatestOfficialEventRequest(broadcast.id, user.id);
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+
+  const latestRequest = requestQuery.data || null;
+  const isPending = latestRequest?.status === 'pending';
+  const isApproved = latestRequest?.status === 'approved';
+  const isDeclined = latestRequest?.status === 'declined';
+  const isCancelled = latestRequest?.status === 'cancelled';
+
+  useEffect(() => {
+    setRequestOpen(false);
+    setRequestError('');
+  }, [broadcast?.id]);
+
+  const seedForm = useCallback(() => {
+    const organizerSeed =
+      latestRequest?.organizer_name ||
+      profile?.display_name ||
+      user?.user_metadata?.full_name ||
+      '';
+    const contactSeed = latestRequest?.contact_info || user?.email || '';
+    const websiteSeed = latestRequest?.website_or_social || '';
+    const reasonSeed = latestRequest?.reason || '';
+
+    setOrganizerName(organizerSeed);
+    setWebsiteOrSocial(websiteSeed);
+    setContactInfo(contactSeed);
+    setReason(reasonSeed);
+  }, [latestRequest, profile?.display_name, user?.user_metadata?.full_name, user?.email]);
+
+  const openRequestForm = useCallback(() => {
+    setRequestError('');
+    seedForm();
+    setRequestOpen(true);
+  }, [seedForm]);
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await createOfficialEventRequest({
+        broadcastId: broadcast.id,
+        requesterId: user.id,
+        organizerName,
+        websiteOrSocial,
+        contactInfo,
+        reason,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      setRequestOpen(false);
+      setRequestError('');
+      toast({
+        title: 'Review requested',
+        description: 'Ride Radar admins will review your event.',
+      });
+    },
+    onError: (error) => {
+      setRequestError(formatOfficialEventRequestError(error));
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: requestQueryKey });
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: async () => {
+      if (!latestRequest?.id) throw new Error('No pending request found.');
+      const { data, error } = await cancelOfficialEventRequest(latestRequest.id);
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      setRequestOpen(false);
+      setRequestError('');
+      toast({
+        title: 'Review request cancelled',
+        description: 'Your official review request was cancelled.',
+      });
+    },
+    onError: (error) => {
+      setRequestError(formatOfficialEventRequestError(error));
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: requestQueryKey });
+    },
+  });
+
+  if (!broadcast || !user || !isAuthor || broadcast.type !== 'event' || isOfficialEvent) {
+    return null;
+  }
+
+  const handleSubmit = () => {
+    const trimmedOrganizer = organizerName.trim();
+    const trimmedContact = contactInfo.trim();
+    const trimmedReason = reason.trim();
+
+    if (!trimmedOrganizer || !trimmedContact || !trimmedReason) {
+      setRequestError('Please fill out the required fields.');
+      return;
+    }
+
+    setRequestError('');
+    createMutation.mutate();
+  };
+
+  const hasStatus = isPending || isApproved || isDeclined || isCancelled;
+
+  return (
+    <div className="mb-5 rounded-[20px] border border-event/20 bg-event/5 px-4 py-4">
+      <div className="mb-3 flex items-start gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-event/20 bg-event/10">
+          <ShieldCheck className="h-5 w-5 text-event" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <Text variant="micro" className="text-event font-bold uppercase tracking-wider">
+            Official event review
+          </Text>
+          <Text variant="bodySm" className="mt-1 leading-relaxed text-foreground/80">
+            Official badges are reviewed by Ride Radar admins and are not user-assigned.
+          </Text>
+        </div>
+      </div>
+
+      {requestQuery.error && !latestRequest && !requestOpen && (
+        <p className="mb-3 text-xs text-muted-foreground">
+          We couldn't load your previous request. You can still submit a new one.
+        </p>
+      )}
+
+      {isPending ? (
+        <div className="rounded-[18px] border border-event/20 bg-background/60 px-4 py-3">
+          <Text variant="bodySm" className="font-semibold text-foreground/90">
+            Official review requested
+          </Text>
+          <Text variant="caption" color="muted" className="mt-1 block leading-relaxed">
+            Admins will review your event. We’ll keep the badge off until approval.
+          </Text>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => cancelMutation.mutate()}
+              disabled={cancelMutation.isPending}
+              className="rounded-full border-destructive/30 text-destructive hover:bg-destructive/10"
+            >
+              {cancelMutation.isPending ? 'Cancelling...' : 'Cancel request'}
+            </Button>
+          </div>
+        </div>
+      ) : isApproved ? (
+        <div className="rounded-[18px] border border-event/20 bg-background/60 px-4 py-3">
+          <Text variant="bodySm" className="font-semibold text-foreground/90">
+            Official review approved
+          </Text>
+          <Text variant="caption" color="muted" className="mt-1 block leading-relaxed">
+            This event should now show the Official badge.
+          </Text>
+        </div>
+      ) : requestOpen ? (
+        <div className="rounded-[18px] border border-event/20 bg-background/60 px-4 py-4">
+          <div className="mb-3">
+            <Text variant="bodySm" className="font-semibold text-foreground/90">
+              Tell admins who is hosting this event and how to contact you.
+            </Text>
+            <Text variant="caption" color="muted" className="mt-1 block leading-relaxed">
+              Event title, date, and location are already tied to this request.
+            </Text>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <Text variant="caption" color="muted" className="mb-1 block font-semibold">
+                Organizer / club name
+              </Text>
+              <Input
+                value={organizerName}
+                onChange={(e) => setOrganizerName(e.target.value)}
+                placeholder="e.g. City Riders Club"
+                maxLength={120}
+                className="rr-premium-input rounded-xl"
+              />
+            </div>
+            <div>
+              <Text variant="caption" color="muted" className="mb-1 block font-semibold">
+                Website or social link
+              </Text>
+              <Input
+                value={websiteOrSocial}
+                onChange={(e) => setWebsiteOrSocial(e.target.value)}
+                placeholder="Instagram, Facebook, website, or event page"
+                maxLength={200}
+                className="rr-premium-input rounded-xl"
+              />
+            </div>
+            <div>
+              <Text variant="caption" color="muted" className="mb-1 block font-semibold">
+                Contact info
+              </Text>
+              <Input
+                value={contactInfo}
+                onChange={(e) => setContactInfo(e.target.value)}
+                placeholder="Email or phone"
+                maxLength={160}
+                className="rr-premium-input rounded-xl"
+              />
+            </div>
+            <div>
+              <Text variant="caption" color="muted" className="mb-1 block font-semibold">
+                Why should this event be reviewed?
+              </Text>
+              <Textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Short explanation for the review team"
+                rows={4}
+                maxLength={500}
+                className="rr-premium-input rounded-xl"
+              />
+              <Text variant="micro" color="muted" className="mt-1 block text-right">
+                {reason.length} / 500
+              </Text>
+            </div>
+          </div>
+
+          {requestError && (
+            <div className="mt-3 flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3" role="alert">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden="true" />
+              <Text variant="caption" className="text-destructive">
+                {requestError}
+              </Text>
+            </div>
+          )}
+
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRequestOpen(false);
+                setRequestError('');
+              }}
+              disabled={createMutation.isPending}
+              className="rounded-full border-white/[0.08] sm:flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={createMutation.isPending}
+              className="rounded-full bg-primary text-primary-foreground sm:flex-1"
+            >
+              {createMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                'Submit review request'
+              )}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-[18px] border border-event/20 bg-background/60 px-4 py-3">
+          {isDeclined && (
+            <Text variant="caption" color="muted" className="mb-2 block leading-relaxed">
+              This request was declined. You can submit a new request if the event details changed.
+            </Text>
+          )}
+          {isCancelled && (
+            <Text variant="caption" color="muted" className="mb-2 block leading-relaxed">
+              Your previous request was cancelled.
+            </Text>
+          )}
+          <Text variant="caption" color="muted" className="block leading-relaxed">
+            Want this event reviewed for an Official badge? Official badges are reviewed by Ride Radar admins and are not user-assigned.
+          </Text>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              onClick={openRequestForm}
+              className="rounded-full bg-primary text-primary-foreground"
+            >
+              {hasStatus ? 'Request official review again' : 'Request official review'}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
+
 /**
  * Single broadcast detail page.
  */
@@ -101,7 +420,7 @@ function BroadcastDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuthState();
+  const { user, profile } = useAuthState();
   const hasValidBroadcastId = isValidUuid(id);
 
   useEffect(() => {
@@ -343,7 +662,6 @@ function BroadcastDetailPage() {
 
   const hasHeroImage = broadcast.type === 'event' && broadcast.event_image_url;
   const isOfficialEvent = broadcast.type === 'event' && broadcast.is_official === true;
-  const shouldShowOfficialReviewCopy = broadcast.type === 'event' && isAuthor && !isOfficialEvent;
 
   return (
     <div className="px-5 pt-5 pb-8">
@@ -434,19 +752,13 @@ function BroadcastDetailPage() {
           </Text>
         )}
 
-        {shouldShowOfficialReviewCopy && (
-          <div className="mb-5 rounded-[18px] border border-event/20 bg-event/5 px-4 py-3">
-            <Text variant="caption" color="muted" className="block leading-relaxed">
-              Want this event reviewed for an Official badge? Official badges are reviewed by Ride Radar admins and are not user-assigned.
-            </Text>
-            <a
-              href={buildOfficialReviewMailto(broadcast)}
-              className="mt-2 inline-flex items-center text-xs font-semibold text-event underline underline-offset-4 transition-colors hover:text-event/80"
-            >
-              Request official review
-            </a>
-          </div>
-        )}
+        <OfficialEventReviewPanel
+          broadcast={broadcast}
+          user={user}
+          profile={profile}
+          isAuthor={isAuthor}
+          isOfficialEvent={isOfficialEvent}
+        />
 
         {isAlert && <AlertPhotoGrid images={(broadcast.alert_photos || broadcast.alert_image_urls) || []} variant="detail" />}
 
