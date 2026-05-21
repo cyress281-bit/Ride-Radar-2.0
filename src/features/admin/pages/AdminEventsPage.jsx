@@ -230,7 +230,7 @@ export default function AdminEventsPage() {
 
 function AdminEventsContent() {
   const qc = useQueryClient();
-  const { broadcasts, profiles, isLoading } = useAdminData();
+  const { users, broadcasts, profiles, isLoading } = useAdminData();
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
