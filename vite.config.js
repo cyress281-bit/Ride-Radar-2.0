@@ -23,11 +23,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: false,
       cleanupOutdatedCaches: true,
-      includeAssets: ['favicon-32.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'maskable-icon-512.png', 'motorcycle-icon.svg'],
+      includeAssets: ['favicon-32.png', 'apple-touch-icon.png', 'icon-1024.png', 'icon-192.png', 'icon-512.png', 'maskable-icon-512.png', 'motorcycle-icon.svg'],
       manifest: {
         name: 'Ride Radar',
         short_name: 'Ride Radar',
-        description: 'Live motorcycle ride radar for nearby signals, meetups, warnings, Bike Down alerts, and riders nearby',
+        description: 'Ride Radar is a motorcycle radar and community app for real-time rider awareness, safety signals, meetups, and messaging.',
         id: '/',
         theme_color: '#39FF14',
         background_color: '#050508',
@@ -53,6 +53,12 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
+          },
+          {
+            src: '/icon-1024.png',
+            sizes: '1024x1024',
+            type: 'image/png',
+            purpose: 'any'
           }
         ],
         shortcuts: [

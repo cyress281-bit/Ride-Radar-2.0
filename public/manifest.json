@@ -1,7 +1,7 @@
 {
   "name": "Ride Radar",
   "short_name": "Ride Radar",
-  "description": "Live motorcycle ride radar for nearby signals, meetups, warnings, Bike Down alerts, and riders nearby",
+  "description": "Ride Radar is a motorcycle radar and community app for real-time rider awareness, safety signals, meetups, and messaging.",
   "id": "/",
   "start_url": "/home",
   "scope": "/",
@@ -28,6 +28,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
