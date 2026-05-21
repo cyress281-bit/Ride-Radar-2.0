@@ -170,7 +170,6 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     'space-y-5 rounded-[28px] border bg-surface/88 p-5 relative overflow-hidden backdrop-blur-2xl shadow-[0_24px_80px_hsl(0_0%_0%/0.42),inset_0_1px_0_hsl(0_0%_100%/0.05)]',
     typeStyles.panel
   );
-  const formAccentGlow = cn('pointer-events-none absolute inset-x-0 top-0 h-24 opacity-80', typeStyles.glow, typeStyles.sectionGlow);
   const fieldCardClass = cn('rounded-[20px] border bg-surface/78 p-3 backdrop-blur-xl shadow-[0_18px_54px_hsl(0_0%_0%/0.28)]', typeStyles.section);
   const controlClass = cn('rr-premium-input rounded-[18px] mt-1.5', typeStyles.input);
   const { effectiveLoc: radarDefaultLoc, userLoc, hasUserLocation } = useRadarLocation();
@@ -317,8 +316,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className={formSectionClass}>
-        <div className={cn('absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-[0.06] blur-3xl', typeStyles.glow, typeStyles.glowTone)} />
-        <div aria-hidden className={formAccentGlow} />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.045] to-transparent" />
+        <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-white/[0.04] blur-3xl" />
 
         {/* ISO subtype selector */}
         {type === 'iso' && (
