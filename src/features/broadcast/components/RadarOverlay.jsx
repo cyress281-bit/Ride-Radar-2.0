@@ -338,7 +338,7 @@ const RadarOverlay = memo(function RadarOverlay({
         )}
         style={{ left: padPos.left, top: padPos.top }}
       >
-        <div className="overflow-hidden rounded-[18px] border border-white/[0.12] bg-surface/90 shadow-[0_18px_52px_hsl(0_0%_0%/0.38),0_0_24px_hsl(var(--primary)/0.08)] backdrop-blur-2xl">
+        <div className="overflow-hidden rounded-[18px] border border-white/[0.12] bg-surface/84 shadow-[0_18px_52px_hsl(0_0%_0%/0.38),0_0_24px_hsl(var(--primary)/0.08)] backdrop-blur-2xl">
 
           {/* Drag handle */}
           <div
