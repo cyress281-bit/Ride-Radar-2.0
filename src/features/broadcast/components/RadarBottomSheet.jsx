@@ -17,11 +17,11 @@ const FILTER_TYPES = [
 ];
 
 const FILTER_STYLES = {
-  all:    { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'bg-white/[0.07] text-foreground/78 border-white/[0.1] hover:bg-white/[0.09] hover:text-foreground hover:border-white/[0.14]' },
-  alert:  { active: 'bg-alert text-alert-foreground shadow-[0_0_20px_hsl(var(--alert)/0.3)]', inactive: 'bg-white/[0.07] text-foreground/78 border-white/[0.1] hover:bg-white/[0.09] hover:text-foreground hover:border-white/[0.14]' },
-  solo_ride: { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'bg-white/[0.07] text-foreground/78 border-white/[0.1] hover:bg-white/[0.09] hover:text-foreground hover:border-white/[0.14]' },
-  iso:    { active: 'bg-iso text-iso-foreground shadow-[0_0_20px_hsl(var(--iso)/0.3)]', inactive: 'bg-white/[0.07] text-foreground/78 border-white/[0.1] hover:bg-white/[0.09] hover:text-foreground hover:border-white/[0.14]' },
-  event:  { active: 'bg-event text-event-foreground shadow-[0_0_20px_hsl(var(--event)/0.3)]', inactive: 'bg-white/[0.07] text-foreground/78 border-white/[0.1] hover:bg-white/[0.09] hover:text-foreground hover:border-white/[0.14]' },
+  all:    { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'bg-white/[0.11] text-foreground/82 border-white/[0.12] hover:bg-white/[0.13] hover:text-foreground hover:border-white/[0.16]' },
+  alert:  { active: 'bg-alert text-alert-foreground shadow-[0_0_20px_hsl(var(--alert)/0.3)]', inactive: 'bg-white/[0.11] text-foreground/82 border-white/[0.12] hover:bg-white/[0.13] hover:text-foreground hover:border-white/[0.16]' },
+  solo_ride: { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'bg-white/[0.11] text-foreground/82 border-white/[0.12] hover:bg-white/[0.13] hover:text-foreground hover:border-white/[0.16]' },
+  iso:    { active: 'bg-iso text-iso-foreground shadow-[0_0_20px_hsl(var(--iso)/0.3)]', inactive: 'bg-white/[0.11] text-foreground/82 border-white/[0.12] hover:bg-white/[0.13] hover:text-foreground hover:border-white/[0.16]' },
+  event:  { active: 'bg-event text-event-foreground shadow-[0_0_20px_hsl(var(--event)/0.3)]', inactive: 'bg-white/[0.11] text-foreground/82 border-white/[0.12] hover:bg-white/[0.13] hover:text-foreground hover:border-white/[0.16]' },
 };
 
 /**
@@ -167,7 +167,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
       {!sheetOpen && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-0 right-0 bottom-0 z-[-1] rounded-t-[24px] bg-surface/94 backdrop-blur-[32px] border-t border-white/[0.08]"
+          className="pointer-events-none absolute left-0 right-0 bottom-0 z-[-1] rounded-t-[24px] bg-surface/94 backdrop-blur-[32px] border-t border-white/[0.04]"
           style={{
             top: 'calc(100% - 8px)',
           }}
