@@ -139,6 +139,42 @@ async function purgeStorageFolder(bucket, prefix) {
 }
 
 /**
+ * Recursively remove all files under a storage folder prefix.
+ * Best-effort and non-fatal, matching the existing deletion behavior.
+ *
+ * @param {string} bucket
+ * @param {string} prefix
+ */
+async function purgeStorageFolderRecursive(bucket, prefix) {
+  const queue = [prefix];
+  const filesToRemove = [];
+
+  while (queue.length > 0) {
+    const currentPrefix = queue.shift();
+    const { data: entries, error } = await supabase.storage.from(bucket).list(currentPrefix, { limit: 1000 });
+
+    if (error) {
+      logger.warn(`[deleteAccount] Storage scan failed for ${currentPrefix} (non-fatal):`, error);
+      continue;
+    }
+
+    for (const entry of entries || []) {
+      const nextPath = `${currentPrefix}/${entry.name}`;
+      if (entry.metadata) {
+        filesToRemove.push(nextPath);
+      } else {
+        queue.push(nextPath);
+      }
+    }
+  }
+
+  if (filesToRemove.length === 0) return;
+
+  const { error } = await supabase.storage.from(bucket).remove(filesToRemove);
+  if (error) logger.warn(`[deleteAccount] Storage removal failed for ${prefix} (non-fatal):`, error);
+}
+
+/**
  * Delete the current user's account via RPC.
  * Attempts to remove user-owned storage objects first (best-effort).
  *
@@ -156,6 +192,7 @@ export async function deleteAccount() {
       purgeStorageFolder('uploads', `posts/${userId}`),
       purgeStorageFolder('uploads', `events/${userId}`),
       purgeStorageFolder('uploads', `alerts/${userId}`),
+      purgeStorageFolderRecursive('uploads', `messages/${userId}`),
     ]);
   }
 
