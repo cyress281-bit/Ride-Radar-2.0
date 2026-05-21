@@ -153,7 +153,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
       ref={sheetRef}
       data-rr-sheet
       className={cn(
-        'absolute left-0 right-0 z-20 bg-surface/90 backdrop-blur-[32px] border-t border-white/[0.12] rounded-t-[24px] transition-transform duration-300 ease-out min-h-[60px] shadow-[0_8px_32px_hsl(0_0%_0%/0.55),0_2px_8px_hsl(0_0%_0%/0.30)]',
+        'absolute left-0 right-0 z-20 bg-surface/90 backdrop-blur-[32px] border-t border-white/[0.12] rounded-t-[24px] transition-transform duration-300 ease-out min-h-[60px] shadow-[0_-8px_32px_hsl(0_0%_0%/0.55),0_-2px_8px_hsl(0_0%_0%/0.30)]',
         sheetOpen ? 'translate-y-0' : 'translate-y-[calc(100%-60px-var(--rr-nav-h)-var(--rr-safe-area-bottom,env(safe-area-inset-bottom,0px))-8px)]'
       )}
       style={{
