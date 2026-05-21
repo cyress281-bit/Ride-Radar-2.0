@@ -121,6 +121,20 @@ export async function getConversations() {
 }
 
 /**
+ * Fetch official event review requests (limit 200).
+ * @returns {Promise<ApiResult>}
+ */
+export async function getOfficialEventRequests() {
+  await assertAdmin();
+  const { data, error } = await supabase
+    .from('official_event_requests')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(200);
+  return { data: data || [], error };
+}
+
+/**
  * Fetch RSVP counts for a batch of event/broadcast ids.
  * Returns a map keyed by broadcast_id with total RSVP counts.
  *
@@ -162,6 +176,125 @@ async function assertAdmin() {
   if (!user) throw new Error('Not authenticated');
   const { data, error } = await supabase.from('users').select('role').eq('id', user.id).single();
   if (error || data?.role !== 'admin') throw new Error('Admin access required');
+  return user;
+}
+
+function normalizeAdminNote(adminNote) {
+  const note = String(adminNote || '').trim();
+  return note || null;
+}
+
+async function reviewOfficialEventRequest(requestId, nextStatus, adminNote) {
+  const adminUser = await assertAdmin();
+
+  if (!requestId || !String(requestId).trim()) {
+    return { data: null, error: new Error('Request id is required.') };
+  }
+
+  if (!['approved', 'declined'].includes(nextStatus)) {
+    return { data: null, error: new Error('Invalid official review status.') };
+  }
+
+  const { data: request, error: requestFetchError } = await supabase
+    .from('official_event_requests')
+    .select('id, status, broadcast_id')
+    .eq('id', requestId)
+    .maybeSingle();
+
+  if (requestFetchError) {
+    return { data: null, error: requestFetchError };
+  }
+
+  if (!request) {
+    return { data: null, error: new Error('Official review request not found.') };
+  }
+
+  if (request.status !== 'pending') {
+    return { data: null, error: new Error('Only pending requests can be reviewed.') };
+  }
+
+  const { data: broadcast, error: broadcastFetchError } = await supabase
+    .from('broadcasts')
+    .select('id, type, is_official')
+    .eq('id', request.broadcast_id)
+    .maybeSingle();
+
+  if (broadcastFetchError) {
+    return { data: null, error: broadcastFetchError };
+  }
+
+  if (!broadcast) {
+    return { data: null, error: new Error('Related event broadcast was not found.') };
+  }
+
+  if (broadcast.type !== 'event') {
+    return { data: null, error: new Error('Only event broadcasts can be reviewed for Official status.') };
+  }
+
+  const note = normalizeAdminNote(adminNote);
+  const reviewedAt = new Date().toISOString();
+
+  if (nextStatus === 'approved' && !broadcast.is_official) {
+    const { error: officialUpdateError } = await supabase
+      .from('broadcasts')
+      .update({ is_official: true })
+      .eq('id', broadcast.id);
+
+    if (officialUpdateError) {
+      return { data: null, error: officialUpdateError };
+    }
+  }
+
+  const { data: updatedRequest, error: updateError } = await supabase
+    .from('official_event_requests')
+    .update({
+      status: nextStatus,
+      reviewed_by: adminUser.id,
+      reviewed_at: reviewedAt,
+      admin_note: note,
+    })
+    .eq('id', request.id)
+    .select()
+    .maybeSingle();
+
+  if (updateError) {
+    if (nextStatus === 'approved' && !broadcast.is_official) {
+      const { error: rollbackError } = await supabase
+        .from('broadcasts')
+        .update({ is_official: false })
+        .eq('id', broadcast.id);
+
+      if (rollbackError) {
+        logger.error('[reviewOfficialEventRequest] Rollback failed:', rollbackError);
+      }
+    }
+
+    return { data: null, error: updateError };
+  }
+
+  return { data: updatedRequest, error: null };
+}
+
+/**
+ * Approve an official event review request and mark the related event official.
+ * @param {string} requestId
+ * @param {string} [adminNote]
+ * @returns {Promise<ApiResult>}
+ */
+export async function approveOfficialEventRequest(requestId, adminNote) {
+  logger.info(`[admin] Approving official event request ${requestId}`);
+  return reviewOfficialEventRequest(requestId, 'approved', adminNote);
+}
+
+/**
+ * Decline an official event review request.
+ * @param {string} requestId
+ * @param {string} [adminNote]
+ * @returns {Promise<ApiResult>}
+ */
+export async function declineOfficialEventRequest(requestId, adminNote) {
+  logger.info(`[admin] Declining official event request ${requestId}`);
+  return reviewOfficialEventRequest(requestId, 'declined', adminNote);
 }
 
 /**

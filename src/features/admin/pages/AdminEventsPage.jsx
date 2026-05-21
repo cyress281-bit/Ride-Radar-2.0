@@ -6,6 +6,7 @@ import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import CreateEventDialog from '@/features/admin/components/CreateEventDialog.jsx';
 import EditEventDialog from '@/features/admin/components/EditEventDialog.jsx';
+import OfficialEventRequestsPanel from '@/features/admin/components/OfficialEventRequestsPanel.jsx';
 import { getEventRsvpCounts, toggleOfficialEvent } from '@/features/admin/api/admin-api.js';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -325,6 +326,12 @@ function AdminEventsContent() {
           Create Event
         </Button>
       </div>
+
+      <OfficialEventRequestsPanel
+        broadcasts={broadcasts.data?.data || []}
+        users={users.data?.data || []}
+        profiles={profiles.data?.data || []}
+      />
 
       {upcoming.length === 0 && past.length === 0 && (
         <div className="rounded-[20px] border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
