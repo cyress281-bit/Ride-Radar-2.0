@@ -10,6 +10,10 @@
 let deferredPrompt = null;
 let registration = null;
 let refreshing = false;
+const UPDATE_AVAILABLE_STORAGE_KEY = 'rr-pwa-update-available';
+const UPDATE_AVAILABLE_EVENT = 'rr-pwa-update-available';
+const UPDATE_CLEARED_EVENT = 'rr-pwa-update-cleared';
+let updateListenersAttached = false;
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -21,7 +25,69 @@ if ('serviceWorker' in navigator) {
     }
     sessionStorage.setItem('sw-last-reload', String(now));
     refreshing = true;
+    clearPendingServiceWorkerUpdate();
     window.location.reload();
+  });
+}
+
+function setPendingServiceWorkerUpdate() {
+  try {
+    sessionStorage.setItem(UPDATE_AVAILABLE_STORAGE_KEY, '1');
+  } catch {
+    // ignore storage failures; the live event still updates the UI
+  }
+  window.dispatchEvent(new CustomEvent(UPDATE_AVAILABLE_EVENT));
+}
+
+function clearPendingServiceWorkerUpdate() {
+  try {
+    sessionStorage.removeItem(UPDATE_AVAILABLE_STORAGE_KEY);
+  } catch {
+    // ignore storage failures
+  }
+  window.dispatchEvent(new CustomEvent(UPDATE_CLEARED_EVENT));
+}
+
+function hasPendingServiceWorkerUpdate() {
+  try {
+    return sessionStorage.getItem(UPDATE_AVAILABLE_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function getWaitingServiceWorkerRegistration() {
+  return registration?.waiting || null;
+}
+
+function notifyIfWaitingUpdate() {
+  if (navigator.serviceWorker.controller && getWaitingServiceWorkerRegistration()) {
+    setPendingServiceWorkerUpdate();
+  }
+}
+
+function attachServiceWorkerUpdateListeners() {
+  if (updateListenersAttached || !registration) return;
+  updateListenersAttached = true;
+
+  const checkForUpdate = () => {
+    if (document.visibilityState !== 'visible') return;
+    registration?.update();
+    notifyIfWaitingUpdate();
+  };
+
+  window.addEventListener('focus', checkForUpdate);
+  document.addEventListener('visibilitychange', checkForUpdate);
+
+  registration.addEventListener('updatefound', () => {
+    const newWorker = registration.installing;
+    if (!newWorker) return;
+
+    newWorker.addEventListener('statechange', () => {
+      if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+        setPendingServiceWorkerUpdate();
+      }
+    });
   });
 }
 
@@ -67,10 +133,18 @@ export async function registerServiceWorker() {
       registration = await navigator.serviceWorker.register('/sw.js?v=velocity', {
         scope: '/',
       });
+      attachServiceWorkerUpdateListeners();
+
+      if (registration.waiting && navigator.serviceWorker.controller) {
+        setPendingServiceWorkerUpdate();
+      }
+
+      registration.update();
 
       // Check for updates every hour
       const updateInterval = setInterval(() => {
         registration.update();
+        notifyIfWaitingUpdate();
       }, 60 * 60 * 1000);
 
       // Cleanup interval when page unloads to avoid leaked timers in tests/long sessions
@@ -78,21 +152,36 @@ export async function registerServiceWorker() {
         clearInterval(updateInterval);
       });
 
-      // Listen for updates
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            newWorker.postMessage({ type: 'SKIP_WAITING' });
-          }
-        });
-      });
-
     } catch (error) {
-      // Service Worker registration failed — logged silently
+      // Service Worker registration failed â€” logged silently
     }
   }
+}
+
+/**
+ * Activate a waiting service worker if one is available.
+ * Returns true when an activation request was sent.
+ */
+export async function activatePendingServiceWorkerUpdate() {
+  if (!('serviceWorker' in navigator) || !registration) return false;
+
+  const waiting = getWaitingServiceWorkerRegistration();
+  if (!waiting) {
+    await registration.update();
+    notifyIfWaitingUpdate();
+    return false;
+  }
+
+  waiting.postMessage({ type: 'SKIP_WAITING' });
+  return true;
+}
+
+export function getPendingServiceWorkerUpdateState() {
+  return hasPendingServiceWorkerUpdate();
+}
+
+export function clearPendingServiceWorkerUpdateState() {
+  clearPendingServiceWorkerUpdate();
 }
 
 /**
@@ -132,7 +221,7 @@ export async function promptInstall() {
 
     return outcome === 'accepted';
   } catch (error) {
-    // Install prompt error — logged silently
+    // Install prompt error â€” logged silently
     return false;
   }
 }
@@ -155,6 +244,9 @@ export function isInstalledPWA() {
 
 export default {
   registerServiceWorker,
+  activatePendingServiceWorkerUpdate,
+  getPendingServiceWorkerUpdateState,
+  clearPendingServiceWorkerUpdateState,
   setupInstallPrompt,
   promptInstall,
   isInstallable,

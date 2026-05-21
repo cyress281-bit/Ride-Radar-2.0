@@ -1,9 +1,16 @@
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import AppHeader from './AppHeader';
 import BottomNav from './BottomNav';
 import OfflineBanner from '@/components/OfflineBanner';
+import {
+  activatePendingServiceWorkerUpdate,
+  clearPendingServiceWorkerUpdateState,
+  getPendingServiceWorkerUpdateState,
+} from '@/lib/registerSW';
 
 /**
  * AppLayout — Main application shell with electric neon aesthetic.
@@ -36,6 +43,8 @@ function readSafeAreaBottom() {
 const AppLayout = memo(function AppLayout() {
   const { pathname } = useLocation();
   const isRadar = pathname === '/home';
+  const [hasUpdateAvailable, setHasUpdateAvailable] = useState(getPendingServiceWorkerUpdateState());
+  const [isRefreshingUpdate, setIsRefreshingUpdate] = useState(false);
 
   // PWA cold-start settle nudge:
   // Installed iOS PWA pages can start with a shorter viewport until the
@@ -98,6 +107,29 @@ const AppLayout = memo(function AppLayout() {
       window.removeEventListener('resize', onResize);
     };
   }, []);
+
+  useEffect(() => {
+    const handleUpdateAvailable = () => setHasUpdateAvailable(true);
+    const handleUpdateCleared = () => setHasUpdateAvailable(false);
+
+    window.addEventListener('rr-pwa-update-available', handleUpdateAvailable);
+    window.addEventListener('rr-pwa-update-cleared', handleUpdateCleared);
+
+    return () => {
+      window.removeEventListener('rr-pwa-update-available', handleUpdateAvailable);
+      window.removeEventListener('rr-pwa-update-cleared', handleUpdateCleared);
+    };
+  }, []);
+
+  const handleRefreshApp = async () => {
+    if (isRefreshingUpdate) return;
+    setIsRefreshingUpdate(true);
+    const activated = await activatePendingServiceWorkerUpdate();
+    if (!activated) {
+      clearPendingServiceWorkerUpdateState();
+      window.location.reload();
+    }
+  };
 
   // iOS Safari cold-start: env(safe-area-inset-bottom) stays 0 until the browser
   // observes a scroll event on a scrollable document. void offsetHeight does NOT
@@ -172,6 +204,41 @@ const AppLayout = memo(function AppLayout() {
     >
       {/* Offline status banner */}
       <OfflineBanner />
+      {hasUpdateAvailable && (
+        <div
+          className="fixed left-0 right-0 z-50 pt-safe"
+          style={{ top: 'calc(3.5rem + env(safe-area-inset-top, 0px) + 0.5rem)' }}
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div className="mx-auto max-w-2xl px-4">
+            <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-background/95 px-4 py-3 shadow-[0_0_30px_hsl(var(--primary)/0.12)] backdrop-blur-md">
+              <div className="min-w-0 flex-1">
+                <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-primary">
+                  Update available
+                </div>
+                <div className="mt-0.5 text-sm font-semibold text-foreground">
+                  New version available
+                </div>
+                <div className="mt-0.5 text-xs text-muted-foreground">
+                  Refresh to load the latest Ride Radar build.
+                </div>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleRefreshApp}
+                disabled={isRefreshingUpdate}
+                className="shrink-0 gap-2 rounded-full bg-primary px-4 text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.22)] hover:bg-primary/90"
+              >
+                <RefreshCw className={cn('h-4 w-4', isRefreshingUpdate && 'animate-spin')} />
+                Refresh
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Skip to main content — keyboard accessibility */}
       <a
