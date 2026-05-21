@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Upload, MapPin, Users, LocateFixed, Wrench } from 'lucide-react';
 import AlertPhotoUploader from './AlertPhotoUploader';
 import AlertPinMap from './AlertPinMap';
+import LocationPickerMap from './LocationPickerMap';
 import { useRadarLocation } from '@/features/broadcast/hooks/use-radar-location';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { Text } from '@/components/ui/primitives/Text';
@@ -18,6 +19,7 @@ import { cn } from '@/lib/utils.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useCreateBroadcast } from '@/features/broadcast/hooks/use-create-broadcast.js';
 import { prepareLocalImage } from '@/lib/image-utils.js';
+import { geocodeAddress } from '@/lib/geocoding.js';
 import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 
@@ -153,6 +155,10 @@ const isoSchema = z.object({
   return true;
 }, { message: 'Title is required for mechanic requests', path: ['title'] });
 
+function normalizeLocationText(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ');
+}
+
 /**
  * Two-step broadcast creation form — Electric Neon Edition.
  *
@@ -178,11 +184,22 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const [eventImage, setEventImage] = useState(null);
   const [alertImages, setAlertImages] = useState([]);
   const [alertPin, setAlertPin] = useState(null);
+  const [eventPin, setEventPin] = useState(null);
+  const [eventPinAdjusted, setEventPinAdjusted] = useState(false);
+  const [eventLocationPreview, setEventLocationPreview] = useState({
+    status: 'idle',
+    data: null,
+    error: null,
+  });
+  const [debouncedEventLocationText, setDebouncedEventLocationText] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [geoError, setGeoError] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [locationPrecision, setLocationPrecision] = useState('approximate');
+  const eventPinSourceRef = useRef('');
+  const eventPinAdjustedRef = useRef(false);
+  const eventLocationQueryRef = useRef('');
 
   useEffect(() => {
     if (navigator.geolocation && (type === 'solo_ride' || type === 'iso')) {
@@ -232,6 +249,80 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const exactLocationTextValue = watch('exactLocationText');
   const eventDateValue = watch('eventDate');
   const eventEndTimeValue = watch('eventEndTime');
+  const normalizedEventLocationText = normalizeLocationText(exactLocationTextValue);
+
+  useEffect(() => {
+    if (type !== 'event') return;
+    const timer = setTimeout(() => {
+      setDebouncedEventLocationText(normalizedEventLocationText);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [normalizedEventLocationText, type]);
+
+  useEffect(() => {
+    if (type !== 'event') return;
+    if (!eventPinSourceRef.current) return;
+    if (eventPinSourceRef.current === normalizedEventLocationText) return;
+
+    eventPinSourceRef.current = '';
+    eventPinAdjustedRef.current = false;
+    eventLocationQueryRef.current = normalizedEventLocationText;
+    setEventPin(null);
+    setEventPinAdjusted(false);
+    setEventLocationPreview({ status: 'idle', data: null, error: null });
+  }, [normalizedEventLocationText, type]);
+
+  useEffect(() => {
+    if (type !== 'event') return;
+
+    const normalized = debouncedEventLocationText;
+    if (normalized.length < 3) {
+      eventLocationQueryRef.current = normalized;
+      setEventLocationPreview({ status: 'idle', data: null, error: null });
+      return;
+    }
+
+    let cancelled = false;
+    eventLocationQueryRef.current = normalized;
+    setEventLocationPreview((current) => ({
+      ...current,
+      status: 'loading',
+      error: null,
+    }));
+
+    geocodeAddress(normalized)
+      .then((result) => {
+        if (cancelled) return;
+        if (eventLocationQueryRef.current !== normalized) return;
+
+        if (!result) {
+          setEventLocationPreview({ status: 'not_found', data: null, error: null });
+          setEventPin(null);
+          eventPinAdjustedRef.current = false;
+          setEventPinAdjusted(false);
+          eventPinSourceRef.current = '';
+          return;
+        }
+
+        setEventLocationPreview({ status: 'success', data: result, error: null });
+
+        if (!eventPinAdjustedRef.current || eventPinSourceRef.current !== normalized) {
+          setEventPin({ lat: result.lat, lng: result.lng });
+          eventPinAdjustedRef.current = false;
+          setEventPinAdjusted(false);
+          eventPinSourceRef.current = normalized;
+        }
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        if (eventLocationQueryRef.current !== normalized) return;
+        setEventLocationPreview({ status: 'error', data: null, error });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedEventLocationText, type]);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -261,6 +352,9 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
       alertImages: alertImages,
       isoSubtype: values.isoSubtype,
       lookingTo: values.lookingTo,
+      eventPinLat: eventPin?.lat ?? null,
+      eventPinLng: eventPin?.lng ?? null,
+      eventPinAdjusted,
       lat: alertPin?.lat ?? coords.lat,
       lng: alertPin?.lng ?? coords.lng,
       locationPrecision: type === 'solo_ride' ? locationPrecision : undefined,
@@ -294,6 +388,16 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     (type !== 'bike_down' || exactLocationTextValue || (alertPin?.lat != null && alertPin?.lng != null)) &&
     (type !== 'alert' || (alertPin?.lat != null && alertPin?.lng != null)) &&
     ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
+
+  const showEventPinMap =
+    type === 'event' && eventLocationPreview.status === 'success' && eventLocationPreview.data;
+
+  const handleEventPinChange = (nextPin) => {
+    eventPinAdjustedRef.current = true;
+    setEventPinAdjusted(true);
+    eventPinSourceRef.current = normalizedEventLocationText;
+    setEventPin(nextPin);
+  };
 
   return (
     <div className="px-5 pt-5 pb-2 bg-background scroll-smooth">{/* AppLayout <main> applies pb-nav-safe globally */}
@@ -451,7 +555,38 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 className={controlClass}
               />
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
+              {!errors.exactLocationText && normalizedEventLocationText.length >= 3 && (
+                <Text variant="caption" color="muted">
+                  {eventLocationPreview.status === 'loading'
+                    ? 'Checking location...'
+                    : eventLocationPreview.status === 'error'
+                      ? 'Could not check location right now. You can still try creating the event.'
+                      : eventLocationPreview.status === 'not_found'
+                        ? 'Address not found - try adding city/state or a landmark.'
+                        : eventLocationPreview.data
+                          ? `Located: ${eventLocationPreview.data.displayName}`
+                          : 'Enter a location to preview the meetup spot.'}
+                </Text>
+              )}
             </VStack>
+            {showEventPinMap && (
+              <VStack gap={2}>
+                <div className={cn('rounded-[20px] p-3', fieldCardClass)}>
+                  <LocationPickerMap
+                    defaultCenter={{
+                      lat: eventLocationPreview.data.lat,
+                      lng: eventLocationPreview.data.lng,
+                    }}
+                    value={eventPin}
+                    onChange={handleEventPinChange}
+                    color="event"
+                  />
+                  <Text variant="caption" color="muted" className="mt-2 block">
+                    Drag the pin to fine-tune the meetup spot.
+                  </Text>
+                </div>
+              </VStack>
+            )}
             {/* Event poster upload */}
             <VStack gap={2}>
               <Label className="rr-kicker text-muted-foreground mb-1 block">Event poster (optional)</Label>

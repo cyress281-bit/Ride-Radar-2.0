@@ -78,25 +78,38 @@ export function useCreateBroadcast() {
         }
       }
 
-      // Event: geocode address then approximate
-      if (broadcastData.type === 'event' && exactLocationText) {
-        try {
-          geocodeResult = await geocodeAddress(exactLocationText);
-          if (geocodeResult) {
-            frozenLocation = approximateLocation(
-              geocodeResult.lat,
-              geocodeResult.lng,
-              `${user.id}:${now.toISOString()}:event:${exactLocationText}`
+      // Event: prefer an explicit meetup pin if the user adjusted one, otherwise
+      // geocode the text address and approximate as before.
+      if (broadcastData.type === 'event') {
+        const hasExplicitMeetupPin =
+          broadcastData.eventPinAdjusted === true &&
+          typeof broadcastData.eventPinLat === 'number' &&
+          typeof broadcastData.eventPinLng === 'number';
+
+        if (hasExplicitMeetupPin) {
+          frozenLocation = {
+            lat: broadcastData.eventPinLat,
+            lng: broadcastData.eventPinLng,
+          };
+        } else if (exactLocationText) {
+          try {
+            geocodeResult = await geocodeAddress(exactLocationText);
+            if (geocodeResult) {
+              frozenLocation = approximateLocation(
+                geocodeResult.lat,
+                geocodeResult.lng,
+                `${user.id}:${now.toISOString()}:event:${exactLocationText}`
+              );
+            }
+          } catch (error) {
+            logger.warn('[useCreateBroadcast] Event geocoding failed:', error);
+          }
+
+          if (!geocodeResult || !frozenLocation) {
+            throw new Error(
+              'We could not locate that event address. Add a nearby city, landmark, or street and try again.'
             );
           }
-        } catch (error) {
-          logger.warn('[useCreateBroadcast] Event geocoding failed:', error);
-        }
-
-        if (!geocodeResult || !frozenLocation) {
-          throw new Error(
-            'We could not locate that event address. Add a nearby city, landmark, or street and try again.'
-          );
         }
       }
 
