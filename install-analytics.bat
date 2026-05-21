@@ -32,7 +32,6 @@ echo.
 echo Documentation:
 echo - ANALYTICS.md - Full event tracking documentation
 echo - ANALYTICS_SETUP.md - Step-by-step setup guide
-echo - ANALYTICS.md - Full event tracking documentation
 echo.
 echo Ready to track!
 echo.

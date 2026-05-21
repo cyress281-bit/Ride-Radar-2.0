@@ -75,7 +75,7 @@ There are **~8 active Supabase realtime channels** at peak:
 - **Server state:** TanStack Query with `staleTime: 30s`, `gcTime: 5min`, `refetchOnWindowFocus: false`
 - **Auth state:** Split contexts in `use-auth.js` (see above)
 - **Local UI state:** React `useState` / `useReducer`
-- **Offline queue:** `useOfflineQueue.js` persists failed mutations to `localStorage` with 24h expiry
+- **Offline queue:** the current app persists failed mutations to `localStorage` with 24h expiry
 
 ## Bundle Strategy
 
