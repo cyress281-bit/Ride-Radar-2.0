@@ -2,7 +2,7 @@ import { memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Clock } from 'lucide-react';
 import { cn, formatDistance, timeAgo } from '@/lib/utils';
-import { haversineMiles } from '@/lib/broadcastUtils';
+import { haversineMiles, timeUntilExpiry } from '@/lib/broadcastUtils';
 import { AspectRatio } from '@/components/ui/primitives/AspectRatio';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
@@ -19,9 +19,10 @@ import { Badge } from './Badge';
  * @param {number} [props.userLng] - User longitude for distance calc
  * @param {() => void} [props.onPress] - Card press handler
  * @param {string} [props.to] - Router link destination (alternative to onPress)
+ * @param {boolean} [props.compactNoMedia=false] - Use compact text-first layout when no media is present
  */
 export const RideCard = memo(
-  function RideCard({ broadcast, author, userLat, userLng, onPress, to }) {
+  function RideCard({ broadcast, author, userLat, userLng, onPress, to, compactNoMedia = false }) {
     const distance = useMemo(() => {
       if (
         !broadcast ||
@@ -64,6 +65,8 @@ export const RideCard = memo(
 
     const isVideo = mediaUrl && /\.(mp4|webm|mov)(\?.*)?$/i.test(mediaUrl);
     const isOfficialEvent = broadcast.type === 'event' && broadcast.is_official === true;
+    const isBikeDown = broadcast.type === 'alert' && broadcast.alert_type === 'bike_down';
+    const useCompactNoMedia = compactNoMedia && !mediaUrl;
 
     // Type-specific neon glow for cards
     const typeGlowClass =
@@ -77,24 +80,74 @@ export const RideCard = memo(
             event: 'hover:shadow-[0_0_20px_hsl(var(--event)/0.12)] hover:border-event/20',
           }[broadcast.type] || '';
 
+    const compactLabel = isBikeDown ? 'Bike Down' : broadcast.title || 'Signal';
+
     const cardContent = (
       <>
-        {broadcast.type === 'alert' && !mediaUrl ? (
-          <div className="p-4 space-y-2">
-            <Badge type={broadcast.type} alertType={broadcast.alert_type} />
-            <Text as="h3" variant="h3" className="line-clamp-2 font-bold">
-              {broadcast.title}
-            </Text>
-            {broadcast.body && (
-              <Text variant="bodySm" color="muted" className="line-clamp-2">
-                {broadcast.body}
+        {useCompactNoMedia || (broadcast.type === 'alert' && !mediaUrl) ? (
+          <div className="p-4 space-y-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge type={broadcast.type} alertType={broadcast.alert_type} />
+              {broadcast.type === 'iso' && broadcast.iso_subtype && (
+                <span className="inline-flex items-center rounded-full border border-iso/25 bg-iso/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-iso">
+                  {broadcast.iso_subtype === 'mechanic' ? 'Mechanic' : 'Bike Crew'}
+                </span>
+              )}
+              {isOfficialEvent && (
+                <span className="inline-flex items-center rounded-full border border-event/30 bg-event/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-event-foreground backdrop-blur-md">
+                  Official
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <Text as="h3" variant="h3" className="line-clamp-2 font-bold">
+                {compactLabel}
               </Text>
-            )}
-            {broadcast.location_name && (
-              <HStack align="center" gap={1} className="text-muted-foreground">
-                <MapPin className="w-3 h-3 text-primary" />
-                <Text variant="micro" color="muted">{broadcast.location_name}</Text>
-              </HStack>
+              {broadcast.title && broadcast.title !== compactLabel && (
+                <Text variant="bodySm" color="muted" className="line-clamp-2">
+                  {broadcast.title}
+                </Text>
+              )}
+              {broadcast.body && (
+                <Text
+                  variant="bodySm"
+                  color="muted"
+                  className={broadcast.type === 'alert' ? 'line-clamp-3' : 'line-clamp-2'}
+                >
+                  {broadcast.body}
+                </Text>
+              )}
+            </div>
+
+            {(broadcast.location_name || broadcast.type === 'event' || isBikeDown) && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground">
+                {broadcast.location_name && (
+                  <HStack align="center" gap={1} className="text-muted-foreground">
+                    <MapPin className="w-3 h-3 text-primary" />
+                    <Text variant="micro" color="muted">{broadcast.location_name}</Text>
+                  </HStack>
+                )}
+                {broadcast.type === 'event' && broadcast.event_date && (
+                  <HStack align="center" gap={1} className="text-muted-foreground">
+                    <Clock className="w-3 h-3 text-primary" />
+                    <Text variant="micro" color="muted">
+                      {new Date(broadcast.event_date).toLocaleString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </Text>
+                  </HStack>
+                )}
+                {isBikeDown && broadcast.expires_at && (
+                  <HStack align="center" gap={1} className="text-muted-foreground">
+                    <Clock className="w-3 h-3 text-primary" />
+                    <Text variant="micro" color="muted">{timeUntilExpiry(broadcast.expires_at)}</Text>
+                  </HStack>
+                )}
+              </div>
             )}
           </div>
         ) : (
@@ -214,9 +267,18 @@ export const RideCard = memo(
       prev.broadcast?.id === next.broadcast?.id &&
       prev.broadcast?.title === next.broadcast?.title &&
       prev.broadcast?.body === next.broadcast?.body &&
+      prev.broadcast?.alert_type === next.broadcast?.alert_type &&
+      prev.broadcast?.event_image_url === next.broadcast?.event_image_url &&
+      prev.broadcast?.media_url === next.broadcast?.media_url &&
+      prev.broadcast?.location_name === next.broadcast?.location_name &&
+      prev.broadcast?.event_date === next.broadcast?.event_date &&
+      prev.broadcast?.iso_subtype === next.broadcast?.iso_subtype &&
       prev.broadcast?.is_official === next.broadcast?.is_official &&
+      prev.broadcast?.alert_photos === next.broadcast?.alert_photos &&
+      prev.broadcast?.alert_image_urls === next.broadcast?.alert_image_urls &&
       prev.broadcast?.expires_at === next.broadcast?.expires_at &&
       prev.broadcast?.created_at === next.broadcast?.created_at &&
+      prev.compactNoMedia === next.compactNoMedia &&
       prev.author === next.author &&
       prev.userLat === next.userLat &&
       prev.userLng === next.userLng

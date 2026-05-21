@@ -42,6 +42,7 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
             author={getProfile(broadcast.author_id)}
             userLat={userLat}
             userLng={userLng}
+            compactNoMedia
             to={`/broadcast/${broadcast.id}`}
           />
         </div>
@@ -116,6 +117,7 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
               author={getProfile(broadcast.author_id)}
               userLat={userLat}
               userLng={userLng}
+              compactNoMedia
               to={`/broadcast/${broadcast.id}`}
             />
           </div>
