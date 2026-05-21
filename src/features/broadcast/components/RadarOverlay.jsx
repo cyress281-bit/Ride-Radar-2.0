@@ -74,6 +74,7 @@ function persistSkipLiveConfirm() {
  * - Location error banner
  */
 const RadarOverlay = memo(function RadarOverlay({
+  activeCount = 0,
   hasUserLocation,
   onLocate,
   usingOfflineSnapshot,
@@ -293,16 +294,21 @@ const RadarOverlay = memo(function RadarOverlay({
       {/* Top context pill */}
       {(!hasUserLocation || usingOfflineSnapshot) && (
         <div className="absolute top-header-offset left-16 right-4 z-10 flex justify-center pointer-events-none">
-          <div className="pointer-events-auto inline-flex items-center gap-3 rounded-full backdrop-blur-xl bg-surface/80 border border-white/[0.10] px-4 py-2 shadow-[0_0_20px_hsl(var(--primary)/0.3)]">
+          <div className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-white/[0.10] bg-surface/86 px-2.5 py-2 shadow-[0_14px_42px_hsl(0_0%_0%/0.32),0_0_22px_hsl(var(--primary)/0.12)] backdrop-blur-2xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/[0.10] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+              <Radio className="h-3 w-3" aria-hidden="true" />
+              {activeCount > 0 ? `${activeCount} nearby` : 'Radar quiet'}
+            </span>
+            <span className="h-5 w-px bg-white/[0.08]" aria-hidden="true" />
             {!hasUserLocation && (
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                 US overview
               </span>
             )}
             {usingOfflineSnapshot && (
               <span className={cn(
-                'text-xs font-bold uppercase tracking-wider text-brand-radar',
-                !hasUserLocation && 'border-l border-white/[0.04] pl-3'
+                'text-[10px] font-bold uppercase tracking-[0.16em] text-brand-radar',
+                !hasUserLocation && 'border-l border-white/[0.04] pl-2'
               )}>
                 Offline
               </span>
@@ -315,7 +321,7 @@ const RadarOverlay = memo(function RadarOverlay({
       <button
         type="button"
         onClick={onLocate}
-        className="rr-haptic absolute left-3 top-header-offset z-[25] flex h-11 w-11 items-center justify-center rounded-full bg-background/80 text-primary shadow-[0_0_0_1px_hsl(var(--primary)/0.28),0_0_24px_hsl(var(--primary)/0.18)] rr-shadow-md backdrop-blur-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="rr-haptic absolute left-3 top-header-offset z-[25] flex h-11 w-11 items-center justify-center rounded-full border border-white/[0.08] bg-surface/86 text-primary shadow-[0_14px_36px_hsl(0_0%_0%/0.34),0_0_0_1px_hsl(var(--primary)/0.20),0_0_24px_hsl(var(--primary)/0.16)] backdrop-blur-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         aria-label={hasUserLocation ? 'Center map on my location' : 'Find my location'}
       >
         <Crosshair className="h-5 w-5" aria-hidden="true" />
@@ -332,7 +338,7 @@ const RadarOverlay = memo(function RadarOverlay({
         )}
         style={{ left: padPos.left, top: padPos.top }}
       >
-        <div className="overflow-hidden rounded-[18px] backdrop-blur-xl bg-black/80 border border-white/[0.12] shadow-[0_0_12px_hsl(var(--primary)/0.10)]">
+        <div className="overflow-hidden rounded-[18px] border border-white/[0.12] bg-surface/90 shadow-[0_18px_52px_hsl(0_0%_0%/0.38),0_0_24px_hsl(var(--primary)/0.08)] backdrop-blur-2xl">
 
           {/* Drag handle */}
           <div
@@ -341,18 +347,18 @@ const RadarOverlay = memo(function RadarOverlay({
             onPointerUp={handlePadPointerUp}
             onPointerCancel={handlePadPointerCancel}
             style={{ touchAction: 'none' }}
-            className="flex flex-col items-center justify-center gap-[5px] h-6 border-b border-white/[0.04] cursor-grab active:cursor-grabbing select-none"
+            className="flex flex-col items-center justify-center gap-[5px] h-6 border-b border-white/[0.05] cursor-grab active:cursor-grabbing select-none"
             aria-label="Drag to reposition controls. Double-tap to reset."
           >
             <div className="flex gap-[5px]">
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-primary/65 shadow-[0_0_6px_hsl(var(--primary)/0.22)]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-primary/65 shadow-[0_0_6px_hsl(var(--primary)/0.22)]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-primary/65 shadow-[0_0_6px_hsl(var(--primary)/0.22)]" />
             </div>
             <div className="flex gap-[5px]">
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
-              <span className="h-[4px] w-[4px] rounded-full bg-white/[0.60]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-primary/65 shadow-[0_0_6px_hsl(var(--primary)/0.22)]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-primary/65 shadow-[0_0_6px_hsl(var(--primary)/0.22)]" />
+              <span className="h-[4px] w-[4px] rounded-full bg-primary/65 shadow-[0_0_6px_hsl(var(--primary)/0.22)]" />
             </div>
           </div>
 
@@ -363,10 +369,10 @@ const RadarOverlay = memo(function RadarOverlay({
               onClick={handleToggleLive}
               disabled={updateSettings.isPending}
               className={cn(
-                'rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] transition-all active:scale-95 border-r border-b border-white/[0.04]',
+                'rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] transition-all active:scale-95 border-r border-b border-white/[0.05]',
                 isLiveMapVisible
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-foreground hover:bg-white/[0.04]',
+                  ? 'bg-primary text-primary-foreground shadow-[inset_0_1px_0_hsl(0_0%_100%/0.12)]'
+                  : 'text-foreground hover:bg-white/[0.045]',
                 justActivated && 'rr-lock'
               )}
               aria-label={isLiveMapVisible ? 'LIVE — Tap to hide' : 'Go Live — appear on map'}
@@ -391,7 +397,7 @@ const RadarOverlay = memo(function RadarOverlay({
             {/* Signal */}
             <button
               onClick={handleCreateBroadcast}
-              className="rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-primary hover:bg-white/[0.04] transition-all active:scale-95 border-b border-white/[0.04]"
+              className="rr-haptic flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-primary hover:bg-white/[0.045] transition-all active:scale-95 border-b border-white/[0.05]"
               aria-label="Create a signal"
             >
               <div className="flex h-5 w-5 items-center justify-center">
@@ -403,7 +409,7 @@ const RadarOverlay = memo(function RadarOverlay({
             {/* Bike Down — spans full width */}
             <button
               onClick={handleBikeDown}
-              className="rr-haptic col-span-2 flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-destructive hover:bg-destructive/[0.06] transition-all active:scale-95"
+              className="rr-haptic col-span-2 flex flex-col items-center justify-center gap-1 px-3 py-2.5 min-h-[50px] text-destructive hover:bg-destructive/[0.08] transition-all active:scale-95"
               aria-label="Report a bike down emergency"
             >
               <div className="flex h-5 w-5 items-center justify-center">
