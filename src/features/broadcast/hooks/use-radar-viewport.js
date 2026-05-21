@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 function getViewportMetrics() {
   const visualViewport = window.visualViewport;
@@ -26,7 +26,6 @@ function writeViewportVars() {
   const safeBottom = readSafeAreaBottom();
 
   html.style.setProperty('--rr-viewport-height', `${metrics.height}px`);
-  html.style.setProperty('--rr-viewport-offset-bottom', `${metrics.offsetBottom}px`);
   html.style.setProperty('--rr-safe-area-bottom', `${safeBottom}px`);
 
   return { ...metrics, safeBottom };
@@ -37,9 +36,16 @@ export function useRadarViewport() {
     height: typeof window === 'undefined' ? 0 : Math.round(window.visualViewport?.height ?? window.innerHeight),
     version: 0,
   }));
+  const offsetBottomEnabledRef = useRef(false);
 
-  const updateViewport = useCallback(() => {
+  const updateViewport = useCallback((includeOffsetBottom = true) => {
     const metrics = writeViewportVars();
+    if (includeOffsetBottom && offsetBottomEnabledRef.current) {
+      document.documentElement.style.setProperty(
+        '--rr-viewport-offset-bottom',
+        `${metrics.offsetBottom}px`
+      );
+    }
     setViewport((current) => {
       if (current.height === metrics.height) return current;
       return { height: metrics.height, version: current.version + 1 };
@@ -48,14 +54,22 @@ export function useRadarViewport() {
 
   useEffect(() => {
     const frames = [];
-    frames.push(requestAnimationFrame(updateViewport));
+    frames.push(requestAnimationFrame(() => updateViewport(false)));
     frames.push(requestAnimationFrame(() => {
-      frames.push(requestAnimationFrame(updateViewport));
+      frames.push(requestAnimationFrame(() => updateViewport(false)));
     }));
-    const timers = [80, 250, 600].map((delay) => setTimeout(updateViewport, delay));
+    offsetBottomEnabledRef.current = false;
+    const timers = [
+      setTimeout(() => {
+        offsetBottomEnabledRef.current = true;
+        updateViewport(true);
+      }, 80),
+      setTimeout(() => updateViewport(true), 250),
+      setTimeout(() => updateViewport(true), 600),
+    ];
     const visualViewport = window.visualViewport;
 
-    updateViewport();
+    updateViewport(false);
     window.addEventListener('resize', updateViewport, { passive: true });
     window.addEventListener('orientationchange', updateViewport, { passive: true });
     visualViewport?.addEventListener('resize', updateViewport, { passive: true });

@@ -59,6 +59,16 @@ function captureLayoutMetrics(label) {
   console.groupEnd();
 }
 
+function readSafeAreaBottom() {
+  const probe = document.createElement('div');
+  probe.style.cssText =
+    'position:fixed;bottom:0;left:0;width:0;height:0;padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none;visibility:hidden;';
+  document.body.appendChild(probe);
+  const safeBottom = parseFloat(getComputedStyle(probe).paddingBottom) || 0;
+  probe.remove();
+  return Math.round(safeBottom);
+}
+
 const AppLayout = memo(function AppLayout() {
   const { pathname } = useLocation();
   const isRadar = pathname === '/home';
@@ -87,12 +97,7 @@ const AppLayout = memo(function AppLayout() {
       // Read the actual env() value via a fixed probe and expose as a CSS var
       // so that all consumers (translate, pb-safe, etc.) get the correct value
       // even on the very first paint the user sees.
-      const probe = document.createElement('div');
-      probe.style.cssText =
-        'position:fixed;bottom:0;left:0;width:0;height:0;padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none;visibility:hidden;';
-      document.body.appendChild(probe);
-      const safeBottom = parseFloat(getComputedStyle(probe).paddingBottom) || 0;
-      probe.remove();
+      const safeBottom = readSafeAreaBottom();
       html.style.setProperty('--rr-safe-area-bottom', `${safeBottom}px`);
 
       window.scrollTo(0, 0);
@@ -101,6 +106,12 @@ const AppLayout = memo(function AppLayout() {
         html.style.scrollBehavior = savedScrollBehavior;
       });
     });
+
+    const safeAreaTimers = [
+      setTimeout(() => html.style.setProperty('--rr-safe-area-bottom', `${readSafeAreaBottom()}px`), 150),
+      setTimeout(() => html.style.setProperty('--rr-safe-area-bottom', `${readSafeAreaBottom()}px`), 500),
+      setTimeout(() => html.style.setProperty('--rr-safe-area-bottom', `${readSafeAreaBottom()}px`), 1500),
+    ];
 
     const updateVh = () => {
       const h = window.visualViewport?.height ?? window.innerHeight;
@@ -117,6 +128,7 @@ const AppLayout = memo(function AppLayout() {
       if (raf2 !== undefined) cancelAnimationFrame(raf2);
       cancelAnimationFrame(raf3);
       clearTimeout(timer);
+      safeAreaTimers.forEach(clearTimeout);
       vv?.removeEventListener('resize', updateVh);
       window.removeEventListener('resize', updateVh);
       html.style.minHeight = savedMinH;
