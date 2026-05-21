@@ -623,9 +623,24 @@
 
   .leaflet-control-attribution {
     border-top-left-radius: 0.65rem !important;
-    background: hsl(0 0% 0% / 0.58) !important;
+    background: hsl(0 0% 0% / 0.42) !important;
     color: hsl(var(--muted-foreground)) !important;
     backdrop-filter: blur(10px);
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    padding: 3px 8px !important;
+    max-width: calc(100vw - 24px) !important;
+    white-space: nowrap;
+  }
+
+  .leaflet-control-attribution a {
+    color: hsl(var(--muted-foreground)) !important;
+    text-decoration: none !important;
+  }
+
+  .leaflet-control-attribution a:hover {
+    color: hsl(var(--foreground)) !important;
+    text-decoration: underline !important;
   }
 
   /* Lift Leaflet attribution above the floating bottom nav pill on radar */
