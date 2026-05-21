@@ -7,7 +7,7 @@ import { VStack } from '@/components/ui/primitives/Stack';
 
 const TABS = [
   { to: '/home', icon: Map, label: 'Radar' },
-  { to: '/messages', icon: MessageCircle, label: 'Messages' },
+  { to: '/messages', icon: MessageCircle, label: 'Comm.' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];
 
@@ -24,13 +24,17 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
       <div
         className={cn(
           'mx-auto max-w-xl pointer-events-auto',
-          'bg-surface/85 backdrop-blur-xl',
-          'border border-white/[0.08]',
-          'rounded-2xl overflow-hidden',
-          'shadow-[0_-4px_24px_hsl(0_0%_0%/0.35)]'
+          'relative overflow-hidden rounded-[28px]',
+          'border border-white/[0.08] bg-black/82 backdrop-blur-2xl',
+          'shadow-[0_-18px_42px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.03)]'
         )}
       >
-        <div className="flex items-center justify-around">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent"
+        />
+
+        <div className="grid grid-cols-3 gap-1.5 p-1.5">
           {TABS.map((tab) => {
             const isActive =
               pathname === tab.to ||
@@ -45,21 +49,35 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
                 aria-selected={isActive}
                 aria-label={tab.label}
                 className={cn(
-                  'relative flex flex-col items-center justify-center',
-                  'flex-1 min-h-[56px] px-3 py-1.5',
+                  'group relative flex min-h-[58px] flex-col items-center justify-center overflow-hidden rounded-[22px]',
+                  'px-2 py-2',
                   'transition-all duration-200 select-none',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   'pressable',
                   isActive
                     ? 'text-primary'
-                    : 'text-muted-foreground hover:text-foreground/80'
+                    : 'text-muted-foreground hover:text-foreground/85'
                 )}
               >
-                <VStack align="center" gap={0.5}>
+                {isActive && (
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'absolute inset-0 rounded-[22px]',
+                      'bg-gradient-to-b from-primary/[0.22] via-primary/[0.12] to-primary/[0.05]',
+                      'ring-1 ring-primary/20',
+                      'shadow-[0_0_24px_hsl(var(--primary)/0.18)]'
+                    )}
+                  />
+                )}
+
+                <VStack align="center" gap={0.5} className="relative">
                   <Icon
                     className={cn(
-                      'transition-colors duration-200',
-                      'h-[22px] w-[22px]'
+                      'h-[22px] w-[22px] transition-all duration-200',
+                      isActive
+                        ? 'text-primary drop-shadow-[0_0_10px_hsl(var(--primary)/0.65)]'
+                        : 'text-current/90 group-hover:text-foreground'
                     )}
                     strokeWidth={2}
                     aria-hidden="true"
@@ -67,24 +85,23 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
 
                   <Text
                     variant="micro"
-                    color={isActive ? 'primary' : 'muted'}
                     className={cn(
-                      'transition-colors duration-200',
-                      isActive && 'font-bold'
+                      'text-[11px] font-semibold uppercase tracking-[0.18em] transition-all duration-200',
+                      isActive
+                        ? 'text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.28)]'
+                        : 'text-muted-foreground'
                     )}
                   >
                     {tab.label}
                   </Text>
                 </VStack>
 
-                {/* Animated active indicator pill — neon green */}
                 {isActive && (
                   <span
                     className={cn(
-                      'absolute bottom-1.5 left-1/2 -translate-x-1/2',
-                      'h-[3px] w-6 rounded-full bg-primary',
+                      'relative mt-1 h-1 w-7 rounded-full bg-primary',
                       'animate-fade-in',
-                      'shadow-[0_0_8px_hsl(var(--primary)/0.6)]'
+                      'shadow-[0_0_10px_hsl(var(--primary)/0.75)]'
                     )}
                     aria-hidden="true"
                   />
