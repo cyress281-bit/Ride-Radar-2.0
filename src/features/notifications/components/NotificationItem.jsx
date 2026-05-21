@@ -15,6 +15,7 @@ import {
   Megaphone,
   AlertTriangle,
   CalendarClock,
+  ShieldCheck,
   Info,
   X,
 } from 'lucide-react';
@@ -43,6 +44,7 @@ const TYPE_COLORS = {
 };
 
 function getTypeColors(type) {
+  if (type === 'official_event_review_request') return TYPE_COLORS.rsvp;
   return TYPE_COLORS[type] ?? TYPE_COLORS.connection_request;
 }
 
@@ -69,6 +71,8 @@ function getIconForType(type) {
     case 'rsvp':
     case 'event_reminder':
       return CalendarClock;
+    case 'official_event_review_request':
+      return ShieldCheck;
     case 'bike_down':
     case 'sos':
     case 'alert':
@@ -119,6 +123,10 @@ function getNotificationHref(notification) {
   if (type === 'new_message' || type === 'message') {
     const convId = data?.conversation_id;
     return convId ? `/messages/${convId}` : null;
+  }
+
+  if (type === 'official_event_review_request') {
+    return '/admin/events';
   }
 
   const type2 = notification.related_entity_type;
