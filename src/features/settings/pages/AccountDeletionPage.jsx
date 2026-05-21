@@ -106,7 +106,7 @@ export default function AccountDeletionPage() {
               <Text as="h1" variant="h2" color="default" className="rr-neon-red">Delete Account</Text>
             </HStack>
             <Text variant="bodySm" color="muted">
-              Permanently remove your Ride Radar data. This action cannot be undone.
+              Remove or anonymize your Ride Radar account data and associated in-app content according to the current deletion process. Some data may be retained where required for legal, security, abuse prevention, backup, or operational reasons.
             </Text>
           </VStack>
         </div>
@@ -153,12 +153,12 @@ export default function AccountDeletionPage() {
                 <Text variant="bodySm" className="font-bold text-brand-emergency">Warning: irreversible action</Text>
               </HStack>
               <div className="space-y-3 relative z-10">
-                <WarningItem icon={User} text="Your profile, avatar, bio, and bike details will be permanently deleted" />
-                <WarningItem icon={Radio} text="Your broadcasts, signals, and ride posts will be deleted" />
-                <WarningItem icon={MessageSquare} text="Your messages, conversations, and comments will be removed" />
-                <WarningItem icon={Users} text="Your connections, friendships, and notifications will be cleared" />
-                <WarningItem icon={Image} text="Your uploaded photos will be removed from storage" />
-                <WarningItem icon={Lock} text="This action cannot be reversed by support" />
+                <WarningItem icon={User} text="Your profile and public rider details will be removed or anonymized" />
+                <WarningItem icon={Radio} text="Your broadcasts, signals, and ride posts will be removed from normal app access" />
+                <WarningItem icon={MessageSquare} text="Your messages, conversations, and comments will be removed from normal app access" />
+                <WarningItem icon={Users} text="Your connections, friendships, and notifications will be cleared where supported by the current deletion process" />
+                <WarningItem icon={Image} text="Uploaded content may be removed from normal app access; backups or logs may persist temporarily" />
+                <WarningItem icon={Lock} text="Some data may be retained for legal, security, abuse prevention, backup, or operational reasons" />
               </div>
             </div>
 

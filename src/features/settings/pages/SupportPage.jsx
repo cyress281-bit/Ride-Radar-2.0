@@ -36,7 +36,7 @@ const FAQS = [
   },
   {
     q: 'Official event review',
-    a: 'Open the event detail page and tap Request official review. Official badges are reviewed by Ride Radar admins and are not user-assigned. If you need help, contact support.',
+    a: 'Open the event detail page and tap Request official review. Official badges are reviewed by Ride Radar admins and are not user-assigned. If the in-app request flow is unavailable or you cannot access the event, contact support as a fallback.',
     icon: Shield,
   },
 ];

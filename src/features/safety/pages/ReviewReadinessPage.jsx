@@ -61,10 +61,12 @@ export default function ReviewReadinessPage() {
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15">
               <CheckCircle className="h-3.5 w-3.5 text-primary" />
             </div>
-            <span className="text-sm font-medium text-foreground">No data shared with third parties</span>
+            <span className="text-sm font-medium text-foreground">Ride Radar does not sell user data</span>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Analytics are anonymized. No advertising trackers. No sale of personal data.
+            Ride Radar may use service providers for hosting, authentication, storage, analytics, crash/error reporting,
+            security, and app operations. When configured or enabled, analytics and crash/error reporting may be
+            collected to help operate, secure, improve, and support the app.
           </p>
         </div>
       </div>

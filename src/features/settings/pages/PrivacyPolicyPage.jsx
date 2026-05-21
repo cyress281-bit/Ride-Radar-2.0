@@ -6,7 +6,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { ArrowLeft, FileText, Shield, Eye, Database, UserX, Mail } from 'lucide-react';
+import { ArrowLeft, FileText, Shield, Eye, Database, UserX, Mail, MapPin } from 'lucide-react';
 import { SUPPORT_EMAIL } from '@/lib/constants.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
@@ -59,7 +59,10 @@ export default function PrivacyPolicyPage() {
                 reports, and messages
               </Text>
               <Text as="li" variant="caption" color="muted">
-                Approximate location information when needed for core app features
+                Approximate location information for nearby signals, rider discovery, and live map features
+              </Text>
+              <Text as="li" variant="caption" color="muted">
+                Precise location when you choose precise sharing or use exact pin/location flows
               </Text>
               <Text as="li" variant="caption" color="muted">
                 Moderation and safety-related information such as reports, blocks, and deletion
@@ -74,17 +77,45 @@ export default function PrivacyPolicyPage() {
               <Text as="li" variant="caption" color="muted">To power broadcasts, events, alerts, messaging, and rider discovery</Text>
               <Text as="li" variant="caption" color="muted">To improve safety, moderation, and support</Text>
               <Text as="li" variant="caption" color="muted">To respond to account, privacy, and deletion requests</Text>
+              <Text as="li" variant="caption" color="muted">
+                To operate, secure, diagnose, and improve the app through analytics and crash reporting when configured or enabled, including Plausible and Sentry where used
+              </Text>
             </ul>
           </PolicySection>
 
           <PolicySection title="Public vs private information" icon={Shield} accent="amber">
             <ul className="list-disc space-y-2 pl-5">
               <Text as="li" variant="caption" color="muted">
-                Display name, avatar, bike details, and certain broadcast content may be visible to
-                other users
+                Public or visible in-app information may include profile basics, avatars, bike details, broadcasts,
+                events, comments, RSVPs, and other participation-style actions where shown
               </Text>
               <Text as="li" variant="caption" color="muted">
-                Email and private account identity information are not public
+                Private or limited information includes account email, direct messages, moderation data, deletion requests,
+                and internal diagnostics
+              </Text>
+            </ul>
+          </PolicySection>
+
+          <PolicySection title="Location and visibility" icon={MapPin} accent="radar">
+            <ul className="list-disc space-y-2 pl-5">
+              <Text as="li" variant="caption" color="muted">
+                Approximate location may be used for nearby signals, rider discovery, and standard live map presence
+              </Text>
+              <Text as="li" variant="caption" color="muted">
+                Precise location may be used only when you choose precise sharing or use exact pin/location flows
+              </Text>
+              <Text as="li" variant="caption" color="muted">
+                Bike Down can use exact pin or current-location coordinates when you submit it that way
+              </Text>
+              <Text as="li" variant="caption" color="muted">
+                Planned meetup/event pins can be exact when confirmed or adjusted on the map
+              </Text>
+              <Text as="li" variant="caption" color="muted">
+                Ride Now live presence is separate from normal Ride Now broadcasts and may share live visibility or
+                location while enabled
+              </Text>
+              <Text as="li" variant="caption" color="muted">
+                Some location details may be visible to other users depending on signal type and privacy settings
               </Text>
             </ul>
           </PolicySection>
@@ -97,10 +128,10 @@ export default function PrivacyPolicyPage() {
                 confirm.
               </Text>
               <Text variant="caption" color="muted" className="leading-relaxed">
-                Deletion permanently removes your profile, display name, avatar, bike details, broadcasts,
-                signals, posts, comments, messages, conversations, connections, friendships, live map
-                presence, notifications, event RSVPs, and all uploaded photos. This action is immediate
-                and cannot be reversed by support.
+                Deletion removes or anonymizes account and profile data and associated in-app content according to
+                the current deletion process. Some data may be retained where required for legal, security, abuse
+                prevention, backup, or operational reasons. Items removed from the app may still remain in backups
+                or logs temporarily while systems process the request.
               </Text>
               <Text variant="caption" color="muted" className="leading-relaxed">
                 If you cannot access the app, email{' '}
