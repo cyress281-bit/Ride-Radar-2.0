@@ -645,20 +645,23 @@ function BroadcastDetailPage() {
   const isAuthor = user?.id === broadcast.author_id;
   const isAlert = broadcast.type === 'alert';
   const isBikeDown = broadcast.alert_type === 'bike_down';
+  const signalTone = isBikeDown ? 'bike_down' : broadcast.type;
 
   const typeAccentClass = {
     solo_ride: 'border-l-[3px] border-l-primary shadow-[-3px_0_14px_hsl(var(--primary)/0.25)]',
     iso: 'border-l-[3px] border-l-brand-radar shadow-[-3px_0_14px_hsl(var(--brand-radar)/0.25)]',
     event: 'border-l-[3px] border-l-brand-amber shadow-[-3px_0_14px_hsl(var(--brand-amber)/0.25)]',
-    alert: 'border-l-[3px] border-l-brand-emergency shadow-[-3px_0_14px_hsl(var(--brand-emergency)/0.3)]',
-  }[broadcast.type] || 'border-l-[3px] border-l-border/60';
+    alert: 'border-l-[3px] border-l-brand-amber shadow-[-3px_0_14px_hsl(var(--brand-amber)/0.22)]',
+    bike_down: 'border-l-[3px] border-l-brand-emergency shadow-[-3px_0_14px_hsl(var(--brand-emergency)/0.3)]',
+  }[signalTone] || 'border-l-[3px] border-l-border/60';
 
   const badgeClass = {
     solo_ride: 'bg-primary/10 text-primary border-primary/30',
     iso: 'bg-brand-radar/10 text-brand-radar border-brand-radar/30',
     event: 'bg-brand-amber/10 text-brand-amber border-brand-amber/30',
-    alert: 'bg-brand-emergency/10 text-brand-emergency border-brand-emergency/30',
-  }[broadcast.type] || 'bg-muted text-muted-foreground border-border/50';
+    alert: 'bg-brand-amber/10 text-brand-amber border-brand-amber/30',
+    bike_down: 'bg-brand-emergency/10 text-brand-emergency border-brand-emergency/30',
+  }[signalTone] || 'bg-muted text-muted-foreground border-border/50';
 
   const hasHeroImage = broadcast.type === 'event' && broadcast.event_image_url;
   const isOfficialEvent = broadcast.type === 'event' && broadcast.is_official === true;
