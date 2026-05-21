@@ -41,7 +41,7 @@ const IncomingRequestRow = memo(function IncomingRequestRow({ request, senderPro
   }, [decline, request.id]);
 
   return (
-    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md">
+    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl shadow-[0_12px_32px_hsl(0_0%_0%/0.18)]">
       <button
         type="button"
         onClick={() => navigate(`/profile/${request.from_user_id}`)}
@@ -165,7 +165,7 @@ function RequestsTab() {
   if (isEmpty) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/[0.06] bg-surface/60 backdrop-blur-md mb-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl mb-4 shadow-[0_12px_30px_hsl(0_0%_0%/0.18)]">
           <UserPlus className="h-6 w-6 text-muted-foreground" />
         </div>
         <Text variant="bodySm" className="font-semibold text-foreground mb-1">No pending requests</Text>

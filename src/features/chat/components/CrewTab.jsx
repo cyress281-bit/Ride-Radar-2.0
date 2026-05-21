@@ -45,7 +45,7 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
   const { mutate: removeF, isPending: isRemoving } = useRemoveFriendship();
 
   return (
-    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md">
+    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl shadow-[0_12px_32px_hsl(0_0%_0%/0.18)]">
       <button
         type="button"
         onClick={() => navigate(`/profile/${friendId}`)}
@@ -97,7 +97,7 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
             className={cn(
               'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors',
               'bg-brand-radar/10 border border-brand-radar/20 text-brand-radar',
-              'hover:bg-brand-radar/20 disabled:opacity-50',
+              'hover:bg-brand-radar/20 hover:border-brand-radar/30 disabled:opacity-50',
             )}
           >
             {openChat.isPending
@@ -107,10 +107,10 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
           </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="flex items-center justify-center h-11 w-11 rounded-full border border-white/[0.06] text-muted-foreground hover:text-foreground hover:bg-surface-elevated transition-colors"
-                aria-label="More options"
+            <button
+              type="button"
+              className="flex items-center justify-center h-11 w-11 rounded-full border border-white/[0.06] text-muted-foreground hover:text-foreground hover:bg-surface-elevated transition-colors"
+              aria-label="More options"
               >
                 <MoreHorizontal className="w-3.5 h-3.5" />
               </button>
@@ -151,8 +151,8 @@ function CrewTab() {
   return (
     <VStack gap={2} className="pb-8">
       {visibleFriendships.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/[0.06] bg-surface/60 backdrop-blur-md mb-4">
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl mb-4 shadow-[0_12px_30px_hsl(0_0%_0%/0.18)]">
             <Users className="h-6 w-6 text-muted-foreground" />
           </div>
           <Text variant="bodySm" className="font-semibold text-foreground mb-1">No friends yet</Text>

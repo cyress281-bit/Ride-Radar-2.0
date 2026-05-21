@@ -75,9 +75,9 @@ const ConversationItem = memo(function ConversationItem({
   return (
     <div
       className={cn(
-        'w-full rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md',
-        'transition-all duration-200 hover:bg-surface-elevated/80 hover:border-white/[0.08] hover:shadow-depth-2',
-        hasUnread && 'border-primary/10 bg-surface-elevated/40'
+        'w-full rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl',
+        'transition-all duration-200 hover:bg-white/[0.06] hover:border-white/[0.1] hover:shadow-[0_14px_40px_hsl(0_0%_0%/0.24)]',
+        hasUnread && 'border-primary/12 bg-primary/[0.05] shadow-[0_0_0_1px_hsl(var(--primary)/0.04)]'
       )}
     >
       <div className="flex items-center gap-2 px-3.5 py-3.5">
@@ -92,7 +92,7 @@ const ConversationItem = memo(function ConversationItem({
           <div className="relative shrink-0">
             <div className={cn(
               'rounded-full transition-shadow duration-300',
-              hasUnread && 'shadow-[0_0_16px_rgba(57,255,20,0.18)]'
+              hasUnread && 'shadow-[0_0_18px_rgba(57,255,20,0.18)]'
             )}>
               <AvatarWithStatus
                 url={profile?.avatar_url}
@@ -115,7 +115,7 @@ const ConversationItem = memo(function ConversationItem({
               <VStack gap={0} className="min-w-0 flex-1">
                 <Text
                   variant="bodySm"
-                  className={cn('font-semibold truncate', hasUnread && 'text-foreground')}
+                  className={cn('font-semibold truncate', hasUnread ? 'text-foreground' : 'text-foreground/92')}
                 >
                   {profile?.display_name || 'Rider'}
                 </Text>
@@ -149,14 +149,14 @@ const ConversationItem = memo(function ConversationItem({
                   variant="caption"
                   color={hasUnread ? 'default' : 'muted'}
                   truncate
-                  className={cn(hasUnread && 'text-foreground font-medium')}
+                  className={cn(hasUnread ? 'text-foreground font-medium' : 'text-muted-foreground/85')}
                 >
                   {lastMessage || 'Start a conversation'}
                 </Text>
               </HStack>
               {hasUnread && (
                 <span
-                  className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold shrink-0 shadow-[0_0_10px_rgba(57,255,20,0.35)]"
+                  className="flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold shrink-0 shadow-[0_0_12px_rgba(57,255,20,0.38)]"
                   aria-label={`${unreadCount} unread ${unreadCount === 1 ? 'message' : 'messages'}`}
                 >
                   {unreadCount}

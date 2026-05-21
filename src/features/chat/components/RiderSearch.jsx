@@ -76,7 +76,7 @@ const ResultCard = memo(function ResultCard({
       <button
         type="button"
         onClick={() => navigate(`/profile/${uid}`)}
-        className="flex items-center gap-3 p-3.5 w-full rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md text-left hover:bg-surface/80 active:scale-[0.99] transition-colors"
+        className="flex items-center gap-3 p-3.5 w-full rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl text-left hover:bg-white/[0.06] active:scale-[0.99] transition-colors shadow-[0_12px_32px_hsl(0_0%_0%/0.18)]"
       >
         <AvatarWithStatus
           url={result.avatar_url}
@@ -95,7 +95,7 @@ const ResultCard = memo(function ResultCard({
   }
 
   return (
-    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md">
+    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl shadow-[0_12px_32px_hsl(0_0%_0%/0.18)]">
       <button
         type="button"
         onClick={() => navigate(`/profile/${uid}`)}
@@ -221,9 +221,9 @@ function RiderSearch({
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search riders"
           className={cn(
-            'w-full rounded-full border border-white/[0.06] bg-surface/60 backdrop-blur-xl pl-10 pr-10 py-3 text-sm text-foreground',
+            'w-full rounded-full border border-white/[0.06] bg-white/[0.05] backdrop-blur-xl pl-10 pr-10 py-3 text-sm text-foreground',
             'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/30',
-            'transition-all duration-200 shadow-depth-1 hover:bg-surface/80 hover:border-white/[0.08]',
+            'transition-all duration-200 shadow-[0_12px_28px_hsl(0_0%_0%/0.18)] hover:bg-white/[0.07] hover:border-white/[0.08]',
           )}
         />
         {query && (
