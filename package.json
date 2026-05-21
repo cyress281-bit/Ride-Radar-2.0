@@ -16,6 +16,7 @@
     "analyze": "npx vite-bundle-visualizer"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.4",
     "@capacitor/core": "^8.3.4",
     "@capacitor/ios": "^8.3.4",
     "@hookform/resolvers": "^4.1.2",

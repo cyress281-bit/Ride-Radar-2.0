@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Ride Radar</string>
+    <string name="title_activity_main">Ride Radar</string>
+    <string name="package_name">com.rideradarapp.app</string>
+    <string name="custom_url_scheme">com.rideradarapp.app</string>
+</resources>
