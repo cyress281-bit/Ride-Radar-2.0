@@ -179,7 +179,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
         onClick={() => setSheetOpen((v) => !v)}
         className="w-full flex flex-col items-center pt-2.5 pb-2 min-h-[44px] active:scale-[0.96] active:opacity-80 transition-all duration-150"
       >
-        <span className="h-1 w-14 rounded-full bg-primary" />
+        <span className="h-1 w-14 rounded-full bg-primary/70 shadow-[0_0_8px_hsl(var(--primary)/0.25)]" />
         <HStack gap={2} align="center" className="mt-1.5">
           <Radio className="w-3.5 h-3.5 text-primary" />
           <Text variant="micro" className="text-foreground font-semibold">
