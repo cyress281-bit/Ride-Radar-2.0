@@ -26,7 +26,7 @@ const FAQS = [
   },
   {
     q: 'Can I delete my account?',
-    a: 'Yes. Visit Settings > Delete Account to permanently remove your data.',
+    a: 'Yes. Visit Settings > Delete Account to delete your account and remove or anonymize associated Ride Radar data according to our deletion process.',
     icon: Trash2,
   },
   {

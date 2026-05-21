@@ -522,11 +522,16 @@ function SettingsPage() {
       </SettingsSection>
 
       {/* Danger Zone */}
-      <SettingsSection title="Danger Zone" icon={AlertCircle} danger>
-        <Link to="/account-deletion" className="block">
-          <SettingsRow icon={Trash2} label="Delete Account" desc="Permanently delete Ride Radar app data" danger />
-        </Link>
-        <div className="border-t border-brand-emergency/10">
+        <SettingsSection title="Danger Zone" icon={AlertCircle} danger>
+          <Link to="/account-deletion" className="block">
+            <SettingsRow
+              icon={Trash2}
+              label="Delete Account"
+              desc="Delete your account and remove or anonymize associated Ride Radar data"
+              danger
+            />
+          </Link>
+          <div className="border-t border-brand-emergency/10">
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left hover:bg-brand-emergency/5 transition-colors"
