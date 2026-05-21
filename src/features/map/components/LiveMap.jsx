@@ -139,6 +139,19 @@ const InvalidateMapSize = memo(function InvalidateMapSize({ resizeKey }) {
   return null;
 });
 
+const RadarLayerPanes = memo(function RadarLayerPanes() {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || map.getPane('rr-self-marker-pane')) return;
+    const pane = map.createPane('rr-self-marker-pane');
+    pane.style.zIndex = '650';
+    pane.style.pointerEvents = 'auto';
+  }, [map]);
+
+  return null;
+});
+
 const BroadcastClusterLayer = memo(function BroadcastClusterLayer({ items, userLat, userLng }) {
   const map = useMap();
   const [popupTargets, setPopupTargets] = useState([]);
@@ -600,10 +613,16 @@ function LiveMap({
               eventHandlers={tileEventHandlers}
             />
             {variant === 'radar' && <RadarAttributionTuning />}
+            <RadarLayerPanes />
             <FitMapToItems items={items} userLat={userLat} userLng={userLng} variant={variant} disabled={variant === 'radar' && autoFitDisabled} focusUserLocation={focusUserLocation} fitKey={fitKey} />
             <InvalidateMapSize resizeKey={resizeKey} />
             {showSelfLocation && hasUserLocation && (
-              <Marker position={[userLat, userLng]} icon={isLiveMapVisible ? getSelfMarkerIconLive() : getSelfMarkerIcon()}>
+              <Marker
+                position={[userLat, userLng]}
+                icon={isLiveMapVisible ? getSelfMarkerIconLive() : getSelfMarkerIcon()}
+                pane="rr-self-marker-pane"
+                zIndexOffset={5000}
+              >
                 <Popup>
                   <div className="min-w-48 text-foreground">
                     <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">Private location</div>
