@@ -17,11 +17,11 @@ const FILTER_TYPES = [
 ];
 
 const FILTER_STYLES = {
-  all:    { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'bg-white/[0.09] text-foreground/80 border-white/[0.12] hover:bg-white/[0.12] hover:text-foreground hover:border-white/[0.18]' },
-  alert:  { active: 'bg-alert text-alert-foreground shadow-[0_0_20px_hsl(var(--alert)/0.3)]', inactive: 'bg-white/[0.09] text-foreground/80 border-white/[0.12] hover:bg-white/[0.12] hover:text-foreground hover:border-white/[0.18]' },
-  solo_ride: { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'bg-white/[0.09] text-foreground/80 border-white/[0.12] hover:bg-white/[0.12] hover:text-foreground hover:border-white/[0.18]' },
-  iso:    { active: 'bg-iso text-iso-foreground shadow-[0_0_20px_hsl(var(--iso)/0.3)]', inactive: 'bg-white/[0.09] text-foreground/80 border-white/[0.12] hover:bg-white/[0.12] hover:text-foreground hover:border-white/[0.18]' },
-  event:  { active: 'bg-event text-event-foreground shadow-[0_0_20px_hsl(var(--event)/0.3)]', inactive: 'bg-white/[0.09] text-foreground/80 border-white/[0.12] hover:bg-white/[0.12] hover:text-foreground hover:border-white/[0.18]' },
+  all:    { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'bg-white/[0.03] text-foreground/70 border-white/[0.06] hover:bg-white/[0.05] hover:text-foreground hover:border-white/[0.09]' },
+  alert:  { active: 'bg-alert text-alert-foreground shadow-[0_0_20px_hsl(var(--alert)/0.3)]', inactive: 'bg-white/[0.03] text-foreground/70 border-white/[0.06] hover:bg-white/[0.05] hover:text-foreground hover:border-white/[0.09]' },
+  solo_ride: { active: 'bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.3)]', inactive: 'bg-white/[0.03] text-foreground/70 border-white/[0.06] hover:bg-white/[0.05] hover:text-foreground hover:border-white/[0.09]' },
+  iso:    { active: 'bg-iso text-iso-foreground shadow-[0_0_20px_hsl(var(--iso)/0.3)]', inactive: 'bg-white/[0.03] text-foreground/70 border-white/[0.06] hover:bg-white/[0.05] hover:text-foreground hover:border-white/[0.09]' },
+  event:  { active: 'bg-event text-event-foreground shadow-[0_0_20px_hsl(var(--event)/0.3)]', inactive: 'bg-white/[0.03] text-foreground/70 border-white/[0.06] hover:bg-white/[0.05] hover:text-foreground hover:border-white/[0.09]' },
 };
 
 /**
