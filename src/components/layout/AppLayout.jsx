@@ -1,4 +1,4 @@
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import AppHeader from './AppHeader';
@@ -26,9 +26,58 @@ function readSafeAreaBottom() {
   return Math.round(safeBottom);
 }
 
+function isStandalonePwa() {
+  return Boolean(
+    window.navigator.standalone ||
+    window.matchMedia?.('(display-mode: standalone)')?.matches
+  );
+}
+
+function readNavDebug(pathname) {
+  const html = document.documentElement;
+  const navEl = document.querySelector('[data-rr-nav]');
+  const navRect = navEl?.getBoundingClientRect?.() ?? null;
+  const navStyles = navEl ? getComputedStyle(navEl) : null;
+  const pillEl = navEl?.firstElementChild ?? null;
+  const pillRect = pillEl?.getBoundingClientRect?.() ?? null;
+  const pillStyles = pillEl ? getComputedStyle(pillEl) : null;
+  const vv = window.visualViewport;
+  const rootStyles = getComputedStyle(html);
+
+  return {
+    pathname,
+    isRadar: pathname === '/home',
+    isStandalone: isStandalonePwa(),
+    isPwa: isStandalonePwa(),
+    innerHeight: window.innerHeight,
+    clientHeight: html.clientHeight,
+    bodyScrollHeight: document.body.scrollHeight,
+    vvHeight: vv?.height ?? null,
+    vvOffsetTop: vv?.offsetTop ?? null,
+    vvPageTop: vv?.pageTop ?? null,
+    vvScale: vv?.scale ?? null,
+    rrSafeAreaBottom: rootStyles.getPropertyValue('--rr-safe-area-bottom').trim() || '(unset)',
+    rrViewportOffsetBottom: rootStyles.getPropertyValue('--rr-viewport-offset-bottom').trim() || '(unset)',
+    rrViewportHeight: rootStyles.getPropertyValue('--rr-viewport-height').trim() || '(unset)',
+    navBottom: navStyles?.bottom ?? '(missing)',
+    navPaddingBottom: navStyles?.paddingBottom ?? '(missing)',
+    navRectTop: navRect?.top ?? '(missing)',
+    navRectBottom: navRect?.bottom ?? '(missing)',
+    navRectHeight: navRect?.height ?? '(missing)',
+    pillMarginBottom: pillStyles?.marginBottom ?? '(missing)',
+    pillPaddingBottom: pillStyles?.paddingBottom ?? '(missing)',
+    pillRectTop: pillRect?.top ?? '(missing)',
+    pillRectBottom: pillRect?.bottom ?? '(missing)',
+    pillRectHeight: pillRect?.height ?? '(missing)',
+  };
+}
+
 const AppLayout = memo(function AppLayout() {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
   const isRadar = pathname === '/home';
+  const showNavDebug = new URLSearchParams(location.search).get('navdebug') === '1' || isStandalonePwa();
+  const [navDebug, setNavDebug] = useState(() => readNavDebug(pathname));
 
   // iOS Safari cold-start: env(safe-area-inset-bottom) stays 0 until the browser
   // observes a scroll event on a scrollable document. void offsetHeight does NOT
@@ -93,6 +142,31 @@ const AppLayout = memo(function AppLayout() {
       html.style.scrollBehavior = savedScrollBehavior;
     };
   }, []);
+
+  useEffect(() => {
+    if (!showNavDebug) return;
+
+    const update = () => setNavDebug(readNavDebug(pathname));
+    const timers = [
+      setTimeout(update, 150),
+      setTimeout(update, 500),
+      setTimeout(update, 1500),
+    ];
+
+    update();
+
+    const vv = window.visualViewport;
+    window.addEventListener('resize', update, { passive: true });
+    vv?.addEventListener('resize', update, { passive: true });
+    vv?.addEventListener('scroll', update, { passive: true });
+
+    return () => {
+      timers.forEach(clearTimeout);
+      window.removeEventListener('resize', update);
+      vv?.removeEventListener('resize', update);
+      vv?.removeEventListener('scroll', update);
+    };
+  }, [pathname, showNavDebug]);
 
   return (
     <div
@@ -164,6 +238,41 @@ const AppLayout = memo(function AppLayout() {
 
       {/* Bottom navigation */}
       <BottomNav isOverlay={isRadar} />
+
+      {showNavDebug && (
+        <div
+          className="fixed top-3 right-3 z-[200] max-h-[70vh] w-[min(92vw,24rem)] overflow-y-auto rounded-xl border border-primary/25 bg-black/85 p-3 text-[10px] leading-4 text-foreground shadow-[0_18px_50px_hsl(0_0%_0%/0.6)] backdrop-blur-xl"
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className="mb-2 font-bold text-primary">Nav Debug</div>
+          <div className="grid grid-cols-[auto,1fr] gap-x-2 gap-y-1 font-mono">
+            <span className="text-muted-foreground">pathname</span><span className="break-all">{navDebug.pathname}</span>
+            <span className="text-muted-foreground">isRadar</span><span>{String(navDebug.isRadar)}</span>
+            <span className="text-muted-foreground">isStandalone</span><span>{String(navDebug.isStandalone)}</span>
+            <span className="text-muted-foreground">isPwa</span><span>{String(navDebug.isPwa)}</span>
+            <span className="text-muted-foreground">window.innerHeight</span><span>{navDebug.innerHeight}</span>
+            <span className="text-muted-foreground">document.documentElement.clientHeight</span><span>{navDebug.clientHeight}</span>
+            <span className="text-muted-foreground">document.body.scrollHeight</span><span>{navDebug.bodyScrollHeight}</span>
+            <span className="text-muted-foreground">visualViewport.height</span><span>{navDebug.vvHeight ?? '(n/a)'}</span>
+            <span className="text-muted-foreground">visualViewport.offsetTop</span><span>{navDebug.vvOffsetTop ?? '(n/a)'}</span>
+            <span className="text-muted-foreground">visualViewport.pageTop</span><span>{navDebug.vvPageTop ?? '(n/a)'}</span>
+            <span className="text-muted-foreground">visualViewport.scale</span><span>{navDebug.vvScale ?? '(n/a)'}</span>
+            <span className="text-muted-foreground">--rr-safe-area-bottom</span><span>{navDebug.rrSafeAreaBottom}</span>
+            <span className="text-muted-foreground">--rr-viewport-offset-bottom</span><span>{navDebug.rrViewportOffsetBottom}</span>
+            <span className="text-muted-foreground">--rr-viewport-height</span><span>{navDebug.rrViewportHeight}</span>
+            <span className="text-muted-foreground">BottomNav computed bottom</span><span>{navDebug.navBottom}</span>
+            <span className="text-muted-foreground">BottomNav computed padding-bottom</span><span>{navDebug.navPaddingBottom}</span>
+            <span className="text-muted-foreground">BottomNav rect top</span><span>{navDebug.navRectTop}</span>
+            <span className="text-muted-foreground">BottomNav rect bottom</span><span>{navDebug.navRectBottom}</span>
+            <span className="text-muted-foreground">BottomNav rect height</span><span>{navDebug.navRectHeight}</span>
+            <span className="text-muted-foreground">Inner pill margin-bottom</span><span>{navDebug.pillMarginBottom}</span>
+            <span className="text-muted-foreground">Inner pill padding-bottom</span><span>{navDebug.pillPaddingBottom}</span>
+            <span className="text-muted-foreground">Inner pill rect top</span><span>{navDebug.pillRectTop}</span>
+            <span className="text-muted-foreground">Inner pill rect bottom</span><span>{navDebug.pillRectBottom}</span>
+            <span className="text-muted-foreground">Inner pill rect height</span><span>{navDebug.pillRectHeight}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
