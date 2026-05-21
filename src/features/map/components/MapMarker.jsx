@@ -129,9 +129,9 @@ export function getBroadcastClusterIcon(cluster) {
     : hasWarningOrHelp
       ? 'rr-map-cluster-warning'
       : 'rr-map-cluster-normal';
-  const hint = hasBikeDown ? '!' : hasWarningOrHelp ? '⚠' : '';
+  const hint = hasBikeDown ? '!' : '';
 
-  const size = count >= 100 ? 56 : count >= 10 ? 50 : 44;
+  const size = count >= 100 ? 50 : count >= 10 ? 46 : 42;
   const iconAnchor = Math.round(size / 2);
 
   return divIcon({
