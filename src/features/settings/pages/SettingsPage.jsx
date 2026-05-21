@@ -54,6 +54,53 @@ import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
 import { ErrorState } from '@/components/shared/ErrorState';
 
+const APP_VERSION_FALLBACK = '2.0.0';
+
+function getFeedbackPlatform() {
+  try {
+    return navigator.userAgentData?.platform || navigator.platform || 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+
+function buildFeedbackEmailBody() {
+  const appVersion = import.meta.env.VITE_APP_VERSION || APP_VERSION_FALLBACK;
+  const userAgent = (navigator.userAgent || 'unknown').slice(0, 160);
+  const screenSize = `${window.innerWidth}x${window.innerHeight}`;
+  const platform = getFeedbackPlatform();
+
+  return [
+    'Issue summary:',
+    '',
+    'What happened:',
+    '',
+    'Expected behavior:',
+    '',
+    'Steps to reproduce:',
+    '1.',
+    '2.',
+    '3.',
+    '',
+    'Screenshot attached?: No',
+    '',
+    `Device/platform: ${platform}`,
+    `App version: ${appVersion}`,
+    `Screen size: ${screenSize}`,
+    `User agent: ${userAgent}`,
+    '',
+    'Additional context:',
+    '',
+  ].join('\n');
+}
+
+function openFeedbackEmail() {
+  const email = import.meta.env.VITE_SUPPORT_EMAIL || SUPPORT_EMAIL;
+  const subject = '[Ride Radar Beta Feedback]';
+  const body = buildFeedbackEmailBody();
+  window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
 /**
  * Settings row with icon, label, chevron, and optional value/toggle.
  *
@@ -488,35 +535,9 @@ function SettingsPage() {
         <div className="border-t border-border/40">
           <SettingsRow
             icon={Mail}
-            label="Send Feedback"
-            desc="Report bugs or suggest features"
-            onClick={() => {
-              const email = import.meta.env.VITE_SUPPORT_EMAIL || SUPPORT_EMAIL;
-              const subject = '[Ride Radar Beta Feedback]';
-              const ua = (navigator.userAgent || '').slice(0, 160);
-              const body = [
-                `App Version: ${import.meta.env.VITE_APP_VERSION || 'unknown'}`,
-                `Environment: ${import.meta.env.MODE || 'unknown'}`,
-                `Platform: ${navigator.platform || 'unknown'}`,
-                `Screen: ${window.innerWidth}x${window.innerHeight}`,
-                `User Agent: ${ua}`,
-                '',
-                'Describe the issue or feedback:',
-                '',
-                '',
-                'Steps to reproduce, if this is a bug:',
-                '1.',
-                '2.',
-                '3.',
-                '',
-                'Expected result:',
-                '',
-                '',
-                'Actual result:',
-                '',
-              ].join('\n');
-              window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            }}
+            label="Report an Issue / Feedback"
+            desc="Email a structured bug report or suggestion"
+            onClick={openFeedbackEmail}
           />
         </div>
       </SettingsSection>
