@@ -17,13 +17,13 @@ const HELPER_COPY = {
   solo_ride:
     'Shows that you are out riding now and open to nearby riders. It appears in Radar, the feed, and the detail page while active, usually for 1 hour. Location is approximate by default; Precise is optional. It does not automatically turn on Go Live.',
   event:
-    'For planned rides, bike nights, or events. It appears in Radar, the feed, and the detail page, and stays up until the event end time. The meetup spot is confirmed on the map and can be exact.',
+    'For planned rides, bike nights, or events. It appears in Radar and the feed globally for up to 30 days before the event, plus the detail page, and stays up until the event end time. The meetup spot is confirmed on the map and can be exact.',
   iso:
     'Lets nearby riders know you need wrench help or a bike crew. It appears in Radar, the feed, and the detail page, usually for 6 hours. Location stays approximate for privacy.',
   alert:
-    'Shares a temporary road hazard or condition with nearby riders. It appears in Radar, the feed, and the detail page, usually for a few hours based on the preset. Use the nearest useful location.',
+    'Shares a temporary road hazard or condition with nearby riders. Location is approximate. It appears in Radar, the feed, and the detail page, usually for 1 to 12 hours based on the preset. Use the nearest useful location.',
   bike_down:
-    'For urgent rider or motorcycle-down situations. It appears prominently in Radar, the feed, and the detail page, even outside your immediate radius, usually for 6 hours or until resolved. Call 911 first if anyone may be injured. Ride Radar is not an emergency service.',
+    'For urgent rider or motorcycle-down situations. If you drop a pin, that exact location is used; text-only fallback is approximate. It appears prominently in Radar, the feed, and the detail page, even outside your immediate radius, usually for 6 hours or until resolved. Call 911 first if anyone may be injured. Ride Radar is not an emergency service.',
 };
 
 const HELPER_STORAGE_PREFIX = 'rr:signal-helper:seen-count:v1:';
