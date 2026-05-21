@@ -1,13 +1,12 @@
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import AppHeader from './AppHeader';
 import BottomNav from './BottomNav';
 import OfflineBanner from '@/components/OfflineBanner';
 
-
 /**
- * AppLayout — Main application shell with electric neon aesthetic.
+ * AppLayout â€” Main application shell with electric neon aesthetic.
  *
  * Provides the persistent UI frame for all authenticated pages:
  * - Scroll-aware glassmorphism header
@@ -16,48 +15,6 @@ import OfflineBanner from '@/components/OfflineBanner';
  * - Radar grid overlay + subtle neon ambient glow
  * - Deep space black background
  */
-// DEV ONLY — captures all layout metrics the debugger needs
-function captureLayoutMetrics(label) {
-  if (!import.meta.env.DEV) return;
-  const html = document.documentElement;
-
-  // Probe env(safe-area-inset-bottom) live
-  const probe = document.createElement('div');
-  probe.style.cssText = 'position:fixed;bottom:0;left:0;width:0;height:0;padding-bottom:env(safe-area-inset-bottom,0px);pointer-events:none;visibility:hidden;';
-  document.body.appendChild(probe);
-  const envSafeBottom = parseFloat(getComputedStyle(probe).paddingBottom) || 0;
-  probe.remove();
-
-  const cs = getComputedStyle(html);
-  const rrSafeAreaBottom = cs.getPropertyValue('--rr-safe-area-bottom').trim();
-  const rrViewportHeight = cs.getPropertyValue('--rr-viewport-height').trim();
-  const rrNavH = cs.getPropertyValue('--rr-nav-h').trim();
-
-  const navEl = document.querySelector('[data-rr-nav]');
-  const navRect = navEl?.getBoundingClientRect() ?? null;
-  const navPbSafe = navEl ? getComputedStyle(navEl).paddingBottom : null;
-
-  const sheetEl = document.querySelector('[data-rr-sheet]');
-  const sheetRect = sheetEl?.getBoundingClientRect() ?? null;
-  const sheetTransform = sheetEl ? getComputedStyle(sheetEl).transform : null;
-
-  const vv = window.visualViewport;
-
-  console.groupCollapsed(`[RR Debug] ${label} — profileHasMounted=${!!window.__rrDebug?.profileHasMounted}`);
-  console.log('window.innerHeight:', window.innerHeight);
-  console.log('visualViewport.height:', vv?.height, ' offsetTop:', vv?.offsetTop);
-  console.log('html.clientHeight:', html.clientHeight, ' scrollHeight:', html.scrollHeight);
-  console.log('body.clientHeight:', document.body.clientHeight, ' scrollHeight:', document.body.scrollHeight);
-  console.log('env(safe-area-inset-bottom) probe:', envSafeBottom, 'px');
-  console.log('--rr-safe-area-bottom:', rrSafeAreaBottom || '(unset)');
-  console.log('--rr-viewport-height:', rrViewportHeight || '(unset)');
-  console.log('--rr-nav-h:', rrNavH || '(unset)');
-  console.log('BottomNav rect:', navRect ? `top=${navRect.top.toFixed(1)} bottom=${navRect.bottom.toFixed(1)} height=${navRect.height.toFixed(1)}` : 'not found');
-  console.log('BottomNav pb-safe computed paddingBottom:', navPbSafe);
-  console.log('RadarSheet rect:', sheetRect ? `top=${sheetRect.top.toFixed(1)} bottom=${sheetRect.bottom.toFixed(1)} height=${sheetRect.height.toFixed(1)}` : 'not found');
-  console.log('RadarSheet transform:', sheetTransform);
-  console.groupEnd();
-}
 
 function readSafeAreaBottom() {
   const probe = document.createElement('div');
@@ -69,22 +26,67 @@ function readSafeAreaBottom() {
   return Math.round(safeBottom);
 }
 
+function createNavDebugSnapshot(pathname) {
+  return {
+    pathname,
+    isRadar: pathname === '/home',
+    isOverlay: pathname === '/home',
+    innerHeight: window.innerHeight,
+    clientHeight: document.documentElement.clientHeight,
+    bodyScrollHeight: document.body.scrollHeight,
+    vvHeight: window.visualViewport?.height ?? null,
+    vvOffsetTop: window.visualViewport?.offsetTop ?? null,
+    vvOffsetLeft: window.visualViewport?.offsetLeft ?? null,
+    vvPageTop: window.visualViewport?.pageTop ?? null,
+    vvScale: window.visualViewport?.scale ?? null,
+    rrSafeAreaBottom: getComputedStyle(document.documentElement).getPropertyValue('--rr-safe-area-bottom').trim() || '(unset)',
+    rrViewportOffsetBottom: getComputedStyle(document.documentElement).getPropertyValue('--rr-viewport-offset-bottom').trim() || '(unset)',
+    rrViewportHeight: getComputedStyle(document.documentElement).getPropertyValue('--rr-viewport-height').trim() || '(unset)',
+    navBottom: '(missing)',
+    navPaddingBottom: '(missing)',
+    navRectTop: '(missing)',
+    navRectBottom: '(missing)',
+    navRectHeight: '(missing)',
+  };
+}
+
+function measureNavDebug(pathname) {
+  const snapshot = createNavDebugSnapshot(pathname);
+  const navEl = document.querySelector('[data-rr-nav]');
+  if (!navEl) return snapshot;
+
+  const navRect = navEl.getBoundingClientRect();
+  const navStyles = getComputedStyle(navEl);
+  return {
+    ...snapshot,
+    navBottom: navStyles.bottom,
+    navPaddingBottom: navStyles.paddingBottom,
+    navRectTop: navRect.top,
+    navRectBottom: navRect.bottom,
+    navRectHeight: navRect.height,
+  };
+}
+
 const AppLayout = memo(function AppLayout() {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
   const isRadar = pathname === '/home';
-  const captureTimerRef = useRef(null);
+  const navDebugEnabled = new URLSearchParams(location.search).get('navdebug') === '1';
+  const [navDebug, setNavDebug] = useState(() => createNavDebugSnapshot(pathname));
 
   // iOS Safari cold-start: env(safe-area-inset-bottom) stays 0 until the browser
   // observes a scroll event on a scrollable document. void offsetHeight does NOT
-  // trigger this — only an actual scroll event does. Profile fixes it naturally
+  // trigger this â€” only an actual scroll event does. Profile fixes it naturally
   // because its tall content makes the page scrollable so ScrollToTop fires a real
   // scroll. Fix: briefly overflow by 2 px, fire an instant scroll to position 2,
   // then restore. The HTML spec guarantees scroll events fire before rAF callbacks
   // in the same rendering update, so by raf1 iOS has committed the safe-area value.
-  // AppBootLoader covers the UI for ≥2.4 s so no visual flash reaches the user.
+  // AppBootLoader covers the UI for â‰¥2.4 s so no visual flash reaches the user.
   useEffect(() => {
     const html = document.documentElement;
-    let raf1, raf2, raf3;
+    let raf1;
+    let raf2;
+    let raf3;
     const savedMinH = html.style.minHeight;
     const savedScrollBehavior = html.style.scrollBehavior;
 
@@ -93,7 +95,7 @@ const AppLayout = memo(function AppLayout() {
     window.scrollTo(0, 2);
 
     raf1 = requestAnimationFrame(() => {
-      // Scroll event has fired — iOS safe-area metrics are now committed.
+      // Scroll event has fired â€” iOS safe-area metrics are now committed.
       // Read the actual env() value via a fixed probe and expose as a CSS var
       // so that all consumers (translate, pb-safe, etc.) get the correct value
       // even on the very first paint the user sees.
@@ -136,16 +138,33 @@ const AppLayout = memo(function AppLayout() {
     };
   }, []);
 
-  // DEV: capture layout metrics 300ms after each route change to give DOM time to settle
   useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    clearTimeout(captureTimerRef.current);
-    captureTimerRef.current = setTimeout(() => {
-      const label = `route=${pathname} [${window.__rrDebug?.profileHasMounted ? 'GOOD-after-profile' : 'BAD-cold'}]`;
-      captureLayoutMetrics(label);
-    }, 300);
-    return () => clearTimeout(captureTimerRef.current);
-  }, [pathname]);
+    if (!navDebugEnabled) return;
+
+    const measure = () => setNavDebug(measureNavDebug(pathname));
+    const timers = [
+      setTimeout(measure, 150),
+      setTimeout(measure, 500),
+      setTimeout(measure, 1500),
+    ];
+    measure();
+
+    const vv = window.visualViewport;
+    const onResize = () => measure();
+    window.addEventListener('resize', onResize, { passive: true });
+    vv?.addEventListener('resize', onResize, { passive: true });
+    vv?.addEventListener('scroll', onResize, { passive: true });
+
+    const raf = requestAnimationFrame(measure);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      timers.forEach(clearTimeout);
+      window.removeEventListener('resize', onResize);
+      vv?.removeEventListener('resize', onResize);
+      vv?.removeEventListener('scroll', onResize);
+    };
+  }, [navDebugEnabled, pathname]);
 
   return (
     <div
@@ -157,7 +176,7 @@ const AppLayout = memo(function AppLayout() {
       {/* Offline status banner */}
       <OfflineBanner />
 
-      {/* Skip to main content — keyboard accessibility */}
+      {/* Skip to main content â€” keyboard accessibility */}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-primary-foreground focus:shadow-[0_0_20px_hsl(var(--primary)/0.5)]"
@@ -165,7 +184,7 @@ const AppLayout = memo(function AppLayout() {
         Skip to main content
       </a>
 
-      {/* Background effects — hidden on radar (map is the background) */}
+      {/* Background effects â€” hidden on radar (map is the background) */}
       {!isRadar && (
         <>
           {/* Radar grid overlay */}
@@ -180,12 +199,12 @@ const AppLayout = memo(function AppLayout() {
             }}
             aria-hidden="true"
           />
-          {/* Subtle neon radial glow — top left */}
+          {/* Subtle neon radial glow â€” top left */}
           <div
             className="fixed top-[-10%] left-[-10%] w-[45vw] h-[45vw] max-w-[400px] max-h-[400px] rounded-full bg-primary/[0.025] blur-3xl pointer-events-none"
             aria-hidden="true"
           />
-          {/* Subtle neon radial glow — bottom right */}
+          {/* Subtle neon radial glow â€” bottom right */}
           <div
             className="fixed bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-brand-radar/[0.02] blur-3xl pointer-events-none"
             aria-hidden="true"
@@ -198,7 +217,7 @@ const AppLayout = memo(function AppLayout() {
         </>
       )}
 
-      {/* Header — overlay on radar, sticky elsewhere */}
+      {/* Header â€” overlay on radar, sticky elsewhere */}
       <AppHeader isOverlay={isRadar} />
 
       {/* Main content */}
@@ -217,6 +236,36 @@ const AppLayout = memo(function AppLayout() {
 
       {/* Bottom navigation */}
       <BottomNav isOverlay={isRadar} />
+
+      {navDebugEnabled && (
+        <div
+          className="fixed top-3 right-3 z-[200] max-w-[min(92vw,24rem)] rounded-xl border border-primary/25 bg-black/85 p-3 text-[10px] leading-4 text-foreground shadow-[0_18px_50px_hsl(0_0%_0%/0.6)] backdrop-blur-xl"
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className="mb-2 font-bold text-primary">Nav Debug</div>
+          <div className="grid grid-cols-[auto,1fr] gap-x-2 gap-y-1 font-mono">
+            <span className="text-muted-foreground">pathname</span><span className="break-all">{navDebug.pathname}</span>
+            <span className="text-muted-foreground">isRadar</span><span>{String(navDebug.isRadar)}</span>
+            <span className="text-muted-foreground">isOverlay</span><span>{String(navDebug.isOverlay)}</span>
+            <span className="text-muted-foreground">window.innerHeight</span><span>{navDebug.innerHeight}</span>
+            <span className="text-muted-foreground">clientHeight</span><span>{navDebug.clientHeight}</span>
+            <span className="text-muted-foreground">body.scrollHeight</span><span>{navDebug.bodyScrollHeight}</span>
+            <span className="text-muted-foreground">visualViewport.height</span><span>{navDebug.vvHeight ?? '(n/a)'}</span>
+            <span className="text-muted-foreground">visualViewport.offsetTop</span><span>{navDebug.vvOffsetTop ?? '(n/a)'}</span>
+            <span className="text-muted-foreground">visualViewport.offsetLeft</span><span>{navDebug.vvOffsetLeft ?? '(n/a)'}</span>
+            <span className="text-muted-foreground">visualViewport.pageTop</span><span>{navDebug.vvPageTop ?? '(n/a)'}</span>
+            <span className="text-muted-foreground">visualViewport.scale</span><span>{navDebug.vvScale ?? '(n/a)'}</span>
+            <span className="text-muted-foreground">--rr-safe-area-bottom</span><span>{navDebug.rrSafeAreaBottom}</span>
+            <span className="text-muted-foreground">--rr-viewport-offset-bottom</span><span>{navDebug.rrViewportOffsetBottom}</span>
+            <span className="text-muted-foreground">--rr-viewport-height</span><span>{navDebug.rrViewportHeight}</span>
+            <span className="text-muted-foreground">BottomNav computed bottom</span><span>{navDebug.navBottom}</span>
+            <span className="text-muted-foreground">BottomNav padding-bottom</span><span>{navDebug.navPaddingBottom}</span>
+            <span className="text-muted-foreground">BottomNav rect top</span><span>{navDebug.navRectTop}</span>
+            <span className="text-muted-foreground">BottomNav rect bottom</span><span>{navDebug.navRectBottom}</span>
+            <span className="text-muted-foreground">BottomNav rect height</span><span>{navDebug.navRectHeight}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 });
