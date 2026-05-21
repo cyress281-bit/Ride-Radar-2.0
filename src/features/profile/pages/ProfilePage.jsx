@@ -30,6 +30,22 @@ import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
 import StatPill from '@/features/profile/components/StatPill.jsx';
 import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
 
+const profileAmbientTopStyle = {
+  background:
+    'radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.14), transparent 42%), radial-gradient(circle at 18% 14%, hsl(var(--cyan) / 0.08), transparent 30%), radial-gradient(circle at 82% 10%, hsl(var(--brand-amber) / 0.06), transparent 28%)',
+};
+
+const profileAmbientBottomStyle = {
+  background:
+    'linear-gradient(180deg, transparent 0%, hsl(240 20% 2% / 0.10) 36%, hsl(240 20% 2% / 0.34) 100%)',
+};
+
+const profileTabsListClass =
+  'w-full grid grid-cols-2 rounded-full border border-white/[0.08] bg-surface/82 p-1.5 shadow-[0_16px_48px_hsl(0_0%_0%/0.30)] backdrop-blur-2xl';
+
+const profileTabsTriggerClass =
+  'gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-all data-[state=active]:bg-primary/14 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_1px_0_hsl(0_0%_100%/0.08),0_0_18px_hsl(var(--primary)/0.16)]';
+
 function ProfilePage() {
   const { user, profile } = useAuthState();
   const navigate = useNavigate();
@@ -103,21 +119,36 @@ function ProfilePage() {
   }, [displayProfile]);
 
   if (!user) {
-    return <LoadingState variant="section" message="Loading profile..." />;
+    return (
+      <div className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
+        <div className="relative z-10 flex min-h-[50vh] items-center justify-center">
+          <LoadingState variant="section" message="Loading profile..." />
+        </div>
+      </div>
+    );
   }
 
   if (editing) {
     return (
-      <div className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
-        <ProfileEditForm profile={displayProfile} onDone={() => setEditing(false)} />
+      <div className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
+        <div className="relative z-10">
+          <ProfileEditForm profile={displayProfile} onDone={() => setEditing(false)} />
+        </div>
       </div>
     );
   }
 
   return (
-    <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
+    <VStack gap={4} className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
+
       {/* Identity Card */}
-      <div className="relative overflow-hidden rounded-2xl backdrop-blur-xl bg-surface/85 border border-white/[0.08] shadow-[0_8px_32px_hsl(var(--primary)/0.04),inset_0_1px_0_hsl(0_0%_100%/0.04)]">
+      <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-surface/88 shadow-[0_24px_80px_hsl(0_0%_0%/0.40),0_0_0_1px_hsl(var(--primary)/0.04),inset_0_1px_0_hsl(0_0%_100%/0.05)] backdrop-blur-2xl">
         {/* Subtle radial glow */}
         <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-brand-radar/[0.06] blur-3xl pointer-events-none" />
@@ -128,7 +159,7 @@ function ProfilePage() {
             aria-label="Settings"
             className={cn(
               'absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full',
-              'border border-white/[0.10] bg-white/[0.035] text-muted-foreground backdrop-blur-xl',
+              'border border-white/[0.10] bg-black/20 text-muted-foreground backdrop-blur-xl shadow-[0_10px_24px_hsl(0_0%_0%/0.18)]',
               'transition-all hover:border-primary/30 hover:bg-primary/[0.08] hover:text-primary active:scale-95',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
             )}
@@ -139,7 +170,7 @@ function ProfilePage() {
           <VStack align="center" gap={3}>
             {/* Avatar with neon green ring */}
             <div className="relative">
-              <div className="rr-avatar-ring">
+              <div className="rr-avatar-ring shadow-[0_0_28px_hsl(var(--primary)/0.18)]">
                 {displayProfile?.avatar_url && !avatarError ? (
                   <OptimizedImage
                     src={displayProfile.avatar_url}
@@ -163,23 +194,25 @@ function ProfilePage() {
 
             {/* Name & Username */}
             <VStack align="center" gap={0.5}>
-              <Text as="h1" variant="h2" color="default" align="center" className="font-bold">
+              <Text as="h1" variant="h2" color="default" align="center" className="font-bold tracking-[-0.03em]">
                 {displayProfile?.display_name || user?.email}
               </Text>
               {displayProfile?.username && (
-                <Text variant="bodySm" color="muted">@{displayProfile.username}</Text>
+                <Text variant="bodySm" color="muted" className="font-mono-data">
+                  @{displayProfile.username}
+                </Text>
               )}
             </VStack>
 
             {/* Bio */}
             {displayProfile?.bio && (
-              <Text variant="body" color="default" align="center" className="max-w-sm text-pretty">
+              <Text variant="body" color="default" align="center" className="max-w-sm text-pretty leading-relaxed text-white/88">
                 {displayProfile.bio}
               </Text>
             )}
 
             {bikeLabel && (
-              <HStack align="center" gap={2} className="max-w-full min-w-0 rounded-full border border-primary/20 bg-primary/[0.08] px-3 py-1.5 text-primary">
+              <HStack align="center" gap={2} className="max-w-full min-w-0 rounded-full border border-primary/20 bg-primary/[0.10] px-3 py-1.5 text-primary shadow-[0_0_20px_hsl(var(--primary)/0.10)]">
                 <Bike className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                 <Text variant="micro" className="min-w-0 truncate font-semibold text-primary">
                   {bikeLabel}
@@ -220,9 +253,9 @@ function ProfilePage() {
                 onClick={() => setEditing(true)}
                 className={cn(
                   'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-5 py-2.5',
-                  'border border-white/[0.10] bg-white/[0.035] text-sm font-bold text-foreground backdrop-blur-xl',
+                  'border border-white/[0.10] bg-black/20 text-sm font-bold text-foreground backdrop-blur-xl',
                   'transition-all hover:border-primary/35 hover:bg-primary/[0.08] hover:text-primary active:scale-95',
-                  'shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04),0_0_18px_hsl(var(--primary)/0.08)]',
+                  'shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04),0_0_18px_hsl(var(--primary)/0.10)]',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
                 )}
               >
@@ -242,11 +275,11 @@ function ProfilePage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full grid grid-cols-2 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
-          <TabsTrigger value="broadcasts" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
+        <TabsList className={profileTabsListClass}>
+          <TabsTrigger value="broadcasts" className={profileTabsTriggerClass}>
             <Radio className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Signals
           </TabsTrigger>
-          <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
+          <TabsTrigger value="media" className={profileTabsTriggerClass}>
             <Images className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Shots
           </TabsTrigger>
         </TabsList>
@@ -262,14 +295,16 @@ function ProfilePage() {
               onRetry={refetchBroadcasts}
             />
           ) : active.length === 0 ? (
-            <EmptyState
-              icon={Radio}
-              title="No active signals"
-              description="Your active ride signals will appear here."
-            />
+            <div className="surface-card rounded-2xl border border-white/[0.08] bg-surface/84 p-5 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
+              <EmptyState
+                icon={Radio}
+                title="No active signals"
+                description="Your active ride signals will appear here."
+              />
+            </div>
           ) : (
             <>
-              <div className="surface-card overflow-hidden divide-y divide-white/[0.06] rounded-xl">
+              <div className="overflow-hidden divide-y divide-white/[0.06] rounded-2xl border border-white/[0.08] bg-surface/85 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
                 {active.slice(0, 5).map((b) => (
                   <SignalRow key={b.id} broadcast={b} />
                 ))}
@@ -299,19 +334,21 @@ function ProfilePage() {
                 onClick={() => setCreateSheetOpen(true)}
                 className={cn(
                   'w-full flex items-center justify-center gap-2 rounded-full',
-                  'bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground',
-                  'transition-all hover:bg-primary/90 active:scale-95',
-                  'shadow-[0_4px_20px_hsl(var(--primary)/0.35)]'
+                  'border border-primary/20 bg-primary/95 px-5 py-2.5 text-sm font-bold text-primary-foreground',
+                  'transition-all hover:bg-primary active:scale-95',
+                  'shadow-[0_10px_28px_hsl(var(--primary)/0.28)]'
                 )}
               >
                 <Camera className="h-4 w-4" />
                 Add Shot
               </button>
-              <EmptyState
-                icon={Images}
-                title="No shots yet"
-                description="Share bike photos, ride moments, or group shots here."
-              />
+              <div className="surface-card rounded-2xl border border-white/[0.08] bg-surface/84 p-5 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
+                <EmptyState
+                  icon={Images}
+                  title="No shots yet"
+                  description="Share bike photos, ride moments, or group shots here."
+                />
+              </div>
             </VStack>
           ) : (
             <VStack gap={4}>
@@ -319,9 +356,9 @@ function ProfilePage() {
                 onClick={() => setCreateSheetOpen(true)}
                 className={cn(
                   'w-full flex items-center justify-center gap-2 rounded-full',
-                  'bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground',
-                  'transition-all hover:bg-primary/90 active:scale-95',
-                  'shadow-[0_4px_20px_hsl(var(--primary)/0.35)]'
+                  'border border-primary/20 bg-primary/95 px-5 py-2.5 text-sm font-bold text-primary-foreground',
+                  'transition-all hover:bg-primary active:scale-95',
+                  'shadow-[0_10px_28px_hsl(var(--primary)/0.28)]'
                 )}
               >
                 <Camera className="h-4 w-4" />
@@ -359,16 +396,22 @@ const SignalRow = memo(function SignalRow({ broadcast: b }) {
   return (
     <Link
       to={`/broadcast/${b.id}`}
-      className="flex items-center gap-3 px-4 py-3 min-h-[56px] transition-colors hover:bg-white/[0.03] active:bg-white/[0.05]"
+      className="group flex min-h-[58px] items-center gap-3 px-4 py-3.5 transition-colors hover:bg-white/[0.035] active:bg-white/[0.06]"
     >
       <Badge type={b.type} alertType={b.alert_type} className="shrink-0" />
       <VStack gap={0} className="min-w-0 flex-1">
-        <Text variant="bodySm" className="font-semibold line-clamp-1">{b.title}</Text>
+        <Text variant="bodySm" className="line-clamp-1 font-semibold tracking-tight">
+          {b.title}
+        </Text>
         {detail && (
-          <Text variant="micro" color="muted" className="block line-clamp-1 mt-0.5">{detail}</Text>
+          <Text variant="micro" color="muted" className="mt-0.5 block line-clamp-1">
+            {detail}
+          </Text>
         )}
       </VStack>
-      <Text variant="micro" color="muted" className="shrink-0 tabular-nums">{timeAgo(b.created_at)}</Text>
+      <Text variant="micro" color="muted" className="shrink-0 tabular-nums">
+        {timeAgo(b.created_at)}
+      </Text>
     </Link>
   );
 });

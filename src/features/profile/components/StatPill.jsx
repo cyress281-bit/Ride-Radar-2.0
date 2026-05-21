@@ -20,19 +20,21 @@ const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading, b
       onClick={onClick}
       aria-label={interactive ? `${label}: ${displayValue}` : undefined}
       className={cn(
-        'flex-1 surface-card p-3 text-center',
-        interactive && 'cursor-pointer transition-colors hover:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45'
+        'flex-1 overflow-hidden rounded-2xl border border-white/[0.08] bg-surface/82 px-3 py-3 text-center shadow-[0_12px_34px_hsl(0_0%_0%/0.28),inset_0_1px_0_hsl(0_0%_100%/0.04)] backdrop-blur-xl transition-all',
+        interactive && 'cursor-pointer hover:-translate-y-0.5 hover:border-primary/20 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45'
       )}
     >
-      <div className="flex items-center justify-center mb-1.5">
-        <div className={cn('flex h-7 w-7 items-center justify-center rounded-full border', style.border, style.bg)}>
+      <div className="mb-2 flex items-center justify-center">
+        <div className={cn('flex h-8 w-8 items-center justify-center rounded-full border backdrop-blur-sm', style.border, style.bg)}>
           <Icon className={cn('h-3.5 w-3.5', style.text)} strokeWidth={2} />
         </div>
       </div>
-      <Text variant="bodySm" className={cn('block font-bold truncate', style.text)}>
+      <Text variant="bodySm" className={cn('block truncate font-bold tracking-tight', style.text)}>
         {displayValue}
       </Text>
-      <Text variant="micro" color="muted" className="block">{label}</Text>
+      <Text variant="micro" color="muted" className="block">
+        {label}
+      </Text>
     </Component>
   );
 });

@@ -59,6 +59,22 @@ import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
 import StatPill from '@/features/profile/components/StatPill.jsx';
 import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
 
+const profileAmbientTopStyle = {
+  background:
+    'radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.14), transparent 42%), radial-gradient(circle at 18% 14%, hsl(var(--cyan) / 0.08), transparent 30%), radial-gradient(circle at 82% 10%, hsl(var(--brand-amber) / 0.06), transparent 28%)',
+};
+
+const profileAmbientBottomStyle = {
+  background:
+    'linear-gradient(180deg, transparent 0%, hsl(240 20% 2% / 0.10) 36%, hsl(240 20% 2% / 0.34) 100%)',
+};
+
+const profileTabsListClass =
+  'w-full grid grid-cols-2 rounded-full border border-white/[0.08] bg-surface/82 p-1.5 shadow-[0_16px_48px_hsl(0_0%_0%/0.30)] backdrop-blur-2xl';
+
+const profileTabsTriggerClass =
+  'gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-all data-[state=active]:bg-primary/14 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_1px_0_hsl(0_0%_100%/0.08),0_0_18px_hsl(var(--primary)/0.16)]';
+
 function RiderProfilePage() {
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -253,16 +269,22 @@ function RiderProfilePage() {
 
   if (!hasValidUserId) {
     return (
-      <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
-        <EmptyState icon={User} title="Invalid rider link" description="The profile URL appears to be malformed." />
+      <div className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
+        <div className="relative z-10">
+          <EmptyState icon={User} title="Invalid rider link" description="The profile URL appears to be malformed." />
+        </div>
       </div>
     );
   }
 
   if (isProfileLoading) {
     return (
-      <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
-        <VStack gap={4} align="center" className="min-h-[50vh] justify-center">
+      <div className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
+        <VStack gap={4} align="center" className="relative z-10 min-h-[50vh] justify-center">
           <LoadingState variant="section" message="Loading rider profile..." />
         </VStack>
       </div>
@@ -271,20 +293,27 @@ function RiderProfilePage() {
 
   if (isProfileError || !profile) {
     return (
-      <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
-        <ErrorState
-          title="Rider not found"
-          message={profileError?.message || 'Rider profile not found or private.'}
-          onRetry={refetchProfile}
-        />
+      <div className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
+        <div className="relative z-10">
+          <ErrorState
+            title="Rider not found"
+            message={profileError?.message || 'Rider profile not found or private.'}
+            onRetry={refetchProfile}
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
+    <VStack gap={4} className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
+
       {/* Profile Header Card */}
-      <div className="relative overflow-hidden rounded-2xl backdrop-blur-xl bg-surface/80 border border-white/[0.06] shadow-[0_8px_32px_hsl(var(--primary)/0.04)]">
+      <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-surface/88 shadow-[0_24px_80px_hsl(0_0%_0%/0.40),0_0_0_1px_hsl(var(--primary)/0.04),inset_0_1px_0_hsl(0_0%_100%/0.05)] backdrop-blur-2xl">
         <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-brand-radar/[0.06] blur-3xl pointer-events-none" />
 
@@ -292,7 +321,7 @@ function RiderProfilePage() {
           <VStack align="center" gap={3}>
             {/* Avatar with gradient ring */}
             <div className="relative">
-              <div className="rr-avatar-ring">
+              <div className="rr-avatar-ring shadow-[0_0_28px_hsl(var(--primary)/0.18)]">
                 {canSeeDetails && profile.avatar_url && !avatarError ? (
                   <OptimizedImage
                     src={profile.avatar_url}
@@ -317,7 +346,7 @@ function RiderProfilePage() {
             {/* Name & Username */}
             <VStack align="center" gap={0.5}>
               <HStack align="center" gap={2}>
-                <Text as="h1" variant="h2" color="default" align="center" className={cn(canSeeDetails && 'font-bold')}>
+                <Text as="h1" variant="h2" color="default" align="center" className={cn(canSeeDetails && 'font-bold tracking-[-0.03em]')}>
                   {canSeeDetails ? profile.display_name : 'Private Rider'}
                 </Text>
                 {isFriend && (
@@ -332,19 +361,21 @@ function RiderProfilePage() {
                 )}
               </HStack>
               {canSeeDetails && profile.username && (
-                <Text variant="bodySm" color="muted">@{profile.username}</Text>
+                <Text variant="bodySm" color="muted" className="font-mono-data">
+                  @{profile.username}
+                </Text>
               )}
             </VStack>
 
             {canSeeDetails && profile.bio && (
-              <Text variant="body" color="default" align="center" className="max-w-sm text-pretty">
+              <Text variant="body" color="default" align="center" className="max-w-sm text-pretty leading-relaxed text-white/88">
                 {profile.bio}
               </Text>
             )}
 
             {/* Connection Status */}
             {isBlocked && (
-              <HStack align="center" gap={1.5} className="px-3 py-1.5 rounded-full bg-brand-emergency/10 border border-brand-emergency/20">
+              <HStack align="center" gap={1.5} className="rounded-full border border-brand-emergency/20 bg-brand-emergency/10 px-3 py-1.5">
                 <Ban className="w-3.5 h-3.5 text-brand-emergency" />
                 <Text variant="micro" className="text-brand-emergency font-semibold">Blocked</Text>
               </HStack>
@@ -496,7 +527,7 @@ function RiderProfilePage() {
 
       {/* Private notice */}
       {!canSeeDetails && (
-        <div className="surface-card p-6 text-center border border-brand-amber/20 rounded-xl">
+        <div className="surface-card rounded-2xl border border-brand-amber/20 bg-surface/84 p-6 text-center shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-brand-amber/10 border border-brand-amber/20 shadow-[0_0_16px_hsl(var(--brand-amber)/0.12)]">
             <Lock className="h-7 w-7 text-brand-amber" />
           </div>
@@ -518,11 +549,11 @@ function RiderProfilePage() {
       {/* Tabs — only shown when details are visible */}
       {canSeeDetails && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-2 bg-surface/60 border border-white/[0.06] backdrop-blur-xl">
-            <TabsTrigger value="broadcasts" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
+          <TabsList className={profileTabsListClass}>
+            <TabsTrigger value="broadcasts" className={profileTabsTriggerClass}>
               <Radio className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Signals
             </TabsTrigger>
-            <TabsTrigger value="media" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_-2px_0_0_hsl(var(--primary))] transition-all">
+            <TabsTrigger value="media" className={profileTabsTriggerClass}>
               <Images className="h-3.5 w-3.5 shrink-0" strokeWidth={2} /> Shots
             </TabsTrigger>
           </TabsList>
@@ -533,13 +564,15 @@ function RiderProfilePage() {
             ) : broadcastsError ? (
               <ErrorState title="Signals unavailable" onRetry={refetchBroadcasts} />
             ) : activeBroadcasts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 rounded-2xl border border-white/[0.08] bg-surface/84 p-3 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl sm:grid-cols-2">
                 {activeBroadcasts.map((b) => (
                   <RideCard key={b.id} broadcast={b} author={profile} to={`/broadcast/${b.id}`} />
                 ))}
               </div>
             ) : (
-              <EmptyState icon={Radio} title="No active signals" description="This rider has no active signals." />
+              <div className="surface-card rounded-2xl border border-white/[0.08] bg-surface/84 p-5 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
+                <EmptyState icon={Radio} title="No active signals" description="This rider has no active signals." />
+              </div>
             )}
           </TabsContent>
 
@@ -549,11 +582,13 @@ function RiderProfilePage() {
             ) : postsFailed ? (
               <ErrorState title="Shots unavailable" onRetry={refetchPosts} />
             ) : riderPosts.length === 0 ? (
-              <EmptyState
-                icon={Images}
-                title="No shots yet"
-                description="This rider hasn't shared any shots yet."
-              />
+              <div className="surface-card rounded-2xl border border-white/[0.08] bg-surface/84 p-5 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
+                <EmptyState
+                  icon={Images}
+                  title="No shots yet"
+                  description="This rider hasn't shared any shots yet."
+                />
+              </div>
             ) : (
               <PostGrid
                 posts={riderPosts}
@@ -574,7 +609,7 @@ function RiderProfilePage() {
 
       {/* Safety Actions */}
       {!isMeRoute && (
-        <div className="surface-card p-4 rounded-xl border border-white/[0.06]">
+        <div className="surface-card rounded-2xl border border-white/[0.08] bg-surface/84 p-4 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
           <SafetyActions targetType="user" targetId={profile.user_id} targetProfileId={profile.user_id} />
         </div>
       )}
