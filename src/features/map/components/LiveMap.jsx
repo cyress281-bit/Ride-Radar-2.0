@@ -136,6 +136,17 @@ const InvalidateMapSize = memo(function InvalidateMapSize({ resizeKey }) {
   return null;
 });
 
+const RadarAttributionTuning = memo(function RadarAttributionTuning() {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map?.attributionControl?.setPrefix) return;
+    map.attributionControl.setPrefix(false);
+  }, [map]);
+
+  return null;
+});
+
 
 function formatSnapshotAge(timestamp) {
   if (!timestamp) return 'cached';
@@ -515,6 +526,7 @@ function LiveMap({
               updateWhenZooming={false}
               eventHandlers={tileEventHandlers}
             />
+            {variant === 'radar' && <RadarAttributionTuning />}
             <FitMapToItems items={items} userLat={userLat} userLng={userLng} variant={variant} disabled={variant === 'radar' && autoFitDisabled} focusUserLocation={focusUserLocation} fitKey={fitKey} />
             <InvalidateMapSize resizeKey={resizeKey} />
             {showSelfLocation && hasUserLocation && (

@@ -643,9 +643,23 @@
     text-decoration: underline !important;
   }
 
-  /* Lift Leaflet attribution above the floating bottom nav pill on radar */
+  /* Move radar attribution away from the collapsed sheet and bottom nav */
   .rr-radar-map .leaflet-bottom.leaflet-right {
-    bottom: calc(var(--rr-nav-h) + var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)) + 12px);
+    top: 12px !important;
+    right: 12px !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: 410 !important;
+  }
+
+  .rr-radar-map .leaflet-control-attribution {
+    max-width: min(18rem, calc(100vw - 24px)) !important;
+    background: hsl(0 0% 0% / 0.5) !important;
+    border: 1px solid hsl(0 0% 100% / 0.08);
+    padding: 2px 7px !important;
+    font-size: 9px !important;
+    line-height: 1.15 !important;
+    white-space: normal;
   }
 
   /* Map markers */
