@@ -38,8 +38,8 @@ export default function AdminMetricCard({
       type="button"
       onClick={onClick}
       className={cn(
-        'group relative w-full overflow-hidden rounded-[24px] border border-white/[0.08] bg-black/70 p-4 text-left backdrop-blur-xl transition-all duration-200',
-        'hover:-translate-y-0.5 hover:border-primary/30 hover:bg-black/78 hover:shadow-[0_18px_36px_rgba(0,0,0,0.32)]',
+        'group relative w-full overflow-hidden rounded-[24px] border border-white/[0.08] bg-black/66 p-4 text-left backdrop-blur-xl transition-all duration-200',
+        'hover:-translate-y-0.5 hover:border-primary/30 hover:bg-black/72 hover:shadow-[0_18px_36px_rgba(0,0,0,0.32)]',
         'focus:outline-none focus:ring-2 focus:ring-primary/40',
         'rr-haptic',
         'border-t-2',
@@ -51,7 +51,7 @@ export default function AdminMetricCard({
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
       <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/[0.06] blur-3xl transition-opacity duration-200 group-hover:bg-primary/[0.1]" />
       <div className="flex items-start justify-between gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04] text-primary shadow-[0_0_24px_hsl(var(--primary)/0.12)]">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.05] text-primary shadow-[0_0_24px_hsl(var(--primary)/0.12)]">
           {Icon ? <Icon className="h-5 w-5" /> : null}
         </div>
         {trend && (
@@ -60,10 +60,10 @@ export default function AdminMetricCard({
           </span>
         )}
       </div>
-      <div className="mt-4 font-display text-[clamp(1.9rem,4vw,2.4rem)] font-bold leading-none tracking-tight text-foreground">
+      <div className="mt-4 font-display text-[clamp(1.8rem,3.8vw,2.25rem)] font-bold leading-none tracking-tight text-foreground">
         {value}
       </div>
-      <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+      <div className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/90">
         {title}
       </div>
     </button>
