@@ -46,12 +46,14 @@ const AppLayout = memo(function AppLayout() {
     if (!isStandalonePwa()) return;
 
     const html = document.documentElement;
+    const body = document.body;
     const sentinel = document.createElement('div');
     sentinel.id = 'rr-pwa-viewport-sentinel';
     sentinel.setAttribute('aria-hidden', 'true');
     sentinel.style.cssText =
-      'position:absolute;left:0;top:calc(100vh + 1px);width:1px;height:1px;opacity:0;pointer-events:none;visibility:hidden;';
-    document.body.appendChild(sentinel);
+      'display:block;width:1px;height:1px;opacity:0;pointer-events:none;visibility:hidden;overflow:hidden;';
+    sentinel.style.marginTop = `${Math.round(window.visualViewport?.height ?? window.innerHeight) + 1}px`;
+    body.appendChild(sentinel);
 
     const settle = () => {
       window.scrollTo(0, 2);
