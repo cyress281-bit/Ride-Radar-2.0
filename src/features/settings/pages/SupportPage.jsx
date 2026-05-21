@@ -34,6 +34,11 @@ const FAQS = [
     a: "Open the user's profile and tap the menu to find the report option.",
     icon: Shield,
   },
+  {
+    q: 'Official event review',
+    a: 'To request an Official badge review for an event, contact support with the event title, date/time, location, organizer name, website or social link, and why it should be reviewed.',
+    icon: Shield,
+  },
 ];
 
 export default function SupportPage() {

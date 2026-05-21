@@ -23,6 +23,26 @@ import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/c
 import { broadcastKeys, useRemoveBroadcast, useUpdateBroadcast, useResolveBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
 import BroadcastComments from '@/features/broadcast/components/BroadcastComments.jsx';
 
+const OFFICIAL_REVIEW_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || 'support@rideradar.app';
+
+function buildOfficialReviewMailto(broadcast) {
+  const subject = 'Official Event Review Request';
+  const body = [
+    'Please review this event for an Official badge:',
+    '',
+    `Event title: ${broadcast?.title || ''}`,
+    `Event date/time: ${broadcast?.event_date ? new Date(broadcast.event_date).toLocaleString() : ''}`,
+    `Event location: ${broadcast?.location_name || ''}`,
+    'Organizer or business/club name:',
+    'Website or social link:',
+    'Contact email/phone:',
+    'Why should this event be reviewed?',
+    '',
+  ].join('\n');
+
+  return `mailto:${OFFICIAL_REVIEW_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
 function RemovedSignalScreen({ onBack, onHome }) {
   return (
     <div className="px-5 pt-5">
@@ -323,6 +343,7 @@ function BroadcastDetailPage() {
 
   const hasHeroImage = broadcast.type === 'event' && broadcast.event_image_url;
   const isOfficialEvent = broadcast.type === 'event' && broadcast.is_official === true;
+  const shouldShowOfficialReviewCopy = broadcast.type === 'event' && isAuthor && !isOfficialEvent;
 
   return (
     <div className="px-5 pt-5 pb-8">
@@ -395,6 +416,12 @@ function BroadcastDetailPage() {
           </div>
         )}
 
+        {!hasHeroImage && isOfficialEvent && (
+          <p className="mb-4 text-[11px] leading-snug text-muted-foreground">
+            Official means Ride Radar reviewed and approved this event badge. It is not user-assigned.
+          </p>
+        )}
+
         {!hasHeroImage && (
           <Text as="h1" variant="h2" className="text-xl sm:text-2xl font-extrabold tracking-tight mb-3 text-white/95">
             {broadcast.title}
@@ -405,6 +432,20 @@ function BroadcastDetailPage() {
           <Text variant="body" className="text-foreground/75 leading-[1.7] mb-5 whitespace-pre-wrap text-[15px]">
             {broadcast.body}
           </Text>
+        )}
+
+        {shouldShowOfficialReviewCopy && (
+          <div className="mb-5 rounded-[18px] border border-event/20 bg-event/5 px-4 py-3">
+            <Text variant="caption" color="muted" className="block leading-relaxed">
+              Want this event reviewed for an Official badge? Official badges are reviewed by Ride Radar admins and are not user-assigned.
+            </Text>
+            <a
+              href={buildOfficialReviewMailto(broadcast)}
+              className="mt-2 inline-flex items-center text-xs font-semibold text-event underline underline-offset-4 transition-colors hover:text-event/80"
+            >
+              Request official review
+            </a>
+          </div>
         )}
 
         {isAlert && <AlertPhotoGrid images={(broadcast.alert_photos || broadcast.alert_image_urls) || []} variant="detail" />}
