@@ -32,7 +32,7 @@ export async function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     try {
       // Force-unregister any old service workers from previous builds
-      // This ensures the new Velocity redesign loads immediately
+      // This ensures the latest build loads immediately
       const existing = await navigator.serviceWorker.getRegistration('/');
       if (existing && existing.scope) {
         const swUrl = existing.active?.scriptURL || existing.installing?.scriptURL || existing.waiting?.scriptURL;

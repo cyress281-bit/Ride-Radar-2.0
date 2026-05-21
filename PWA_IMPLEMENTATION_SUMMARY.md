@@ -33,7 +33,7 @@ Ride Radar 2.0 now has full Progressive Web App (PWA) functionality with offline
 
 **Components:**
 - `OfflineBanner.jsx` - Animated banner showing connection status
-- `OfflineFallback.jsx` - Fallback page when navigation fails offline
+- `OfflineBanner.jsx` - Fallback page when navigation fails offline
 
 **Hook:**
 - `useOnlineStatus.js` - Tracks online/offline state
@@ -53,20 +53,20 @@ Ride Radar 2.0 now has full Progressive Web App (PWA) functionality with offline
 **Hook:**
 - `usePWAInstall.js` - React hook for install state
 
-**UI Integration:** `src/pages/Settings.jsx`
+**UI Integration:** `src/features/settings/pages/SettingsPage.jsx`
 - "Install Ride Radar App" button (when installable)
 - "App Installed" badge (when installed)
 - "Enable Push Notifications" button
 
 ### 5. Offline Queue
 
-**Hook:** `useOfflineQueue.js`
+**Hook:** `offline queue behavior`
 - Queues mutations when offline
 - Stores in localStorage
 - Auto-processes when back online
 - 24-hour expiration for stale items
 
-**Specialization:** `useMessageQueue()`
+**Specialization:** handled by the current message-sending flow
 - Automatically queues messages
 - Syncs when reconnected
 - Shows queued count
@@ -94,10 +94,10 @@ Ride Radar 2.0 now has full Progressive Web App (PWA) functionality with offline
 ```
 src/lib/registerSW.js                 # Service worker registration
 src/hooks/useOnlineStatus.js          # Network detection
-src/hooks/useOfflineQueue.js          # Offline mutation queue
+offline queue behavior          # Offline mutation queue
 src/hooks/usePWAInstall.js            # Install prompt hook
 src/components/OfflineBanner.jsx      # Connection status UI
-src/components/OfflineFallback.jsx    # Offline error page
+src/components/OfflineBanner.jsx    # Offline error page
 public/manifest.json                  # PWA manifest
 public/icon.svg                       # Icon source (SVG)
 ```
@@ -108,12 +108,12 @@ PWA_README.md                         # Quick start guide
 PWA_IMPLEMENTATION.md                 # Full technical documentation
 PWA_TESTING_GUIDE.md                  # Comprehensive test checklist
 PWA_IMPLEMENTATION_SUMMARY.md         # This file
-public/README-ICONS.md                # Icon generation guide
+public/icon.svg                      # Source icon asset
 ```
 
 ### Utilities (4 files)
 ```
-public/create-icon-placeholders.html  # Browser-based icon generator
+public/icon.svg  # Browser-based icon generator
 scripts/generate-icons.js             # Node.js icon script
 scripts/pwa-setup.sh                  # Unix setup script
 scripts/pwa-setup.bat                 # Windows setup script
@@ -134,7 +134,7 @@ CLAUDE.md                             # Added PWA section
 src/main.jsx                          # Service worker registration
 src/App.jsx                           # Offline banner integration
 src/lib/query-client.js               # Offline mode configuration
-src/pages/Settings.jsx                # Install prompt UI
+src/features/settings/pages/SettingsPage.jsx  # Install prompt UI
 ```
 
 ## Installation Steps
@@ -147,7 +147,7 @@ src/pages/Settings.jsx                # Install prompt UI
    ```
 
 2. **Generate PWA icons:**
-   - Open `public/create-icon-placeholders.html` in browser
+   - Use `public/icon.svg` as the source icon asset
    - Download `icon-192.png` and `icon-512.png`
    - Save to `public/` directory
 
@@ -328,7 +328,7 @@ PWA implementation is complete when:
 - **Quick Start:** `PWA_README.md`
 - **Implementation Details:** `PWA_IMPLEMENTATION.md`
 - **Testing Guide:** `PWA_TESTING_GUIDE.md`
-- **Icon Generation:** `public/README-ICONS.md`
+- **Icon Generation:** `public/icon.svg`
 - **Project Overview:** `CLAUDE.md` (updated with PWA section)
 
 ## Support
@@ -342,7 +342,7 @@ PWA implementation is complete when:
 **Questions:**
 - Implementation details: `PWA_IMPLEMENTATION.md`
 - Testing procedures: `PWA_TESTING_GUIDE.md`
-- Icon generation: `public/README-ICONS.md`
+- Icon generation: `public/icon.svg`
 
 ---
 

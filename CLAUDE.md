@@ -147,7 +147,7 @@ import { useSupabaseAuth } from '@/lib/SupabaseAuthContext';
 ```
 
 ## Migration Status
-The app uses Supabase for auth, database, storage, realtime subscriptions, and PostGIS geospatial queries. Legacy backend code and dependencies have been removed from the active repository.
+The app uses Supabase for auth, database, storage, realtime subscriptions, and PostGIS geospatial queries. Legacy backend code and dependencies are not part of the current app.
 
 ## Analytics & Monitoring
 

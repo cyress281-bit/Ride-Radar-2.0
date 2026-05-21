@@ -27,7 +27,7 @@ export default defineConfig({
       manifest: {
         name: 'Ride Radar',
         short_name: 'Ride Radar',
-        description: 'Social network for motorcyclists - find rides, connect with riders, and stay safe on the road',
+        description: 'Live motorcycle ride radar for nearby signals, meetups, warnings, Bike Down alerts, and riders nearby',
         id: '/',
         theme_color: '#39FF14',
         background_color: '#050508',

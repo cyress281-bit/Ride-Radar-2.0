@@ -15,8 +15,8 @@ New packages: `vite-plugin-pwa` and `workbox-window`
 ### 2. Generate PWA Icons
 
 **Easy Method (Browser):**
-1. Open `public/create-icon-placeholders.html` in your browser
-2. Click "Download 192x192" and "Download 512x512" buttons
+1. Use `public/icon.svg` as the source icon asset
+2. Regenerate `icon-192.png` and `icon-512.png` with your preferred icon tool
 3. Save both files in the `public/` directory
 
 **Alternative (ImageMagick):**
@@ -73,10 +73,10 @@ npm run preview  # Test at http://localhost:4173
 src/
   components/
     OfflineBanner.jsx         # Network status UI
-    OfflineFallback.jsx       # Offline error page
+    OfflineBanner.jsx       # Offline error page
   hooks/
     useOnlineStatus.js        # Network detection
-    useOfflineQueue.js        # Mutation queue
+    offline queue behavior        # Mutation queue
     usePWAInstall.js          # Install prompt
   lib/
     registerSW.js             # Service worker setup
@@ -86,7 +86,7 @@ public/
   icon.svg                    # Icon source (SVG)
   icon-192.png               # 192x192 icon (generate)
   icon-512.png               # 512x512 icon (generate)
-  create-icon-placeholders.html  # Icon generator
+  icon.svg                      # Icon source asset
 
 docs/
   PWA_IMPLEMENTATION.md       # Full implementation guide
@@ -101,7 +101,7 @@ index.html                    # Added PWA meta tags
 src/main.jsx                  # Service worker registration
 src/App.jsx                   # Offline banner integration
 src/lib/query-client.js       # Offline mode config
-src/pages/Settings.jsx        # Install prompt UI
+src/features/settings/pages/SettingsPage.jsx        # Install prompt UI
 CLAUDE.md                     # Updated with PWA info
 ```
 
@@ -267,12 +267,12 @@ Check PWA metrics:
 
 - **PWA_IMPLEMENTATION.md** - Full implementation details, architecture, file structure
 - **PWA_TESTING_GUIDE.md** - Comprehensive testing checklist with step-by-step instructions
-- **public/README-ICONS.md** - Icon generation guide with multiple methods
+- **PWA_IMPLEMENTATION.md** - PWA implementation and icon guidance
 - **CLAUDE.md** - Updated with PWA section and hooks
 
 ## Next Steps
 
-1. **Generate Icons** - Use `public/create-icon-placeholders.html`
+1. **Generate Icons** - Use `public/icon.svg` and regenerate PNGs with your preferred tool
 2. **Test Locally** - Run `npm run build && npm run preview`
 3. **Test Offline** - DevTools → Network → Offline
 4. **Test Install** - Click install prompt or Settings button

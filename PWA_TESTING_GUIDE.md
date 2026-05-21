@@ -10,7 +10,7 @@ This guide walks through testing all PWA features to ensure everything works cor
    ```
 
 2. **Generate PWA icons:**
-   - Open `public/create-icon-placeholders.html` in browser
+   - Use `public/icon.svg` as the source icon asset for regeneration
    - Download `icon-192.png` and `icon-512.png`
    - Save to `public/` directory
 

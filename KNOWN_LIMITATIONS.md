@@ -4,7 +4,7 @@
 
 1. **No dedicated "Crew Ride" feature.** Crew functionality is implemented as an `iso` broadcast subtype (`iso_subtype: 'bike_crew'`). Future versions may promote this to a first-class feature.
 
-2. **Event visibility window.** Events are controlled by `expires_at` (set to `event_end_time + 6 hours`), not by a hard 30-day-before / 1-day-after window relative to `event_date`.
+2. **Event visibility window.** Event visibility is controlled by the current broadcast/event window logic. Do not rely on the old `event_end_time + 6 hours` note without checking the active code path.
 
 3. **Un-RSVP UI.** Users can toggle between "Interested" and "Going" but cannot fully remove their RSVP from the UI. The API supports `not_going` status.
 

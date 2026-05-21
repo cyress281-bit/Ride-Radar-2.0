@@ -1,6 +1,6 @@
 # Ride Radar 2.0
 
-A social network for motorcyclists — find rides, connect with riders, share safety alerts, and discover events near you.
+A live motorcycle ride radar for nearby signals, meetups, warnings, Bike Down alerts, messaging, and rider profiles.
 
 **Live:** [rideradarapp.com](https://www.rideradarapp.com)
 

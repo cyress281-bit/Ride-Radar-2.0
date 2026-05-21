@@ -64,7 +64,7 @@ Ride Radar is now a fully functional Progressive Web App (PWA) with offline supp
 - Animated slide-in from top
 - Positioned above all content (z-index: 50)
 
-**Fallback Page:** `src/components/OfflineFallback.jsx`
+**Fallback UI:** the current app uses the top-level offline banner in `src/components/OfflineBanner.jsx`
 - Shown when navigation fails offline
 - Lists offline capabilities
 - "Try Again" and "Go to Home" actions
@@ -75,7 +75,7 @@ Ride Radar is now a fully functional Progressive Web App (PWA) with offline supp
 - Tracks install state (`isInstallable`, `isInstalled`)
 - Triggers install prompt programmatically
 
-**UI Integration:** `src/pages/Settings.jsx`
+**UI Integration:** `src/features/settings/pages/SettingsPage.jsx`
 - "Install Ride Radar App" button (when installable)
 - "App Installed" badge (when installed)
 - "Enable Push Notifications" button
@@ -87,13 +87,13 @@ Ride Radar is now a fully functional Progressive Web App (PWA) with offline supp
 
 ### 5. Offline Queue
 
-**Hook:** `src/hooks/useOfflineQueue.js`
+**Hook:** offline queue behavior is handled by the current mutation/query flow and messaging hooks
 - Queues mutations when offline
 - Processes queue when back online
 - Persists queue in localStorage
 - Auto-retry with 24-hour expiration
 
-**Message Queue:** `useMessageQueue()` specialization
+**Message Queue:** handled by the current message-sending flow
 - Automatically queues messages sent while offline
 - Syncs messages when reconnected
 - Shows queued message count
@@ -139,7 +139,7 @@ New packages added:
 
 **Option A: Browser-based (Recommended)**
 
-1. Open `public/create-icon-placeholders.html` in a browser
+1. Use `public/icon.svg` as the source asset for icon regeneration
 2. Click "Download 192x192" and "Download 512x512"
 3. Save as `public/icon-192.png` and `public/icon-512.png`
 
@@ -270,27 +270,27 @@ ride-radar-2.0/
 │   ├── icon.svg                   # Source icon
 │   ├── icon-192.png              # 192x192 icon (generate)
 │   ├── icon-512.png              # 512x512 icon (generate)
-│   ├── create-icon-placeholders.html  # Icon generator
-│   └── README-ICONS.md           # Icon generation guide
+│   ├── icon.svg                   # Source icon asset
+│   └── icon-192.png / icon-512.png # Generated PWA icons
 ├── src/
 │   ├── components/
 │   │   ├── OfflineBanner.jsx     # Offline status banner
-│   │   └── OfflineFallback.jsx   # Offline fallback page
+│   │   └── OfflineBanner.jsx   # Offline fallback page
 │   ├── hooks/
 │   │   ├── useOnlineStatus.js    # Online/offline detection
 │   │   ├── usePWAInstall.js      # Install prompt hook
-│   │   ├── useOfflineQueue.js    # Offline mutation queue
-│   │   └── useMessageQueue.js    # Message-specific queue
+│   │   ├── offline queue behavior    # Offline mutation queue
+│   │   └── message sending flow    # Message-specific queue
 │   ├── lib/
 │   │   ├── registerSW.js         # Service worker registration
 │   │   └── query-client.js       # React Query with offline config
 │   ├── pages/
-│   │   └── Settings.jsx          # PWA install UI
+│   │   └── SettingsPage.jsx      # PWA install UI
 │   ├── App.jsx                   # Offline banner integration
 │   └── main.jsx                  # SW registration entry point
 ├── scripts/
 │   ├── generate-icons.js         # Icon generation script
-│   └── create-placeholder-icons.js  # Placeholder script
+│   └── (no tracked placeholder icon script)
 ├── vite.config.js                # Vite + PWA plugin config
 ├── index.html                    # PWA meta tags
 └── PWA_IMPLEMENTATION.md         # This file
