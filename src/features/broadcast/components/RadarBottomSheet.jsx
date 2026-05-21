@@ -167,7 +167,7 @@ const RadarBottomSheet = memo(function RadarBottomSheet({
       {!sheetOpen && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute left-0 right-0 bottom-0 z-[-1] rounded-t-[24px] bg-surface/94 backdrop-blur-[32px] border-t border-white/[0.14]"
+          className="pointer-events-none absolute left-0 right-0 bottom-0 z-[-1] rounded-t-[24px] bg-surface/94 backdrop-blur-[32px] border-t border-white/[0.08]"
           style={{
             top: 'calc(100% - 8px)',
           }}
