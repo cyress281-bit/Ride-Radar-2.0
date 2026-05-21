@@ -33,14 +33,26 @@ function MapPanner({ lat, lng }) {
   return null;
 }
 
-const AlertPinMap = memo(function AlertPinMap({ defaultCenter, value, onChange }) {
+const COLOR_STYLES = {
+  alert: {
+    shell: 'border-alert/18 bg-black/35 shadow-[0_18px_52px_hsl(0_0%_0%/0.34),0_0_24px_hsl(var(--alert)/0.08)]',
+    badge: 'border-alert/25 bg-alert/10 text-alert',
+  },
+  bike_down: {
+    shell: 'border-destructive/18 bg-black/35 shadow-[0_18px_52px_hsl(0_0%_0%/0.34),0_0_24px_hsl(var(--destructive)/0.08)]',
+    badge: 'border-destructive/25 bg-destructive/10 text-destructive',
+  },
+};
+
+const AlertPinMap = memo(function AlertPinMap({ defaultCenter, value, onChange, color = 'alert' }) {
   const center = value ?? defaultCenter ?? US_CENTER;
   const hasPin = value?.lat != null && value?.lng != null;
   const zoom = hasPin ? 15 : defaultCenter?.lat != null ? 11 : 4;
+  const theme = COLOR_STYLES[color] || COLOR_STYLES.alert;
 
   return (
-    <div className={cn('relative w-full overflow-hidden rounded-2xl border border-border/70 bg-black/30', 'h-56')}>
-      <div className="absolute left-3 top-3 z-[400] flex items-center gap-1.5 rounded-full border border-border/60 bg-black/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground backdrop-blur-sm">
+    <div className={cn('relative h-56 w-full overflow-hidden rounded-2xl backdrop-blur-2xl', theme.shell)}>
+      <div className={cn('absolute left-3 top-3 z-[400] flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] backdrop-blur-sm', theme.badge)}>
         <MapPin className="h-3 w-3" />
         {hasPin ? 'Pin placed' : 'Tap map to place pin'}
       </div>

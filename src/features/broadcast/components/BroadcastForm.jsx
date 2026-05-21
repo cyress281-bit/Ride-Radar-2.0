@@ -31,47 +31,82 @@ const TYPES = [
 
 const TYPE_STYLE_MAP = {
   solo: {
-    hover: 'hover:border-primary/40 hover:bg-primary/5',
+    panel: 'border-primary/18 bg-surface/88 shadow-[0_24px_80px_hsl(0_0%_0%/0.42),0_0_0_1px_hsl(var(--primary)/0.04),inset_0_1px_0_hsl(0_0%_100%/0.05)]',
     glow: 'bg-primary',
+    glowTone: 'shadow-[0_0_28px_hsl(var(--primary)/0.18)]',
     border: 'border-primary/25',
     text: 'text-primary',
     bg: 'bg-primary/10',
+    input: 'border-primary/20 focus-within:border-primary/45 focus-within:shadow-[0_0_0_2px_hsl(var(--primary)/0.18),0_0_22px_hsl(var(--primary)/0.12)]',
+    chip: 'border-primary/20 bg-primary/10 text-primary',
+    chipInactive: 'border-border/40 bg-white/[0.03] text-muted-foreground hover:border-primary/25 hover:bg-primary/[0.06] hover:text-foreground',
+    panelSoft: 'border-primary/18 bg-primary/[0.05]',
+    section: 'border-primary/16 bg-surface/82',
+    sectionGlow: 'shadow-[0_0_24px_hsl(var(--primary)/0.10)]',
     neonClass: 'rr-neon-green',
     glowClass: 'glow-kawasaki-sm',
   },
   event: {
-    hover: 'hover:border-event/40 hover:bg-event/5',
+    panel: 'border-event/18 bg-surface/88 shadow-[0_24px_80px_hsl(0_0%_0%/0.42),0_0_0_1px_hsl(var(--event)/0.04),inset_0_1px_0_hsl(0_0%_100%/0.05)]',
     glow: 'bg-event',
+    glowTone: 'shadow-[0_0_28px_hsl(var(--event)/0.18)]',
     border: 'border-event/25',
     text: 'text-event',
     bg: 'bg-event/10',
+    input: 'border-event/20 focus-within:border-event/45 focus-within:shadow-[0_0_0_2px_hsl(var(--event)/0.16),0_0_22px_hsl(var(--event)/0.12)]',
+    chip: 'border-event/20 bg-event/10 text-event',
+    chipInactive: 'border-border/40 bg-white/[0.03] text-muted-foreground hover:border-event/25 hover:bg-event/[0.06] hover:text-foreground',
+    panelSoft: 'border-event/18 bg-event/[0.05]',
+    section: 'border-event/16 bg-surface/82',
+    sectionGlow: 'shadow-[0_0_24px_hsl(var(--event)/0.10)]',
     neonClass: '',
     glowClass: '',
   },
   iso: {
-    hover: 'hover:border-iso/40 hover:bg-iso/5',
+    panel: 'border-iso/18 bg-surface/88 shadow-[0_24px_80px_hsl(0_0%_0%/0.42),0_0_0_1px_hsl(var(--iso)/0.04),inset_0_1px_0_hsl(0_0%_100%/0.05)]',
     glow: 'bg-iso',
+    glowTone: 'shadow-[0_0_28px_hsl(var(--iso)/0.18)]',
     border: 'border-iso/25',
     text: 'text-iso',
     bg: 'bg-iso/10',
+    input: 'border-iso/20 focus-within:border-iso/45 focus-within:shadow-[0_0_0_2px_hsl(var(--iso)/0.16),0_0_22px_hsl(var(--iso)/0.10)]',
+    chip: 'border-iso/20 bg-iso/10 text-iso',
+    chipInactive: 'border-border/40 bg-white/[0.03] text-muted-foreground hover:border-iso/25 hover:bg-iso/[0.06] hover:text-foreground',
+    panelSoft: 'border-iso/18 bg-iso/[0.05]',
+    section: 'border-iso/16 bg-surface/82',
+    sectionGlow: 'shadow-[0_0_24px_hsl(var(--iso)/0.10)]',
     neonClass: '',
     glowClass: '',
   },
   alert: {
-    hover: 'hover:border-alert/40 hover:bg-alert/5',
+    panel: 'border-alert/18 bg-surface/88 shadow-[0_24px_80px_hsl(0_0%_0%/0.42),0_0_0_1px_hsl(var(--alert)/0.04),inset_0_1px_0_hsl(0_0%_100%/0.05)]',
     glow: 'bg-alert',
+    glowTone: 'shadow-[0_0_28px_hsl(var(--alert)/0.18)]',
     border: 'border-alert/25',
     text: 'text-alert',
     bg: 'bg-alert/10',
+    input: 'border-alert/20 focus-within:border-alert/45 focus-within:shadow-[0_0_0_2px_hsl(var(--alert)/0.16),0_0_22px_hsl(var(--alert)/0.10)]',
+    chip: 'border-alert/20 bg-alert/10 text-alert',
+    chipInactive: 'border-border/40 bg-white/[0.03] text-muted-foreground hover:border-alert/25 hover:bg-alert/[0.06] hover:text-foreground',
+    panelSoft: 'border-alert/18 bg-alert/[0.05]',
+    section: 'border-alert/16 bg-surface/82',
+    sectionGlow: 'shadow-[0_0_24px_hsl(var(--alert)/0.10)]',
     neonClass: '',
     glowClass: '',
   },
   bike_down: {
-    hover: 'hover:border-destructive/40 hover:bg-destructive/5',
+    panel: 'border-destructive/18 bg-surface/88 shadow-[0_24px_80px_hsl(0_0%_0%/0.42),0_0_0_1px_hsl(var(--destructive)/0.04),inset_0_1px_0_hsl(0_0%_100%/0.05)]',
     glow: 'bg-destructive',
+    glowTone: 'shadow-[0_0_28px_hsl(var(--destructive)/0.18)]',
     border: 'border-destructive/25',
     text: 'text-destructive',
     bg: 'bg-destructive/10',
+    input: 'border-destructive/20 focus-within:border-destructive/45 focus-within:shadow-[0_0_0_2px_hsl(var(--destructive)/0.18),0_0_22px_hsl(var(--destructive)/0.12)]',
+    chip: 'border-destructive/20 bg-destructive/10 text-destructive',
+    chipInactive: 'border-border/40 bg-white/[0.03] text-muted-foreground hover:border-destructive/25 hover:bg-destructive/[0.06] hover:text-foreground',
+    panelSoft: 'border-destructive/18 bg-destructive/[0.05]',
+    section: 'border-destructive/16 bg-surface/82',
+    sectionGlow: 'shadow-[0_0_24px_hsl(var(--destructive)/0.10)]',
     neonClass: 'rr-neon-red',
     glowClass: '',
   },
@@ -131,6 +166,13 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const post = useCreateBroadcast();
   const typeMeta = TYPES.find((t) => t.id === type);
   const typeStyles = TYPE_STYLE_MAP[typeMeta.color];
+  const formSectionClass = cn(
+    'space-y-5 rounded-[28px] border bg-surface/88 p-5 relative overflow-hidden backdrop-blur-2xl shadow-[0_24px_80px_hsl(0_0%_0%/0.42),inset_0_1px_0_hsl(0_0%_100%/0.05)]',
+    typeStyles.panel
+  );
+  const formAccentGlow = cn('pointer-events-none absolute inset-x-0 top-0 h-24 opacity-80', typeStyles.glow, typeStyles.sectionGlow);
+  const fieldCardClass = cn('rounded-[20px] border bg-surface/78 p-3 backdrop-blur-xl shadow-[0_18px_54px_hsl(0_0%_0%/0.28)]', typeStyles.section);
+  const controlClass = cn('rr-premium-input rounded-[18px] mt-1.5', typeStyles.input);
   const { effectiveLoc: radarDefaultLoc, userLoc, hasUserLocation } = useRadarLocation();
 
   const [coords, setCoords] = useState({ lat: null, lng: null });
@@ -255,41 +297,47 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
 
   return (
-    <div className="px-5 pt-5 bg-background scroll-smooth">{/* AppLayout <main> applies pb-nav-safe globally */}
-      <button onClick={onBack} aria-label="Back to signal type" className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-3 min-h-[44px] px-1 transition-colors">
+    <div className="px-5 pt-5 pb-2 bg-background scroll-smooth">{/* AppLayout <main> applies pb-nav-safe globally */}
+      <button onClick={onBack} aria-label="Back to signal type" className="pressable mb-3 flex min-h-[44px] items-center gap-1.5 px-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
         <ArrowLeft className="w-4 h-4" />
       </button>
 
       {/* Type header */}
       <HStack gap={3} align="center" className="mb-4">
-        <SignalIcon type={type} size="sm" />
+        <div className={cn('flex h-11 w-11 items-center justify-center rounded-2xl border backdrop-blur-sm', typeStyles.border, typeStyles.bg, typeStyles.glowClass, typeStyles.glowTone)}>
+          <SignalIcon type={type} size="sm" />
+        </div>
         <VStack gap={0.5}>
           <Text as="h1" variant="h2" className={cn('rr-heading text-base', typeStyles.text)}>{typeMeta.label}</Text>
+          <Text variant="caption" color="muted" className="max-w-[20rem]">
+            {typeMeta.desc}
+          </Text>
         </VStack>
       </HStack>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rr-surface p-5 relative overflow-hidden">
-        <div className={cn('absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-[0.03] blur-3xl', typeStyles.glow)} />
+      <form onSubmit={handleSubmit(onSubmit)} className={formSectionClass}>
+        <div className={cn('absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-[0.06] blur-3xl', typeStyles.glow, typeStyles.glowTone)} />
+        <div aria-hidden className={formAccentGlow} />
 
         {/* ISO subtype selector */}
         {type === 'iso' && (
           <VStack gap={2}>
             <Label id="isoSubtype-label" className="rr-kicker text-muted-foreground mb-1 block">What do you need?</Label>
             <div role="radiogroup" aria-labelledby="isoSubtype-label" className="grid grid-cols-2 gap-2">
-              {[
-                { value: 'mechanic', label: 'Mechanic', icon: Wrench },
-                { value: 'bike_crew', label: 'Bike Crew', icon: Users },
-              ].map((opt) => (
+                {[
+                  { value: 'mechanic', label: 'Mechanic', icon: Wrench },
+                  { value: 'bike_crew', label: 'Bike Crew', icon: Users },
+                ].map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   onClick={() => setValue('isoSubtype', opt.value)}
                   className={cn(
-                    'flex items-center gap-2 rounded-xl border p-3 text-sm font-bold transition-all active:scale-[0.96]',
+                    'flex min-h-[52px] items-center gap-2 rounded-2xl border px-3.5 py-3 text-sm font-bold transition-all active:scale-[0.96] backdrop-blur-xl',
                     isoSubtype === opt.value
-                      ? 'border-cyan/40 bg-cyan/10 text-cyan glow-yamaha'
-                      : 'border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-white/[0.02]'
+                      ? 'border-cyan/40 bg-cyan/10 text-cyan shadow-[0_0_22px_hsl(var(--cyan)/0.14)] glow-yamaha'
+                      : 'border-white/[0.08] bg-white/[0.03] text-muted-foreground hover:text-foreground hover:bg-white/[0.05]'
                   )}
                 >
                   <opt.icon className="w-4 h-4" />
@@ -304,7 +352,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           <VStack gap={2}>
             <Label htmlFor="lookingTo" className="rr-kicker text-muted-foreground mb-1 block">Looking to</Label>
             <Select value={watch('lookingTo')} onValueChange={(v) => setValue('lookingTo', v)}>
-              <SelectTrigger id="lookingTo" className="rr-premium-input rounded-xl mt-1.5">
+              <SelectTrigger id="lookingTo" className={controlClass}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -328,7 +376,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                     key={preset}
                     type="button"
                     onClick={() => setValue('title', preset)}
-                    className="text-xs font-bold px-3 py-1.5 rounded-full border border-alert/30 bg-alert/8 text-alert hover:bg-alert/15 transition-colors pressable"
+                    className={cn('text-xs font-bold px-3 py-1.5 rounded-full border transition-colors pressable', typeStyles.chipInactive, 'text-alert/90')}
                   >
                     {preset}
                   </button>
@@ -347,7 +395,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                       ? 'Brake pad replacement'
                       : 'Evening cruise, west side loop, or bike night'
               }
-              className="rr-premium-input rounded-xl mt-1.5"
+              className={controlClass}
               maxLength={120}
             />
             <Text variant="caption" color="muted" className="text-right">
@@ -383,7 +431,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                         ? 'Motorcycle down, rider condition, traffic blocked...'
                         : 'Gravel across both lanes'
             }
-            className="rr-premium-input rounded-xl mt-1.5"
+            className={controlClass}
             rows={4}
             maxLength={500}
           />
@@ -401,17 +449,17 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 id="location"
                 {...register('exactLocationText')}
                 placeholder="Red Rocks Park, parking lot 2"
-                className="rr-premium-input rounded-xl mt-1.5"
+                className={controlClass}
               />
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
             </VStack>
             {/* Event poster upload */}
             <VStack gap={2}>
               <Label className="rr-kicker text-muted-foreground mb-1 block">Event poster (optional)</Label>
-              <div id="eventPoster" className="mt-1.5 rounded-[20px] border border-border/70 bg-black/30 p-3 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04)]">
+              <div id="eventPoster" className={cn('mt-1.5 rounded-[20px] p-3', fieldCardClass)}>
                 {eventImage ? (
                   <VStack gap={3}>
-                    <div className="flex max-h-72 items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-black/45 p-2">
+                    <div className={cn('flex max-h-72 items-center justify-center overflow-hidden rounded-xl border bg-black/45 p-2', typeStyles.border)}>
                       <img
                         src={eventImage.previewUrl || eventImage}
                         className="max-h-64 w-full object-contain"
@@ -419,23 +467,23 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <label className="pressable flex h-11 min-h-[44px] cursor-pointer items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-xs font-bold text-primary transition hover:bg-primary/15">
+                      <label className={cn('pressable flex h-11 min-h-[44px] cursor-pointer items-center justify-center rounded-full border text-xs font-bold transition hover:bg-event/15', typeStyles.chip)}>
                         <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={handleImageUpload} className="hidden" />
                         {uploading ? 'Preparing...' : 'Replace'}
                       </label>
                       <button
                         type="button"
                         onClick={() => setEventImage(null)}
-                        className="pressable h-11 min-h-[44px] rounded-full border border-border/80 bg-surface-elevated/50 text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive"
+                        className="pressable h-11 min-h-[44px] rounded-full border border-white/[0.08] bg-white/[0.03] text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive"
                       >
                         Remove
                       </button>
                     </div>
                   </VStack>
                 ) : (
-                  <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-primary/25 bg-primary/5 px-4 py-6 text-center transition hover:border-primary/50 hover:bg-primary/10 pressable">
+                  <label className={cn('flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 py-6 text-center transition hover:bg-event/10 pressable', typeStyles.chipInactive)}>
                     <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={handleImageUpload} className="hidden" />
-                    <Upload className="mb-2 h-6 w-6 text-primary" />
+                    <Upload className={cn('mb-2 h-6 w-6', typeStyles.text)} />
                     <Text variant="bodySm" className="font-bold">{uploading ? 'Preparing preview...' : 'Upload event poster'}</Text>
                     <Text variant="caption" color="muted" className="mt-1">Drag and drop or tap to browse</Text>
                   </label>
@@ -447,12 +495,12 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             <VStack gap={3}>
               <VStack gap={2}>
                 <Label htmlFor="start" className="rr-kicker text-muted-foreground mb-1 block">Starts</Label>
-                <Input id="start" type="datetime-local" {...register('eventDate')} className="rr-premium-input rounded-xl mt-1.5" />
+                <Input id="start" type="datetime-local" {...register('eventDate')} className={controlClass} />
                 {errors.eventDate && <p className="mt-1 text-xs text-destructive">{errors.eventDate.message}</p>}
               </VStack>
               <VStack gap={2}>
                 <Label htmlFor="end" className="rr-kicker text-muted-foreground mb-1 block">Ends</Label>
-                <Input id="end" type="datetime-local" {...register('eventEndTime')} className="rr-premium-input rounded-xl mt-1.5" />
+                <Input id="end" type="datetime-local" {...register('eventEndTime')} className={controlClass} />
                 {errors.eventEndTime && <p className="mt-1 text-xs text-destructive">{errors.eventEndTime.message}</p>}
               </VStack>
             </VStack>
@@ -466,7 +514,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               <button
                 type="button"
                 onClick={() => setAlertPin({ lat: userLoc.lat, lng: userLoc.lng })}
-                className="flex items-center gap-2 text-sm font-bold text-alert border border-alert/30 bg-alert/8 rounded-xl px-4 py-2.5 min-h-[44px] w-full hover:bg-alert/15 transition-colors pressable"
+                className={cn('flex min-h-[44px] w-full items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold transition-colors pressable', typeStyles.chip)}
               >
                 <LocateFixed className="w-4 h-4 shrink-0" />
                 Use my current location
@@ -476,6 +524,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               defaultCenter={radarDefaultLoc}
               value={alertPin}
               onChange={setAlertPin}
+              color="alert"
             />
             <Text variant="caption" color="muted">Drop a pin or use your current location. Exact location stays private.</Text>
             <VStack gap={2}>
@@ -484,7 +533,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 id="approximateArea"
                 {...register('exactLocationText')}
                 placeholder="I-70 westbound near Idaho Springs"
-                className="rr-premium-input rounded-xl mt-1.5"
+                className={controlClass}
               />
             </VStack>
             <AlertPhotoUploader images={alertImages} onChange={setAlertImages} color="alert" />
@@ -494,7 +543,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {/* Bike Down fields */}
         {type === 'bike_down' && (
           <VStack gap={5}>
-            <div className="flex items-start gap-2.5 rounded-xl border border-destructive/25 bg-destructive/8 px-3.5 py-3">
+            <div className={cn('flex items-start gap-2.5 rounded-2xl px-3.5 py-3', typeStyles.panelSoft, typeStyles.sectionGlow)}>
               <span className="mt-0.5 text-destructive" aria-hidden="true">⚠</span>
               <p className="text-xs leading-snug text-destructive/90 font-medium">
                 Bike Down alerts are community safety signals, not emergency services. If someone may be injured or in danger, <strong>call 911 first</strong>.
@@ -506,7 +555,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 id="approximateArea"
                 {...register('exactLocationText')}
                 placeholder="I-70 westbound near Idaho Springs"
-                className="rr-premium-input rounded-xl mt-1.5"
+                className={controlClass}
               />
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
               <Text variant="caption" color="muted" className="mt-1.5">Describe the area. Your exact location stays private.</Text>
@@ -520,7 +569,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                     setValue('exactLocationText', 'Near my current location');
                   }
                 }}
-                className="flex items-center gap-2 text-sm font-bold text-destructive border border-destructive/30 bg-destructive/8 rounded-xl px-4 py-2.5 min-h-[44px] w-full hover:bg-destructive/15 transition-colors pressable"
+                className={cn('flex min-h-[44px] w-full items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-bold transition-colors pressable', typeStyles.chip)}
               >
                 <LocateFixed className="w-4 h-4 shrink-0" />
                 Use my current location
@@ -530,6 +579,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               defaultCenter={radarDefaultLoc}
               value={alertPin}
               onChange={setAlertPin}
+              color="bike_down"
             />
             <AlertPhotoUploader images={alertImages} onChange={setAlertImages} color="bike_down" />
           </VStack>
@@ -543,10 +593,10 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 type="button"
                 onClick={() => setLocationPrecision('approximate')}
                 className={cn(
-                  'flex-1 rounded-xl border px-3 py-2 text-xs font-bold transition-colors min-h-[40px]',
+                  'flex-1 rounded-2xl border px-3 py-2 text-xs font-bold transition-colors min-h-[42px] backdrop-blur-xl',
                   locationPrecision === 'approximate'
-                    ? 'bg-primary/10 border-primary/40 text-primary'
-                    : 'bg-transparent border-border/40 text-muted-foreground hover:border-border/70'
+                    ? 'bg-primary/10 border-primary/40 text-primary shadow-[0_0_18px_hsl(var(--primary)/0.10)]'
+                    : 'bg-white/[0.03] border-white/[0.08] text-muted-foreground hover:border-primary/25 hover:text-foreground'
                 )}
               >
                 Approximate
@@ -555,20 +605,20 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 type="button"
                 onClick={() => setLocationPrecision('precise')}
                 className={cn(
-                  'flex-1 rounded-xl border px-3 py-2 text-xs font-bold transition-colors min-h-[40px]',
+                  'flex-1 rounded-2xl border px-3 py-2 text-xs font-bold transition-colors min-h-[42px] backdrop-blur-xl',
                   locationPrecision === 'precise'
-                    ? 'bg-alert/10 border-alert/40 text-alert'
-                    : 'bg-transparent border-border/40 text-muted-foreground hover:border-border/70'
+                    ? 'bg-alert/10 border-alert/40 text-alert shadow-[0_0_18px_hsl(var(--alert)/0.10)]'
+                    : 'bg-white/[0.03] border-white/[0.08] text-muted-foreground hover:border-alert/25 hover:text-foreground'
                 )}
               >
                 Precise
               </button>
             </div>
             <div className={cn(
-              'p-3 rounded-xl text-xs flex items-start gap-2 border',
+              'p-3 rounded-2xl text-xs flex items-start gap-2 border backdrop-blur-xl',
               locationPrecision === 'precise'
-                ? 'bg-alert/5 border-alert/15 text-alert'
-                : 'bg-primary/5 border-primary/15 text-primary'
+                ? 'bg-alert/5 border-alert/20 text-alert shadow-[0_0_16px_hsl(var(--alert)/0.08)]'
+                : 'bg-primary/5 border-primary/20 text-primary shadow-[0_0_16px_hsl(var(--primary)/0.08)]'
             )}>
               <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
               <span>
@@ -581,7 +631,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         )}
 
         {type === 'iso' && (
-          <div className="p-3 bg-primary/5 rounded-xl text-xs text-primary border border-primary/15 flex items-start gap-2">
+          <div className="p-3 bg-iso/5 rounded-2xl text-xs text-iso border border-iso/20 flex items-start gap-2 backdrop-blur-xl shadow-[0_0_16px_hsl(var(--iso)/0.08)]">
             <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
             <span>Your location is approximated (~1 mile) and frozen when you send. No live tracking.</span>
           </div>
@@ -615,7 +665,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             type="submit"
             disabled={!canPost || post.isPending || !user}
             className={cn(
-              'w-full h-14 rounded-full mt-2 text-base font-bold pressable transition-all duration-200',
+              'w-full h-14 rounded-full mt-2 text-base font-bold pressable transition-all duration-200 shadow-[0_18px_40px_hsl(0_0%_0%/0.30)]',
               type === 'bike_down'
                 ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
                 : type === 'alert'
