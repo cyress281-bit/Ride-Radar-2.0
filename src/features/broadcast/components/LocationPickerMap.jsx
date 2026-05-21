@@ -1,4 +1,4 @@
-import { useEffect, memo } from 'react';
+import { useEffect, memo, useRef } from 'react';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { divIcon } from 'leaflet';
 import { MapPin } from 'lucide-react';
@@ -23,13 +23,18 @@ function MapClickHandler({ onChange }) {
   return null;
 }
 
-function MapPanner({ lat, lng }) {
+function MapViewportSync({ center, zoom }) {
   const map = useMap();
+  const lastViewRef = useRef('');
+
   useEffect(() => {
-    if (lat != null && lng != null) {
-      map.panTo([lat, lng]);
-    }
-  }, [lat, lng, map]);
+    if (center?.lat == null || center?.lng == null) return;
+    const nextView = `${center.lat.toFixed(6)}:${center.lng.toFixed(6)}:${zoom}`;
+    if (lastViewRef.current === nextView) return;
+    lastViewRef.current = nextView;
+    map.setView([center.lat, center.lng], zoom, { animate: false });
+  }, [center, zoom, map]);
+
   return null;
 }
 
@@ -44,10 +49,10 @@ const COLOR_STYLES = {
   },
 };
 
-const LocationPickerMap = memo(function LocationPickerMap({ defaultCenter, value, onChange, color = 'alert' }) {
+const LocationPickerMap = memo(function LocationPickerMap({ defaultCenter, value, onChange, color = 'alert', zoomLevel = null }) {
   const center = value ?? defaultCenter ?? US_CENTER;
   const hasPin = value?.lat != null && value?.lng != null;
-  const zoom = hasPin ? 15 : defaultCenter?.lat != null ? 11 : 4;
+  const zoom = zoomLevel ?? (hasPin ? 15 : defaultCenter?.lat != null ? 11 : 4);
   const theme = COLOR_STYLES[color] || COLOR_STYLES.alert;
 
   return (
@@ -71,10 +76,10 @@ const LocationPickerMap = memo(function LocationPickerMap({ defaultCenter, value
           subdomains="abcd"
           crossOrigin="anonymous"
         />
+        <MapViewportSync center={center} zoom={zoom} />
         <MapClickHandler onChange={onChange} />
         {hasPin && (
           <>
-            <MapPanner lat={value.lat} lng={value.lng} />
             <Marker
               position={[value.lat, value.lng]}
               draggable

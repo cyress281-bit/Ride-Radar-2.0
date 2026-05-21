@@ -341,6 +341,15 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   };
 
   const onSubmit = async (values) => {
+    if (type === 'event' && !((eventPin?.lat != null && eventPin?.lng != null) || eventLocationPreview.status === 'success')) {
+      toast({
+        title: 'Add a meetup pin',
+        description: 'Enter a location, let us confirm it, or place the pin manually.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const payload = {
       type,
       title: values.title || '',
@@ -379,18 +388,18 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     });
   };
 
-  const canPost =
-    !uploading &&
-    !uploadError &&
-    !isLocating &&
-    (type !== 'iso' || isoSubtype === 'mechanic' || watch('lookingTo')) &&
-    (type !== 'event' || (exactLocationTextValue && eventDateValue && eventEndTimeValue)) &&
-    (type !== 'bike_down' || exactLocationTextValue || (alertPin?.lat != null && alertPin?.lng != null)) &&
-    (type !== 'alert' || (alertPin?.lat != null && alertPin?.lng != null)) &&
-    ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
-
-  const showEventPinMap =
-    type === 'event' && eventLocationPreview.status === 'success' && eventLocationPreview.data;
+  const hasEventPin = eventPin?.lat != null && eventPin?.lng != null;
+  const canResolveEventLocation = hasEventPin || eventLocationPreview.status === 'success';
+  const eventMapCenter = eventLocationPreview.data || radarDefaultLoc;
+  const eventMapStatusText =
+    eventLocationPreview.status === 'loading'
+      ? 'Checking location...'
+      : eventLocationPreview.status === 'error' || eventLocationPreview.status === 'not_found'
+        ? "We couldn't find that address. Try another location or place the pin manually."
+        : eventLocationPreview.status === 'success' || hasEventPin
+          ? 'Confirm the meetup pin or drag it to the exact spot.'
+          : 'Enter a meetup location, then confirm or adjust the pin on the map.';
+  const showEventPinMap = type === 'event';
 
   const handleEventPinChange = (nextPin) => {
     eventPinAdjustedRef.current = true;
@@ -399,9 +408,19 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     setEventPin(nextPin);
   };
 
+  const canPost =
+    !uploading &&
+    !uploadError &&
+    !isLocating &&
+    (type !== 'iso' || isoSubtype === 'mechanic' || watch('lookingTo')) &&
+    (type !== 'event' || (exactLocationTextValue && eventDateValue && eventEndTimeValue && canResolveEventLocation)) &&
+    (type !== 'bike_down' || exactLocationTextValue || (alertPin?.lat != null && alertPin?.lng != null)) &&
+    (type !== 'alert' || (alertPin?.lat != null && alertPin?.lng != null)) &&
+    ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
+
   return (
     <div className="px-5 pt-5 pb-2 bg-background scroll-smooth">{/* AppLayout <main> applies pb-nav-safe globally */}
-      <button onClick={onBack} aria-label="Back to signal type" className="pressable mb-3 flex min-h-[44px] items-center gap-1.5 px-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+      <button type="button" onClick={onBack} aria-label="Back to signal type" className="pressable mb-3 flex min-h-[44px] items-center gap-1.5 px-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
         <ArrowLeft className="w-4 h-4" />
       </button>
 
@@ -555,17 +574,9 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 className={controlClass}
               />
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
-              {!errors.exactLocationText && normalizedEventLocationText.length >= 3 && (
+              {!errors.exactLocationText && type === 'event' && (
                 <Text variant="caption" color="muted">
-                  {eventLocationPreview.status === 'loading'
-                    ? 'Checking location...'
-                    : eventLocationPreview.status === 'error'
-                      ? 'Could not check location right now. You can still try creating the event.'
-                      : eventLocationPreview.status === 'not_found'
-                        ? 'Address not found - try adding city/state or a landmark.'
-                        : eventLocationPreview.data
-                          ? `Located: ${eventLocationPreview.data.displayName}`
-                          : 'Enter a location to preview the meetup spot.'}
+                  {eventMapStatusText}
                 </Text>
               )}
             </VStack>
@@ -573,13 +584,11 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               <VStack gap={2}>
                 <div className={cn('rounded-[20px] p-3', fieldCardClass)}>
                   <LocationPickerMap
-                    defaultCenter={{
-                      lat: eventLocationPreview.data.lat,
-                      lng: eventLocationPreview.data.lng,
-                    }}
+                    defaultCenter={eventMapCenter}
                     value={eventPin}
                     onChange={handleEventPinChange}
                     color="event"
+                    zoomLevel={eventLocationPreview.status === 'success' || hasEventPin ? 15 : 11}
                   />
                   <Text variant="caption" color="muted" className="mt-2 block">
                     Drag the pin to fine-tune the meetup spot.
