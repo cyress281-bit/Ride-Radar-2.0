@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCreateBlock } from '@/features/safety/hooks/use-blocks.js';
 import { useCreateReport } from '@/features/safety/hooks/use-reports.js';
+import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
 import { toast } from 'sonner';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
 import { Text } from '@/components/ui/primitives/Text';
@@ -118,6 +119,9 @@ function ConversationPage() {
 
   const otherId = conversation?.participant_ids?.find((p) => p !== user?.id);
 
+  const { blockedIds } = useBlockedIds();
+  const isBlocked = !!otherId && blockedIds.has(otherId);
+
   const { data: otherProfile } = useQuery({
     queryKey: ['profile', otherId],
     enabled: !!otherId,
@@ -170,9 +174,10 @@ function ConversationPage() {
   const handleSend = useCallback(
     ({ body, imageFile } = {}) => {
       if (send.isPending) return;
+      if (isBlocked) return;
       send.mutate({ body, imageFile });
     },
-    [send]
+    [send, isBlocked]
   );
 
   const renderMessage = useCallback(
@@ -395,11 +400,18 @@ function ConversationPage() {
         </button>
       )}
 
+      {/* Block notice */}
+      {isBlocked && (
+        <div className="mx-4 mb-2 px-4 py-3 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive text-center">
+          Messaging is unavailable because you have blocked this user.
+        </div>
+      )}
+
       {/* Input */}
       <MessageInput
         onSend={handleSend}
         isSending={send.isPending}
-        disabled={conversation?.status === 'archived'}
+        disabled={conversation?.status === 'archived' || isBlocked}
       />
     </VStack>
   );

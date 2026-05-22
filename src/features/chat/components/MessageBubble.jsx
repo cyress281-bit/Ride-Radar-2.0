@@ -1,9 +1,9 @@
-import React, { memo, useState, useRef, useCallback } from 'react';
+import React, { memo, useState } from 'react';
 import { cn, timeAgo } from '@/lib/utils.js';
 import { isRemoteImageUrl } from '@/lib/image-utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
-import { Check, ImageOff, Smile } from 'lucide-react';
+import { Check, ImageOff } from 'lucide-react';
 
 /**
  * Single message bubble.
@@ -13,48 +13,14 @@ import { Check, ImageOff, Smile } from 'lucide-react';
  * - Other messages: surface-elevated bubble, left-aligned
  * - Timestamps with mono font
  * - Read receipts (neon green when read)
- * - Reactions support
- * - Image support placeholder
+ * - Image support
  *
  * @param {Object} props
  * @param {object} props.message
  * @param {boolean} props.isMine
  */
-const LONG_PRESS_DELAY = 500; // ms
-const MOVE_THRESHOLD = 8; // px
-
 const MessageBubble = memo(function MessageBubble({ message, isMine }) {
-  const [showReactions, setShowReactions] = useState(false);
   const [imageError, setImageError] = useState(false);
-
-  const longPressTimer = useRef(null);
-  const pointerOrigin = useRef(null);
-
-  const cancelLongPress = useCallback(() => {
-    if (longPressTimer.current !== null) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-    pointerOrigin.current = null;
-  }, []);
-
-  const handlePointerDown = useCallback((e) => {
-    pointerOrigin.current = { x: e.clientX, y: e.clientY };
-    longPressTimer.current = setTimeout(() => {
-      longPressTimer.current = null;
-      pointerOrigin.current = null;
-      setShowReactions((s) => !s);
-    }, LONG_PRESS_DELAY);
-  }, []);
-
-  const handlePointerMove = useCallback((e) => {
-    if (pointerOrigin.current === null) return;
-    const dx = e.clientX - pointerOrigin.current.x;
-    const dy = e.clientY - pointerOrigin.current.y;
-    if (Math.sqrt(dx * dx + dy * dy) > MOVE_THRESHOLD) {
-      cancelLongPress();
-    }
-  }, [cancelLongPress]);
 
   const displayImageUrl = message.resolved_image_url || (isRemoteImageUrl(message.image_url) ? message.image_url : '');
 
@@ -67,10 +33,6 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
     >
       <VStack className="max-w-[82%] min-w-0" align={isMine ? 'end' : 'start'}>
         <div
-          onPointerDown={handlePointerDown}
-          onPointerUp={cancelLongPress}
-          onPointerCancel={cancelLongPress}
-          onPointerMove={handlePointerMove}
           className={cn(
             'relative px-4 py-2.5 text-sm leading-relaxed cursor-pointer select-text',
             'transition-all duration-200',
@@ -119,28 +81,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
           )}
         </HStack>
 
-        {/* Reactions */}
-        {showReactions && (
-          <HStack gap={1} className="mt-1 animate-scale-in">
-            {['👍', '❤️', '🔥', '😂', '😮'].map((emoji) => (
-              <button
-                key={emoji}
-                onClick={() => setShowReactions(false)}
-                aria-label={`React with ${emoji}`}
-                className="text-lg min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-surface-elevated rounded-lg transition-colors"
-              >
-                {emoji}
-              </button>
-            ))}
-            <button
-              onClick={() => setShowReactions(false)}
-              aria-label="More reactions"
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-surface-elevated rounded-lg transition-colors text-muted-foreground"
-            >
-              <Smile className="w-4 h-4" />
-            </button>
-          </HStack>
-        )}
+
       </VStack>
     </div>
   );
