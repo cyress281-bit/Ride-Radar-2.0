@@ -8,6 +8,7 @@
  */
 
 import { logger } from '@/lib/logger.js';
+import { trackPWAInstalled } from '@/lib/analytics.js';
 
 let deferredPrompt = null;
 let registration = null;
@@ -243,6 +244,7 @@ export function setupInstallPrompt() {
     deferredPrompt = null;
     localStorage.setItem('pwa-installed', 'true');
     localStorage.setItem('pwa-install-date', new Date().toISOString());
+    trackPWAInstalled();
   });
 }
 

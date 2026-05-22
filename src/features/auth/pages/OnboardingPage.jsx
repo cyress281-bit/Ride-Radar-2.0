@@ -35,6 +35,7 @@ import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
 import { logger } from '@/lib/logger.js';
+import { trackProfileCompleted } from '@/lib/analytics.js';
 import {
   MOTORCYCLE_MAKES,
   getModelSuggestions,
@@ -277,6 +278,7 @@ export default function OnboardingPage() {
     onSuccess: async () => {
       await refreshProfile();
       qc.invalidateQueries({ queryKey: ['profile'] });
+      trackProfileCompleted();
       navigate(redirectPath, { replace: true });
     },
   });

@@ -18,6 +18,7 @@ import { useAdminRole } from './features/auth/hooks/use-admin-role';
 import { getSafeAuthRedirectFromSearch } from './lib/auth-redirect';
 import { isValidUuid } from './lib/utils';
 import { preloadCoreRoutes } from './lib/routePreload';
+import { trackPageView } from './lib/analytics';
 
 // ------------------------------------------------------------------
 // Eagerly loaded (shell components needed immediately)
@@ -172,6 +173,7 @@ const ScrollToTop = memo(function ScrollToTop() {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    trackPageView(pathname);
   }, [pathname]);
   return null;
 });

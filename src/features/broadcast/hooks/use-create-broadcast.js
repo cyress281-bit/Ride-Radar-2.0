@@ -15,6 +15,7 @@ import { logger } from '@/lib/logger.js';
 import { toast } from '@/components/ui/use-toast';
 import { uploadImage } from '@/lib/image-utils.js';
 import { broadcastKeys } from './use-broadcasts.js';
+import { trackBroadcastCreated } from '@/lib/analytics.js';
 
 function normalizeLocationText(text) {
   return String(text || '').trim().replace(/\s+/g, ' ');
@@ -211,6 +212,7 @@ export function useCreateBroadcast() {
       if (data?.id) {
         queryClient.invalidateQueries({ queryKey: broadcastKeys.detail(data.id) });
       }
+      trackBroadcastCreated(data?.type || 'unknown');
     },
     onError: (error) => {
       logger.error('[useCreateBroadcast] Mutation failed:', error);

@@ -4,6 +4,7 @@ import { sendMessage as apiSendMessage } from '@/features/chat/api/chat-api.js';
 import { PRIVATE_MESSAGE_IMAGE_BUCKET, uploadPrivateImage } from '@/lib/image-utils.js';
 import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
+import { trackMessageSent } from '@/lib/analytics.js';
 
 /**
  * Hook to send a message in a conversation.
@@ -93,6 +94,8 @@ export function useSendMessage(conversationId) {
       if (context?.optimisticMessage?._localImageUrl) {
         URL.revokeObjectURL(context.optimisticMessage._localImageUrl);
       }
+
+      trackMessageSent();
 
       queryClient.setQueryData(['messages', conversationId], (old = []) =>
         old.map((msg) =>
