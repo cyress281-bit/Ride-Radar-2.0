@@ -26,6 +26,7 @@ import 'leaflet/dist/leaflet.css';
 
 const US_CENTER = [39.8283, -98.5795];
 const DARK_TILE_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+let lastRadarViewport = null;
 
 const typeConfig = {
   alert: { label: 'Road Warning', Icon: ShieldAlert, text: 'text-alert', border: 'border-alert/45', bg: 'bg-alert/10', leftStripe: 'bg-alert', glow: 'shadow-[0_0_20px_hsl(var(--alert)/0.35)]' },
@@ -71,9 +72,18 @@ function getCenter(items, userLat, userLng) {
   return [lat, lng];
 }
 
-const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, variant, disabled, focusUserLocation, fitKey }) {
+const FitMapToItems = memo(function FitMapToItems({
+  items,
+  userLat,
+  userLng,
+  variant,
+  disabled,
+  focusUserLocation,
+  fitKey,
+  preserveViewportOnMount,
+}) {
   const map = useMap();
-  const hasFittedRef = useRef(false);
+  const lastAppliedFitKeyRef = useRef(null);
   const userLatRef = useRef(userLat);
   const userLngRef = useRef(userLng);
   userLatRef.current = userLat;
@@ -82,6 +92,11 @@ const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, var
   useEffect(() => {
     if (disabled) return;
     const rafId = window.requestAnimationFrame(() => map.invalidateSize());
+
+    if (preserveViewportOnMount && lastAppliedFitKeyRef.current === null) {
+      lastAppliedFitKeyRef.current = fitKey;
+      return () => window.cancelAnimationFrame(rafId);
+    }
 
     if (focusUserLocation && isValidCoordinate(userLatRef.current, userLngRef.current)) {
       const prefersReducedMotion =
@@ -93,19 +108,23 @@ const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, var
         15,
         prefersReducedMotion ? { animate: false } : { animate: true, duration: 0.6 }
       );
+      lastAppliedFitKeyRef.current = fitKey;
       return () => window.cancelAnimationFrame(rafId);
     }
     if (items.length === 0) {
       const hasRealLocation = isValidCoordinate(userLatRef.current, userLngRef.current);
       map.setView(getCenter(items, userLatRef.current, userLngRef.current), variant === 'full' ? 4 : hasRealLocation ? 12 : 4);
+      lastAppliedFitKeyRef.current = fitKey;
       return () => window.cancelAnimationFrame(rafId);
     }
     if (items.length === 1) {
       map.setView([items[0].lat, items[0].lng], variant === 'full' ? 12 : 10);
+      lastAppliedFitKeyRef.current = fitKey;
       return () => window.cancelAnimationFrame(rafId);
     }
-    // Only auto-fit when fitKey changes or on first meaningful load to prevent jumping
-    if (fitKey || !hasFittedRef.current) {
+    // Only auto-fit when fitKey changes so returning to Radar restores the
+    // last browsed viewport instead of snapping back to a fresh fit.
+    if (fitKey !== lastAppliedFitKeyRef.current) {
       map.fitBounds(
         items.map((item) => [item.lat, item.lng]),
         {
@@ -114,12 +133,41 @@ const FitMapToItems = memo(function FitMapToItems({ items, userLat, userLng, var
           maxZoom: variant === 'full' ? 12 : 13,
         }
       );
-      hasFittedRef.current = true;
+      lastAppliedFitKeyRef.current = fitKey;
     }
     return () => window.cancelAnimationFrame(rafId);
     // NOTE: userLat/userLng intentionally excluded — we read latest via refs
     // to avoid re-centering on every GPS watch update.
-  }, [fitKey, disabled, focusUserLocation, items.length, map, variant]);
+  }, [fitKey, disabled, focusUserLocation, items.length, map, variant, preserveViewportOnMount]);
+
+  return null;
+});
+
+const RadarViewportPersistence = memo(function RadarViewportPersistence() {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map) return undefined;
+
+    const syncViewport = () => {
+      const center = map.getCenter();
+      if (!center) return;
+      lastRadarViewport = {
+        center: [center.lat, center.lng],
+        zoom: map.getZoom(),
+      };
+    };
+
+    syncViewport();
+    map.on('moveend', syncViewport);
+    map.on('zoomend', syncViewport);
+
+    return () => {
+      map.off('moveend', syncViewport);
+      map.off('zoomend', syncViewport);
+      syncViewport();
+    };
+  }, [map]);
 
   return null;
 });
@@ -341,7 +389,8 @@ const TileLoadingOverlay = memo(function TileLoadingOverlay({ variant }) {
   return (
     <div
       className={cn(
-        'pointer-events-none absolute inset-0 z-[435] flex flex-col items-center justify-center bg-background/35 backdrop-blur-[1px] transition-opacity duration-700',
+        'pointer-events-none absolute inset-0 z-[435] flex flex-col items-center justify-center transition-opacity duration-700',
+        variant === 'radar' ? 'bg-background' : 'bg-background/35 backdrop-blur-[1px]',
         variant === 'radar' ? 'rounded-none' : 'rounded-[1.1rem]'
       )}
     >
@@ -504,6 +553,15 @@ function LiveMap({
 
   const hasUserLocation = isValidCoordinate(userLat, userLng);
   const center = useMemo(() => getCenter(items, userLat, userLng), [items, userLat, userLng]);
+  const initialRadarViewportRef = useRef(variant === 'radar' ? lastRadarViewport : null);
+  const initialRadarViewport = initialRadarViewportRef.current;
+  const initialMapCenter = variant === 'radar' && initialRadarViewport?.center ? initialRadarViewport.center : center;
+  const initialMapZoom =
+    variant === 'radar' && Number.isFinite(Number(initialRadarViewport?.zoom))
+      ? initialRadarViewport.zoom
+      : hasUserLocation
+        ? 11
+        : 4;
   const handleTileError = useCallback(() => setMapError(true), []);
   const handleTileLoad = useCallback(() => {
     setMapError(false);
@@ -590,8 +648,8 @@ function LiveMap({
           )}
 
           <MapContainer
-            center={center}
-            zoom={hasUserLocation ? 11 : 4}
+            center={initialMapCenter}
+            zoom={initialMapZoom}
             minZoom={3}
             maxZoom={18}
             scrollWheelZoom={variant === 'full' || variant === 'radar'}
@@ -615,8 +673,18 @@ function LiveMap({
               eventHandlers={tileEventHandlers}
             />
             {variant === 'radar' && <RadarAttributionTuning />}
+            {variant === 'radar' && <RadarViewportPersistence />}
             <RadarLayerPanes />
-            <FitMapToItems items={items} userLat={userLat} userLng={userLng} variant={variant} disabled={variant === 'radar' && autoFitDisabled} focusUserLocation={focusUserLocation} fitKey={fitKey} />
+            <FitMapToItems
+              items={items}
+              userLat={userLat}
+              userLng={userLng}
+              variant={variant}
+              disabled={variant === 'radar' && autoFitDisabled}
+              focusUserLocation={focusUserLocation}
+              fitKey={fitKey}
+              preserveViewportOnMount={variant === 'radar' && !!initialRadarViewport}
+            />
             <InvalidateMapSize resizeKey={resizeKey} />
             {showSelfLocation && hasUserLocation && (
               <Marker
