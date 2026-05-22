@@ -204,7 +204,7 @@ const SettingsSection = memo(function SettingsSection({ title, icon: Icon, child
 
 function SettingsSkeleton() {
   return (
-    <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
+    <div className="mx-auto max-w-2xl px-4 pt-4 pb-8 bg-background min-h-dvh">
       <Skeleton className="mb-4 h-32 w-full rounded-[1.25rem]" />
       <Skeleton className="mb-4 h-56 w-full rounded-[1.25rem]" />
       <Skeleton className="mb-4 h-40 w-full rounded-[1.25rem]" />
@@ -333,7 +333,7 @@ function SettingsPage() {
 
   if (settingsIsError || settingsError) {
     return (
-      <div className="mx-auto max-w-2xl px-4 pt-4 pb-8">
+      <div className="mx-auto max-w-2xl px-4 pt-4 pb-8 bg-background min-h-dvh">
         <ErrorState
           title="Settings unavailable"
           message="Unable to load your settings. You can still log out safely."
@@ -355,7 +355,7 @@ function SettingsPage() {
   }
 
   return (
-    <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
+    <VStack gap={4} className="mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up bg-background min-h-dvh">
       {/* Profile Section */}
       <SettingsSection title="Your Account" icon={User}>
         <Link to="/settings/account" className="block">

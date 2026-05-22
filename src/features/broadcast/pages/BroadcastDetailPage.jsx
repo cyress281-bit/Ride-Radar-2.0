@@ -650,7 +650,7 @@ function BroadcastDetailPage() {
 
   if (!hasValidBroadcastId) {
     return (
-      <div className="px-5 pt-5">
+      <div className="px-5 pt-5 bg-background min-h-dvh">
         <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
@@ -664,7 +664,7 @@ function BroadcastDetailPage() {
 
   if (isBroadcastLoading) {
     return (
-      <div className="flex min-h-[50vh] flex-col items-center justify-center text-sm text-muted-foreground">
+      <div className="flex min-h-dvh flex-col items-center justify-center text-sm text-muted-foreground bg-background">
         <RRLogo size="md" className="mb-4 animate-pulse" />
         Loading signal…
       </div>
@@ -673,7 +673,7 @@ function BroadcastDetailPage() {
 
   if (isBroadcastError) {
     return (
-      <div className="px-5 pt-5">
+      <div className="px-5 pt-5 bg-background min-h-dvh">
         <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
@@ -692,7 +692,7 @@ function BroadcastDetailPage() {
       return <RemovedSignalScreen onBack={handleGoBack} onHome={() => navigate('/home')} />;
     }
     return (
-      <div className="px-5 pt-5">
+      <div className="px-5 pt-5 bg-background min-h-dvh">
         <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
@@ -715,7 +715,7 @@ function BroadcastDetailPage() {
 
   if (requiresBikeDownVisibilityCheck && isBikeDownVisibilityError) {
     return (
-      <div className="px-5 pt-5">
+      <div className="px-5 pt-5 bg-background min-h-dvh">
         <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
           <ArrowLeft className="w-4 h-4" /> Back
         </button>
@@ -763,7 +763,7 @@ function BroadcastDetailPage() {
   const isOfficialEvent = broadcast.type === 'event' && broadcast.is_official === true;
 
   return (
-    <div className="px-5 pt-5 pb-8">
+    <div className="px-5 pt-5 pb-8 bg-background min-h-dvh">
       {/* Top nav */}
       <HStack justify="between" align="center" className="mb-5">
         <button onClick={handleGoBack} aria-label="Go back" className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1">

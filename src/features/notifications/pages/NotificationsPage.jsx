@@ -207,7 +207,7 @@ export default function NotificationsPage() {
   if (notificationsError) return <ErrorState />;
 
   return (
-    <div className="px-5 pt-3 pb-8">
+    <div className="px-5 pt-3 pb-8 bg-background min-h-dvh">
       <NotificationHeader unreadCount={unreadCount} />
 
       {unreadCount > 0 && (

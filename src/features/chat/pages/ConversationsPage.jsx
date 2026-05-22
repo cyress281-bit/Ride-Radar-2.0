@@ -97,7 +97,7 @@ function ConversationsPage() {
   }, [refetch]);
 
   return (
-    <div className="relative">
+    <div className="relative bg-background min-h-dvh">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-brand-radar/[0.08] via-brand-radar/[0.03] to-transparent"

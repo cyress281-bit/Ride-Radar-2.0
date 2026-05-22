@@ -147,7 +147,7 @@ function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8">
+      <div className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 bg-background min-h-dvh">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
         <div className="relative z-10 flex min-h-[50vh] items-center justify-center">
@@ -159,7 +159,7 @@ function ProfilePage() {
 
   if (editing) {
     return (
-      <div className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
+      <div className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up bg-background min-h-dvh">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
         <div className="relative z-10">
@@ -170,7 +170,7 @@ function ProfilePage() {
   }
 
   return (
-    <VStack gap={4} className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up">
+    <VStack gap={4} className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up bg-background min-h-dvh">
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
 
