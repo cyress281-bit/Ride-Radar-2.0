@@ -560,7 +560,7 @@ export async function createAdminEvent({ title, locationText, eventDate, eventEn
     const occStart = applyRepeatOffset(baseStart, i, repeat);
     const occEnd = new Date(occStart.getTime() + durationMs);
 
-    const { error } = await supabase
+    const { data: row, error } = await supabase
       .from('broadcasts')
       .insert({
         author_id: user.id,
@@ -584,6 +584,15 @@ export async function createAdminEvent({ title, locationText, eventDate, eventEn
           `Created ${i} of ${count} occurrence${count === 1 ? '' : 's'}. Insert failed: ${error.message}`
         ),
       };
+    }
+
+    // Mark admin-created events as official via trusted RPC
+    const { error: officialError } = await supabase.rpc('set_official_event_status', {
+      broadcast_id: row.id,
+      p_is_official: true,
+    });
+    if (officialError) {
+      logger.warn(`[admin] Event ${row.id} created but failed to mark official: ${officialError.message}`);
     }
   }
 
@@ -807,7 +816,20 @@ export async function scheduleEventOccurrence(sourceBroadcast, newEventDate, new
     .select()
     .single();
 
-  return { data, error };
+  if (error) {
+    return { data: null, error };
+  }
+
+  // Mark scheduled occurrence as official via trusted RPC
+  const { error: officialError } = await supabase.rpc('set_official_event_status', {
+    broadcast_id: data.id,
+    p_is_official: true,
+  });
+  if (officialError) {
+    logger.warn(`[admin] Scheduled occurrence ${data.id} created but failed to mark official: ${officialError.message}`);
+  }
+
+  return { data, error: null };
 }
 
 /**
