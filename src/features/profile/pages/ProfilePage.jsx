@@ -31,6 +31,7 @@ import StatPill from '@/features/profile/components/StatPill.jsx';
 import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
 import { supabase } from '@/lib/supabase.js';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
+import { withRoutePreload, preloadSettings, preloadBroadcastDetail } from '@/lib/routePreload.js';
 
 const profileAmbientTopStyle = {
   background:
@@ -190,6 +191,7 @@ function ProfilePage() {
               'transition-all hover:border-primary/30 hover:bg-primary/[0.08] hover:text-primary active:scale-95',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
             )}
+            {...withRoutePreload(preloadSettings)}
           >
             <Settings className="h-4 w-4" />
           </Link>
@@ -425,6 +427,7 @@ const SignalRow = memo(function SignalRow({ broadcast: b }) {
     <Link
       to={`/broadcast/${b.id}`}
       className="group flex min-h-[58px] items-center gap-3 px-4 py-3.5 transition-colors hover:bg-white/[0.035] active:bg-white/[0.06]"
+      {...withRoutePreload(preloadBroadcastDetail)}
     >
       <div className="flex shrink-0 flex-col items-start gap-1">
         <Badge type={b.type} alertType={b.alert_type} className="shrink-0" />

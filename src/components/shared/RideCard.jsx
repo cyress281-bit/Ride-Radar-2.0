@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { Avatar } from '@/components/shared/Avatar';
 import { Badge } from './Badge';
+import { withRoutePreload, preloadBroadcastDetail } from '@/lib/routePreload';
 
 /**
  * Media-rich broadcast card for Ride Radar 2.0 — Electric Neon edition.
@@ -245,6 +246,7 @@ export const RideCard = memo(
           to={to}
           className={className}
           aria-label={`${broadcast.type}: ${broadcast.title}`}
+          {...withRoutePreload(preloadBroadcastDetail)}
         >
           {cardContent}
         </Link>

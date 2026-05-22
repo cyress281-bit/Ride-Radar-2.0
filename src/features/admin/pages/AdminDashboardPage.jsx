@@ -26,6 +26,19 @@ import {
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import AdminMetricCard from '@/features/admin/components/AdminMetricCard.jsx';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  withRoutePreload,
+  preloadAdminUsers,
+  preloadAdminBroadcasts,
+  preloadAdminEvents,
+  preloadAdminReports,
+  preloadAdminMonitoring,
+  preloadAdminBlocks,
+  preloadAdminDeletions,
+  preloadAdminNotifications,
+  preloadAdminAnalytics,
+  preloadAdminCompliance,
+} from '@/lib/routePreload.js';
 
 /**
  * AdminDashboardPage - Overview page with metric cards linking to sub-pages.
@@ -124,72 +137,84 @@ function AdminDashboardContent() {
       value: userCountData?.data ?? usersData.length,
       icon: Users,
       onClick: () => navigate('/admin/users'),
+      preload: preloadAdminUsers,
     },
     {
       title: 'Active Broadcasts',
       value: activeBroadcastCountData?.data ?? broadcastsData.filter((b) => b.status === 'active').length,
       icon: Radio,
       onClick: () => navigate('/admin/broadcasts'),
+      preload: preloadAdminBroadcasts,
     },
     {
       title: 'Events',
       value: broadcastsData.filter((b) => b.type === 'event').length || 'Manage',
       icon: CalendarDays,
       onClick: () => navigate('/admin/events'),
+      preload: preloadAdminEvents,
     },
     {
       title: 'Pending Reports',
       value: pendingReportCountData?.data ?? reportsData.filter((r) => r.status !== 'closed').length,
       icon: ShieldAlert,
       onClick: () => navigate('/admin/reports'),
+      preload: preloadAdminReports,
     },
     {
       title: "Today's Connections",
       value: todaysStats?.data?.connections ?? '—',
       icon: TrendingUp,
       onClick: () => navigate('/admin/monitoring'),
+      preload: preloadAdminMonitoring,
     },
     {
       title: 'Active Conversations',
       value: activeConversationCountData?.data ?? conversationsData.filter((c) => c.status === 'active').length,
       icon: MessageCircle,
       onClick: () => navigate('/admin/monitoring'),
+      preload: preloadAdminMonitoring,
     },
     {
       title: 'User Blocks',
       value: blocksData.length,
       icon: UserX,
       onClick: () => navigate('/admin/blocks'),
+      preload: preloadAdminBlocks,
     },
     {
       title: 'Deletion Requests',
       value: deletionsData.length,
       icon: Trash2,
       onClick: () => navigate('/admin/deletions'),
+      preload: preloadAdminDeletions,
     },
     {
       title: 'Announcements',
       value: 'Send',
       icon: Bell,
       onClick: () => navigate('/admin/notifications'),
+      preload: preloadAdminNotifications,
     },
     {
       title: 'Analytics',
       value: 'Ops',
       icon: Activity,
       onClick: () => navigate('/admin/analytics'),
+      preload: preloadAdminAnalytics,
     },
     {
       title: 'Compliance',
       value: 'Review',
       icon: FileCheck,
       onClick: () => navigate('/admin/compliance'),
+      preload: preloadAdminCompliance,
     },
     {
       title: 'Monitoring',
       value: 'Live',
       icon: Database,
       onClick: () => navigate('/admin/monitoring'),
+      preload: preloadAdminMonitoring,
     },
   ];
 
@@ -228,6 +253,7 @@ function AdminDashboardContent() {
             value={card.value}
             icon={card.icon}
             onClick={card.onClick}
+            {...(card.preload ? withRoutePreload(card.preload) : {})}
           />
         ))}
       </div>

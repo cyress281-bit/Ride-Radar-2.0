@@ -7,6 +7,7 @@ import { SIGNAL_TYPE_ICONS } from '@/components/brand/SignalIcon';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack } from '@/components/ui/primitives/Stack';
 import RadarBroadcastList from './RadarBroadcastList';
+import { withRoutePreload, preloadRiderProfile } from '@/lib/routePreload.js';
 
 const FILTER_TYPES = [
   { id: 'all', label: 'All', Icon: Radio },
@@ -73,7 +74,11 @@ const LiveRiderRow = memo(function LiveRiderRow({ rider }) {
 
   if (userId) {
     return (
-      <Link to={`/profile/${userId}`} className="block pressable">
+      <Link
+        to={`/profile/${userId}`}
+        className="block pressable"
+        {...withRoutePreload(preloadRiderProfile)}
+      >
         {content}
       </Link>
     );

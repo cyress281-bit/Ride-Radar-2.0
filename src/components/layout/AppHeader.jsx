@@ -13,6 +13,12 @@ import RRLogo from '@/components/RRLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack } from '@/components/ui/primitives/Stack';
+import {
+  withRoutePreload,
+  preloadProfile,
+  preloadNotifications,
+  preloadAdminDashboard,
+} from '@/lib/routePreload';
 
 const ROUTE_TITLES = {
   '/home': '',
@@ -251,6 +257,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
                 'pressable'
               )}
               aria-label="Admin panel"
+              {...withRoutePreload(preloadAdminDashboard)}
             >
               <span
                 className="h-1.5 w-1.5 rounded-full bg-primary animate-glow-pulse"
@@ -273,6 +280,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               )
             }
             aria-label="Notifications"
+            {...withRoutePreload(preloadNotifications)}
           >
             <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
             {unreadCount > 0 && (
@@ -295,6 +303,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               )
             }
             aria-label="My profile"
+            {...withRoutePreload(preloadProfile)}
           >
             <Avatar className="h-7 w-7 border border-white/10">
               {avatarUrl ? (
