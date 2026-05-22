@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { Image, Upload, X, AlertCircle } from 'lucide-react';
-import { prepareLocalImage } from '@/lib/image-utils.js';
+import { prepareLocalImage, revokeLocalImage } from '@/lib/image-utils.js';
 import { cn } from '@/lib/utils.js';
 import { MAX_ALERT_PHOTOS } from '@/lib/constants.js';
 
@@ -46,6 +46,7 @@ export default function AlertPhotoUploader({ images = [], onChange, disabled = f
       try {
         const localImage = await prepareLocalImage(file, 'alert');
         const next = [...photos];
+        if (next[index]) revokeLocalImage(next[index]);
         next[index] = localImage;
         onChange(next.filter(Boolean).slice(0, MAX_ALERT_PHOTOS));
       } catch (error) {
@@ -61,6 +62,8 @@ export default function AlertPhotoUploader({ images = [], onChange, disabled = f
 
   const removeAt = useCallback(
     (index) => {
+      const removed = photos[index];
+      if (removed) revokeLocalImage(removed);
       onChange(photos.filter((_, i) => i !== index));
       setUploadError('');
     },

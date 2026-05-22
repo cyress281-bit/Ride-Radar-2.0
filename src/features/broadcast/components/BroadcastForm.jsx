@@ -19,7 +19,7 @@ import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useCreateBroadcast } from '@/features/broadcast/hooks/use-create-broadcast.js';
-import { prepareLocalImage } from '@/lib/image-utils.js';
+import { prepareLocalImage, revokeLocalImage } from '@/lib/image-utils.js';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 
@@ -272,6 +272,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     setUploadError('');
     try {
       const localImage = await prepareLocalImage(file, 'event');
+      if (eventImage) revokeLocalImage(eventImage);
       setEventImage(localImage);
       e.target.value = '';
     } catch (error) {
@@ -311,6 +312,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     post.mutate(payload, {
       onSuccess: () => {
         reset();
+        if (eventImage) revokeLocalImage(eventImage);
+        alertImages.forEach(revokeLocalImage);
         setEventImage(null);
         setAlertImages([]);
         setUploadError('');
@@ -554,7 +557,10 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                       </label>
                       <button
                         type="button"
-                        onClick={() => setEventImage(null)}
+                        onClick={() => {
+                          if (eventImage) revokeLocalImage(eventImage);
+                          setEventImage(null);
+                        }}
                         className="pressable h-11 min-h-[44px] rounded-full border border-white/[0.08] bg-white/[0.03] text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive"
                       >
                         Remove

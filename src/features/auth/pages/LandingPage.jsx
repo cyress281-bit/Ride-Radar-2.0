@@ -5,7 +5,8 @@
  * Yamaha Blue · Kawasaki Green · Honda Red · Ducati Gold
  */
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
+import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Radio, Zap, MapPin, AlertTriangle } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
@@ -79,11 +80,17 @@ const SOCIAL_PROOF = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthState();
+
+  if (isAuthenticated) {
+    return <Navigate to="/home" replace />;
+  }
+
   const heroPanelClass = 'relative overflow-hidden rounded-[32px] border border-white/[0.07] bg-white/[0.035] px-6 py-7 shadow-[0_24px_90px_hsl(0_0%_0%/0.34),inset_0_1px_0_hsl(0_0%_100%/0.05)] backdrop-blur-2xl md:px-8 md:py-8';
   const featureCardClass = 'group shrink-0 w-[260px] overflow-hidden rounded-[24px] border border-white/[0.07] bg-white/[0.035] p-5 shadow-[0_18px_60px_hsl(0_0%_0%/0.28),inset_0_1px_0_hsl(0_0%_100%/0.04)] backdrop-blur-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.96] relative';
 
   return (
-    <div className="min-h-dvh bg-background flex flex-col overflow-hidden relative">
+    <div className="min-h-dvh bg-background flex flex-col overflow-hidden relative pb-safe">
       {/* Multi-brand ambient background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,hsl(var(--primary)/0.16),transparent_30%),radial-gradient(circle_at_18%_78%,hsl(var(--brand-yamaha)/0.06),transparent_24%),radial-gradient(circle_at_82%_12%,hsl(var(--brand-ducati)/0.05),transparent_22%),linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--background)/0.98)_58%,hsl(var(--background))_100%)]" />
@@ -226,8 +233,17 @@ export default function LandingPage() {
         </div>
       </main>
 
-      <footer className="relative z-10 px-6 py-5 text-xs text-muted-foreground/50 text-center">
-        © 2025 Ride Radar · Ride smart. Signal loud.
+      <footer className="relative z-10 px-6 py-5 text-xs text-muted-foreground/50 text-center space-y-2">
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <Link to="/terms-of-use" className="hover:text-muted-foreground transition-colors">Terms of Use</Link>
+          <span>·</span>
+          <Link to="/privacy-policy" className="hover:text-muted-foreground transition-colors">Privacy Policy</Link>
+          <span>·</span>
+          <Link to="/community-guidelines" className="hover:text-muted-foreground transition-colors">Community Guidelines</Link>
+          <span>·</span>
+          <Link to="/safety-disclaimer" className="hover:text-muted-foreground transition-colors">Safety Disclaimer</Link>
+        </div>
+        <div>© 2025 Ride Radar · Ride smart. Signal loud.</div>
       </footer>
     </div>
   );

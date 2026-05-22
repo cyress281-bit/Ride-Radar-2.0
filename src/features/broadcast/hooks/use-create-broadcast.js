@@ -145,7 +145,7 @@ export function useCreateBroadcast() {
           } catch (error) {
             logger.warn('[useCreateBroadcast] Alert geocoding failed:', error);
           }
-          if (broadcastData.type === 'bike_down' && !frozenLocation) {
+          if (!frozenLocation) {
             throw new Error(
               'We could not locate that address. Try adding a nearby street, landmark, or city.'
             );
