@@ -203,6 +203,9 @@ const ColdStartGuard = memo(function ColdStartGuard() {
       '/account-deletion', '/privacy-policy', '/support', '/safety-disclaimer', '/terms-of-use', '/beta-notes'];
     if (preservedPaths.some((p) => path === p || path.startsWith(p + '/'))) return;
 
+    const deepLinkPrefixes = ['/broadcast/', '/messages/', '/profile/'];
+    if (deepLinkPrefixes.some((p) => path.startsWith(p))) return;
+
     navigate('/home', { replace: true });
   }, []);
 

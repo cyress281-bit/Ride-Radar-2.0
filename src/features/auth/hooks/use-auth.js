@@ -400,14 +400,20 @@ export function useAuthProvider() {
   }, []);
 
   const refreshProfile = useCallback(async () => {
-    if (user?.id) {
-      const { data: { session } } = await supabase.auth.getSession();
-      const seq = profileLoadSeq.current + 1;
-      profileLoadSeq.current = seq;
-      await loadUserProfile(user.id, session, seq);
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-      queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
+    if (!user?.id) return;
+    let session;
+    try {
+      const { data } = await supabase.auth.getSession();
+      session = data?.session;
+    } catch (err) {
+      logger.error('[AuthProvider] getSession failed in refreshProfile:', err);
+      return;
     }
+    const seq = profileLoadSeq.current + 1;
+    profileLoadSeq.current = seq;
+    await loadUserProfile(user.id, session, seq);
+    queryClient.invalidateQueries({ queryKey: ['profile'] });
+    queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
   }, [user?.id, loadUserProfile]);
 
   // ------------------------------------------------------------------

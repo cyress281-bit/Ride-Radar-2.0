@@ -323,7 +323,11 @@ function SettingsPage() {
   }, [promptInstall]);
 
   const handleSignOut = useCallback(async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch (err) {
+      logger.warn('[Settings] Sign out failed:', err);
+    }
     navigate('/landing');
   }, [signOut, navigate]);
 
