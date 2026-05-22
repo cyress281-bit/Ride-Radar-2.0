@@ -44,7 +44,7 @@ import {
   connectionRequestKeys,
 } from '@/features/connections/hooks/use-connection-requests.js';
 import { supabase } from '@/lib/supabase.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
@@ -228,7 +228,7 @@ function RiderProfilePage() {
       navigate(`/messages/${convoId}`);
     },
     onError: () => {
-      toast({ title: 'Could not open conversation', description: 'Please try again.', variant: 'destructive' });
+      toast.error('Could not open conversation', { description: 'Please try again.' });
     },
   });
 

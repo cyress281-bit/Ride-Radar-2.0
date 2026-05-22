@@ -13,7 +13,7 @@ import {
   markAllAsRead,
   deleteNotification,
 } from '@/features/notifications/api/notifications-api.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import {
@@ -331,10 +331,8 @@ export function useDeleteNotification() {
           qc.setQueryData(queryKey, data);
         });
       }
-      toast({
-        title: 'Failed to delete notification',
+      toast.error('Failed to delete notification', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
     onSettled: () => {

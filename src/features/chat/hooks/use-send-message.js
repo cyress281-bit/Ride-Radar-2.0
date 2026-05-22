@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { sendMessage as apiSendMessage } from '@/features/chat/api/chat-api.js';
 import { PRIVATE_MESSAGE_IMAGE_BUCKET, uploadPrivateImage } from '@/lib/image-utils.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 import { trackMessageSent } from '@/lib/analytics.js';
 
@@ -128,10 +128,8 @@ export function useSendMessage(conversationId) {
       }
       queryClient.invalidateQueries({ queryKey: ['conversations', user?.id] });
 
-      toast({
-        title: 'Failed to send message',
+      toast.error('Failed to send message', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });

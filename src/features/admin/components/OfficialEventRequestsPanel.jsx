@@ -20,7 +20,7 @@ import {
   getOfficialEventRequests,
   repairOfficialEventRequest,
 } from '@/features/admin/api/admin-api.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 
 function formatDateTime(value) {
@@ -392,26 +392,25 @@ export default function OfficialEventRequestsPanel({ broadcasts = [], users = []
       qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] });
       qc.invalidateQueries({ queryKey: broadcastKeys.all });
       qc.invalidateQueries({ queryKey: broadcastKeys.details() });
-      toast({
-        title:
-          variables.action === 'approve'
-            ? 'Official badge approved'
-            : variables.action === 'repair'
-              ? 'Official flag repaired'
-              : 'Official badge declined',
-        description:
-          variables.action === 'approve'
-            ? 'The event is now marked official.'
-            : variables.action === 'repair'
-              ? 'The official flag was restored on the event.'
-              : 'The official request was declined.',
-      });
+      toast.success(
+        variables.action === 'approve'
+          ? 'Official badge approved'
+          : variables.action === 'repair'
+            ? 'Official flag repaired'
+            : 'Official badge declined',
+        {
+          description:
+            variables.action === 'approve'
+              ? 'The event is now marked official.'
+              : variables.action === 'repair'
+                ? 'The official flag was restored on the event.'
+                : 'The official request was declined.',
+        }
+      );
     },
     onError: (error) => {
-      toast({
-        title: 'Could not review request',
+      toast.error('Could not review request', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });

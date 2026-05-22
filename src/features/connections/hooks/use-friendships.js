@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import { getFriendships, getFriendshipBetween, removeFriendship } from '@/features/connections/api/connections-api.js';
@@ -158,13 +158,11 @@ export function useRemoveFriendship() {
       queryClient.invalidateQueries({ queryKey: friendshipKeys.all });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       queryClient.invalidateQueries({ queryKey: connectionRequestKeys.all });
-      toast({ title: 'Friend removed' });
+      toast.success('Friend removed');
     },
     onError: (error) => {
-      toast({
-        title: 'Failed to remove friend',
+      toast.error('Failed to remove friend', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });

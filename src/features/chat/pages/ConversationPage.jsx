@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCreateBlock } from '@/features/safety/hooks/use-blocks.js';
 import { useCreateReport } from '@/features/safety/hooks/use-reports.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
@@ -139,10 +139,8 @@ function ConversationPage() {
       { blocker_user_id: user.id, blocked_user_id: otherId },
       {
         onError: (error) => {
-          toast({
-            title: 'Block failed',
+          toast.error('Block failed', {
             description: error?.message || 'Could not block this user. Please try again.',
-            variant: 'destructive',
           });
         },
       }
@@ -161,10 +159,8 @@ function ConversationPage() {
       },
       {
         onError: (error) => {
-          toast({
-            title: 'Report failed',
+          toast.error('Report failed', {
             description: error?.message || 'Could not submit report. Please try again.',
-            variant: 'destructive',
           });
         },
       }

@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import {
@@ -227,13 +227,11 @@ export function useSendConnectionRequest() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: connectionRequestKeys.all });
-      toast({ title: 'Connection request sent' });
+      toast.success('Connection request sent');
     },
     onError: (error) => {
-      toast({
-        title: 'Failed to send request',
+      toast.error('Failed to send request', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });
@@ -256,13 +254,11 @@ export function useAcceptConnectionRequest() {
       queryClient.invalidateQueries({ queryKey: connectionRequestKeys.all });
       queryClient.invalidateQueries({ queryKey: ['friendships'] });
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      toast({ title: 'Connection accepted' });
+      toast.success('Connection accepted');
     },
     onError: (error) => {
-      toast({
-        title: 'Failed to accept request',
+      toast.error('Failed to accept request', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });
@@ -296,10 +292,8 @@ export function useCancelConnectionRequest() {
       if (context?.previous) {
         queryClient.setQueryData(context.sentKey, context.previous);
       }
-      toast({
-        title: 'Failed to cancel request',
+      toast.error('Failed to cancel request', {
         description: 'Please try again.',
-        variant: 'destructive',
       });
     },
     onSettled: () => {
@@ -322,13 +316,11 @@ export function useDeclineConnectionRequest() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: connectionRequestKeys.all });
-      toast({ title: 'Connection declined' });
+      toast.success('Connection declined');
     },
     onError: (error) => {
-      toast({
-        title: 'Failed to decline request',
+      toast.error('Failed to decline request', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });

@@ -10,7 +10,7 @@ import OfficialEventRequestsPanel from '@/features/admin/components/OfficialEven
 import { getEventRsvpCounts, toggleOfficialEvent } from '@/features/admin/api/admin-api.js';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils.js';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 
@@ -282,16 +282,13 @@ function AdminEventsContent() {
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] });
       qc.invalidateQueries({ queryKey: broadcastKeys.all });
-      toast({
-        title: variables.isOfficial ? 'Event marked official' : 'Official flag removed',
+      toast.success(variables.isOfficial ? 'Event marked official' : 'Official flag removed', {
         description: 'Admin events refreshed.',
       });
     },
     onError: (error) => {
-      toast({
-        title: 'Could not update official status',
+      toast.error('Could not update official status', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });

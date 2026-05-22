@@ -17,7 +17,7 @@ import { isValidUuid } from '@/lib/utils.js';
 import { supabase } from '@/lib/supabase.js';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { canViewActiveBikeDownDetail, getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
 import {
   cancelOfficialEventRequest,
@@ -599,9 +599,9 @@ function BroadcastDetailPage() {
   const handleShare = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast({ title: 'Link copied', description: 'Signal link copied to clipboard.' });
+      toast.success('Link copied', { description: 'Signal link copied to clipboard.' });
     } catch {
-      toast({ title: 'Copy failed', description: 'Unable to copy link.', variant: 'destructive' });
+      toast.error('Copy failed', { description: 'Unable to copy link.' });
     }
   }, []);
 
@@ -620,7 +620,7 @@ function BroadcastDetailPage() {
     try {
       await updateSignal.mutateAsync({ id, fields });
       setEditOpen(false);
-      toast({ title: 'Signal updated', description: 'Your changes are now live.' });
+      toast.success('Signal updated', { description: 'Your changes are now live.' });
     } catch (err) {
       setEditError(err?.message || 'Failed to update signal. Please try again.');
     }
@@ -1134,10 +1134,8 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
     },
     onSuccess: onChange,
     onError: (error) => {
-      toast({
-        title: 'RSVP failed',
+      toast.error('RSVP failed', {
         description: error?.message || 'Could not update your RSVP. Try again.',
-        variant: 'destructive',
       });
     },
   });

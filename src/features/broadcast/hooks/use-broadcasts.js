@@ -11,7 +11,7 @@ import {
   resolveBroadcast,
   updateBroadcast,
 } from '@/features/broadcast/api/broadcast-api.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 /**
  * Query key factory for broadcasts.
@@ -102,10 +102,8 @@ export function useUpdateBroadcast() {
       qc.invalidateQueries({ queryKey: broadcastKeys.detail(id) });
     },
     onError: (error) => {
-      toast({
-        title: 'Failed to update signal',
+      toast.error('Failed to update signal', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });
@@ -129,10 +127,8 @@ export function useRemoveBroadcast() {
       qc.invalidateQueries({ queryKey: broadcastKeys.detail(id) });
     },
     onError: (error) => {
-      toast({
-        title: 'Failed to remove signal',
+      toast.error('Failed to remove signal', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });
@@ -157,10 +153,8 @@ export function useResolveBroadcast() {
       qc.invalidateQueries({ queryKey: broadcastKeys.detail(id) });
     },
     onError: (error) => {
-      toast({
-        title: 'Failed to resolve signal',
+      toast.error('Failed to resolve signal', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });

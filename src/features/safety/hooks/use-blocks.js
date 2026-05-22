@@ -4,7 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import {
   getBlocks,
   createBlock,
@@ -89,16 +89,14 @@ export function useCreateBlock() {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       queryClient.invalidateQueries({ queryKey: ['broadcasts'] });
       queryClient.invalidateQueries({ queryKey: ['messages'] });
-      toast({ title: 'User blocked' });
+      toast.success('User blocked');
     },
     onError: (error, _variables, context) => {
       if (context?.previousBlocks) {
         queryClient.setQueryData(blockKeys.list(user?.id), context.previousBlocks);
       }
-      toast({
-        title: 'Failed to block user',
+      toast.error('Failed to block user', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });
@@ -121,13 +119,11 @@ export function useRemoveBlock() {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       queryClient.invalidateQueries({ queryKey: ['broadcasts'] });
       queryClient.invalidateQueries({ queryKey: ['messages'] });
-      toast({ title: 'User unblocked' });
+      toast.success('User unblocked');
     },
     onError: (error) => {
-      toast({
-        title: 'Failed to unblock user',
+      toast.error('Failed to unblock user', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });

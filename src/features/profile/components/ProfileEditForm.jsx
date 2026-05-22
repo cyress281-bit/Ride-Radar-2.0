@@ -30,7 +30,7 @@ import { logger } from '@/lib/logger.js';
 import { MOTORCYCLE_MAKES, getModelSuggestions } from '@/lib/motorcycleCatalog';
 import BikePhotoUploader from './BikePhotoUploader';
 import { uploadImage, isLocalImage, prepareLocalImage } from '@/lib/image-utils.js';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 const currentYear = new Date().getFullYear();
 
@@ -179,7 +179,7 @@ export default function ProfileEditForm({ profile, onDone }) {
         await refreshProfile();
         qc.invalidateQueries({ queryKey: ['myBroadcasts'] });
 
-        toast({ title: 'Profile updated', description: 'Your changes have been saved.' });
+        toast.success('Profile updated', { description: 'Your changes have been saved.' });
         onDone();
       } catch (err) {
         logger.error('[ProfileEdit] Save failed:', err);

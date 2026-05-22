@@ -8,7 +8,7 @@ import {
   updateProfile,
   checkUsernameAvailability,
 } from '@/features/profile/api/profile-api';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 const PROFILE_KEY = 'profile';
 const USERNAME_KEY = 'username-availability';
@@ -51,10 +51,8 @@ export function useUpdateProfile() {
       qc.invalidateQueries({ queryKey: [PROFILE_KEY, variables.userId] });
     },
     onError: (error) => {
-      toast({
-        title: 'Failed to update profile',
+      toast.error('Failed to update profile', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });
