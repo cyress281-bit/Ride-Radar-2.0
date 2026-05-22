@@ -1,5 +1,6 @@
 import React, { memo, useState, useRef, useCallback } from 'react';
 import { cn, timeAgo } from '@/lib/utils.js';
+import { isRemoteImageUrl } from '@/lib/image-utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
 import { Check, ImageOff, Smile } from 'lucide-react';
@@ -55,6 +56,8 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
     }
   }, [cancelLongPress]);
 
+  const displayImageUrl = message.resolved_image_url || (isRemoteImageUrl(message.image_url) ? message.image_url : '');
+
   return (
     <div
       className={cn(
@@ -82,7 +85,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
           )}
 
           {/* Image */}
-          {message.image_url && (
+          {displayImageUrl && (
             <div className={cn('rounded-xl overflow-hidden', message.body && 'mb-2')}>
               {imageError ? (
                 <div className="flex items-center justify-center gap-2 w-full max-w-[260px] h-16 rounded-xl bg-white/[0.05] border border-white/[0.08]">
@@ -91,7 +94,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine }) {
                 </div>
               ) : (
                 <img
-                  src={message.image_url}
+                  src={displayImageUrl}
                   alt="Attached photo"
                   className="w-full max-w-[260px] rounded-xl object-cover block"
                   loading="lazy"

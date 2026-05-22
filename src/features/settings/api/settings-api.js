@@ -193,6 +193,7 @@ export async function deleteAccount() {
       purgeStorageFolder('uploads', `events/${userId}`),
       purgeStorageFolder('uploads', `alerts/${userId}`),
       purgeStorageFolderRecursive('uploads', `messages/${userId}`),
+      purgeStorageFolderRecursive('message-images', `messages/${userId}`),
     ]);
   }
 

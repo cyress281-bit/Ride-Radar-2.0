@@ -1,5 +1,31 @@
 import { supabase } from '@/lib/supabase.js';
 import { getOrCreateConversation as rpcGetOrCreateConversation } from '@/lib/conversationUtils.js';
+import {
+  createSignedImageUrl,
+  isRemoteImageUrl,
+  PRIVATE_MESSAGE_IMAGE_BUCKET,
+} from '@/lib/image-utils.js';
+
+async function resolveMessageImage(message) {
+  if (!message?.image_url || isRemoteImageUrl(message.image_url)) {
+    return message;
+  }
+
+  try {
+    const signedUrl = await createSignedImageUrl(
+      PRIVATE_MESSAGE_IMAGE_BUCKET,
+      message.image_url
+    );
+    return { ...message, resolved_image_url: signedUrl };
+  } catch {
+    return { ...message, resolved_image_url: null };
+  }
+}
+
+export async function hydrateMessageImages(messages) {
+  const list = Array.isArray(messages) ? messages : [];
+  return Promise.all(list.map((message) => resolveMessageImage(message)));
+}
 
 /**
  * Fetch all conversations where the user is a participant.
@@ -29,7 +55,7 @@ export async function getMessages(conversationId) {
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: true });
 
-  return { data, error };
+  return { data: error ? data : await hydrateMessageImages(data || []), error };
 }
 
 /**
@@ -48,7 +74,7 @@ export async function sendMessage({ conversation_id, from_user_id, body, image_u
     .select()
     .single();
 
-  return { data, error };
+  return { data: data ? await resolveMessageImage(data) : data, error };
 }
 
 /**

@@ -26,6 +26,8 @@ const MAX_FILE_SIZES = {
   message:  5 * 1024 * 1024,
 };
 
+export const PRIVATE_MESSAGE_IMAGE_BUCKET = 'message-images';
+
 /**
  * Validate a file's type and size before upload.
  * @param {File} file
@@ -169,6 +171,41 @@ export async function uploadImage(file, bucket, path, kind = 'event') {
 }
 
 /**
+ * Upload a private image and return the storage path instead of a public URL.
+ *
+ * @param {File|Blob} file
+ * @param {string} bucket
+ * @param {string} path
+ * @param {string} [kind='message']
+ * @returns {Promise<string>}
+ */
+export async function uploadPrivateImage(file, bucket, path, kind = 'message') {
+  validateFile(file, kind);
+
+  const { blob, format } = await convertImage(file, 1600, 0.82);
+  const ext = format === 'webp' ? 'webp' : 'jpg';
+  const contentType = format === 'webp' ? 'image/webp' : 'image/jpeg';
+  const filePath = path.replace(/\.(jpe?g|png|webp)$/i, `.${ext}`);
+
+  if (!supabase) throw new Error('Supabase client not available');
+
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .upload(filePath, blob, {
+      contentType,
+      cacheControl: '31536000',
+      upsert: false,
+    });
+
+  if (error) {
+    logger.error('Private upload failed:', error);
+    throw error;
+  }
+
+  return data.path;
+}
+
+/**
  * Get the public URL for a file in Supabase Storage.
  *
  * @param {string} bucket - Supabase storage bucket name
@@ -182,6 +219,20 @@ export function getPublicUrl(bucket, path) {
 
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);
   return data?.publicUrl ?? '';
+}
+
+export function isRemoteImageUrl(value) {
+  return typeof value === 'string' && /^(https?:|blob:|data:)/i.test(value);
+}
+
+export async function createSignedImageUrl(bucket, path, expiresIn = 60 * 60) {
+  if (!path || !supabase) return '';
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
+  if (error) {
+    logger.error('Signed URL creation failed:', error);
+    throw error;
+  }
+  return data?.signedUrl ?? '';
 }
 
 /**

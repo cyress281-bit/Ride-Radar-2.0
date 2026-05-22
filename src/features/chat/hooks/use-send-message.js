@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { sendMessage as apiSendMessage } from '@/features/chat/api/chat-api.js';
-import { uploadImage } from '@/lib/image-utils.js';
+import { PRIVATE_MESSAGE_IMAGE_BUCKET, uploadPrivateImage } from '@/lib/image-utils.js';
 import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 
@@ -13,7 +13,7 @@ import { logger } from '@/lib/logger.js';
  *   imageFile — optional File object; uploaded before insert
  *
  * Uses optimistic updates to show the message instantly. Images use a local
- * object URL for the optimistic bubble, replaced by the CDN URL on success.
+ * object URL for the optimistic bubble, replaced by a signed URL on success.
  */
 export function useSendMessage(conversationId) {
   const { user } = useAuthState();
@@ -29,7 +29,7 @@ export function useSendMessage(conversationId) {
       let image_url = null;
       if (imageFile) {
         const path = `messages/${user.id}/${conversationId}/${Date.now()}_${Math.random().toString(36).slice(2)}`;
-        image_url = await uploadImage(imageFile, 'uploads', path, 'message');
+        image_url = await uploadPrivateImage(imageFile, PRIVATE_MESSAGE_IMAGE_BUCKET, path, 'message');
       }
 
       const { data: message, error: messageError } = await apiSendMessage({
@@ -89,7 +89,7 @@ export function useSendMessage(conversationId) {
     },
 
     onSuccess: (serverMessage, _variables, context) => {
-      // Revoke local object URL now that we have the real CDN URL
+      // Revoke local object URL now that we have the real signed URL
       if (context?.optimisticMessage?._localImageUrl) {
         URL.revokeObjectURL(context.optimisticMessage._localImageUrl);
       }

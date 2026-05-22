@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
-import { getMessages, markConversationRead } from '@/features/chat/api/chat-api.js';
+import { getMessages, hydrateMessageImages, markConversationRead } from '@/features/chat/api/chat-api.js';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
 
@@ -51,8 +51,8 @@ export function useMessages(conversationId) {
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
-          const newMessage = payload.new;
+        async (payload) => {
+          const newMessage = await hydrateMessageImages([payload.new]).then((items) => items[0]);
 
           // Skip own messages — handled by optimistic updates in useSendMessage
           if (newMessage.from_user_id === user.id) return;
