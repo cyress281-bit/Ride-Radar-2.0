@@ -64,6 +64,36 @@ function AdminReportsContent() {
   const profilesData = profiles.data?.data || [];
   const broadcastsData = broadcasts.data?.data || [];
 
+  const repeatOffenderStatsByUserId = useMemo(() => {
+    const summary = new Map();
+    const recentWindowMs = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    for (const report of reportsData) {
+      const targetUserId = report.target_user_id || report.target_profile_id;
+      if (!targetUserId) continue;
+
+      const createdAtMs = report.created_at ? new Date(report.created_at).getTime() : 0;
+      const current = summary.get(targetUserId) || {
+        openReports: 0,
+        totalReports: 0,
+        recentReports: 0,
+      };
+
+      current.totalReports += 1;
+      if (report.status === 'open' || report.status === 'reviewed') {
+        current.openReports += 1;
+      }
+      if (createdAtMs && now - createdAtMs <= recentWindowMs) {
+        current.recentReports += 1;
+      }
+
+      summary.set(targetUserId, current);
+    }
+
+    return summary;
+  }, [reportsData]);
+
   const profileByUserId = useMemo(
     () => new Map(profilesData.map((p) => [p.user_id || p.id, p])),
     [profilesData]
@@ -315,6 +345,12 @@ function AdminReportsContent() {
             report.reporter_user_id || report.reporter_profile_id
           );
           const targetUserId = report.target_user_id || report.target_profile_id;
+          const offenderStats = targetUserId ? repeatOffenderStatsByUserId.get(targetUserId) : null;
+          const showRepeatContext =
+            offenderStats &&
+            (offenderStats.totalReports > 1 ||
+              offenderStats.openReports > 1 ||
+              offenderStats.recentReports > 1);
 
           return (
             <div
@@ -344,6 +380,31 @@ function AdminReportsContent() {
               {report.target_context && Object.keys(report.target_context || {}).length > 0 && (
                 <div className="mt-1 text-xs text-muted-foreground">
                   Context: {report.target_context.image_kind || report.target_context.post_id || 'provided'}
+                </div>
+              )}
+
+              {showRepeatContext && (
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wider">
+                  {offenderStats.openReports > 0 && (
+                    <span className="rounded-full bg-warning/10 px-2.5 py-1 text-warning">
+                      {offenderStats.openReports} open reports
+                    </span>
+                  )}
+                  {offenderStats.totalReports > 0 && (
+                    <span className="rounded-full bg-primary/10 px-2.5 py-1 text-primary">
+                      {offenderStats.totalReports} total reports
+                    </span>
+                  )}
+                  {offenderStats.recentReports > 0 && (
+                    <span className="rounded-full bg-secondary px-2.5 py-1 text-muted-foreground">
+                      {offenderStats.recentReports} recent
+                    </span>
+                  )}
+                  {offenderStats.totalReports >= 3 && (
+                    <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-destructive">
+                      Repeat reports
+                    </span>
+                  )}
                 </div>
               )}
 
