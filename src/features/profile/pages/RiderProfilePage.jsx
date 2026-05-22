@@ -82,6 +82,11 @@ function RiderProfilePage() {
   const qc = useQueryClient();
   const { user } = useAuthState();
   const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [userId]);
+
   const [activeTab, setActiveTab] = useState('broadcasts');
   const [selectedPost, setSelectedPost] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -211,6 +216,7 @@ function RiderProfilePage() {
 
   const openFriendChat = useMutation({
     mutationFn: async () => {
+      if (!user?.id) throw new Error('Not authenticated');
       const conversation = await getOrCreateConversation({
         participantIds: [user.id, userId],
         type: 'friend',

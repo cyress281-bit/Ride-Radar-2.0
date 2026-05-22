@@ -1,4 +1,4 @@
-import { memo, useState, useCallback } from 'react';
+import { memo, useState, useCallback, useEffect } from 'react';
 import { X, Trash2, Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDeletePost } from '@/features/profile/hooks/use-user-posts';
 import { timeAgo } from '@/lib/broadcastUtils';
@@ -16,6 +16,11 @@ import SafetyActions from '@/components/safety/SafetyActions';
  */
 const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, canDelete = false }) {
   const [photoIdx, setPhotoIdx] = useState(0);
+
+  useEffect(() => {
+    setPhotoIdx(0);
+  }, [post?.id]);
+
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState('');
   const deletePost = useDeletePost();

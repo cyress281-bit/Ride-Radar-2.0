@@ -55,6 +55,11 @@ function ProfilePage() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [profile?.avatar_url, user?.id]);
+
   const [activeTab, setActiveTab] = useState('broadcasts');
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
