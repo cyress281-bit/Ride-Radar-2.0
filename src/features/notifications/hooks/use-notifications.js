@@ -6,6 +6,8 @@ import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase.js';
 import { normalizeNotification } from '@/lib/notificationNormalizer.js';
+import { shouldShowNotification } from '@/lib/notificationCategories.js';
+import { useSettings } from '@/features/settings/hooks/use-settings.js';
 import {
   getNotifications,
   getUnreadCount,
@@ -34,7 +36,7 @@ export const notificationKeys = {
 
 const notificationRealtimeChannels = new Map();
 
-function attachNotificationRealtimeChannel(userId, qc) {
+function attachNotificationRealtimeChannel(userId, qc, settings) {
   if (!userId || !qc) return null;
 
   const existing = notificationRealtimeChannels.get(userId);
@@ -62,6 +64,8 @@ function attachNotificationRealtimeChannel(userId, qc) {
           const isSelfActor = next?.actor_id === userId;
           const shouldSkipSelf = isSelfActor && next?.type !== 'connection_accepted';
           if (!next || shouldSkipSelf || old.some((n) => n.id === next.id)) return old;
+          // Respect notification category preferences
+          if (!shouldShowNotification(next, settings)) return old;
           return [next, ...old];
         });
         qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
@@ -142,6 +146,7 @@ function detachNotificationRealtimeChannel(userId) {
  */
 export function useNotifications(userId) {
   const qc = useQueryClient();
+  const { data: settings } = useSettings(userId);
 
   const query = useQuery({
     queryKey: notificationKeys.list(userId),
@@ -150,6 +155,7 @@ export function useNotifications(userId) {
       if (error) throw error;
       return data || [];
     },
+    select: (data) => data.filter((n) => shouldShowNotification(n, settings)),
     enabled: !!userId,
     staleTime: 60_000,
     gcTime: 5 * 60_000,
@@ -166,7 +172,7 @@ export function useNotifications(userId) {
 
   // Real-time subscription for notifications and unread count updates
   useEffect(() => {
-    const record = attachNotificationRealtimeChannel(userId, qc);
+    const record = attachNotificationRealtimeChannel(userId, qc, settings);
     if (!record) return undefined;
 
     return () => {
