@@ -12,8 +12,8 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { BROADCAST_EXPIRY_MS, ALERT_PRESET_EXPIRY_MS } from '@/lib/constants.js';
 import { geocodeAddress, approximateLocation } from '@/lib/geocoding.js';
 import { logger } from '@/lib/logger.js';
-import { toast } from '@/components/ui/use-toast';
-import { uploadImage } from '@/lib/image-utils.js';
+import { toast } from 'sonner';
+import { uploadImage, isLocalImage } from '@/lib/image-utils.js';
 import { broadcastKeys } from './use-broadcasts.js';
 import { trackBroadcastCreated } from '@/lib/analytics.js';
 
@@ -171,9 +171,9 @@ export function useCreateBroadcast() {
 
         // Upload images to Supabase Storage before inserting (blob URLs are session-only)
         // Use owner-scoped paths to satisfy RLS policies
-        event_image_url: broadcastData.eventImage
+        event_image_url: isLocalImage(broadcastData.eventImage)
           ? await uploadImage(
-              broadcastData.eventImage.file || broadcastData.eventImage,
+              broadcastData.eventImage.file,
               'uploads',
               `events/${user.id}/${Date.now()}.webp`
             )
@@ -181,13 +181,15 @@ export function useCreateBroadcast() {
 
         alert_photos: broadcastData.alertImages?.length
           ? await Promise.all(
-              broadcastData.alertImages.map((img, index) =>
-                uploadImage(
-                  img.file || img,
-                  'uploads',
-                  `alerts/${user.id}/${Date.now()}-${index}.webp`
+              broadcastData.alertImages
+                .filter(isLocalImage)
+                .map((img, index) =>
+                  uploadImage(
+                    img.file,
+                    'uploads',
+                    `alerts/${user.id}/${Date.now()}-${index}.webp`
+                  )
                 )
-              )
             )
           : [],
       };
@@ -216,10 +218,8 @@ export function useCreateBroadcast() {
     },
     onError: (error) => {
       logger.error('[useCreateBroadcast] Mutation failed:', error);
-      toast({
-        title: 'Failed to create broadcast',
+      toast.error('Failed to create broadcast', {
         description: error?.message || 'Please try again.',
-        variant: 'destructive',
       });
     },
   });

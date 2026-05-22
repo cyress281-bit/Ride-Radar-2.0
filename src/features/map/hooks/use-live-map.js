@@ -343,7 +343,9 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
 
   useEffect(() => {
     const handleResumeRefresh = () => {
-      if (!isBrowserVisible() || !isBrowserOnline()) return;
+      const hidden = typeof document !== 'undefined' && document.visibilityState !== 'visible';
+      const offline = typeof navigator !== 'undefined' && !navigator.onLine;
+      if (hidden || offline) return;
       void publishPresence(options.source || 'resume');
     };
 

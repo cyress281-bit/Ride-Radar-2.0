@@ -283,10 +283,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
   const onSubmit = async (values) => {
     if (type === 'event' && !(eventPin?.lat != null && eventPin?.lng != null)) {
-      toast({
-        title: 'Add a meetup pin',
+      toast.error('Add a meetup pin', {
         description: 'Enter a location and select a suggestion, or place the pin manually.',
-        variant: 'destructive',
       });
       return;
     }
