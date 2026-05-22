@@ -10,6 +10,10 @@ import { logger } from '@/lib/logger.js';
 /** @type {object} Default settings for new users. */
 const DEFAULT_SETTINGS = {
   notifications_enabled: true,
+  notify_messages: true,
+  notify_meetups: true,
+  notify_safety_alerts: true,
+  notify_connections: true,
   live_map_visible: false,
   live_map_location_precision: 'approximate',
   analytics_enabled: true,

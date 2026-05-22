@@ -20,6 +20,10 @@ import {
   Smartphone,
   AppWindow,
   Bell,
+  MessageSquare,
+  CalendarHeart,
+  TriangleAlert,
+  Users,
   MapPin,
   Eye,
   AlertCircle,
@@ -394,6 +398,44 @@ function SettingsPage() {
           onToggle={(v) => handleToggle('notifications_enabled', v)}
           disabled={isSaving}
         />
+        {settings?.notifications_enabled !== false && (
+          <div className="px-4 pb-3">
+            <VStack gap={1} className="pl-11">
+              <SettingsRow
+                icon={MessageSquare}
+                label="Messages"
+                desc="Direct messages and conversation activity"
+                toggle={settings?.notify_messages !== false}
+                onToggle={(v) => handleToggle('notify_messages', v)}
+                disabled={isSaving}
+              />
+              <SettingsRow
+                icon={CalendarHeart}
+                label="Meetups & Events"
+                desc="RSVPs, event reminders, and ride coordination"
+                toggle={settings?.notify_meetups !== false}
+                onToggle={(v) => handleToggle('notify_meetups', v)}
+                disabled={isSaving}
+              />
+              <SettingsRow
+                icon={TriangleAlert}
+                label="Safety Alerts"
+                desc="Bike down, road hazards, and urgent signals"
+                toggle={settings?.notify_safety_alerts !== false}
+                onToggle={(v) => handleToggle('notify_safety_alerts', v)}
+                disabled={isSaving}
+              />
+              <SettingsRow
+                icon={Users}
+                label="Connections & Social"
+                desc="Friend requests, follows, and social activity"
+                toggle={settings?.notify_connections !== false}
+                onToggle={(v) => handleToggle('notify_connections', v)}
+                disabled={isSaving}
+              />
+            </VStack>
+          </div>
+        )}
         <div className="border-t border-border/40">
           <SettingsRow
             icon={Eye}
