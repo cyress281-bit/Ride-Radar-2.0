@@ -745,7 +745,7 @@ function BroadcastDetailPage() {
 
   const typeAccentClass = {
     solo_ride: 'border-l-[3px] border-l-primary shadow-[-3px_0_14px_hsl(var(--primary)/0.25)]',
-    iso: 'border-l-[3px] border-l-brand-radar shadow-[-3px_0_14px_hsl(var(--brand-radar)/0.25)]',
+    iso: 'border-l-[3px] border-l-iso shadow-[-3px_0_14px_hsl(var(--iso)/0.25)]',
     event: 'border-l-[3px] border-l-event shadow-[-3px_0_14px_hsl(var(--event)/0.25)]',
     alert: 'border-l-[3px] border-l-brand-amber shadow-[-3px_0_14px_hsl(var(--brand-amber)/0.22)]',
     bike_down: 'border-l-[3px] border-l-brand-emergency shadow-[-3px_0_14px_hsl(var(--brand-emergency)/0.3)]',
@@ -753,7 +753,7 @@ function BroadcastDetailPage() {
 
   const badgeClass = {
     solo_ride: 'bg-primary/10 text-primary border-primary/30',
-    iso: 'bg-brand-radar/10 text-brand-radar border-brand-radar/30',
+    iso: 'bg-iso/10 text-iso border-iso/30',
     event: 'bg-event/10 text-event border-event/30',
     alert: 'bg-brand-amber/10 text-brand-amber border-brand-amber/30',
     bike_down: 'bg-brand-emergency/10 text-brand-emergency border-brand-emergency/30',
