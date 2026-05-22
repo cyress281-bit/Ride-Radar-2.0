@@ -9,7 +9,6 @@ import {
 } from '@/lib/realtimeHealthRegistry.js';
 
 const HEALTH_CHANNEL_NAME = 'ride-radar-health';
-const HEALTH_CHECK_INTERVAL_MS = 30000;
 
 /**
  * Monitor Supabase realtime connection health.
@@ -20,7 +19,6 @@ export function useSupabaseConnection() {
   const [status, setStatus] = useState('unknown');
   const [lastPingAt, setLastPingAt] = useState(null);
   const channelRef = useRef(null);
-  const timerRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -75,27 +73,8 @@ export function useSupabaseConnection() {
 
     createHealthChannel();
 
-    // Periodic health ping
-    timerRef.current = window.setInterval(() => {
-      if (channelRef.current) {
-        channelRef.current
-          .httpSend('ping', {})
-          .then(() => {
-            if (isMounted) {
-              setLastPingAt(Date.now());
-              markRealtimeSurfaceSubscribed('supabase-connection');
-            }
-          })
-          .catch(() => {
-            if (isMounted) setStatus('reconnecting');
-            markRealtimeSurfaceReconnecting('supabase-connection');
-          });
-      }
-    }, HEALTH_CHECK_INTERVAL_MS);
-
     return () => {
       isMounted = false;
-      if (timerRef.current) window.clearInterval(timerRef.current);
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
