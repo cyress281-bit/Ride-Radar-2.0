@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import AppHeader from './AppHeader';
 import BottomNav from './BottomNav';
 import OfflineBanner from '@/components/OfflineBanner';
+import { useAppResumeRefresh } from '@/hooks/use-app-resume-refresh.js';
 import {
   activatePendingServiceWorkerUpdate,
   clearPendingServiceWorkerUpdateState,
@@ -45,6 +46,8 @@ const AppLayout = memo(function AppLayout() {
   const isRadar = pathname === '/home';
   const [hasUpdateAvailable, setHasUpdateAvailable] = useState(getPendingServiceWorkerUpdateState());
   const [isRefreshingUpdate, setIsRefreshingUpdate] = useState(false);
+
+  useAppResumeRefresh();
 
   // PWA cold-start settle nudge:
   // Installed iOS PWA pages can start with a shorter viewport until the
