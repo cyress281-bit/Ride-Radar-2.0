@@ -403,6 +403,15 @@ function SettingsPage() {
             disabled={isSaving || isProfileSaving}
           />
         </div>
+        <div className="border-t border-border/40">
+          <Link to="/settings/blocked-users" className="block">
+            <SettingsRow
+              icon={ShieldCheck}
+              label="Blocked Users"
+              desc="Manage riders you have blocked"
+            />
+          </Link>
+        </div>
       </SettingsSection>
 
       {/* Preferences */}
