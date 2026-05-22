@@ -1,13 +1,12 @@
+import { GEOCODE_CACHE_PREFIX, GEOCODE_CACHE_TTL_MS } from '@/lib/locationCache.js';
+
 /**
  * Geocoding utilities for Ride Radar 2.0.
  *
- * - Nominatim address lookup with 7-day localStorage cache
+ * - Nominatim address lookup with short-lived localStorage cache
  * - Deterministic location fuzzing for privacy
  * - Presence location builder
  */
-
-const GEOCODE_CACHE_PREFIX = 'rr:geocode:';
-const GEOCODE_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const DEFAULT_FUZZ_RADIUS_MILES = 1.5;
 const LOCATION_PRECISION = {
   APPROXIMATE: 'approximate',
@@ -95,7 +94,7 @@ function setCachedGeocode(cacheKey, result) {
 
 /**
  * Geocode a free-text address using Nominatim.
- * Results are cached in localStorage for 7 days.
+ * Results are cached in localStorage for 24 hours.
  *
  * @param {string} address - Free-form address or place name
  * @returns {Promise<{lat: number, lng: number, displayName: string}|null>}

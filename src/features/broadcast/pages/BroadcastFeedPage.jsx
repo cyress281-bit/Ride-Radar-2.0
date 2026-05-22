@@ -10,11 +10,9 @@ import { useBottomSheet } from '@/features/broadcast/hooks/use-bottom-sheet.js';
 import { useRadarViewport } from '@/features/broadcast/hooks/use-radar-viewport.js';
 import LiveMap from '@/features/map/components/LiveMap';
 import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
+import { RADAR_OFFLINE_SNAPSHOT_KEY, RADAR_OFFLINE_SNAPSHOT_MAX_AGE_MS } from '@/lib/locationCache.js';
 import RadarOverlay from '@/features/broadcast/components/RadarOverlay';
 import RadarBottomSheet from '@/features/broadcast/components/RadarBottomSheet';
-
-const RADAR_OFFLINE_SNAPSHOT_KEY = 'rr:radar-offline-snapshot';
-const RADAR_OFFLINE_SNAPSHOT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 function readRadarOfflineSnapshot() {
   try {

@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { preloadTilesAround } from '@/lib/tileCache.js';
+import { RADAR_LOCATION_CACHE_KEY, RADAR_LOCATION_CACHE_MAX_AGE_MS } from '@/lib/locationCache.js';
 import { logger } from '@/lib/logger';
 
-const RADAR_LOCATION_CACHE_KEY = 'rr:last-radar-location';
-const RADAR_LOCATION_CACHE_MAX_AGE_MS = 4 * 60 * 60 * 1000;
 const ACTIVE_LOCATION_MIN_DISTANCE_METERS = 25;
 const PASSIVE_LOCATION_MIN_DISTANCE_METERS = 75;
 const ACTIVE_LOCATION_MAX_STALE_MS = 30 * 1000;

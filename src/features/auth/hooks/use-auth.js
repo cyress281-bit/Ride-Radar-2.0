@@ -22,6 +22,7 @@ import {
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
 import { captureError } from '@/lib/sentry.js';
+import { clearLocalLocationCaches } from '@/lib/locationCache.js';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   signInWithEmail,
@@ -376,8 +377,9 @@ export function useAuthProvider() {
     setAuthEvent(null);
     // Purge all cached queries to prevent stale auth-dependent data from leaking
     queryClient.clear();
+    clearLocalLocationCaches();
     if (error) throw error;
-  }, []);
+  }, [queryClient]);
 
   const updateUserPassword = useCallback(async (newPassword) => {
     const { data, error } = await apiUpdatePassword(newPassword);
