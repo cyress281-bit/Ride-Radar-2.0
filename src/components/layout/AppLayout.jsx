@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect, useState, Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,27 @@ function readSafeAreaBottom() {
   probe.remove();
   return Math.round(safeBottom);
 }
+
+const RouteTransitionFallback = memo(function RouteTransitionFallback() {
+  const { pathname } = useLocation();
+  const isRadar = pathname === '/home';
+
+  return (
+    <div
+      className={cn(
+        'flex h-full w-full items-center justify-center bg-background',
+        isRadar && 'radar-grid'
+      )}
+    >
+      <div className="flex items-center gap-3 rounded-full border border-primary/15 bg-surface/80 px-4 py-3 shadow-[0_0_24px_hsl(var(--primary)/0.08)] backdrop-blur-xl">
+        <span className="h-2.5 w-2.5 rounded-full bg-primary animate-pulse-green" aria-hidden="true" />
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+          Loading
+        </span>
+      </div>
+    </div>
+  );
+});
 
 const AppLayout = memo(function AppLayout() {
   const { pathname } = useLocation();
@@ -298,7 +319,9 @@ const AppLayout = memo(function AppLayout() {
         style={!isRadar ? { paddingTop: 'calc(3.5rem + env(safe-area-inset-top, 0px))' } : undefined}
         role="main"
       >
-        <Outlet />
+        <Suspense fallback={<RouteTransitionFallback />}>
+          <Outlet />
+        </Suspense>
       </main>
 
       {/* Bottom navigation */}
