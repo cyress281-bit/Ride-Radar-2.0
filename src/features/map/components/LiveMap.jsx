@@ -149,23 +149,49 @@ const RadarViewportPersistence = memo(function RadarViewportPersistence() {
   useEffect(() => {
     if (!map) return undefined;
 
+    let active = true;
+
+    const canReadViewport = () =>
+      Boolean(
+        map._loaded &&
+        map._mapPane &&
+        map._mapPane._leaflet_pos &&
+        map._container
+      );
+
     const syncViewport = () => {
-      const center = map.getCenter();
-      if (!center) return;
-      lastRadarViewport = {
-        center: [center.lat, center.lng],
-        zoom: map.getZoom(),
-      };
+      if (!active || !canReadViewport()) return;
+      try {
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+        if (!center || !Number.isFinite(zoom)) return;
+        lastRadarViewport = {
+          center: [center.lat, center.lng],
+          zoom,
+        };
+      } catch {
+        // Leaflet can transiently tear down its internal pane during
+        // route transitions. Skip viewport persistence in that window.
+      }
     };
 
-    syncViewport();
-    map.on('moveend', syncViewport);
-    map.on('zoomend', syncViewport);
+    const attachListeners = () => {
+      if (!active) return;
+      syncViewport();
+      map.on('moveend', syncViewport);
+      map.on('zoomend', syncViewport);
+    };
+
+    if (typeof map.whenReady === 'function') {
+      map.whenReady(attachListeners);
+    } else {
+      attachListeners();
+    }
 
     return () => {
+      active = false;
       map.off('moveend', syncViewport);
       map.off('zoomend', syncViewport);
-      syncViewport();
     };
   }, [map]);
 
