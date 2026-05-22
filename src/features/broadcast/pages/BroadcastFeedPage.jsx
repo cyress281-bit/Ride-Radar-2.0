@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useTransition, memo, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useNearbyBroadcasts } from '@/features/broadcast/hooks/use-nearby-broadcasts.js';
 import { useLiveMapPresence } from '@/features/map/hooks/use-live-map.js';
 import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
@@ -58,10 +59,14 @@ function getAuthorId(broadcast) {
  */
 function BroadcastFeedPage() {
   const { user } = useAuthState();
+  const location = useLocation();
+  const navigate = useNavigate();
   const isOnline = useOnlineStatus();
   const radarViewport = useRadarViewport();
 
   const { userLoc, hasUserLocation, geoError, effectiveLoc, requestLocation } = useRadarLocation();
+  const locationState = location.state && typeof location.state === 'object' ? location.state : null;
+  const initialSheetOpen = locationState?.radarSheetOpen === true;
   const {
     sheetOpen,
     setSheetOpen,
@@ -70,7 +75,7 @@ function BroadcastFeedPage() {
     pullOffset,
     sheetTouchHandlers,
     contentTouchHandlers,
-  } = useBottomSheet();
+  } = useBottomSheet(initialSheetOpen);
 
   const [offlineSnapshot, setOfflineSnapshot] = useState(readRadarOfflineSnapshot);
   const [locateCount, setLocateCount] = useState(0);
@@ -94,6 +99,25 @@ function BroadcastFeedPage() {
 
     setOfflineSnapshot(readRadarOfflineSnapshot());
   }, [isOnline]);
+
+  useEffect(() => {
+    const currentSheetOpen = locationState?.radarSheetOpen === true;
+    if (currentSheetOpen === sheetOpen) return;
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: location.search,
+      },
+      {
+        replace: true,
+        state: {
+          ...(locationState || {}),
+          radarSheetOpen: sheetOpen,
+        },
+      }
+    );
+  }, [location.pathname, location.search, locationState, navigate, sheetOpen]);
 
   const { data: nearbyBroadcasts = [], isLoading: isLoadingNearby } = useNearbyBroadcasts(
     hasUserLocation ? effectiveLoc.lat : null,

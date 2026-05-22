@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
  * Hook to manage the radar bottom sheet state, drag gestures,
  * pull-to-refresh, and body scroll lock.
  *
+ * @param {boolean} [initialOpen=false] - Whether the sheet should start expanded.
  * @returns {{
  *   sheetOpen: boolean,
  *   setSheetOpen: (v: boolean | ((prev: boolean) => boolean)) => void,
@@ -24,9 +25,9 @@ import { useQueryClient } from '@tanstack/react-query';
  *   },
  * }}
  */
-export function useBottomSheet() {
+export function useBottomSheet(initialOpen = false) {
   const queryClient = useQueryClient();
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(() => Boolean(initialOpen));
   const [pullOffset, setPullOffset] = useState(0);
   const [isPulling, setIsPulling] = useState(false);
 
