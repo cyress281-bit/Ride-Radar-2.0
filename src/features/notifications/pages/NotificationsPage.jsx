@@ -132,7 +132,7 @@ function NotificationEmptyState() {
 function ErrorState() {
   const queryClient = useQueryClient();
   return (
-    <div className="px-5 pt-5 pb-8">
+    <div className="px-5 pt-5 pb-8 bg-background min-h-dvh">
       <div className="rounded-[20px] border border-primary/10 bg-surface/80 p-6 text-center backdrop-blur-xl">
         <WifiOff className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
         <h2 className="mb-2 text-xl font-bold text-brand-emergency">Signal lost</h2>

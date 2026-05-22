@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, memo, useState } from 'react';
+import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   LogOut,
@@ -247,6 +248,7 @@ function SettingsPage() {
           .eq('user_id', user.id);
         if (error) {
           logger.warn('[Settings] Failed to update profile visibility:', error);
+          toast.error('Failed to update profile visibility. Please try again.');
         } else {
           await refreshProfile();
         }
@@ -305,6 +307,7 @@ function SettingsPage() {
                 });
             }
           },
+          onError: () => toast.error('Failed to save setting. Please try again.'),
         }
       );
     },
@@ -315,7 +318,12 @@ function SettingsPage() {
     (value) => {
       if (!user?.id) return;
       const normalized = normalizePrecision(value);
-      saveSettings({ userId: user.id, updates: { live_map_location_precision: normalized } });
+      saveSettings(
+        { userId: user.id, updates: { live_map_location_precision: normalized } },
+        {
+          onError: () => toast.error('Failed to save location precision. Please try again.'),
+        }
+      );
     },
     [user?.id, saveSettings]
   );
@@ -332,6 +340,7 @@ function SettingsPage() {
       await signOut();
     } catch (err) {
       logger.warn('[Settings] Sign out failed:', err);
+      toast.error('Failed to sign out. Please try again.');
     }
     navigate('/landing');
   }, [signOut, navigate]);
@@ -479,6 +488,7 @@ function SettingsPage() {
               <Select
                 value={normalizePrecision(settings?.live_map_location_precision)}
                 onValueChange={handlePrecisionChange}
+                disabled={isSaving}
               >
                 <SelectTrigger className="w-36 rounded-xl border-border/60 bg-black/25 focus:ring-primary/40">
                   <SelectValue />

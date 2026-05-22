@@ -144,6 +144,7 @@ const OnboardingGuard = memo(function OnboardingGuard({ children }) {
     '/safety-disclaimer',
     '/terms-of-use',
     '/beta-notes',
+    '/community-guidelines',
     '/profile',
     '/onboarding',
   ]);
@@ -204,7 +205,7 @@ const ColdStartGuard = memo(function ColdStartGuard() {
     if (UUID_RE.test(path)) return;
 
     const preservedPaths = ['/home', '/', '/login', '/landing', '/onboarding',
-      '/account-deletion', '/privacy-policy', '/support', '/safety-disclaimer', '/terms-of-use', '/beta-notes'];
+      '/account-deletion', '/privacy-policy', '/support', '/safety-disclaimer', '/terms-of-use', '/beta-notes', '/community-guidelines'];
     if (preservedPaths.some((p) => path === p || path.startsWith(p + '/'))) return;
 
     const deepLinkPrefixes = ['/broadcast/', '/messages/', '/profile/'];
