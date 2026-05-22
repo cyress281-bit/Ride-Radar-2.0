@@ -160,7 +160,7 @@ export default function NotificationsPage() {
   } = useNotifications(user?.id);
 
   const { mutate: markRead } = useMarkAsRead();
-  const { mutate: markAllRead } = useMarkAllAsRead();
+  const { mutate: markAllRead, isPending: isMarkingAllRead } = useMarkAllAsRead();
   const { mutate: deleteNotif } = useDeleteNotification();
 
   const handleMarkRead = useCallback((notification) => markRead(notification.id), [markRead]);
@@ -212,7 +212,7 @@ export default function NotificationsPage() {
 
       {unreadCount > 0 && (
         <div className="mb-4 flex justify-end">
-          <Button variant="ghost" size="sm" onClick={handleMarkAllRead} className="min-h-[44px] rounded-full text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors border border-border/40">
+          <Button variant="ghost" size="sm" onClick={handleMarkAllRead} disabled={isMarkingAllRead} className="min-h-[44px] rounded-full text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors border border-border/40">
             <Check className="mr-1 h-3.5 w-3.5" /> Mark all as read
           </Button>
         </div>
