@@ -33,8 +33,13 @@ export function useCreateBroadcast() {
       if (!user) throw new Error('Must be authenticated to create a broadcast');
 
       const throttleNow = Date.now();
-      if (throttleNow - lastRunRef.current < 10_000) {
-        throw new Error('Please wait a moment before trying again.');
+      const cooldownMs = broadcastData.type === 'bike_down' ? 20_000 : 10_000;
+      if (throttleNow - lastRunRef.current < cooldownMs) {
+        throw new Error(
+          broadcastData.type === 'bike_down'
+            ? 'Please wait a moment before sending another Bike Down alert.'
+            : 'Please wait a moment before trying again.'
+        );
       }
 
       const now = new Date();
