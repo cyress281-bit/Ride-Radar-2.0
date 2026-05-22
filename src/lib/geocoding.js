@@ -89,7 +89,100 @@ function setCachedGeocode(cacheKey, result) {
 }
 
 // ------------------------------------------------------------------
-// Exported functions
+// Photon autocomplete
+// ------------------------------------------------------------------
+
+const PHOTON_BASE_URL = 'https://photon.komoot.io/api';
+const PHOTON_TIMEOUT_MS = 5000;
+
+/**
+ * Search address suggestions using Photon (Komoot).
+ * No API key required. Results are cached in localStorage for 24 hours.
+ *
+ * @param {string} query - Free-form address or place name
+ * @param {object} [options]
+ * @param {number} [options.limit=5] - Max suggestions to return
+ * @param {string} [options.lang='en'] - Language for results
+ * @param {AbortSignal} [options.signal] - AbortSignal for cancellation
+ * @returns {Promise<Array<{id: string, displayName: string, lat: number, lng: number, context: string}>>}
+ */
+export async function searchAddressSuggestions(query, options = {}) {
+  const { limit = 5, lang = 'en', signal } = options;
+  const normalized = String(query || '').trim().replace(/\s+/g, ' ').slice(0, 200);
+  if (!normalized || normalized.length < 3) return [];
+
+  const cacheKey = `${GEOCODE_CACHE_PREFIX}suggest:${normalized.toLowerCase()}`;
+  const cached = getCachedGeocode(cacheKey);
+  if (cached) return cached;
+
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort(), PHOTON_TIMEOUT_MS);
+  const abortSignal = signal
+    ? AbortSignal.any([signal, controller.signal])
+    : controller.signal;
+
+  try {
+    const url = new URL(PHOTON_BASE_URL);
+    url.searchParams.set('q', normalized);
+    url.searchParams.set('limit', String(limit));
+    url.searchParams.set('lang', lang);
+
+    const contactEmail = import.meta.env.VITE_SUPPORT_EMAIL || null;
+
+    const response = await fetch(url.toString(), {
+      signal: abortSignal,
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': `RideRadar/2.0${contactEmail ? ` (${contactEmail})` : ''}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Photon search failed with ${response.status}`);
+    }
+
+    const data = await response.json();
+    const features = Array.isArray(data?.features) ? data.features : [];
+
+    const suggestions = features
+      .map((feature, index) => {
+        const props = feature.properties || {};
+        const coords = feature.geometry?.coordinates;
+        const lng = Array.isArray(coords) ? Number(coords[0]) : NaN;
+        const lat = Array.isArray(coords) ? Number(coords[1]) : NaN;
+        if (!isValidCoordinate(lat, lng)) return null;
+
+        const parts = [
+          props.name,
+          props.street,
+          props.housenumber,
+          props.city,
+          props.state,
+          props.country,
+        ].filter(Boolean);
+
+        const displayName = parts.length > 0 ? parts.join(', ') : normalized;
+        const context = [props.city, props.state].filter(Boolean).join(', ');
+
+        return {
+          id: `${props.osm_id || index}-${props.osm_type || 'node'}`,
+          displayName,
+          lat,
+          lng,
+          context: context || undefined,
+        };
+      })
+      .filter(Boolean);
+
+    setCachedGeocode(cacheKey, suggestions);
+    return suggestions;
+  } finally {
+    globalThis.clearTimeout(timeout);
+  }
+}
+
+// ------------------------------------------------------------------
+// Nominatim geocode
 // ------------------------------------------------------------------
 
 /**

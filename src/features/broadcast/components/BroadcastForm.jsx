@@ -11,6 +11,7 @@ import { ArrowLeft, Upload, MapPin, Users, LocateFixed, Wrench } from 'lucide-re
 import AlertPhotoUploader from './AlertPhotoUploader';
 import AlertPinMap from './AlertPinMap';
 import LocationPickerMap from './LocationPickerMap';
+import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
 import { useRadarLocation } from '@/features/broadcast/hooks/use-radar-location';
 import SignalIcon from '@/components/brand/SignalIcon';
 import { Text } from '@/components/ui/primitives/Text';
@@ -19,7 +20,6 @@ import { cn } from '@/lib/utils.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useCreateBroadcast } from '@/features/broadcast/hooks/use-create-broadcast.js';
 import { prepareLocalImage } from '@/lib/image-utils.js';
-import { geocodeAddress } from '@/lib/geocoding.js';
 import { logger } from '@/lib/logger.js';
 
 const TYPES = [
@@ -190,7 +190,6 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     data: null,
     error: null,
   });
-  const [debouncedEventLocationText, setDebouncedEventLocationText] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [geoError, setGeoError] = useState(false);
@@ -250,14 +249,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const eventEndTimeValue = watch('eventEndTime');
   const normalizedEventLocationText = normalizeLocationText(exactLocationTextValue);
 
-  useEffect(() => {
-    if (type !== 'event') return;
-    const timer = setTimeout(() => {
-      setDebouncedEventLocationText(normalizedEventLocationText);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [normalizedEventLocationText, type]);
-
+  // When the user types a new address (not from pin drag), reset pin state
+  // so the autocomplete can set a fresh pin when a suggestion is selected.
   useEffect(() => {
     if (type !== 'event') return;
     if (!eventPinSourceRef.current) return;
@@ -270,58 +263,6 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     setEventPinAdjusted(false);
     setEventLocationPreview({ status: 'idle', data: null, error: null });
   }, [normalizedEventLocationText, type]);
-
-  useEffect(() => {
-    if (type !== 'event') return;
-
-    const normalized = debouncedEventLocationText;
-    if (normalized.length < 3) {
-      eventLocationQueryRef.current = normalized;
-      setEventLocationPreview({ status: 'idle', data: null, error: null });
-      return;
-    }
-
-    let cancelled = false;
-    eventLocationQueryRef.current = normalized;
-    setEventLocationPreview((current) => ({
-      ...current,
-      status: 'loading',
-      error: null,
-    }));
-
-    geocodeAddress(normalized)
-      .then((result) => {
-        if (cancelled) return;
-        if (eventLocationQueryRef.current !== normalized) return;
-
-        if (!result) {
-          setEventLocationPreview({ status: 'not_found', data: null, error: null });
-          setEventPin(null);
-          eventPinAdjustedRef.current = false;
-          setEventPinAdjusted(false);
-          eventPinSourceRef.current = '';
-          return;
-        }
-
-        setEventLocationPreview({ status: 'success', data: result, error: null });
-
-        if (!eventPinAdjustedRef.current || eventPinSourceRef.current !== normalized) {
-          setEventPin({ lat: result.lat, lng: result.lng });
-          eventPinAdjustedRef.current = false;
-          setEventPinAdjusted(false);
-          eventPinSourceRef.current = normalized;
-        }
-      })
-      .catch((error) => {
-        if (cancelled) return;
-        if (eventLocationQueryRef.current !== normalized) return;
-        setEventLocationPreview({ status: 'error', data: null, error });
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedEventLocationText, type]);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -340,10 +281,10 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   };
 
   const onSubmit = async (values) => {
-    if (type === 'event' && !((eventPin?.lat != null && eventPin?.lng != null) || eventLocationPreview.status === 'success')) {
+    if (type === 'event' && !(eventPin?.lat != null && eventPin?.lng != null)) {
       toast({
         title: 'Add a meetup pin',
-        description: 'Enter a location, let us confirm it, or place the pin manually.',
+        description: 'Enter a location and select a suggestion, or place the pin manually.',
         variant: 'destructive',
       });
       return;
@@ -380,16 +321,11 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   };
 
   const hasEventPin = eventPin?.lat != null && eventPin?.lng != null;
-  const canResolveEventLocation = hasEventPin || eventLocationPreview.status === 'success';
-  const eventMapCenter = eventLocationPreview.data || radarDefaultLoc;
-  const eventMapStatusText =
-    eventLocationPreview.status === 'loading'
-      ? 'Checking location...'
-      : eventLocationPreview.status === 'error' || eventLocationPreview.status === 'not_found'
-        ? "We couldn't find that address. Try another location or place the pin manually."
-        : eventLocationPreview.status === 'success' || hasEventPin
-          ? 'Confirm the meetup pin or drag it to the exact spot.'
-          : 'Enter a meetup location, then confirm or adjust the pin on the map.';
+  const canResolveEventLocation = hasEventPin;
+  const eventMapCenter = eventPin || radarDefaultLoc;
+  const eventMapStatusText = hasEventPin
+    ? 'Confirm the meetup pin or drag it to the exact spot.'
+    : 'Enter a meetup location, then confirm or adjust the pin on the map.';
   const showEventPinMap = type === 'event';
 
   const handleEventPinChange = (nextPin) => {
@@ -397,6 +333,17 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     setEventPinAdjusted(true);
     eventPinSourceRef.current = normalizedEventLocationText;
     setEventPin(nextPin);
+  };
+
+  const handleAddressSelect = (displayName, coords) => {
+    setValue('exactLocationText', displayName, { shouldValidate: true });
+    eventPinSourceRef.current = displayName;
+    if (coords) {
+      setEventPin({ lat: coords.lat, lng: coords.lng });
+      eventPinAdjustedRef.current = false;
+      setEventPinAdjusted(false);
+      setEventLocationPreview({ status: 'success', data: coords, error: null });
+    }
   };
 
   const canPost =
@@ -557,15 +504,16 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
         {type === 'event' && (
           <VStack gap={5}>
             <VStack gap={2}>
-              <Label htmlFor="location" className="rr-kicker text-muted-foreground mb-1 block">Where is it?</Label>
-              <Input
-                id="location"
-                {...register('exactLocationText')}
+              <AddressAutocomplete
+                inputId="location"
+                label="Where is it?"
+                value={exactLocationTextValue || ''}
+                onSelect={handleAddressSelect}
                 placeholder="Red Rocks Park, parking lot 2"
-                className={controlClass}
+                typeStyleInput={controlClass}
+                error={errors.exactLocationText?.message}
               />
-              {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
-              {!errors.exactLocationText && type === 'event' && (
+              {!errors.exactLocationText && (
                 <Text variant="caption" color="muted">
                   {eventMapStatusText}
                 </Text>
@@ -579,7 +527,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                     value={eventPin}
                     onChange={handleEventPinChange}
                     color="event"
-                    zoomLevel={eventLocationPreview.status === 'success' || hasEventPin ? 15 : 11}
+                    zoomLevel={hasEventPin ? 15 : 11}
                   />
                   <Text variant="caption" color="muted" className="mt-2 block">
                     Drag the pin to fine-tune the meetup spot.
