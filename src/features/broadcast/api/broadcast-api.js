@@ -57,6 +57,33 @@ export async function getBroadcastById(id) {
 }
 
 /**
+ * Check whether an active Bike Down signal is still visible to the current viewer
+ * under the same block/expiry rules used by the nearby broadcasts RPC.
+ *
+ * @param {{ id: string, frozen_lat: number|string, frozen_lng: number|string }} broadcast
+ * @returns {Promise<{data: boolean, error: Error|null}>}
+ */
+export async function canViewActiveBikeDownDetail(broadcast) {
+  const lat = Number(broadcast?.frozen_lat);
+  const lng = Number(broadcast?.frozen_lng);
+
+  if (!broadcast?.id || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return { data: false, error: null };
+  }
+
+  const { data, error } = await getNearbyBroadcasts(lat, lng, 1, 100);
+  if (error) {
+    logger.error('[canViewActiveBikeDownDetail] Error:', error);
+    return { data: false, error };
+  }
+
+  return {
+    data: Array.isArray(data) && data.some((item) => item.id === broadcast.id),
+    error: null,
+  };
+}
+
+/**
  * Fetch nearby broadcasts using the PostGIS RPC.
  *
  * @param {number} lat

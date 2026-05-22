@@ -18,7 +18,7 @@ import { supabase } from '@/lib/supabase.js';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { toast } from '@/components/ui/use-toast';
-import { getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
+import { canViewActiveBikeDownDetail, getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
 import {
   cancelOfficialEventRequest,
   createOfficialEventRequest,
@@ -68,6 +68,30 @@ function ResolvedSignalScreen({ onBack, onHome, resolvedNote }) {
         {resolvedNote && (
           <p className="mt-2 text-[13px] text-muted-foreground italic">{resolvedNote}</p>
         )}
+        <button
+          onClick={onHome}
+          className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
+        >
+          Back to Radar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function UnavailableSignalScreen({ onBack, onHome }) {
+  return (
+    <div className="px-5 pt-5">
+      <button
+        onClick={onBack}
+        className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1"
+      >
+        <ArrowLeft className="w-4 h-4" /> Back
+      </button>
+      <div className="surface-card p-10 text-center">
+        <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
+        <p className="text-[13px] font-semibold text-muted-foreground mb-2">Signal unavailable</p>
+        <p className="text-[13px] text-muted-foreground">This signal is no longer available to view.</p>
         <button
           onClick={onHome}
           className="mt-6 rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
@@ -422,6 +446,25 @@ function BroadcastDetailPage() {
   const location = useLocation();
   const { user, profile } = useAuthState();
   const hasValidBroadcastId = isValidUuid(id);
+  const qc = useQueryClient();
+
+  const { data: viewerRole = 'user' } = useQuery({
+    queryKey: ['viewer-role', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) return 'user';
+      return data?.role || 'user';
+    },
+    staleTime: 5 * 60_000,
+  });
+
+  const isViewerAdmin = viewerRole === 'admin';
 
   useEffect(() => {
     if (location.hash !== '#comments') return;
@@ -442,6 +485,35 @@ function BroadcastDetailPage() {
       return data;
     },
     staleTime: 60_000,
+  });
+
+  const isAuthor = user?.id === broadcast?.author_id;
+  const isBikeDown = broadcast?.type === 'alert' && broadcast?.alert_type === 'bike_down';
+  const expiresAtMs = Date.parse(broadcast?.expires_at || '');
+  const isExpiredByTime = Number.isFinite(expiresAtMs) && expiresAtMs <= Date.now();
+  const requiresBikeDownVisibilityCheck =
+    !!broadcast?.id &&
+    !!user?.id &&
+    isBikeDown &&
+    broadcast.status === 'active' &&
+    !isAuthor &&
+    !isViewerAdmin &&
+    !isExpiredByTime;
+
+  const {
+    data: bikeDownVisibility = { isVisible: true },
+    isLoading: isBikeDownVisibilityLoading,
+    isError: isBikeDownVisibilityError,
+  } = useQuery({
+    queryKey: ['bike-down-visibility', broadcast?.id, user?.id],
+    enabled: requiresBikeDownVisibilityCheck,
+    queryFn: async () => {
+      const { data, error } = await canViewActiveBikeDownDetail(broadcast);
+      if (error) throw error;
+      return { isVisible: data };
+    },
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: author } = useQuery({
@@ -495,7 +567,6 @@ function BroadcastDetailPage() {
   const updateSignal = useUpdateBroadcast();
   const resolveSignal = useResolveBroadcast();
 
-  const qc = useQueryClient();
   const wasLoaded = useRef(false);
 
   useEffect(() => {
@@ -633,7 +704,34 @@ function BroadcastDetailPage() {
     );
   }
 
-  if (broadcast.status !== 'active' && user?.id !== broadcast.author_id) {
+  if (requiresBikeDownVisibilityCheck && isBikeDownVisibilityLoading) {
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center text-sm text-muted-foreground">
+        <RRLogo size="md" className="mb-4 animate-pulse" />
+        Loading signal…
+      </div>
+    );
+  }
+
+  if (requiresBikeDownVisibilityCheck && isBikeDownVisibilityError) {
+    return (
+      <div className="px-5 pt-5">
+        <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <div className="surface-card p-10 text-center">
+          <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
+          <Text variant="bodySm" color="muted">Unable to load this signal.</Text>
+        </div>
+      </div>
+    );
+  }
+
+  if (requiresBikeDownVisibilityCheck && !bikeDownVisibility.isVisible) {
+    return <UnavailableSignalScreen onBack={handleGoBack} onHome={() => navigate('/home')} />;
+  }
+
+  if ((broadcast.status !== 'active' || isExpiredByTime) && !isAuthor && !isViewerAdmin) {
     if (broadcast.resolved_at) {
       return <ResolvedSignalScreen onBack={handleGoBack} onHome={() => navigate('/home')} resolvedNote={broadcast.resolved_note} />;
     }
@@ -642,9 +740,7 @@ function BroadcastDetailPage() {
 
   const meta = BROADCAST_META[broadcast.type];
   const displayLabel = broadcast.alert_type === 'bike_down' ? 'Bike Down' : meta?.label;
-  const isAuthor = user?.id === broadcast.author_id;
   const isAlert = broadcast.type === 'alert';
-  const isBikeDown = broadcast.alert_type === 'bike_down';
   const signalTone = isBikeDown ? 'bike_down' : broadcast.type;
 
   const typeAccentClass = {

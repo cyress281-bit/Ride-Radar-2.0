@@ -689,7 +689,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             <div className={cn('flex items-start gap-2.5 rounded-2xl px-3.5 py-3', typeStyles.panelSoft, typeStyles.sectionGlow)}>
               <span className="mt-0.5 text-destructive" aria-hidden="true">⚠</span>
               <p className="text-xs leading-snug text-destructive/90 font-medium">
-                Bike Down alerts are community safety signals, not emergency services. If someone may be injured or in danger, <strong>call 911 first</strong>.
+                Bike Down alerts are community safety signals, not emergency dispatch. If someone may be injured or in danger, <strong>call 911 first</strong>. A dropped pin or current location may share a more precise location with other riders.
               </p>
             </div>
             <VStack gap={2}>
@@ -701,7 +701,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 className={controlClass}
               />
               {errors.exactLocationText && <p className="mt-1 text-xs text-destructive">{errors.exactLocationText.message}</p>}
-              <Text variant="caption" color="muted" className="mt-1.5">Describe the area. Your exact location stays private.</Text>
+              <Text variant="caption" color="muted" className="mt-1.5">Text-only fallback can stay approximate. If you use your current location or drop a pin, other riders may see a more precise spot.</Text>
             </VStack>
             {hasUserLocation && (
               <button
