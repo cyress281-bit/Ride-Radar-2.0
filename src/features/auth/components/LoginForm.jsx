@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
@@ -371,6 +372,18 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
               'Create account with email'
             )}
           </Button>
+
+          <Text variant="caption" color="muted" align="center" className="block">
+            By continuing, you agree to our{' '}
+            <Link to="/terms-of-use" className="text-primary hover:underline">
+              Terms of Use
+            </Link>{' '}
+            and{' '}
+            <Link to="/privacy-policy" className="text-primary hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </Text>
         </form>
       </Form>
     </VStack>

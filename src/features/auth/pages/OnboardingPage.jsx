@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -756,6 +756,18 @@ export default function OnboardingPage() {
             >
               {saveProfile.isPending ? 'Creating profile...' : 'Join the network'}
             </Button>
+
+            <Text variant="caption" color="muted" align="center" className="block">
+              By continuing, you agree to our{' '}
+              <Link to="/terms-of-use" className="text-primary hover:underline">
+                Terms of Use
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy-policy" className="text-primary hover:underline">
+                Privacy Policy
+              </Link>
+              .
+            </Text>
 
             <Button
               type="button"
