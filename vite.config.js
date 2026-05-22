@@ -249,11 +249,12 @@ export default defineConfig({
             return 'vendor-utils';
           }
 
-          // All admin pages in one chunk (they all share AdminLayout/AdminPageShell
-          // so Rollup naturally merges them; the explicit rule keeps the name stable)
-          if (id.includes('/src/features/admin/pages/') || id.includes('/src/features/admin/')) {
-            return 'pages-admin';
-          }
+          // Admin pages are lazy-loaded via React.lazy() in App.jsx.
+          // Removing the manualChunks rule lets Rollup split them into
+          // per-page chunks, avoiding a single 300 KB bundle that Vite
+          // eagerly preloads for all users (including non-admins).
+          // Shared admin components/hooks naturally deduplicate into the
+          // smallest chunk that needs them.
         },
       },
     },
