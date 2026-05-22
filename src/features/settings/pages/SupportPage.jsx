@@ -7,7 +7,7 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Mail, HelpCircle, MessageSquare, ChevronDown, Zap, Clock, MapPin, Shield, Trash2 } from 'lucide-react';
+import { ArrowLeft, Mail, HelpCircle, MessageSquare, ChevronDown, Zap, Clock, MapPin, Shield, Trash2, BadgeInfo } from 'lucide-react';
 import { SUPPORT_EMAIL } from '@/lib/constants.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
@@ -107,6 +107,26 @@ export default function SupportPage() {
             </HStack>
           </div>
         </div>
+
+        <Link
+          to="/beta-notes"
+          className={cn(
+            'surface-card p-5 transition-colors hover:border-primary/30 hover:bg-primary/[0.02]',
+            'active:scale-[0.99] pressable'
+          )}
+        >
+          <HStack align="center" gap={3}>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 border border-primary/20 shadow-[0_0_12px_hsl(var(--primary)/0.1)]">
+              <BadgeInfo className="h-6 w-6 text-primary" />
+            </div>
+            <VStack className="min-w-0 flex-1">
+              <Text variant="bodySm" className="font-bold">Beta Notes</Text>
+              <Text variant="caption" color="muted">
+                Known issues, update guidance, and beta expectations
+              </Text>
+            </VStack>
+          </HStack>
+        </Link>
 
         {/* FAQ Accordion */}
         <VStack gap={2}>

@@ -533,6 +533,11 @@ function SettingsPage() {
           </Link>
         </div>
         <div className="border-t border-border/40">
+          <Link to="/beta-notes" className="block">
+            <SettingsRow icon={BadgeInfo} label="Beta Notes" desc="Known issues, update guidance, and beta expectations" />
+          </Link>
+        </div>
+        <div className="border-t border-border/40">
           <SettingsRow
             icon={Mail}
             label="Report an Issue / Feedback"

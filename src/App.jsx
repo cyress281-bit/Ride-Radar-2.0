@@ -34,6 +34,7 @@ const PrivacyPolicyPage = lazy(() => import('./features/settings/pages/PrivacyPo
 const SupportPage = lazy(() => import('./features/settings/pages/SupportPage'));
 const SafetyDisclaimerPage = lazy(() => import('./features/settings/pages/SafetyDisclaimerPage'));
 const TermsOfUsePage = lazy(() => import('./features/settings/pages/TermsOfUsePage'));
+const BetaNotesPage = lazy(() => import('./features/safety/pages/BetaNotesPage'));
 
 // ------------------------------------------------------------------
 // Core authenticated pages
@@ -139,6 +140,7 @@ const OnboardingGuard = memo(function OnboardingGuard({ children }) {
     '/support',
     '/safety-disclaimer',
     '/terms-of-use',
+    '/beta-notes',
     '/profile',
     '/onboarding',
   ]);
@@ -198,7 +200,7 @@ const ColdStartGuard = memo(function ColdStartGuard() {
     if (UUID_RE.test(path)) return;
 
     const preservedPaths = ['/home', '/', '/login', '/landing', '/onboarding',
-      '/account-deletion', '/privacy-policy', '/support', '/safety-disclaimer', '/terms-of-use'];
+      '/account-deletion', '/privacy-policy', '/support', '/safety-disclaimer', '/terms-of-use', '/beta-notes'];
     if (preservedPaths.some((p) => path === p || path.startsWith(p + '/'))) return;
 
     navigate('/home', { replace: true });
@@ -345,6 +347,7 @@ const AppContent = memo(function AppContent() {
         <Route path="/support" element={<SupportPage />} />
         <Route path="/safety-disclaimer" element={<SafetyDisclaimerPage />} />
         <Route path="/terms-of-use" element={<TermsOfUsePage />} />
+        <Route path="/beta-notes" element={<BetaNotesPage />} />
 
         {/* Onboarding (protected) */}
         <Route
