@@ -84,9 +84,9 @@ export function getSelfMarkerIcon() {
     selfMarkerIcon = divIcon({
       className: 'rr-map-marker-wrapper',
       html: '<span class="rr-map-marker rr-map-marker-self" aria-hidden="true"><span></span></span>',
-      iconSize: [42, 42],
-      iconAnchor: [21, 21],
-      popupAnchor: [0, -22],
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      popupAnchor: [0, -18],
     });
   }
   return selfMarkerIcon;
@@ -96,10 +96,10 @@ export function getSelfMarkerIconLive() {
   if (!selfMarkerIconLive) {
     selfMarkerIconLive = divIcon({
       className: 'rr-map-marker-wrapper',
-      html: '<span class="rr-map-marker rr-map-marker-self rr-breathe" aria-hidden="true"><span></span></span>',
-      iconSize: [42, 42],
-      iconAnchor: [21, 21],
-      popupAnchor: [0, -22],
+      html: '<span class="rr-map-marker rr-map-marker-self" aria-hidden="true"><span></span></span>',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+      popupAnchor: [0, -18],
     });
   }
   return selfMarkerIconLive;
