@@ -7,6 +7,8 @@
  * - Installation prompting
  */
 
+import { logger } from '@/lib/logger.js';
+
 let deferredPrompt = null;
 let registration = null;
 let refreshing = false;
@@ -66,14 +68,51 @@ function notifyIfWaitingUpdate() {
   }
 }
 
+function isExpectedServiceWorkerUpdateError(error) {
+  const name = String(error?.name || '').toLowerCase();
+  const message = String(error?.message || error || '').toLowerCase();
+  return (
+    name === 'invalidstateerror' ||
+    message.includes('invalidstateerror') ||
+    message.includes('invalid state') ||
+    message.includes('not found') ||
+    message.includes('script unknown') ||
+    message.includes('unknown: not found')
+  );
+}
+
+async function safeUpdateRegistration(context) {
+  if (!registration) return false;
+
+  try {
+    await registration.update();
+    return true;
+  } catch (error) {
+    if (isExpectedServiceWorkerUpdateError(error)) {
+      logger.debug('[registerSW] Ignoring expected service worker update race', {
+        context,
+        name: error?.name,
+        message: error?.message,
+      });
+    } else {
+      logger.warn('[registerSW] Service worker update failed', {
+        context,
+        name: error?.name,
+        message: error?.message,
+        error,
+      });
+    }
+    return false;
+  }
+}
+
 function attachServiceWorkerUpdateListeners() {
   if (updateListenersAttached || !registration) return;
   updateListenersAttached = true;
 
   const checkForUpdate = () => {
     if (document.visibilityState !== 'visible') return;
-    registration?.update();
-    notifyIfWaitingUpdate();
+    void safeUpdateRegistration('visibilitychange/focus').finally(notifyIfWaitingUpdate);
   };
 
   window.addEventListener('focus', checkForUpdate);
@@ -139,12 +178,11 @@ export async function registerServiceWorker() {
         setPendingServiceWorkerUpdate();
       }
 
-      registration.update();
+      void safeUpdateRegistration('post-register').finally(notifyIfWaitingUpdate);
 
       // Check for updates every hour
       const updateInterval = setInterval(() => {
-        registration.update();
-        notifyIfWaitingUpdate();
+        void safeUpdateRegistration('hourly-check').finally(notifyIfWaitingUpdate);
       }, 60 * 60 * 1000);
 
       // Cleanup interval when page unloads to avoid leaked timers in tests/long sessions
@@ -153,7 +191,12 @@ export async function registerServiceWorker() {
       });
 
     } catch (error) {
-      // Service Worker registration failed â€” logged silently
+      logger.warn('[registerSW] Service worker registration failed', {
+        name: error?.name,
+        message: error?.message,
+        error,
+      });
+      // Keep the app alive; update recovery remains handled elsewhere.
     }
   }
 }
@@ -167,7 +210,7 @@ export async function activatePendingServiceWorkerUpdate() {
 
   const waiting = getWaitingServiceWorkerRegistration();
   if (!waiting) {
-    await registration.update();
+    await safeUpdateRegistration('activate-no-waiting');
     notifyIfWaitingUpdate();
     return false;
   }
