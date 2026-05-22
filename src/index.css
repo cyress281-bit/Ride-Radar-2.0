@@ -582,9 +582,20 @@
   color: hsl(var(--muted-foreground)) !important;
 }
 
+/* Unlayered Leaflet dark-background guard — must beat leaflet.css unlayered #ddd */
+.leaflet-container,
+.leaflet-tile-pane,
+.leaflet-tile,
+.leaflet-layer {
+  background: hsl(var(--background)) !important;
+}
+
+.leaflet-tile {
+  background-color: hsl(var(--background)) !important;
+}
+
 @layer utilities {
   .leaflet-container {
-    background: hsl(var(--background)) !important;
     border-radius: 0 !important;
     font-family: var(--font-sans);
   }

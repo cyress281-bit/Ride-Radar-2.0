@@ -415,7 +415,7 @@ const TileLoadingOverlay = memo(function TileLoadingOverlay({ variant }) {
   return (
     <div
       className={cn(
-        'pointer-events-none absolute inset-0 z-[435] flex flex-col items-center justify-center transition-opacity duration-700',
+        'pointer-events-none absolute inset-0 z-[1100] flex flex-col items-center justify-center transition-opacity duration-700',
         variant === 'radar' ? 'bg-background' : 'bg-background/35 backdrop-blur-[1px]',
         variant === 'radar' ? 'rounded-none' : 'rounded-[1.1rem]'
       )}
@@ -592,6 +592,8 @@ function LiveMap({
   const handleTileLoad = useCallback(() => {
     setMapError(false);
     setHasLoadedAnyTile(true);
+  }, []);
+  const handleTileLayerLoad = useCallback(() => {
     setTilesLoading(false);
   }, []);
   const handleRetry = useCallback(() => {
@@ -610,8 +612,8 @@ function LiveMap({
   );
 
   const tileEventHandlers = useMemo(
-    () => ({ tileerror: handleTileError, tileload: handleTileLoad }),
-    [handleTileError, handleTileLoad]
+    () => ({ tileerror: handleTileError, tileload: handleTileLoad, load: handleTileLayerLoad }),
+    [handleTileError, handleTileLoad, handleTileLayerLoad]
   );
 
   useEffect(() => {
@@ -660,7 +662,7 @@ function LiveMap({
           <a href={variant === 'full' ? '#live-map-list' : '#map-legend'} className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[500] focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:shadow-lg">Skip map</a>
 
           {(offlineMode || mapError) && <OfflineMapOverlay snapshotAt={offlineSnapshotAt} tileIssue={mapError} />}
-          {tilesLoading && !hasLoadedAnyTile && !mapError && <TileLoadingOverlay variant={variant} />}
+          {(tilesLoading || !hasLoadedAnyTile) && !mapError && <TileLoadingOverlay variant={variant} />}
           <MapSummary items={items} userLat={userLat} userLng={userLng} variant={variant} />
 
           {variant !== 'radar' && items.length === 0 && (
