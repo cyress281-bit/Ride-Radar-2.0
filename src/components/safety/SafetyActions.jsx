@@ -24,7 +24,15 @@ const DETAILS_MAX_LENGTH = 500;
  *
  * Uses safety API hooks instead of direct Supabase queries.
  */
-export default function SafetyActions({ targetType, targetId, targetProfileId, compact = false, className }) {
+export default function SafetyActions({
+  targetType,
+  targetId,
+  targetProfileId,
+  targetParentId,
+  targetContext,
+  compact = false,
+  className,
+}) {
   const { user } = useAuthState();
   const [mode, setMode] = useState(null);
   const [reason, setReason] = useState('safety');
@@ -70,6 +78,8 @@ export default function SafetyActions({ targetType, targetId, targetProfileId, c
           target_type: targetType,
           target_id: targetId,
           target_user_id: targetProfileId,
+          target_parent_id: targetParentId,
+          target_context: targetContext,
           reason,
           details: details.trim() || null,
         },
@@ -85,7 +95,19 @@ export default function SafetyActions({ targetType, targetId, targetProfileId, c
         { onSuccess: () => setMode('blocked') }
       );
     }
-  }, [mode, createReport, createBlock, user, targetType, targetId, targetProfileId, reason, details]);
+  }, [
+    mode,
+    createReport,
+    createBlock,
+    user,
+    targetType,
+    targetId,
+    targetProfileId,
+    targetParentId,
+    targetContext,
+    reason,
+    details,
+  ]);
 
   const handleClose = useCallback(() => {
     setMode(null);

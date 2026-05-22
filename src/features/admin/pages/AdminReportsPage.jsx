@@ -13,7 +13,11 @@ import {
 
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { supabase } from '@/lib/supabase.js';
+import { getStoragePathFromPublicUrl } from '@/lib/image-utils.js';
 import { hardDeleteBroadcast } from '@/features/broadcast/api/broadcast-api.js';
+import { deletePost } from '@/features/profile/api/posts-api.js';
+import { deletePostComment } from '@/features/profile/api/comments-api.js';
+import { updateProfile } from '@/features/profile/api/profile-api.js';
 import { deleteMessage, archiveConversation } from '@/features/chat/api/chat-api.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
@@ -69,6 +73,25 @@ function AdminReportsContent() {
     [broadcastsData]
   );
 
+  const formatTargetType = (value) => {
+    switch (value) {
+      case 'user':
+        return 'User';
+      case 'broadcast':
+        return 'Broadcast';
+      case 'message':
+        return 'Message';
+      case 'post':
+        return 'Post';
+      case 'post_comment':
+        return 'Comment';
+      case 'image':
+        return 'Image';
+      default:
+        return value || 'Unknown';
+    }
+  };
+
   const setStatus = useMutation({
     mutationFn: async ({ id, status, note }) => {
       const { error } = await supabase
@@ -96,9 +119,19 @@ function AdminReportsContent() {
     mutationFn: async (report) => {
       const targetType = report.target_type;
       const targetId = report.target_id;
+      const targetContext = report.target_context || {};
+      const imageKind = targetContext.image_kind;
 
       if (targetType === 'broadcast') {
         const { error } = await hardDeleteBroadcast(targetId);
+        if (error) throw error;
+      }
+      if (targetType === 'post') {
+        const { error } = await deletePost(targetId);
+        if (error) throw error;
+      }
+      if (targetType === 'post_comment') {
+        const { error } = await deletePostComment(targetId);
         if (error) throw error;
       }
       if (targetType === 'message') {
@@ -108,6 +141,35 @@ function AdminReportsContent() {
       if (targetType === 'conversation') {
         const { error } = await archiveConversation(targetId);
         if (error) throw error;
+      }
+      if (targetType === 'image') {
+        const targetUserId = report.target_user_id || report.target_profile_id;
+        const profile = targetUserId ? profileByUserId.get(targetUserId) : null;
+        if (imageKind === 'post_image') {
+          const postId = report.target_parent_id || targetId;
+          const { error } = await deletePost(postId);
+          if (error) throw error;
+        } else if (imageKind === 'avatar') {
+          if (!targetUserId) throw new Error('No target user for avatar report.');
+          const imageUrl = targetContext.image_url || profile?.avatar_url || '';
+          const imagePath = getStoragePathFromPublicUrl('uploads', imageUrl);
+          if (!imagePath) throw new Error('Could not resolve avatar image path.');
+          const { error: storageError } = await supabase.storage.from('uploads').remove([imagePath]);
+          if (storageError) throw storageError;
+          const { error } = await updateProfile(targetUserId, { avatar_url: null });
+          if (error) throw error;
+        } else if (imageKind === 'bike_photo') {
+          if (!targetUserId) throw new Error('No target user for bike photo report.');
+          const imageUrl = targetContext.image_url || profile?.bike_photo_url || '';
+          const imagePath = getStoragePathFromPublicUrl('uploads', imageUrl);
+          if (!imagePath) throw new Error('Could not resolve bike photo image path.');
+          const { error: storageError } = await supabase.storage.from('uploads').remove([imagePath]);
+          if (storageError) throw storageError;
+          const { error } = await updateProfile(targetUserId, { bike_photo_url: null });
+          if (error) throw error;
+        } else {
+          throw new Error('Unsupported image report target.');
+        }
       }
 
       const actionNote = 'content removed/archived';
@@ -149,6 +211,7 @@ function AdminReportsContent() {
       qc.invalidateQueries({ queryKey: ['admin', 'reports'] });
       qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] });
       qc.invalidateQueries({ queryKey: ['admin', 'conversations'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'profiles'] });
     },
   });
 
@@ -203,6 +266,17 @@ function AdminReportsContent() {
     const profile = profileByUserId.get(targetUserId);
     if (report.target_type === 'broadcast') {
       return broadcastById.get(report.target_id)?.title || report.target_id;
+    }
+    if (report.target_type === 'post') {
+      return report.target_id;
+    }
+    if (report.target_type === 'post_comment') {
+      return report.target_parent_id ? `${report.target_id} on post ${report.target_parent_id}` : report.target_id;
+    }
+    if (report.target_type === 'image') {
+      const kind = report.target_context?.image_kind;
+      const kindLabel = kind ? kind.replace(/_/g, ' ') : 'image';
+      return `${kindLabel} ${profile?.display_name || report.target_user_id || report.target_id}`;
     }
     if (profile) {
       return `${profile.display_name || 'Rider'} ${profile.username ? `@${profile.username}` : ''}`;
@@ -264,8 +338,14 @@ function AdminReportsContent() {
               </div>
               <div className="mt-1 text-sm">
                 <span className="text-muted-foreground">Target:</span>{' '}
-                {report.target_type} — {describeTarget(report)}
+                {formatTargetType(report.target_type)} — {describeTarget(report)}
               </div>
+
+              {report.target_context && Object.keys(report.target_context || {}).length > 0 && (
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Context: {report.target_context.image_kind || report.target_context.post_id || 'provided'}
+                </div>
+              )}
 
               {report.details && (
                 <p className="mt-3 whitespace-pre-wrap rounded-[20px] bg-secondary/50 p-3 text-sm text-muted-foreground">
@@ -335,7 +415,10 @@ function AdminReportsContent() {
                   <DropdownMenuContent align="start" className="w-48">
                     {(report.target_type === 'broadcast' ||
                       report.target_type === 'message' ||
-                      report.target_type === 'conversation') && (
+                      report.target_type === 'conversation' ||
+                      report.target_type === 'post' ||
+                      report.target_type === 'post_comment' ||
+                      report.target_type === 'image') && (
                       <DropdownMenuItem
                         onClick={() => removeContent.mutate(report)}
                         className="gap-2"

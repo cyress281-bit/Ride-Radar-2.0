@@ -221,6 +221,28 @@ export function getPublicUrl(bucket, path) {
   return data?.publicUrl ?? '';
 }
 
+/**
+ * Extract a storage object path from a Supabase public URL.
+ * Returns an empty string if the URL does not match the expected storage format.
+ *
+ * @param {string} bucket
+ * @param {string} url
+ * @returns {string}
+ */
+export function getStoragePathFromPublicUrl(bucket, url) {
+  if (!bucket || !url || typeof url !== 'string') return '';
+
+  try {
+    const parsed = new URL(url);
+    const marker = `/storage/v1/object/public/${bucket}/`;
+    const idx = parsed.pathname.indexOf(marker);
+    if (idx < 0) return '';
+    return decodeURIComponent(parsed.pathname.slice(idx + marker.length));
+  } catch {
+    return '';
+  }
+}
+
 export function isRemoteImageUrl(value) {
   return typeof value === 'string' && /^(https?:|blob:|data:)/i.test(value);
 }

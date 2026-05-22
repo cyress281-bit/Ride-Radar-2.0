@@ -16,6 +16,8 @@ import { throttle } from '@/lib/throttle.js';
  * @param {string} params.target_type
  * @param {string} params.target_id
  * @param {string} params.target_user_id
+ * @param {string} [params.target_parent_id]
+ * @param {object} [params.target_context]
  * @param {string} params.reason
  * @param {string} [params.details]
  * @returns {Promise<{data: object|null, error: Error|null}>}
@@ -25,6 +27,8 @@ export const createReport = throttle(async function createReport({
   target_type,
   target_id,
   target_user_id,
+  target_parent_id,
+  target_context,
   reason,
   details,
 }) {
@@ -37,18 +41,26 @@ export const createReport = throttle(async function createReport({
   if (!reason) {
     return { data: null, error: new Error('Reason is required') };
   }
+  if (target_parent_id && !isValidUuid(target_parent_id)) {
+    return { data: null, error: new Error('Invalid target_parent_id') };
+  }
+
+  const payload = {
+    reporter_user_id,
+    target_type,
+    target_id,
+    target_user_id,
+    reason,
+    details: details?.trim() || null,
+    status: 'open',
+  };
+
+  if (target_parent_id) payload.target_parent_id = target_parent_id;
+  if (target_context && typeof target_context === 'object') payload.target_context = target_context;
 
   const { data, error } = await supabase
     .from('reports')
-    .insert({
-      reporter_user_id,
-      target_type,
-      target_id,
-      target_user_id,
-      reason,
-      details: details?.trim() || null,
-      status: 'open',
-    })
+    .insert(payload)
     .select()
     .single();
 

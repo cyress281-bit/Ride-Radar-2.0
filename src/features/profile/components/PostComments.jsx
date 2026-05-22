@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect, memo, useId } from 'react';
 import { Trash2, Loader2, Send } from 'lucide-react';
+import SafetyActions from '@/components/safety/SafetyActions';
 import {
   usePostComments,
   useAddPostComment,
@@ -27,7 +28,7 @@ function CommentAvatar({ profile }) {
   );
 }
 
-function CommentRow({ comment, currentUserId, postOwnerId, onDelete, isDeleting }) {
+function CommentRow({ comment, currentUserId, postOwnerId, postId, onDelete, isDeleting }) {
   const profile = comment.user_profiles;
   const authorName = profile?.display_name || profile?.username || 'Rider';
   const canDelete =
@@ -49,6 +50,19 @@ function CommentRow({ comment, currentUserId, postOwnerId, onDelete, isDeleting 
         <p className="text-sm text-foreground/80 leading-snug mt-0.5 break-words">
           {comment.body}
         </p>
+        {currentUserId && currentUserId !== comment.author_id && (
+          <div className="mt-2 flex justify-end">
+            <SafetyActions
+              targetType="post_comment"
+              targetId={comment.id}
+              targetProfileId={comment.author_id}
+              targetParentId={postId}
+              targetContext={{ post_id: postId }}
+              compact
+              className="justify-end"
+            />
+          </div>
+        )}
       </div>
       {canDelete && (
         <button
@@ -154,6 +168,7 @@ const PostComments = memo(function PostComments({ postId, postOwnerId, currentUs
             comment={comment}
             currentUserId={currentUserId}
             postOwnerId={postOwnerId}
+            postId={postId}
             onDelete={handleDelete}
             isDeleting={deletingId === comment.id}
           />

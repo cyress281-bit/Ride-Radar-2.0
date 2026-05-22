@@ -7,6 +7,7 @@ import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import PostComments from '@/features/profile/components/PostComments';
+import SafetyActions from '@/components/safety/SafetyActions';
 
 /**
  * PostDetailSheet — full-screen overlay for viewing a post and optionally deleting it.
@@ -127,6 +128,40 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, c
           )}
           <Text variant="micro" color="muted">{timeAgo(post.created_at)}</Text>
         </VStack>
+
+        {userId !== post.user_id && (
+          <VStack gap={2} className="px-4 pb-4">
+            <div className="flex items-center justify-between gap-3">
+              <Text variant="micro" color="muted">Report post</Text>
+              <SafetyActions
+                targetType="post"
+                targetId={post.id}
+                targetProfileId={post.user_id}
+                targetContext={{ post_id: post.id }}
+                compact
+                className="justify-end"
+              />
+            </div>
+            {photos.length > 0 && (
+              <div className="flex items-center justify-between gap-3">
+                <Text variant="micro" color="muted">Report image</Text>
+                <SafetyActions
+                  targetType="image"
+                  targetId={post.id}
+                  targetProfileId={post.user_id}
+                  targetParentId={post.id}
+                  targetContext={{
+                    image_kind: 'post_image',
+                    image_url: currentPhoto?.image_url,
+                    photo_index: photoIdx,
+                  }}
+                  compact
+                  className="justify-end"
+                />
+              </div>
+            )}
+          </VStack>
+        )}
 
         {/* Error */}
         {error && (
