@@ -3,16 +3,17 @@ import {
   ArrowLeft,
   BadgeInfo,
   Clock3,
-  BellRing,
   LifeBuoy,
   TriangleAlert,
   ShieldAlert,
   Sparkles,
+  RefreshCw,
+  Wrench,
 } from 'lucide-react';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
 
-const LAST_UPDATED = 'May 2026';
+const LAST_UPDATED = 'May 22, 2026';
 
 const sections = [
   {
@@ -27,17 +28,35 @@ const sections = [
     title: 'Current known issues',
     icon: TriangleAlert,
     body: [
-      'Known issues and limitations are updated manually as we learn about them during beta.',
-      'If something looks wrong, check this page first and then send a report if it is not already listed here.',
+      'Live map visibility is opt-in. Both the viewer and the person being viewed must have live map enabled in Settings for pins to appear.',
+      'iOS PWA updates are handled by Safari and may require closing the app from the app switcher and reopening it to see the latest build.',
+      'Notifications on iOS PWAs depend on Safari notification permissions and may be less reliable than native push. Check Settings > Notifications if alerts stop arriving.',
+      'Some UI elements may briefly flash white on first load in dark mode while the map or page shell initializes. This is a known rendering edge case.',
+      'Avatar images may not update immediately when switching between profiles. A pull-to-refresh or page reload usually resolves this.',
+      'Temporary beta instability: during active development, you may see brief layout shifts, loading skeletons, or retry states after app updates.',
+    ],
+  },
+  {
+    title: 'Troubleshooting',
+    icon: Wrench,
+    body: [
+      'App looks stuck or blank after resume: use the Refresh banner first. It reloads the latest build and clears stale state without signing you out.',
+      'Avatar not showing or looks wrong: check that the profile is public, then pull-to-refresh or reload the page.',
+      'Cannot see someone on the live map: confirm both users have live map enabled in Settings, and that location permissions are granted in the browser or OS.',
+      'Notifications not arriving: verify browser notification permissions, check Do Not Disturb or Focus modes, and confirm the app is not suspended by the OS.',
+      'Map tiles or images fail to load: check your network connection. The app uses online map tiles and photo storage, so offline use is limited.',
+      'After an app update, old data still appears: close the app completely (remove from app switcher) and reopen it. On Android, you can also clear the app cache from system settings.',
     ],
   },
   {
     title: 'Update and refresh behavior',
-    icon: BellRing,
+    icon: RefreshCw,
     body: [
       'When a new build is available, Ride Radar may show an update banner with a Refresh button.',
       'Refreshing loads the latest build and helps recover from stale app state after a resume, reconnect, or PWA update.',
       'If the app looks stuck after an update, use the banner first before assuming your data is missing.',
+      'On iOS, the Refresh banner may not appear immediately after a background update. Force-close and reopen the app if the banner is missing and behavior seems off.',
+      'On Android, the PWA typically picks up updates faster. If it does not, use the in-app Refresh banner or restart the app.',
     ],
   },
   {
@@ -55,6 +74,7 @@ const sections = [
       'What happened, what you expected, and the exact steps to reproduce it.',
       'Include the app version, device/platform, screenshot if possible, and whether it happened after an update or reconnect.',
       'If the issue involves location, mention whether it was approximate, precise, or happened after resuming the app.',
+      'If the issue is visual, note whether you are using the PWA or a browser, and whether dark mode is enabled.',
     ],
   },
   {
@@ -137,6 +157,9 @@ export default function BetaNotesPage() {
               </Text>
               <Text as="li" variant="caption" color="muted" className="leading-relaxed">
                 Hardened moderation and realtime health visibility for internal operations.
+              </Text>
+              <Text as="li" variant="caption" color="muted" className="leading-relaxed">
+                Expanded beta notes with specific known issues and troubleshooting guidance.
               </Text>
             </ul>
           </NotesSection>
