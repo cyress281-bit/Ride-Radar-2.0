@@ -292,6 +292,33 @@ async function reviewOfficialEventRequest(requestId, nextStatus, adminNote) {
 }
 
 /**
+ * Repair an approved official event request whose related broadcast is missing
+ * the official flag.
+ *
+ * @param {string} requestId
+ * @returns {Promise<ApiResult>}
+ */
+export async function repairOfficialEventRequest(requestId) {
+  await assertAdmin();
+
+  if (!requestId || !String(requestId).trim()) {
+    return { data: null, error: new Error('Request id is required.') };
+  }
+
+  const { data, error } = await supabase
+    .rpc('repair_official_event_request', {
+      request_id: requestId,
+    })
+    .maybeSingle();
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  return { data, error: null };
+}
+
+/**
  * Approve an official event review request and mark the related event official.
  * @param {string} requestId
  * @param {string} [adminNote]
@@ -715,10 +742,10 @@ export async function toggleOfficialEvent(id, isOfficial) {
   }
 
   const { data, error } = await supabase
-    .from('broadcasts')
-    .update({ is_official: Boolean(isOfficial) })
-    .eq('id', id)
-    .select()
+    .rpc('set_official_event_status', {
+      broadcast_id: id,
+      p_is_official: Boolean(isOfficial),
+    })
     .maybeSingle();
 
   if (error) {

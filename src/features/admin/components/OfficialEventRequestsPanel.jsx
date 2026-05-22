@@ -18,6 +18,7 @@ import {
   approveOfficialEventRequest,
   declineOfficialEventRequest,
   getOfficialEventRequests,
+  repairOfficialEventRequest,
 } from '@/features/admin/api/admin-api.js';
 import { toast } from '@/components/ui/use-toast';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
@@ -237,7 +238,16 @@ function PendingRequestCard({
   );
 }
 
-function ReviewedRequestCard({ request, broadcast, requesterLabel, requesterEmail, expanded, onToggle }) {
+function ReviewedRequestCard({
+  request,
+  broadcast,
+  requesterLabel,
+  requesterEmail,
+  expanded,
+  onToggle,
+  onRepair,
+  repairing = false,
+}) {
   const currentStatus = getStatusLabel(request.status);
 
   return (
@@ -298,6 +308,32 @@ function ReviewedRequestCard({ request, broadcast, requesterLabel, requesterEmai
               </div>
             </div>
           )}
+          {request.status === 'approved' && !broadcast?.is_official && (
+            <div className="md:col-span-2">
+              <div className="rounded-[16px] border border-brand-amber/20 bg-brand-amber/10 px-4 py-3">
+                <div className="text-sm font-semibold text-brand-amber">Official flag missing</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  The request is approved, but the broadcast flag is not set yet. Repair it from this card.
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onRepair}
+                  disabled={repairing}
+                  className="mt-3 rounded-full border-brand-amber/25 text-brand-amber hover:bg-brand-amber/10"
+                >
+                  {repairing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Repairing...
+                    </>
+                  ) : (
+                    'Repair official flag'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -335,7 +371,12 @@ export default function OfficialEventRequestsPanel({ broadcasts = [], users = []
 
   const reviewMutation = useMutation({
     mutationFn: async ({ requestId, action, adminNote }) => {
-      const handler = action === 'approve' ? approveOfficialEventRequest : declineOfficialEventRequest;
+      const handler =
+        action === 'approve'
+          ? approveOfficialEventRequest
+          : action === 'repair'
+            ? repairOfficialEventRequest
+            : declineOfficialEventRequest;
       const { data, error } = await handler(requestId, adminNote);
       if (error) throw error;
       return data;
@@ -352,11 +393,18 @@ export default function OfficialEventRequestsPanel({ broadcasts = [], users = []
       qc.invalidateQueries({ queryKey: broadcastKeys.all });
       qc.invalidateQueries({ queryKey: broadcastKeys.details() });
       toast({
-        title: variables.action === 'approve' ? 'Official badge approved' : 'Official badge declined',
+        title:
+          variables.action === 'approve'
+            ? 'Official badge approved'
+            : variables.action === 'repair'
+              ? 'Official flag repaired'
+              : 'Official badge declined',
         description:
           variables.action === 'approve'
             ? 'The event is now marked official.'
-            : 'The official request was declined.',
+            : variables.action === 'repair'
+              ? 'The official flag was restored on the event.'
+              : 'The official request was declined.',
       });
     },
     onError: (error) => {
@@ -488,17 +536,25 @@ export default function OfficialEventRequestsPanel({ broadcasts = [], users = []
                   const expanded = expandedReviewedId === request.id;
 
                   return (
-                    <ReviewedRequestCard
-                      key={request.id}
-                      request={request}
-                      broadcast={broadcast}
-                      requesterLabel={requesterLabel}
-                      requesterEmail={requesterEmail}
-                      expanded={expanded}
-                      onToggle={() =>
-                        setExpandedReviewedId((current) => (current === request.id ? null : request.id))
-                      }
-                    />
+                  <ReviewedRequestCard
+                    key={request.id}
+                    request={request}
+                    broadcast={broadcast}
+                    requesterLabel={requesterLabel}
+                    requesterEmail={requesterEmail}
+                    expanded={expanded}
+                    onRepair={() =>
+                      reviewMutation.mutate({
+                        requestId: request.id,
+                        action: 'repair',
+                        adminNote: '',
+                      })
+                    }
+                    repairing={reviewMutation.isPending}
+                    onToggle={() =>
+                      setExpandedReviewedId((current) => (current === request.id ? null : request.id))
+                    }
+                  />
                   );
                 })}
               </div>
