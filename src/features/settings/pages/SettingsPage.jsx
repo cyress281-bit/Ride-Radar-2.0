@@ -29,6 +29,7 @@ import {
   ChartNoAxesColumn,
   ClipboardCheck,
   BadgeInfo,
+  HeartHandshake,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -525,6 +526,11 @@ function SettingsPage() {
         <Link to="/terms-of-use" className="block">
           <SettingsRow icon={ScrollText} label="Terms of Use" desc="Rules, responsibilities, and app limitations" />
         </Link>
+        <div className="border-t border-border/40">
+          <Link to="/community-guidelines" className="block">
+            <SettingsRow icon={HeartHandshake} label="Community Guidelines" desc="Respect, safety, and acceptable use" />
+          </Link>
+        </div>
         <div className="border-t border-border/40">
           <Link to="/privacy-policy" className="block">
             <SettingsRow icon={FileText} label="Privacy Policy" desc="Data collection, location, uploads, and deletion" />

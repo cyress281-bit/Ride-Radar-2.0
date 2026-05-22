@@ -36,6 +36,7 @@ const SupportPage = lazy(() => import('./features/settings/pages/SupportPage'));
 const SafetyDisclaimerPage = lazy(() => import('./features/settings/pages/SafetyDisclaimerPage'));
 const TermsOfUsePage = lazy(() => import('./features/settings/pages/TermsOfUsePage'));
 const BetaNotesPage = lazy(() => import('./features/safety/pages/BetaNotesPage'));
+const CommunityGuidelinesPage = lazy(() => import('./features/legal/pages/CommunityGuidelinesPage'));
 
 // ------------------------------------------------------------------
 // Core authenticated pages
@@ -387,6 +388,7 @@ const AppContent = memo(function AppContent() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/:userId" element={<ValidateUUIDParam param="userId"><RiderProfilePage /></ValidateUUIDParam>} />
           <Route path="/review-readiness" element={<ReviewReadinessPage />} />
+          <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
           {/* Admin routes */}
           <Route element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
