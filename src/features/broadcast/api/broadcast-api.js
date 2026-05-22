@@ -47,9 +47,7 @@ export async function getBroadcasts(options = {}) {
  */
 export async function getBroadcastById(id) {
   const { data, error } = await supabase
-    .from('broadcasts')
-    .select('*')
-    .eq('id', id)
+    .rpc('get_visible_broadcast_by_id', { broadcast_id: id })
     .maybeSingle();
 
   if (error) logger.error('[getBroadcastById] Error:', error);
@@ -203,15 +201,10 @@ export async function resolveBroadcast(id, note) {
  * @returns {Promise<{data: Array|null, error: Error|null}>}
  */
 export async function getBroadcastsByAuthor(authorId, limit) {
-  let query = supabase
-    .from('broadcasts')
-    .select('*')
-    .eq('author_id', authorId)
-    .order('created_at', { ascending: false });
-
-  if (limit) query = query.limit(limit);
-
-  const { data, error } = await query;
+  const { data, error } = await supabase.rpc('get_visible_broadcasts_by_author', {
+    author_user_id: authorId,
+    limit_count: limit ?? 200,
+  });
   if (error) logger.error('[getBroadcastsByAuthor] Error:', error);
   return { data, error };
 }
