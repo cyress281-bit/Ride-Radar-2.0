@@ -219,6 +219,65 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
   userIdRef.current = userId;
   const sessionActiveRef = useRef(sessionLiveActive);
   sessionActiveRef.current = sessionLiveActive;
+  const lastPublishRef = useRef(0);
+  const lastPublishedCoordRef = useRef(null);
+
+  const publishPresence = useCallback(
+    async (source = 'auto') => {
+      if (!options.autoPublish || !settingsQuery.data?.live_map_visible || !sessionLiveActive) return false;
+      if (!isValidCoordinate(currentLocation?.lat, currentLocation?.lng)) return false;
+
+      const lat = currentLocation.lat;
+      const lng = currentLocation.lng;
+      const precision = settingsQuery.data?.live_map_location_precision || 'approximate';
+      const markerLocation = buildPresenceLocation(lat, lng, precision);
+
+      if (!markerLocation) return false;
+
+      const { error } = await supabase.from('live_map_presence').upsert(
+        {
+          user_id: userId,
+          display_name: profileRef.current?.display_name || 'Rider',
+          avatar_url: profileRef.current?.avatar_url || null,
+          vehicle_label: getVehicleLabel(profileRef.current),
+          is_visible: true,
+          location_precision: markerLocation.locationPrecision,
+          lat: markerLocation.lat,
+          lng: markerLocation.lng,
+          accuracy_meters: Number.isFinite(Number(currentLocation.accuracyMeters))
+            ? Math.round(Number(currentLocation.accuracyMeters))
+            : null,
+          approximate_radius_miles: markerLocation.approximateRadiusMiles,
+          source,
+          last_seen_at: new Date().toISOString(),
+          expires_at: getExpiresAt(),
+        },
+        { onConflict: 'user_id' }
+      );
+
+      if (error) {
+        logger.warn('[useLiveMapPresence] Publish failed:', error);
+        return false;
+      }
+
+      lastPublishRef.current = Date.now();
+      lastPublishedCoordRef.current = { lat, lng };
+      queryClient.invalidateQueries({ queryKey: presenceKeys.all });
+      queryClient.invalidateQueries({ queryKey: presenceKeys.me(userId) });
+      return true;
+    },
+    [
+      currentLocation?.accuracyMeters,
+      currentLocation?.lat,
+      currentLocation?.lng,
+      options.autoPublish,
+      queryClient,
+      sessionLiveActive,
+      settingsQuery.data?.live_map_location_precision,
+      settingsQuery.data?.live_map_visible,
+      userId,
+    ]
+  );
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -243,9 +302,17 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
   }, []); // intentionally empty — reads current values via stable refs
   // ────────────────────────────────────────────────────────────────────────────
 
+  useEffect(() => {
+    const handleResumeRefresh = () => {
+      if (!isBrowserVisible() || !isBrowserOnline()) return;
+      void publishPresence(options.source || 'resume');
+    };
+
+    window.addEventListener('rr-app-resume-refresh', handleResumeRefresh);
+    return () => window.removeEventListener('rr-app-resume-refresh', handleResumeRefresh);
+  }, [options.source, publishPresence]);
+
   // Auto-publish presence
-  const lastPublishRef = useRef(0);
-  const lastPublishedCoordRef = useRef(null);
 
   useEffect(() => {
     // Fix C: gate on sessionLiveActive — no publish while resume prompt is pending
@@ -261,57 +328,16 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     if (lastPublishedCoordRef.current && moved < PRESENCE_PUBLISH_MIN_DISTANCE_METERS
         && now - lastPublishRef.current < HEARTBEAT_INTERVAL_MS / 2) return;
 
-    const doPublish = async () => {
-      const lat = currentLocation.lat;
-      const lng = currentLocation.lng;
-      const precision = settingsQuery.data?.live_map_location_precision || 'approximate';
-      const markerLocation = buildPresenceLocation(lat, lng, precision);
-
-      if (!markerLocation) return;
-
-      const { error } = await supabase.from('live_map_presence').upsert(
-        {
-          user_id: userId,
-          display_name: profileRef.current?.display_name || 'Rider',
-          avatar_url: profileRef.current?.avatar_url || null,
-          vehicle_label: getVehicleLabel(profileRef.current),
-          is_visible: true,
-          location_precision: markerLocation.locationPrecision,
-          lat: markerLocation.lat,
-          lng: markerLocation.lng,
-          accuracy_meters: Number.isFinite(Number(currentLocation.accuracyMeters))
-            ? Math.round(Number(currentLocation.accuracyMeters))
-            : null,
-          approximate_radius_miles: markerLocation.approximateRadiusMiles,
-          source: options.source || 'auto',
-          last_seen_at: new Date().toISOString(),
-          expires_at: getExpiresAt(),
-        },
-        { onConflict: 'user_id' }
-      );
-
-      if (error) {
-        logger.warn('[useLiveMapPresence] Publish failed:', error);
-      } else {
-        lastPublishRef.current = Date.now();
-        lastPublishedCoordRef.current = { lat, lng };
-        queryClient.invalidateQueries({ queryKey: presenceKeys.all });
-        queryClient.invalidateQueries({ queryKey: presenceKeys.me(userId) });
-      }
-    };
-
-    doPublish();
+    void publishPresence(options.source || 'auto');
   }, [
     currentLocation?.lat,
     currentLocation?.lng,
     currentLocation?.accuracyMeters,
     options.autoPublish,
-    options.source,
     sessionLiveActive,
     settingsQuery.data?.live_map_visible,
-    settingsQuery.data?.live_map_location_precision,
-    userId,
-    queryClient,
+    publishPresence,
+    options.source,
   ]);
 
   // Heartbeat
@@ -323,55 +349,17 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     const heartbeat = window.setInterval(() => {
       const now = Date.now();
       if (now - lastPublishRef.current < HEARTBEAT_INTERVAL_MS - 5000) return;
-
-      const lat = currentLocation.lat;
-      const lng = currentLocation.lng;
-      const precision = settingsQuery.data?.live_map_location_precision || 'approximate';
-      const markerLocation = buildPresenceLocation(lat, lng, precision);
-
-      if (!markerLocation) return;
-
-      supabase
-        .from('live_map_presence')
-        .upsert(
-          {
-            user_id: userId,
-            display_name: profileRef.current?.display_name || 'Rider',
-            avatar_url: profileRef.current?.avatar_url || null,
-            vehicle_label: getVehicleLabel(profileRef.current),
-            is_visible: true,
-            location_precision: markerLocation.locationPrecision,
-            lat: markerLocation.lat,
-            lng: markerLocation.lng,
-            accuracy_meters: Number.isFinite(Number(currentLocation.accuracyMeters))
-              ? Math.round(Number(currentLocation.accuracyMeters))
-              : null,
-            approximate_radius_miles: markerLocation.approximateRadiusMiles,
-            source: options.source || 'heartbeat',
-            last_seen_at: new Date().toISOString(),
-            expires_at: getExpiresAt(),
-          },
-          { onConflict: 'user_id' }
-        )
-        .then(() => {
-          lastPublishRef.current = Date.now();
-          queryClient.invalidateQueries({ queryKey: presenceKeys.all });
-        })
-        .catch((err) => logger.warn('[useLiveMapPresence] Heartbeat failed:', err));
+      void publishPresence(options.source || 'heartbeat');
     }, HEARTBEAT_INTERVAL_MS);
 
     return () => window.clearInterval(heartbeat);
   }, [
     currentLocation?.lat,
     currentLocation?.lng,
-    currentLocation?.accuracyMeters,
     options.autoPublish,
-    options.source,
+    publishPresence,
     sessionLiveActive,
     settingsQuery.data?.live_map_visible,
-    settingsQuery.data?.live_map_location_precision,
-    userId,
-    queryClient,
   ]);
 
   // Fix C: true when settings are loaded, Live is on, but this session hasn't

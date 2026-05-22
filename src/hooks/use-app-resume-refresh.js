@@ -14,6 +14,8 @@ const RESUME_QUERY_KEYS = [
   ['post-comments'],
   ['myRSVP'],
   ['rsvpCounts'],
+  ['live-map-presence'],
+  ['settings'],
   notificationKeys.all,
   ['messages'],
   ['conversation'],
@@ -72,6 +74,11 @@ export function useAppResumeRefresh() {
       await invalidateCoreQueries();
     } finally {
       inFlightRef.current = false;
+      window.dispatchEvent(
+        new CustomEvent('rr-app-resume-refresh', {
+          detail: { at: now, reason: 'foreground-resume' },
+        })
+      );
     }
   }, [invalidateCoreQueries]);
 

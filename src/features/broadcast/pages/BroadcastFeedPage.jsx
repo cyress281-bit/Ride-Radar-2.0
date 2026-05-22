@@ -88,6 +88,15 @@ function BroadcastFeedPage() {
   const [isPending, startTransition] = useTransition();
   const { blockedIds } = useBlockedIds();
 
+  useEffect(() => {
+    if (isOnline) {
+      setOfflineSnapshot(null);
+      return;
+    }
+
+    setOfflineSnapshot(readRadarOfflineSnapshot());
+  }, [isOnline]);
+
   const { data: nearbyBroadcasts = [], isLoading: isLoadingNearby } = useNearbyBroadcasts(
     hasUserLocation ? effectiveLoc.lat : null,
     hasUserLocation ? effectiveLoc.lng : null,
