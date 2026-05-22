@@ -142,6 +142,26 @@ export default defineConfig({
                 statuses: [0, 200]
               }
             }
+          },
+          {
+            // Cache Supabase REST API reads for offline resilience.
+            // Only GET requests are cached; auth and storage writes are excluded.
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-rest-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 4 // 4 hours
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              },
+              matchOptions: {
+                ignoreSearch: false
+              }
+            },
+            method: 'GET'
           }
         ],
         // Don't cache admin routes or real-time WebSocket connections
