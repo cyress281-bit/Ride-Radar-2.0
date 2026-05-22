@@ -1,12 +1,12 @@
 import { memo } from 'react';
 import { cn } from '@/lib/utils';
 
-const PageLoader = memo(function PageLoader({ className, exiting = false }) {
+const PageLoader = memo(function PageLoader({ className, exiting = false, longWait = false }) {
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 flex flex-col items-center justify-center bg-black transition-opacity [transition-duration:400ms] ease-out',
-        exiting && 'opacity-0',
+        'fixed inset-0 z-50 flex flex-col items-center justify-center bg-black transition-all duration-500 ease-out',
+        exiting && 'opacity-0 scale-[1.02] blur-sm',
         className
       )}
       role="status"

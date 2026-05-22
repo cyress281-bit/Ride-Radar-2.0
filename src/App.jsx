@@ -293,6 +293,7 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
   const { isLoading } = useAuthState();
   const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
+  const [longWait, setLongWait] = useState(false);
   const stateRef = useRef({ minElapsed: false, authDone: false, exiting: false });
   const exitTimerRef = useRef(null);
 
@@ -301,14 +302,15 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
     if (s.exiting || !s.minElapsed || !s.authDone) return;
     s.exiting = true;
     setExiting(true);
-    exitTimerRef.current = setTimeout(() => setVisible(false), 400);
+    exitTimerRef.current = setTimeout(() => setVisible(false), 500);
   }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       stateRef.current.minElapsed = true;
+      if (!stateRef.current.authDone) setLongWait(true);
       tryExit();
-    }, 2400);
+    }, 1800);
     return () => {
       clearTimeout(timer);
       if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
@@ -325,7 +327,7 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
   return (
     <>
       {children}
-      {visible && <PageLoader exiting={exiting} />}
+      {visible && <PageLoader exiting={exiting} longWait={longWait} />}
     </>
   );
 });
