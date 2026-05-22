@@ -13,6 +13,11 @@ import { buildPresenceLocation, isValidCoordinate } from '@/lib/geocoding.js';
 import { logger } from '@/lib/logger.js';
 import { captureError } from '@/lib/sentry.js';
 import {
+  markRealtimeSurfaceSubscribed,
+  markRealtimeSurfaceReconnecting,
+  markRealtimeSurfaceError,
+} from '@/lib/realtimeHealthRegistry.js';
+import {
   HEARTBEAT_INTERVAL_MS,
   PRESENCE_REFRESH_MS,
   BACKGROUND_GRACE_MS,
@@ -156,6 +161,14 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     refetchInterval: PRESENCE_REFRESH_MS,
   });
 
+  useEffect(() => {
+    if (presenceQuery.isSuccess) {
+      markRealtimeSurfaceSubscribed('live-presence');
+    } else if (presenceQuery.isError) {
+      markRealtimeSurfaceError('live-presence');
+    }
+  }, [presenceQuery.isError, presenceQuery.isSuccess]);
+
   const myPresenceQuery = useQuery({
     queryKey: presenceKeys.me(userId),
     enabled: !!userId,
@@ -172,6 +185,14 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     staleTime: 30_000,
     refetchInterval: settingsQuery.data?.live_map_visible ? PRESENCE_REFRESH_MS : false,
   });
+
+  useEffect(() => {
+    if (myPresenceQuery.isSuccess) {
+      markRealtimeSurfaceSubscribed('live-presence');
+    } else if (myPresenceQuery.isError) {
+      markRealtimeSurfaceError('live-presence');
+    }
+  }, [myPresenceQuery.isError, myPresenceQuery.isSuccess]);
 
   // Real-time subscription
   useEffect(() => {
@@ -201,6 +222,11 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
         if (err) {
           logger.error('[useLiveMapPresence] Realtime subscription error:', err);
           captureError(err, { source: 'useLiveMapPresence', status });
+          markRealtimeSurfaceError('live-presence');
+        } else if (status && status !== 'SUBSCRIBED') {
+          markRealtimeSurfaceReconnecting('live-presence');
+        } else if (status === 'SUBSCRIBED') {
+          markRealtimeSurfaceSubscribed('live-presence');
         }
       });
 
@@ -257,11 +283,13 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
 
       if (error) {
         logger.warn('[useLiveMapPresence] Publish failed:', error);
+        markRealtimeSurfaceError('live-presence');
         return false;
       }
 
       lastPublishRef.current = Date.now();
       lastPublishedCoordRef.current = { lat, lng };
+      markRealtimeSurfaceSubscribed('live-presence');
       queryClient.invalidateQueries({ queryKey: presenceKeys.all });
       queryClient.invalidateQueries({ queryKey: presenceKeys.me(userId) });
       return true;

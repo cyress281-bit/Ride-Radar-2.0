@@ -10,6 +10,11 @@ import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 import { getFriendships, getFriendshipBetween, removeFriendship } from '@/features/connections/api/connections-api.js';
 import { connectionRequestKeys } from '@/features/connections/hooks/use-connection-requests.js';
+import {
+  markRealtimeSurfaceSubscribed,
+  markRealtimeSurfaceReconnecting,
+  markRealtimeSurfaceError,
+} from '@/lib/realtimeHealthRegistry.js';
 
 /** Query key factory for friendships. */
 export const friendshipKeys = {
@@ -38,6 +43,14 @@ export function useFriendships() {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    if (query.isSuccess) {
+      markRealtimeSurfaceSubscribed('friendships');
+    } else if (query.isError) {
+      markRealtimeSurfaceError('friendships');
+    }
+  }, [query.isError, query.isSuccess]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -71,6 +84,11 @@ export function useFriendships() {
       .subscribe((status, err) => {
         if (err) {
           logger.error('[useFriendships] Realtime subscription error:', err);
+          markRealtimeSurfaceError('friendships');
+        } else if (status && status !== 'SUBSCRIBED') {
+          markRealtimeSurfaceReconnecting('friendships');
+        } else if (status === 'SUBSCRIBED') {
+          markRealtimeSurfaceSubscribed('friendships');
         }
       });
 
@@ -89,7 +107,7 @@ export function useFriendships() {
  */
 export function useIsFriend(userId) {
   const { user } = useAuthState();
-  const { data: friendship, isLoading } = useQuery({
+  const { data: friendship, isLoading, isSuccess, isError } = useQuery({
     queryKey: [...friendshipKeys.detail(user?.id, userId), 'between'],
     queryFn: async () => {
       const { data, error } = await getFriendshipBetween(user.id, userId);
@@ -101,6 +119,14 @@ export function useIsFriend(userId) {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    if (isSuccess) {
+      markRealtimeSurfaceSubscribed('friendships');
+    } else if (isError) {
+      markRealtimeSurfaceError('friendships');
+    }
+  }, [isError, isSuccess]);
 
   return { isFriend: !!friendship, friendship, isLoading };
 }

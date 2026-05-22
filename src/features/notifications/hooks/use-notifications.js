@@ -16,6 +16,11 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 import { captureError } from '@/lib/sentry.js';
+import {
+  markRealtimeSurfaceSubscribed,
+  markRealtimeSurfaceReconnecting,
+  markRealtimeSurfaceError,
+} from '@/lib/realtimeHealthRegistry.js';
 
 /**
  * Query key factory for notifications.
@@ -47,6 +52,14 @@ export function useNotifications(userId) {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    if (query.isSuccess) {
+      markRealtimeSurfaceSubscribed('notifications');
+    } else if (query.isError) {
+      markRealtimeSurfaceError('notifications');
+    }
+  }, [query.isError, query.isSuccess]);
 
   // Real-time subscription for new notifications
   useEffect(() => {
@@ -113,6 +126,11 @@ export function useNotifications(userId) {
         if (err) {
           logger.error('[useNotifications] List subscription error:', err);
           captureError(err, { source: 'useNotifications', status });
+          markRealtimeSurfaceError('notifications');
+        } else if (status && status !== 'SUBSCRIBED') {
+          markRealtimeSurfaceReconnecting('notifications');
+        } else if (status === 'SUBSCRIBED') {
+          markRealtimeSurfaceSubscribed('notifications');
         }
       });
 
@@ -155,6 +173,11 @@ export function useUnreadCount(userId) {
       .subscribe((status, err) => {
         if (err) {
           logger.error('[useUnreadCount] Subscription error:', err);
+          markRealtimeSurfaceError('notifications');
+        } else if (status && status !== 'SUBSCRIBED') {
+          markRealtimeSurfaceReconnecting('notifications');
+        } else if (status === 'SUBSCRIBED') {
+          markRealtimeSurfaceSubscribed('notifications');
         }
       });
 
@@ -163,7 +186,7 @@ export function useUnreadCount(userId) {
     };
   }, [userId, qc]);
 
-  return useQuery({
+  const query = useQuery({
     queryKey: notificationKeys.unread(userId),
     queryFn: async () => {
       const { data, error } = await getUnreadCount(userId);
@@ -175,6 +198,16 @@ export function useUnreadCount(userId) {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    if (query.isSuccess) {
+      markRealtimeSurfaceSubscribed('notifications');
+    } else if (query.isError) {
+      markRealtimeSurfaceError('notifications');
+    }
+  }, [query.isError, query.isSuccess]);
+
+  return query;
 }
 
 /**

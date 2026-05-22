@@ -4,6 +4,11 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { getMessages, hydrateMessageImages, markConversationRead } from '@/features/chat/api/chat-api.js';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
+import {
+  markRealtimeSurfaceSubscribed,
+  markRealtimeSurfaceReconnecting,
+  markRealtimeSurfaceError,
+} from '@/lib/realtimeHealthRegistry.js';
 
 /**
  * Hook to fetch messages for a conversation with real-time updates.
@@ -36,6 +41,14 @@ export function useMessages(conversationId) {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    if (query.isSuccess) {
+      markRealtimeSurfaceSubscribed('messages');
+    } else if (query.isError) {
+      markRealtimeSurfaceError('messages');
+    }
+  }, [query.isError, query.isSuccess]);
 
   // Real-time subscription — only append messages from OTHER users
   useEffect(() => {
@@ -84,6 +97,11 @@ export function useMessages(conversationId) {
       .subscribe((status, err) => {
         if (err) {
           logger.error('[useMessages] Realtime subscription error:', err);
+          markRealtimeSurfaceError('messages');
+        } else if (status && status !== 'SUBSCRIBED') {
+          markRealtimeSurfaceReconnecting('messages');
+        } else if (status === 'SUBSCRIBED') {
+          markRealtimeSurfaceSubscribed('messages');
         }
       });
 

@@ -5,6 +5,11 @@ import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
 import { getConversations } from '@/features/chat/api/chat-api.js';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
+import {
+  markRealtimeSurfaceSubscribed,
+  markRealtimeSurfaceReconnecting,
+  markRealtimeSurfaceError,
+} from '@/lib/realtimeHealthRegistry.js';
 
 /**
  * Hook to fetch conversations for the current user with real-time updates.
@@ -37,6 +42,14 @@ export function useConversations() {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
+
+  useEffect(() => {
+    if (query.isSuccess) {
+      markRealtimeSurfaceSubscribed('conversations');
+    } else if (query.isError) {
+      markRealtimeSurfaceError('conversations');
+    }
+  }, [query.isError, query.isSuccess]);
 
   // Real-time subscription with incremental cache updates
   useEffect(() => {
@@ -83,6 +96,11 @@ export function useConversations() {
       .subscribe((status, err) => {
         if (err) {
           logger.error('[useConversations] Realtime subscription error:', err);
+          markRealtimeSurfaceError('conversations');
+        } else if (status && status !== 'SUBSCRIBED') {
+          markRealtimeSurfaceReconnecting('conversations');
+        } else if (status === 'SUBSCRIBED') {
+          markRealtimeSurfaceSubscribed('conversations');
         }
       });
 
