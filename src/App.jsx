@@ -263,7 +263,7 @@ const LoginRoute = memo(function LoginRoute() {
 
 const AdminLayout = memo(function AdminLayout() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<div className="min-h-dvh bg-background" />}>
       <Outlet />
     </Suspense>
   );
