@@ -32,6 +32,100 @@ export const notificationKeys = {
   unread: (userId) => [...notificationKeys.all, 'unread', userId],
 };
 
+const notificationRealtimeChannels = new Map();
+
+function attachNotificationRealtimeChannel(userId, qc) {
+  if (!userId || !qc) return null;
+
+  const existing = notificationRealtimeChannels.get(userId);
+  if (existing) {
+    existing.refCount += 1;
+    return existing;
+  }
+
+  const channel = supabase
+    .channel(`notifications-${userId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        qc.setQueryData(notificationKeys.list(userId), (old = []) => {
+          const next = normalizeNotification(payload.new);
+          // Defensive: skip self-notifications where the actor is the current user.
+          // Exception: connection_accepted â€” the trigger sets from_user_id (= requester = recipient)
+          // as the actor, so the guard would wrongly drop the notification for the requester.
+          const isSelfActor = next?.actor_id === userId;
+          const shouldSkipSelf = isSelfActor && next?.type !== 'connection_accepted';
+          if (!next || shouldSkipSelf || old.some((n) => n.id === next.id)) return old;
+          return [next, ...old];
+        });
+        qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        qc.setQueryData(notificationKeys.list(userId), (old = []) =>
+          old.map((n) =>
+            n.id === payload.new.id ? normalizeNotification(payload.new) : n
+          )
+        );
+        qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        qc.setQueryData(notificationKeys.list(userId), (old = []) =>
+          old.filter((n) => n.id !== payload.old.id)
+        );
+        qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
+      }
+    )
+    .subscribe((status, err) => {
+      if (err) {
+        logger.error('[useNotifications] Shared subscription error:', err);
+        captureError(err, { source: 'useNotifications', status });
+        markRealtimeSurfaceError('notifications');
+      } else if (status && status !== 'SUBSCRIBED') {
+        markRealtimeSurfaceReconnecting('notifications');
+      } else if (status === 'SUBSCRIBED') {
+        markRealtimeSurfaceSubscribed('notifications');
+      }
+    });
+
+  const record = { channel, refCount: 1 };
+  notificationRealtimeChannels.set(userId, record);
+  return record;
+}
+
+function detachNotificationRealtimeChannel(userId) {
+  if (!userId) return;
+  const record = notificationRealtimeChannels.get(userId);
+  if (!record) return;
+  record.refCount -= 1;
+  if (record.refCount > 0) return;
+  supabase.removeChannel(record.channel);
+  notificationRealtimeChannels.delete(userId);
+}
+
 /**
  * Hook to fetch notifications for the current user with real-time updates.
  *
@@ -61,81 +155,13 @@ export function useNotifications(userId) {
     }
   }, [query.isError, query.isSuccess]);
 
-  // Real-time subscription for new notifications
+  // Real-time subscription for notifications and unread count updates
   useEffect(() => {
-    if (!userId) return;
-
-    const channel = supabase
-      .channel(`notifications-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          qc.setQueryData(notificationKeys.list(userId), (old = []) => {
-            const next = normalizeNotification(payload.new);
-            // Defensive: skip self-notifications where the actor is the current user.
-            // Exception: connection_accepted — the trigger sets from_user_id (= requester = recipient)
-            // as the actor, so the guard would wrongly drop the notification for the requester.
-            const isSelfActor = next?.actor_id === userId;
-            const shouldSkipSelf = isSelfActor && next?.type !== 'connection_accepted';
-            if (!next || shouldSkipSelf || old.some((n) => n.id === next.id)) return old;
-            return [next, ...old];
-          });
-          // Also invalidate unread count
-          qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          qc.setQueryData(notificationKeys.list(userId), (old = []) =>
-            old.map((n) =>
-              n.id === payload.new.id ? normalizeNotification(payload.new) : n
-            )
-          );
-          qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          qc.setQueryData(notificationKeys.list(userId), (old = []) =>
-            old.filter((n) => n.id !== payload.old.id)
-          );
-          qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
-        }
-      )
-      .subscribe((status, err) => {
-        if (err) {
-          logger.error('[useNotifications] List subscription error:', err);
-          captureError(err, { source: 'useNotifications', status });
-          markRealtimeSurfaceError('notifications');
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('notifications');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('notifications');
-        }
-      });
+    const record = attachNotificationRealtimeChannel(userId, qc);
+    if (!record) return undefined;
 
     return () => {
-      supabase.removeChannel(channel);
+      detachNotificationRealtimeChannel(userId);
     };
   }, [userId, qc]);
 
@@ -145,8 +171,8 @@ export function useNotifications(userId) {
 /**
  * Hook to fetch the unread notification count with realtime updates.
  *
- * Maintains its own INSERT subscription so the AppHeader bell badge
- * updates immediately on any page, not just on NotificationsPage.
+ * Uses the shared per-user notification subscription created by useNotifications
+ * so the badge stays fresh without opening another socket.
  *
  * @param {string|null} userId
  */
@@ -154,35 +180,11 @@ export function useUnreadCount(userId) {
   const qc = useQueryClient();
 
   useEffect(() => {
-    if (!userId) return;
-
-    const channel = supabase
-      .channel(`notifications-unread-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          qc.invalidateQueries({ queryKey: notificationKeys.unread(userId) });
-        }
-      )
-      .subscribe((status, err) => {
-        if (err) {
-          logger.error('[useUnreadCount] Subscription error:', err);
-          markRealtimeSurfaceError('notifications');
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('notifications');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('notifications');
-        }
-      });
+    const record = attachNotificationRealtimeChannel(userId, qc);
+    if (!record) return undefined;
 
     return () => {
-      supabase.removeChannel(channel);
+      detachNotificationRealtimeChannel(userId);
     };
   }, [userId, qc]);
 
