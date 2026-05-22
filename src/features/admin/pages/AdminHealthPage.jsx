@@ -99,17 +99,17 @@ function AdminHealthContent() {
       const ms = Math.round(performance.now() - start);
       results.push({
         name: 'PostGIS RPC',
-        status: error && error.code === '42883' ? 'fail' : 'pass',
+        status: error ? 'fail' : 'pass',
         latency: `${ms}ms`,
-        detail: error && error.code === '42883' ? 'RPC not found' : 'RPC callable',
+        detail: error ? error.message : 'RPC callable',
       });
     } catch (err) {
       results.push({ name: 'PostGIS RPC', status: 'fail', detail: err.message });
     }
 
     // 4. Realtime
+    const channel = supabase.channel('health-check');
     try {
-      const channel = supabase.channel('health-check');
       const start = performance.now();
       await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => reject(new Error('Timeout')), 5000);
@@ -119,7 +119,6 @@ function AdminHealthContent() {
         });
       });
       const ms = Math.round(performance.now() - start);
-      supabase.removeChannel(channel);
       results.push({
         name: 'Realtime Channel',
         status: 'pass',
@@ -128,6 +127,8 @@ function AdminHealthContent() {
       });
     } catch (err) {
       results.push({ name: 'Realtime Channel', status: 'fail', detail: err.message });
+    } finally {
+      supabase.removeChannel(channel);
     }
 
     // 5. Storage

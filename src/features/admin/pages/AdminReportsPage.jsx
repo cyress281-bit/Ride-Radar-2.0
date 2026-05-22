@@ -10,6 +10,7 @@ import {
   UserX,
   ChevronDown,
 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { supabase } from '@/lib/supabase.js';
@@ -139,8 +140,13 @@ function AdminReportsContent() {
       });
       return { previous, queryKey };
     },
-    onError: (_err, _vars, context) => {
+    onError: (error, _vars, context) => {
       if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
+      toast({
+        title: 'Status update failed',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['admin', 'reports'] }),
   });
@@ -234,8 +240,13 @@ function AdminReportsContent() {
       });
       return { previous, queryKey };
     },
-    onError: (_err, _vars, context) => {
+    onError: (error, _vars, context) => {
       if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
+      toast({
+        title: 'Content removal failed',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'reports'] });
@@ -282,8 +293,13 @@ function AdminReportsContent() {
       });
       return { previous, queryKey };
     },
-    onError: (_err, _vars, context) => {
+    onError: (error, _vars, context) => {
       if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
+      toast({
+        title: 'Profile privacy change failed',
+        description: error?.message || 'Please try again.',
+        variant: 'destructive',
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'reports'] });
