@@ -42,6 +42,7 @@ export default function AccountDeletionPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [storageCleanupWarning, setStorageCleanupWarning] = useState(null);
 
   const canDelete = confirmText.trim() === 'DELETE';
 
@@ -50,12 +51,17 @@ export default function AccountDeletionPage() {
 
     setIsDeleting(true);
     setError(null);
+    setStorageCleanupWarning(null);
 
     try {
-      const { error: rpcError } = await deleteAccount();
+      const { data: deletionData, error: rpcError } = await deleteAccount();
 
       if (rpcError) {
         throw rpcError;
+      }
+
+      if (deletionData?.storageCleanup?.hasWarnings) {
+        setStorageCleanupWarning(deletionData.storageCleanup);
       }
 
       trackAccountDeleted();
@@ -118,6 +124,17 @@ export default function AccountDeletionPage() {
             <Text variant="bodySm" color="muted">
               Your account and associated data have been removed. Redirecting...
             </Text>
+            {storageCleanupWarning?.hasWarnings && (
+              <div className="mt-4 rounded-2xl border border-brand-amber/25 bg-brand-amber/10 px-4 py-3 text-left">
+                <Text variant="bodySm" className="font-semibold text-brand-amber">
+                  Some uploaded files could not be removed immediately.
+                </Text>
+                <Text variant="caption" color="muted" className="mt-1 block leading-relaxed">
+                  Your account deletion still completed. We logged the cleanup issue so the remaining files can be
+                  handled separately.
+                </Text>
+              </div>
+            )}
           </div>
         ) : !user ? (
           <div className="surface-card p-6 animate-fade-up">
