@@ -15,7 +15,7 @@ import {
 } from '@/features/notifications/api/notifications-api.js';
 import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
-import { captureError } from '@/lib/sentry.js';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import {
   markRealtimeSurfaceSubscribed,
   markRealtimeSurfaceReconnecting,
@@ -101,9 +101,18 @@ function attachNotificationRealtimeChannel(userId, qc) {
     )
     .subscribe((status, err) => {
       if (err) {
-        logger.error('[useNotifications] Shared subscription error:', err);
-        captureError(err, { source: 'useNotifications', status });
-        markRealtimeSurfaceError('notifications');
+        if (isExpectedRealtimeDisconnect(err, status)) {
+          logger.debug('[useNotifications] Shared subscription disconnected (expected reconnect)', {
+            status,
+            name: err?.name,
+            code: err?.code,
+            message: err?.message,
+          });
+          markRealtimeSurfaceReconnecting('notifications');
+        } else {
+          logger.error('[useNotifications] Shared subscription error:', err);
+          markRealtimeSurfaceError('notifications');
+        }
       } else if (status && status !== 'SUBSCRIBED') {
         markRealtimeSurfaceReconnecting('notifications');
       } else if (status === 'SUBSCRIBED') {

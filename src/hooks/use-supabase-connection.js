@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import {
   markRealtimeSurfaceSubscribed,
   markRealtimeSurfaceReconnecting,
@@ -32,9 +33,20 @@ export function useSupabaseConnection() {
         .subscribe((state, err) => {
           if (!isMounted) return;
           if (err) {
-            logger.warn('[useSupabaseConnection] Health channel error:', err);
-            setStatus('error');
-            markRealtimeSurfaceError('supabase-connection');
+            if (isExpectedRealtimeDisconnect(err, state)) {
+              logger.debug('[useSupabaseConnection] Health channel disconnected (expected reconnect)', {
+                state,
+                name: err?.name,
+                code: err?.code,
+                message: err?.message,
+              });
+              setStatus('reconnecting');
+              markRealtimeSurfaceReconnecting('supabase-connection');
+            } else {
+              logger.warn('[useSupabaseConnection] Health channel error:', err);
+              setStatus('error');
+              markRealtimeSurfaceError('supabase-connection');
+            }
             return;
           }
           const nextStatus =
@@ -67,7 +79,7 @@ export function useSupabaseConnection() {
     timerRef.current = window.setInterval(() => {
       if (channelRef.current) {
         channelRef.current
-          .send({ type: 'broadcast', event: 'ping', payload: {} })
+          .httpSend('ping', {})
           .then(() => {
             if (isMounted) {
               setLastPingAt(Date.now());

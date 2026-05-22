@@ -12,6 +12,7 @@ import { buildPresenceLocation, isValidCoordinate } from '@/lib/geocoding.js';
 
 import { logger } from '@/lib/logger.js';
 import { captureError } from '@/lib/sentry.js';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import {
   markRealtimeSurfaceSubscribed,
   markRealtimeSurfaceReconnecting,
@@ -220,9 +221,19 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
       )
       .subscribe((status, err) => {
         if (err) {
-          logger.error('[useLiveMapPresence] Realtime subscription error:', err);
-          captureError(err, { source: 'useLiveMapPresence', status });
-          markRealtimeSurfaceError('live-presence');
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[useLiveMapPresence] Realtime subscription disconnected (expected reconnect)', {
+              status,
+              name: err?.name,
+              code: err?.code,
+              message: err?.message,
+            });
+            markRealtimeSurfaceReconnecting('live-presence');
+          } else {
+            logger.error('[useLiveMapPresence] Realtime subscription error:', err);
+            captureError(err, { source: 'useLiveMapPresence', status });
+            markRealtimeSurfaceError('live-presence');
+          }
         } else if (status && status !== 'SUBSCRIBED') {
           markRealtimeSurfaceReconnecting('live-presence');
         } else if (status === 'SUBSCRIBED') {

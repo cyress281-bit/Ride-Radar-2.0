@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase.js';
 import { getNearbyBroadcasts } from '@/features/broadcast/api/broadcast-api.js';
 import { logger } from '@/lib/logger.js';
 import { captureError } from '@/lib/sentry.js';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import {
   markRealtimeSurfaceSubscribed,
   markRealtimeSurfaceReconnecting,
@@ -157,9 +158,19 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds =
       )
       .subscribe((status, err) => {
         if (err) {
-          logger.error('[useNearbyBroadcasts] Realtime subscription error:', err);
-          captureError(err, { source: 'useNearbyBroadcasts', status });
-          markRealtimeSurfaceError('broadcasts');
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[useNearbyBroadcasts] Realtime subscription disconnected (expected reconnect)', {
+              status,
+              name: err?.name,
+              code: err?.code,
+              message: err?.message,
+            });
+            markRealtimeSurfaceReconnecting('broadcasts');
+          } else {
+            logger.error('[useNearbyBroadcasts] Realtime subscription error:', err);
+            captureError(err, { source: 'useNearbyBroadcasts', status });
+            markRealtimeSurfaceError('broadcasts');
+          }
         } else if (status && status !== 'SUBSCRIBED') {
           markRealtimeSurfaceReconnecting('broadcasts');
         } else if (status === 'SUBSCRIBED') {

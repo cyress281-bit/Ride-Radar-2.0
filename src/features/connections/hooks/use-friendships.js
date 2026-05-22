@@ -8,6 +8,7 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
 import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import { getFriendships, getFriendshipBetween, removeFriendship } from '@/features/connections/api/connections-api.js';
 import { connectionRequestKeys } from '@/features/connections/hooks/use-connection-requests.js';
 import {
@@ -83,8 +84,18 @@ export function useFriendships() {
       )
       .subscribe((status, err) => {
         if (err) {
-          logger.error('[useFriendships] Realtime subscription error:', err);
-          markRealtimeSurfaceError('friendships');
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[useFriendships] Realtime subscription disconnected (expected reconnect)', {
+              status,
+              name: err?.name,
+              code: err?.code,
+              message: err?.message,
+            });
+            markRealtimeSurfaceReconnecting('friendships');
+          } else {
+            logger.error('[useFriendships] Realtime subscription error:', err);
+            markRealtimeSurfaceError('friendships');
+          }
         } else if (status && status !== 'SUBSCRIBED') {
           markRealtimeSurfaceReconnecting('friendships');
         } else if (status === 'SUBSCRIBED') {

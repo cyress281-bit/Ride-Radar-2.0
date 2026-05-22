@@ -8,6 +8,7 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
 import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import {
   markRealtimeSurfaceSubscribed,
   markRealtimeSurfaceReconnecting,
@@ -78,8 +79,18 @@ export function useConnectionRequests() {
       )
       .subscribe((status, err) => {
         if (err) {
-          logger.error('[useConnectionRequests] Incoming subscription error:', err);
-          markRealtimeSurfaceError('connection-requests');
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[useConnectionRequests] Incoming subscription disconnected (expected reconnect)', {
+              status,
+              name: err?.name,
+              code: err?.code,
+              message: err?.message,
+            });
+            markRealtimeSurfaceReconnecting('connection-requests');
+          } else {
+            logger.error('[useConnectionRequests] Incoming subscription error:', err);
+            markRealtimeSurfaceError('connection-requests');
+          }
         } else if (status && status !== 'SUBSCRIBED') {
           markRealtimeSurfaceReconnecting('connection-requests');
         } else if (status === 'SUBSCRIBED') {
@@ -143,8 +154,18 @@ export function useSentRequests() {
       )
       .subscribe((status, err) => {
         if (err) {
-          logger.error('[useConnectionRequests] Sent subscription error:', err);
-          markRealtimeSurfaceError('connection-requests');
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[useConnectionRequests] Sent subscription disconnected (expected reconnect)', {
+              status,
+              name: err?.name,
+              code: err?.code,
+              message: err?.message,
+            });
+            markRealtimeSurfaceReconnecting('connection-requests');
+          } else {
+            logger.error('[useConnectionRequests] Sent subscription error:', err);
+            markRealtimeSurfaceError('connection-requests');
+          }
         } else if (status && status !== 'SUBSCRIBED') {
           markRealtimeSurfaceReconnecting('connection-requests');
         } else if (status === 'SUBSCRIBED') {

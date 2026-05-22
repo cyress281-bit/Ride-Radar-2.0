@@ -4,6 +4,7 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { getMessages, hydrateMessageImages, markConversationRead } from '@/features/chat/api/chat-api.js';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import {
   markRealtimeSurfaceSubscribed,
   markRealtimeSurfaceReconnecting,
@@ -96,8 +97,18 @@ export function useMessages(conversationId) {
       )
       .subscribe((status, err) => {
         if (err) {
-          logger.error('[useMessages] Realtime subscription error:', err);
-          markRealtimeSurfaceError('messages');
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[useMessages] Realtime subscription disconnected (expected reconnect)', {
+              status,
+              name: err?.name,
+              code: err?.code,
+              message: err?.message,
+            });
+            markRealtimeSurfaceReconnecting('messages');
+          } else {
+            logger.error('[useMessages] Realtime subscription error:', err);
+            markRealtimeSurfaceError('messages');
+          }
         } else if (status && status !== 'SUBSCRIBED') {
           markRealtimeSurfaceReconnecting('messages');
         } else if (status === 'SUBSCRIBED') {

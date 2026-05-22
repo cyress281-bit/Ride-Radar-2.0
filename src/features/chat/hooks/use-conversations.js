@@ -5,6 +5,7 @@ import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
 import { getConversations } from '@/features/chat/api/chat-api.js';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import {
   markRealtimeSurfaceSubscribed,
   markRealtimeSurfaceReconnecting,
@@ -95,8 +96,18 @@ export function useConversations() {
       )
       .subscribe((status, err) => {
         if (err) {
-          logger.error('[useConversations] Realtime subscription error:', err);
-          markRealtimeSurfaceError('conversations');
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[useConversations] Realtime subscription disconnected (expected reconnect)', {
+              status,
+              name: err?.name,
+              code: err?.code,
+              message: err?.message,
+            });
+            markRealtimeSurfaceReconnecting('conversations');
+          } else {
+            logger.error('[useConversations] Realtime subscription error:', err);
+            markRealtimeSurfaceError('conversations');
+          }
         } else if (status && status !== 'SUBSCRIBED') {
           markRealtimeSurfaceReconnecting('conversations');
         } else if (status === 'SUBSCRIBED') {
