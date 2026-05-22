@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Users, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
@@ -54,6 +55,7 @@ function AdminUsersContent() {
   const setRole = useMutation({
     mutationFn: updateUserRole,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onError: (err) => toast.error(err?.message || 'Failed to update user role'),
   });
 
   const filtered = useMemo(() => {

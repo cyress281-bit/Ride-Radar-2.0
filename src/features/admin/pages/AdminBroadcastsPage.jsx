@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CalendarPlus, Radio, Trash2, Search, Filter } from 'lucide-react';
 import { timeAgo } from '@/lib/broadcastUtils.js';
@@ -80,6 +81,7 @@ function AdminBroadcastsContent() {
     },
     onError: (_err, _id, context) => {
       if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
+      toast.error('Failed to expire broadcast');
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] }),
   });
@@ -97,6 +99,7 @@ function AdminBroadcastsContent() {
     },
     onError: (_err, _id, context) => {
       if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
+      toast.error('Failed to delete broadcast');
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] }),
   });
