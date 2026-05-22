@@ -20,7 +20,6 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useCreateBroadcast } from '@/features/broadcast/hooks/use-create-broadcast.js';
 import { prepareLocalImage } from '@/lib/image-utils.js';
 import { geocodeAddress } from '@/lib/geocoding.js';
-import { toast } from '@/components/ui/use-toast';
 import { logger } from '@/lib/logger.js';
 
 const TYPES = [
@@ -371,14 +370,6 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
     post.mutate(payload, {
       onSuccess: () => {
-        toast({
-          title: type === 'solo_ride' ? 'Ride signal sent' :
-                 type === 'event' ? 'Meetup created' :
-                 type === 'iso' ? 'Help request sent' :
-                 type === 'bike_down' ? 'Bike Down alert sent' :
-                 'Warning sent',
-          description: 'Riders nearby can see it.',
-        });
         reset();
         setEventImage(null);
         setAlertImages([]);

@@ -58,6 +58,7 @@ import PostGrid from '@/features/profile/components/PostGrid';
 import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
 import StatPill from '@/features/profile/components/StatPill.jsx';
 import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
+import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 
 const profileAmbientTopStyle = {
   background:
@@ -145,6 +146,30 @@ function RiderProfilePage() {
 
     return () => supabase.removeChannel(channel);
   }, [user?.id, userId, qc]);
+
+  useEffect(() => {
+    if (!hasValidUserId) return;
+
+    const channel = supabase
+      .channel(`profile-broadcasts-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'broadcasts',
+          filter: `author_id=eq.${userId}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: broadcastKeys.author(userId) });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [hasValidUserId, qc, userId]);
 
   const {
     data: profile,

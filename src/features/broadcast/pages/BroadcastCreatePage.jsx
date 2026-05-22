@@ -1,7 +1,7 @@
-import { useState, memo, useCallback, useRef, useEffect } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
+import { toast } from 'sonner';
 import BroadcastForm from '@/features/broadcast/components/BroadcastForm';
 import BroadcastTypeSelector from '@/features/broadcast/components/BroadcastTypeSelector';
 
@@ -14,23 +14,39 @@ function BroadcastCreatePage() {
   const urlType = searchParams.get('type');
   const validTypes = ['solo_ride', 'event', 'iso', 'alert', 'bike_down'];
   const [type, setType] = useState(validTypes.includes(urlType) ? urlType : null);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
 
   const handlePosted = useCallback(() => {
-    setShowCelebration(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      setShowCelebration(false);
-      navigate('/home');
-    }, 1500);
-  }, [navigate]);
+    const subtitleByType = {
+      solo_ride: 'Nearby riders can see it now.',
+      event: 'Your meetup is live.',
+      iso: 'Nearby riders can respond.',
+      alert: 'Nearby riders can see it now.',
+      bike_down: 'Nearby riders can help now.',
+    };
+
+    toast.custom(() => (
+      <div
+        className="w-[min(92vw,22rem)] rounded-[28px] border border-primary/20 bg-background/95 px-4 py-4 shadow-[0_24px_80px_hsl(var(--primary)/0.18),0_0_0_1px_hsl(var(--primary)/0.08)] backdrop-blur-xl"
+        style={{ marginTop: 'calc(env(safe-area-inset-top) + 8px)' }}
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-primary/25 bg-primary/10 shadow-[0_0_24px_hsl(var(--primary)/0.18)]">
+            <CheckCircle2 className="h-6 w-6 text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold tracking-tight text-foreground">Signal Sent</p>
+            <p className="mt-1 text-sm leading-snug text-muted-foreground">
+              {subtitleByType[type] || 'Nearby riders can see it now.'}
+            </p>
+          </div>
+        </div>
+      </div>
+    ), {
+      duration: 2200,
+    });
+
+    navigate('/home', { replace: true });
+  }, [navigate, type]);
 
   if (!type) {
     return (
@@ -42,31 +58,7 @@ function BroadcastCreatePage() {
   }
 
   return (
-    <>
-      <AnimatePresence>
-        {showCelebration && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-primary/10 backdrop-blur-sm pointer-events-none"
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="flex flex-col items-center gap-3"
-            >
-              <CheckCircle2 className="w-12 h-12 text-primary animate-glow-pulse" />
-              <span className="text-sm font-bold text-primary rr-neon-green">Signal sent</span>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <BroadcastForm type={type} onBack={() => setType(null)} onPosted={handlePosted} />
-    </>
+    <BroadcastForm type={type} onBack={() => setType(null)} onPosted={handlePosted} />
   );
 }
 

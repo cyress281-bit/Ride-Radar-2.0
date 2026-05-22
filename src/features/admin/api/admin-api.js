@@ -195,6 +195,23 @@ async function reviewOfficialEventRequest(requestId, nextStatus, adminNote) {
     return { data: null, error: new Error('Invalid official review status.') };
   }
 
+  const note = normalizeAdminNote(adminNote);
+
+  if (nextStatus === 'approved') {
+    const { data: updatedRequest, error } = await supabase
+      .rpc('approve_official_event_request', {
+        request_id: requestId,
+        admin_note: note,
+      })
+      .maybeSingle();
+
+    if (error) {
+      return { data: null, error };
+    }
+
+    return { data: updatedRequest, error: null };
+  }
+
   const { data: request, error: requestFetchError } = await supabase
     .from('official_event_requests')
     .select('id, status, broadcast_id')
@@ -231,7 +248,6 @@ async function reviewOfficialEventRequest(requestId, nextStatus, adminNote) {
     return { data: null, error: new Error('Only event broadcasts can be reviewed for Official status.') };
   }
 
-  const note = normalizeAdminNote(adminNote);
   const reviewedAt = new Date().toISOString();
 
   if (nextStatus === 'approved' && !broadcast.is_official) {

@@ -7,7 +7,7 @@
 
 import { useState, useMemo, memo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { Edit2, Settings, Radio, Users, ShieldCheck, Bike, Camera, Images } from 'lucide-react';
 import { Badge } from '@/components/shared/Badge';
@@ -29,6 +29,8 @@ import PostCreateSheet from '@/features/profile/components/PostCreateSheet';
 import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
 import StatPill from '@/features/profile/components/StatPill.jsx';
 import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
+import { supabase } from '@/lib/supabase.js';
+import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 
 const profileAmbientTopStyle = {
   background:
@@ -49,6 +51,7 @@ const profileTabsTriggerClass =
 function ProfilePage() {
   const { user, profile } = useAuthState();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const [activeTab, setActiveTab] = useState('broadcasts');
@@ -69,6 +72,30 @@ function ProfilePage() {
     isLoading: broadcastsLoading,
     refetch: refetchBroadcasts,
   } = useBroadcastsByAuthor(user?.id);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`profile-broadcasts-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'broadcasts',
+          filter: `author_id=eq.${user.id}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: broadcastKeys.author(user.id) });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc, user?.id]);
 
   const {
     data: posts = [],
@@ -393,12 +420,21 @@ function ProfilePage() {
 
 const SignalRow = memo(function SignalRow({ broadcast: b }) {
   const detail = b.location_name || b.body || null;
+  const isOfficialEvent = b.type === 'event' && b.is_official === true;
   return (
     <Link
       to={`/broadcast/${b.id}`}
       className="group flex min-h-[58px] items-center gap-3 px-4 py-3.5 transition-colors hover:bg-white/[0.035] active:bg-white/[0.06]"
     >
-      <Badge type={b.type} alertType={b.alert_type} className="shrink-0" />
+      <div className="flex shrink-0 flex-col items-start gap-1">
+        <Badge type={b.type} alertType={b.alert_type} className="shrink-0" />
+        {isOfficialEvent && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-event/20 bg-event/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-event">
+            <ShieldCheck className="h-3 w-3" />
+            Official
+          </span>
+        )}
+      </div>
       <VStack gap={0} className="min-w-0 flex-1">
         <Text variant="bodySm" className="line-clamp-1 font-semibold tracking-tight">
           {b.title}
