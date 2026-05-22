@@ -313,7 +313,7 @@ const AppLayout = memo(function AppLayout() {
         id="main-content"
         className={cn(
           isRadar
-            ? 'fixed inset-0 z-0'
+            ? 'fixed inset-0 z-0 bg-background'
             : 'relative z-10 mx-auto max-w-xl overflow-x-hidden pb-nav-safe'
         )}
         style={!isRadar ? { paddingTop: 'calc(3.5rem + env(safe-area-inset-top, 0px))' } : undefined}

@@ -647,7 +647,7 @@ function LiveMap({
 
       <div className={cn('grid gap-3', variant === 'full' && 'lg:grid-cols-[minmax(0,1fr)_20rem]', variant === 'radar' && 'h-full')}>
         <div
-          className={cn('relative overflow-hidden rounded-[1.1rem] border border-border/60 bg-background', variant === 'full' ? 'min-h-[560px] h-[calc(100svh-15rem)] max-h-[760px]' : variant === 'radar' ? 'h-full min-h-0 rounded-none border-0 bg-transparent' : 'h-[320px]')}
+          className={cn('relative overflow-hidden rounded-[1.1rem] border border-border/60 bg-background', variant === 'full' ? 'min-h-[560px] h-[calc(100svh-15rem)] max-h-[760px]' : variant === 'radar' ? 'h-full min-h-0 rounded-none border-0' : 'h-[320px]')}
           role="application"
           aria-label={`Interactive map showing ${items.length} active ${items.length === 1 ? 'signal' : 'signals'}`}
         >
