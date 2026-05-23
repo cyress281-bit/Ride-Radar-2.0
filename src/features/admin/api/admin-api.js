@@ -19,7 +19,8 @@ export async function getUsers() {
     .select('*')
     .order('created_at', { ascending: false })
     .limit(200);
-  return { data: data || [], error };
+  if (error) throw error;
+  return { data: data || [], error: null };
 }
 
 /**
@@ -33,7 +34,8 @@ export async function getBroadcasts() {
     .select('*')
     .order('created_at', { ascending: false })
     .limit(200);
-  return { data: data || [], error };
+  if (error) throw error;
+  return { data: data || [], error: null };
 }
 
 /**
@@ -47,7 +49,8 @@ export async function getProfiles() {
     .select('*')
     .order('updated_at', { ascending: false })
     .limit(200);
-  return { data: data || [], error };
+  if (error) throw error;
+  return { data: data || [], error: null };
 }
 
 /**
@@ -61,7 +64,8 @@ export async function getReports() {
     .select('*')
     .order('created_at', { ascending: false })
     .limit(200);
-  return { data: data || [], error };
+  if (error) throw error;
+  return { data: data || [], error: null };
 }
 
 /**
@@ -75,7 +79,8 @@ export async function getBlocks() {
     .select('*')
     .order('created_at', { ascending: false })
     .limit(200);
-  return { data: data || [], error };
+  if (error) throw error;
+  return { data: data || [], error: null };
 }
 
 /**
@@ -89,7 +94,8 @@ export async function getNotifications() {
     .select('*')
     .order('created_at', { ascending: false })
     .limit(200);
-  return { data: data || [], error };
+  if (error) throw error;
+  return { data: data || [], error: null };
 }
 
 /**
@@ -103,7 +109,8 @@ export async function getDeletionRequests() {
     .select('*')
     .order('created_at', { ascending: false })
     .limit(200);
-  return { data: data || [], error };
+  if (error) throw error;
+  return { data: data || [], error: null };
 }
 
 /**
@@ -117,7 +124,8 @@ export async function getConversations() {
     .select('*')
     .order('last_message_at', { ascending: false })
     .limit(200);
-  return { data: data || [], error };
+  if (error) throw error;
+  return { data: data || [], error: null };
 }
 
 /**
@@ -131,7 +139,8 @@ export async function getOfficialEventRequests() {
     .select('*')
     .order('created_at', { ascending: false })
     .limit(200);
-  return { data: data || [], error };
+  if (error) throw error;
+  return { data: data || [], error: null };
 }
 
 /**
@@ -347,7 +356,8 @@ export async function declineOfficialEventRequest(requestId, adminNote) {
 export async function getUserCount() {
   await assertAdmin();
   const { count, error } = await supabase.from('users').select('*', { count: 'exact', head: true });
-  return { data: count ?? 0, error };
+  if (error) throw error;
+  return { data: count ?? 0, error: null };
 }
 
 /**
@@ -360,7 +370,8 @@ export async function getActiveBroadcastCount() {
     .from('broadcasts')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'active');
-  return { data: count ?? 0, error };
+  if (error) throw error;
+  return { data: count ?? 0, error: null };
 }
 
 /**
@@ -373,7 +384,8 @@ export async function getPendingReportCount() {
     .from('reports')
     .select('*', { count: 'exact', head: true })
     .in('status', ['open', 'reviewed']);
-  return { data: count ?? 0, error };
+  if (error) throw error;
+  return { data: count ?? 0, error: null };
 }
 
 /**
@@ -386,7 +398,8 @@ export async function getActiveConversationCount() {
     .from('conversations')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'active');
-  return { data: count ?? 0, error };
+  if (error) throw error;
+  return { data: count ?? 0, error: null };
 }
 
 /**
@@ -438,7 +451,8 @@ export async function updateReportStatus(id, status) {
     .eq('id', id)
     .select()
     .maybeSingle();
-  return { data, error };
+  if (error) throw error;
+  return { data, error: null };
 }
 
 /**
@@ -460,7 +474,8 @@ export async function updateUserRole(id, role) {
     .eq('id', id)
     .select()
     .maybeSingle();
-  return { data, error };
+  if (error) throw error;
+  return { data, error: null };
 }
 
 /**
@@ -477,7 +492,8 @@ export async function expireBroadcast(id) {
     .eq('id', id)
     .select()
     .maybeSingle();
-  return { data, error };
+  if (error) throw error;
+  return { data, error: null };
 }
 
 function applyRepeatOffset(baseDate, i, repeat) {
@@ -721,7 +737,8 @@ export async function updateAdminEvent(id, fields = {}) {
     .select()
     .maybeSingle();
 
-  return { data, error };
+  if (error) throw error;
+  return { data, error: null };
 }
 
 /**
@@ -846,7 +863,8 @@ export async function deleteBroadcast(id) {
     .eq('id', id)
     .select()
     .maybeSingle();
-  return { data, error };
+  if (error) throw error;
+  return { data, error: null };
 }
 
 /**

@@ -225,7 +225,11 @@ function AdminBroadcastsContent() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => expire.mutate(b.id)}
+                    onClick={() => {
+                      if (window.confirm('Expire this broadcast? It will no longer appear in feeds.')) {
+                        expire.mutate(b.id);
+                      }
+                    }}
                     disabled={expire.isPending}
                     className="rounded-full"
                   >
@@ -245,7 +249,11 @@ function AdminBroadcastsContent() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => remove.mutate(b.id)}
+                  onClick={() => {
+                    if (window.confirm('Permanently delete this broadcast? This cannot be undone.')) {
+                      remove.mutate(b.id);
+                    }
+                  }}
                   disabled={remove.isPending}
                   className="rounded-full text-destructive"
                 >
