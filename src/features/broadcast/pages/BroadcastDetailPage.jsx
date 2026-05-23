@@ -537,7 +537,6 @@ function BroadcastDetailPage() {
       if (error) throw error;
       return data;
     },
-    staleTime: 30_000,
   });
 
   const { data: rsvpCounts = { interested: 0, going: 0 } } = useQuery({
@@ -1129,10 +1128,13 @@ function BroadcastDetailPage() {
 const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onChange }) {
   const set = useMutation({
     mutationFn: async (status) => {
-      const { error } = await setEventRsvp(broadcast.id, user.id, status);
+      const { data, error } = await setEventRsvp(broadcast.id, user.id, status);
       if (error) throw error;
+      return data;
     },
-    onSuccess: onChange,
+    onSuccess: (data) => {
+      onChange();
+    },
     onError: (error) => {
       toast.error('RSVP failed', {
         description: error?.message || 'Could not update your RSVP. Try again.',
@@ -1144,23 +1146,21 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
     mutationFn: async () => {
       await removeEventRsvp(broadcast.id, user.id);
     },
+    onSuccess: () => {
+      onChange();
+    },
+    onError: (error) => {
+      toast.error('Could not cancel RSVP', {
+        description: error?.message || 'Please try again.',
+      });
+    },
   });
 
   const isPending = set.isPending || remove.isPending;
 
   const handleInterested = () => {
     if (myRSVP?.status === 'interested') {
-      remove.mutate(undefined, {
-        onSuccess: () => {
-          toast.success('RSVP cancelled');
-          onChange();
-        },
-        onError: (err) => {
-          toast.error('Could not cancel RSVP', {
-            description: err?.message || 'Please try again.',
-          });
-        },
-      });
+      remove.mutate();
     } else {
       set.mutate('interested');
     }
@@ -1168,17 +1168,7 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
 
   const handleGoing = () => {
     if (myRSVP?.status === 'going') {
-      remove.mutate(undefined, {
-        onSuccess: () => {
-          toast.success('RSVP cancelled');
-          onChange();
-        },
-        onError: (err) => {
-          toast.error('Could not cancel RSVP', {
-            description: err?.message || 'Please try again.',
-          });
-        },
-      });
+      remove.mutate();
     } else {
       set.mutate('going');
     }
