@@ -19,6 +19,7 @@ import { hardDeleteBroadcast } from '@/features/broadcast/api/broadcast-api.js';
 import { deletePost } from '@/features/profile/api/posts-api.js';
 import { deletePostComment } from '@/features/profile/api/comments-api.js';
 import { updateProfile } from '@/features/profile/api/profile-api.js';
+import { updateReportStatus } from '@/features/admin/api/admin-api.js';
 import { deleteMessage, archiveConversation } from '@/features/chat/api/chat-api.js';
 import { useAdminData } from '@/features/admin/hooks/use-admin-data.js';
 import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
@@ -125,11 +126,16 @@ function AdminReportsContent() {
 
   const setStatus = useMutation({
     mutationFn: async ({ id, status, note }) => {
-      const { error } = await supabase
-        .from('reports')
-        .update({ status, details: note })
-        .eq('id', id);
+      const { error } = await updateReportStatus(id, status);
       if (error) throw error;
+      // Also update the details/note if provided and different from current
+      if (note) {
+        const { error: noteError } = await supabase
+          .from('reports')
+          .update({ details: note })
+          .eq('id', id);
+        if (noteError) throw noteError;
+      }
     },
     onMutate: ({ id, status }) => {
       const queryKey = ['admin', 'reports'];
@@ -257,17 +263,15 @@ function AdminReportsContent() {
       const targetUserId = report.target_user_id || report.target_profile_id;
       if (!targetUserId) throw new Error('No target user');
 
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({ is_public: false })
-        .eq('user_id', targetUserId);
+      const { error } = await updateProfile(targetUserId, { is_public: false });
       if (error) throw error;
 
       const updatedDetails = `${report.details || ''}\nAdmin action taken: profile made private`.trim();
-      await supabase
+      const { error: reportError } = await supabase
         .from('reports')
         .update({ status: 'resolved', details: updatedDetails })
         .eq('id', report.id);
+      if (reportError) throw reportError;
     },
     onMutate: (report) => {
       const queryKey = ['admin', 'reports'];
@@ -429,13 +433,15 @@ function AdminReportsContent() {
                   size="sm"
                   variant="outline"
                   className="min-h-[44px] rounded-full"
-                  onClick={() =>
-                    setStatus.mutate({
-                      id: report.id,
-                      status: 'reviewed',
-                      note: report.details,
-                    })
-                  }
+                  onClick={() => {
+                    if (window.confirm('Mark this report as reviewed?')) {
+                      setStatus.mutate({
+                        id: report.id,
+                        status: 'reviewed',
+                        note: report.details,
+                      });
+                    }
+                  }}
                   disabled={setStatus.isPending}
                 >
                   <Eye className="mr-1 h-3.5 w-3.5" /> Review
@@ -444,13 +450,15 @@ function AdminReportsContent() {
                   size="sm"
                   variant="outline"
                   className="min-h-[44px] rounded-full"
-                  onClick={() =>
-                    setStatus.mutate({
-                      id: report.id,
-                      status: 'dismissed',
-                      note: `${report.details || ''}\nAdmin dismissed report.`.trim(),
-                    })
-                  }
+                  onClick={() => {
+                    if (window.confirm('Dismiss this report? It will be marked as dismissed with no action taken.')) {
+                      setStatus.mutate({
+                        id: report.id,
+                        status: 'dismissed',
+                        note: `${report.details || ''}\nAdmin dismissed report.`.trim(),
+                      });
+                    }
+                  }}
                   disabled={setStatus.isPending}
                 >
                   <XCircle className="mr-1 h-3.5 w-3.5" /> Dismiss
@@ -458,13 +466,15 @@ function AdminReportsContent() {
                 <Button
                   size="sm"
                   className="min-h-[44px] rounded-full"
-                  onClick={() =>
-                    setStatus.mutate({
-                      id: report.id,
-                      status: 'resolved',
-                      note: `${report.details || ''}\nAdmin marked report resolved.`.trim(),
-                    })
-                  }
+                  onClick={() => {
+                    if (window.confirm('Resolve this report?')) {
+                      setStatus.mutate({
+                        id: report.id,
+                        status: 'resolved',
+                        note: `${report.details || ''}\nAdmin marked report resolved.`.trim(),
+                      });
+                    }
+                  }}
                   disabled={setStatus.isPending}
                 >
                   <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Resolved
@@ -491,7 +501,11 @@ function AdminReportsContent() {
                       report.target_type === 'post_comment' ||
                       report.target_type === 'image') && (
                       <DropdownMenuItem
-                        onClick={() => removeContent.mutate(report)}
+                        onClick={() => {
+                          if (window.confirm(`Delete this ${report.target_type}? This cannot be undone.`)) {
+                            removeContent.mutate(report);
+                          }
+                        }}
                         className="gap-2"
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
@@ -500,7 +514,11 @@ function AdminReportsContent() {
                     )}
                     {targetUserId && (
                       <DropdownMenuItem
-                        onClick={() => makeProfilePrivate.mutate(report)}
+                        onClick={() => {
+                          if (window.confirm('Make this rider\'s profile private?')) {
+                            makeProfilePrivate.mutate(report);
+                          }
+                        }}
                         className="gap-2"
                       >
                         <UserX className="h-4 w-4 text-warning" />

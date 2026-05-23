@@ -93,7 +93,7 @@ export async function listProfilesByIds(ids) {
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
 export async function updateProfile(userId, updates) {
-  if (!isValidUuid(userId)) return { data: null, error: new Error('Invalid userId') };
+  if (!isValidUuid(userId)) throw new Error('Invalid userId');
 
   const { data, error } = await supabase
     .from('user_profiles')
@@ -102,7 +102,8 @@ export async function updateProfile(userId, updates) {
     .select()
     .maybeSingle();
 
-  return { data, error };
+  if (error) throw error;
+  return { data, error: null };
 }
 
 /**

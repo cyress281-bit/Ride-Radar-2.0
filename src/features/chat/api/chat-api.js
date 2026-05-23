@@ -119,7 +119,8 @@ export async function createConversation(participantIds) {
  */
 export async function deleteMessage(messageId) {
   const { error } = await supabase.from('messages').delete().eq('id', messageId);
-  return { data: null, error };
+  if (error) throw error;
+  return { data: null, error: null };
 }
 
 /**
@@ -135,7 +136,8 @@ export async function archiveConversation(conversationId) {
     .select()
     .single();
 
-  return { data, error };
+  if (error) throw error;
+  return { data, error: null };
 }
 
 /**

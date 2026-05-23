@@ -136,7 +136,7 @@ export async function deletePost(postId) {
 
   if (fetchError) {
     logger.error('[deletePost] Fetch photos error:', fetchError);
-    return { data: null, error: fetchError };
+    throw fetchError;
   }
 
   // 2. Remove storage objects (best-effort — do not abort deletion on storage failure).
@@ -151,7 +151,7 @@ export async function deletePost(postId) {
 
   if (deleteError) {
     logger.error('[deletePost] Delete post error:', deleteError);
-    return { data: null, error: deleteError };
+    throw deleteError;
   }
 
   return { data: null, error: null };
