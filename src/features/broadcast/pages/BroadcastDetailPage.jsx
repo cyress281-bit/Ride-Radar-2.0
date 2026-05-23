@@ -1127,6 +1127,12 @@ function BroadcastDetailPage() {
 
 const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onChange, queryKey }) {
   const qc = useQueryClient();
+  const [localStatus, setLocalStatus] = useState(myRSVP?.status || null);
+
+  // Sync local status with prop when not mutating
+  useEffect(() => {
+    setLocalStatus(myRSVP?.status || null);
+  }, [myRSVP?.status]);
 
   const set = useMutation({
     mutationFn: async (status) => {
@@ -1135,12 +1141,14 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
       return data;
     },
     onMutate: async (status) => {
+      setLocalStatus(status);
       await qc.cancelQueries({ queryKey });
       const previous = qc.getQueryData(queryKey);
       qc.setQueryData(queryKey, { status, broadcast_id: broadcast.id, user_id: user.id });
       return { previous, queryKey };
     },
     onError: (error, _status, context) => {
+      setLocalStatus(myRSVP?.status || null);
       if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
       toast.error('RSVP failed', {
         description: error?.message || 'Could not update your RSVP. Try again.',
@@ -1157,12 +1165,14 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
       await removeEventRsvp(broadcast.id, user.id);
     },
     onMutate: async () => {
+      setLocalStatus(null);
       await qc.cancelQueries({ queryKey });
       const previous = qc.getQueryData(queryKey);
       qc.setQueryData(queryKey, null);
       return { previous, queryKey };
     },
     onError: (error, _vars, context) => {
+      setLocalStatus(myRSVP?.status || null);
       if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
       toast.error('Could not cancel RSVP', {
         description: error?.message || 'Please try again.',
@@ -1175,10 +1185,10 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
   });
 
   const isPending = set.isPending || remove.isPending;
+  const activeStatus = isPending ? localStatus : (myRSVP?.status || null);
 
   const handleInterested = () => {
-    const currentStatus = myRSVP?.status;
-    if (currentStatus === 'interested') {
+    if (activeStatus === 'interested') {
       remove.mutate();
     } else {
       set.mutate('interested');
@@ -1186,8 +1196,7 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
   };
 
   const handleGoing = () => {
-    const currentStatus = myRSVP?.status;
-    if (currentStatus === 'going') {
+    if (activeStatus === 'going') {
       remove.mutate();
     } else {
       set.mutate('going');
