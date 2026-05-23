@@ -272,15 +272,13 @@ export async function setEventRsvp(broadcastId, userId, status) {
  * @returns {Promise<{data: null, error: null}>}
  */
 export async function removeEventRsvp(broadcastId, userId) {
-  console.log('[removeEventRsvp] broadcastId:', broadcastId, 'userId:', userId);
-  const { data, error, count } = await supabase
+  const { data, error } = await supabase
     .from('event_rsvps')
     .delete()
     .eq('broadcast_id', broadcastId)
     .eq('user_id', userId)
     .select();
 
-  console.log('[removeEventRsvp] result:', { data, error, count });
   if (error) throw error;
   return { data, error: null };
 }

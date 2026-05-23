@@ -1158,23 +1158,17 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
   const isPending = set.isPending || remove.isPending;
 
   const handleInterested = () => {
-    console.log('[RSVP] handleInterested — myRSVP:', myRSVP);
     if (myRSVP?.status === 'interested') {
-      console.log('[RSVP] Cancelling interested...');
       remove.mutate();
     } else {
-      console.log('[RSVP] Setting interested...');
       set.mutate('interested');
     }
   };
 
   const handleGoing = () => {
-    console.log('[RSVP] handleGoing — myRSVP:', myRSVP);
     if (myRSVP?.status === 'going') {
-      console.log('[RSVP] Cancelling going...');
       remove.mutate();
     } else {
-      console.log('[RSVP] Setting going...');
       set.mutate('going');
     }
   };
