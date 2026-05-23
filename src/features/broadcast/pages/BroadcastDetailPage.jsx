@@ -1142,10 +1142,12 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
 
   const remove = useMutation({
     mutationFn: async () => {
-      const { error } = await removeEventRsvp(broadcast.id, user.id);
-      if (error) throw error;
+      await removeEventRsvp(broadcast.id, user.id);
     },
-    onSuccess: onChange,
+    onSuccess: () => {
+      toast.success('RSVP cancelled');
+      onChange();
+    },
     onError: (error) => {
       toast.error('Could not cancel RSVP', {
         description: error?.message || 'Please try again.',
