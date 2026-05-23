@@ -1144,22 +1144,23 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
     mutationFn: async () => {
       await removeEventRsvp(broadcast.id, user.id);
     },
-    onSuccess: () => {
-      toast.success('RSVP cancelled');
-      onChange();
-    },
-    onError: (error) => {
-      toast.error('Could not cancel RSVP', {
-        description: error?.message || 'Please try again.',
-      });
-    },
   });
 
   const isPending = set.isPending || remove.isPending;
 
   const handleInterested = () => {
     if (myRSVP?.status === 'interested') {
-      remove.mutate();
+      remove.mutate(undefined, {
+        onSuccess: () => {
+          toast.success('RSVP cancelled');
+          onChange();
+        },
+        onError: (err) => {
+          toast.error('Could not cancel RSVP', {
+            description: err?.message || 'Please try again.',
+          });
+        },
+      });
     } else {
       set.mutate('interested');
     }
@@ -1167,7 +1168,17 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
 
   const handleGoing = () => {
     if (myRSVP?.status === 'going') {
-      remove.mutate();
+      remove.mutate(undefined, {
+        onSuccess: () => {
+          toast.success('RSVP cancelled');
+          onChange();
+        },
+        onError: (err) => {
+          toast.error('Could not cancel RSVP', {
+            description: err?.message || 'Please try again.',
+          });
+        },
+      });
     } else {
       set.mutate('going');
     }
