@@ -1269,9 +1269,9 @@ const BroadcastActions = memo(function BroadcastActions({ broadcast, user, myRSV
   const qc = useQueryClient();
 
   const handleRsvpChange = useCallback(() => {
-    qc.invalidateQueries({ queryKey: ['myRSVP', id] });
+    qc.invalidateQueries({ queryKey: ['myRSVP', id, user?.id] });
     qc.invalidateQueries({ queryKey: ['rsvpCounts', id] });
-  }, [qc, id]);
+  }, [qc, id, user?.id]);
 
   const handleConnectionChange = useCallback(() => {
     qc.invalidateQueries({ queryKey: ['connection-requests'] });
