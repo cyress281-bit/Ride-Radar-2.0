@@ -261,6 +261,23 @@ export async function setEventRsvp(broadcastId, userId, status) {
     .select()
     .single();
 
-  if (error) logger.error('[setEventRsvp] Error:', error);
-  return { data, error };
+  if (error) throw error;
+  return { data, error: null };
+}
+
+/**
+ * Remove the current user's RSVP for an event.
+ * @param {string} broadcastId
+ * @param {string} userId
+ * @returns {Promise<{data: null, error: null}>}
+ */
+export async function removeEventRsvp(broadcastId, userId) {
+  const { error } = await supabase
+    .from('event_rsvps')
+    .delete()
+    .eq('broadcast_id', broadcastId)
+    .eq('user_id', userId);
+
+  if (error) throw error;
+  return { data: null, error: null };
 }

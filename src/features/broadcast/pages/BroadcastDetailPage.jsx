@@ -18,7 +18,7 @@ import { supabase } from '@/lib/supabase.js';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OfficialMotorcycleIcon from '@/components/brand/OfficialMotorcycleIcon';
 import { toast } from 'sonner';
-import { canViewActiveBikeDownDetail, getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
+import { canViewActiveBikeDownDetail, getBroadcastById, getEventRsvps, getMyEventRsvp, setEventRsvp, removeEventRsvp } from '@/features/broadcast/api/broadcast-api.js';
 import {
   cancelOfficialEventRequest,
   createOfficialEventRequest,
@@ -1140,6 +1140,37 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
     },
   });
 
+  const remove = useMutation({
+    mutationFn: async () => {
+      const { error } = await removeEventRsvp(broadcast.id, user.id);
+      if (error) throw error;
+    },
+    onSuccess: onChange,
+    onError: (error) => {
+      toast.error('Could not cancel RSVP', {
+        description: error?.message || 'Please try again.',
+      });
+    },
+  });
+
+  const isPending = set.isPending || remove.isPending;
+
+  const handleInterested = () => {
+    if (myRSVP?.status === 'interested') {
+      remove.mutate();
+    } else {
+      set.mutate('interested');
+    }
+  };
+
+  const handleGoing = () => {
+    if (myRSVP?.status === 'going') {
+      remove.mutate();
+    } else {
+      set.mutate('going');
+    }
+  };
+
   return (
     <div>
       <div className="grid grid-cols-2 gap-3">
@@ -1151,11 +1182,11 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
               ? 'bg-brand-radar hover:bg-brand-radar/90 text-white glow-yamaha'
               : 'border-brand-radar/30 text-brand-radar hover:bg-brand-radar/10 hover:border-brand-radar/50'
           )}
-          onClick={() => set.mutate('interested')}
-          disabled={set.isPending}
+          onClick={handleInterested}
+          disabled={isPending}
         >
           <Heart className={cn('w-5 h-5 mr-1.5', myRSVP?.status === 'interested' && 'fill-current')} />
-          Interested · {counts.interested}
+          {myRSVP?.status === 'interested' ? 'Interested' : 'Interested'} · {counts.interested}
         </Button>
         <Button
           variant={myRSVP?.status === 'going' ? 'default' : 'outline'}
@@ -1165,13 +1196,18 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
               ? 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
               : 'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50'
           )}
-          onClick={() => set.mutate('going')}
-          disabled={set.isPending}
+          onClick={handleGoing}
+          disabled={isPending}
         >
           <Check className="w-5 h-5 mr-1.5" />
-          Going · {counts.going}
+          {myRSVP?.status === 'going' ? 'Going' : 'Going'} · {counts.going}
         </Button>
       </div>
+      {myRSVP && (
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          Tap again to cancel
+        </p>
+      )}
     </div>
   );
 });
