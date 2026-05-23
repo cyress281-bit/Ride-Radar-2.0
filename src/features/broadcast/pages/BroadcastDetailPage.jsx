@@ -550,7 +550,6 @@ function BroadcastDetailPage() {
         going: (data || []).filter((r) => r.status === 'going').length,
       };
     },
-    staleTime: 30_000,
   });
 
   const [confirmRemove, setConfirmRemove] = useState(false);
