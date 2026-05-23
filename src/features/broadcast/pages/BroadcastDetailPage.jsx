@@ -1125,9 +1125,8 @@ function BroadcastDetailPage() {
   );
 }
 
-const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onChange }) {
+const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onChange, queryKey }) {
   const qc = useQueryClient();
-  const queryKey = ['myRSVP', broadcast.id, user.id];
 
   const set = useMutation({
     mutationFn: async (status) => {
@@ -1300,7 +1299,7 @@ const BroadcastActions = memo(function BroadcastActions({ broadcast, user, myRSV
   return (
     <div className="mt-5">
       {broadcast.type === 'event' ? (
-        <EventRSVP broadcast={broadcast} user={user} myRSVP={myRSVP} counts={rsvpCounts} onChange={handleRsvpChange} />
+        <EventRSVP broadcast={broadcast} user={user} myRSVP={myRSVP} counts={rsvpCounts} onChange={handleRsvpChange} queryKey={['myRSVP', id, user?.id]} />
       ) : (
         <ConnectionAction broadcast={broadcast} user={user} existing={connectionRequest} onChange={handleConnectionChange} />
       )}
