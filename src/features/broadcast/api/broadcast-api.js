@@ -277,6 +277,7 @@ export async function removeEventRsvp(broadcastId, userId) {
     .eq('user_id', userId)
     .select();
 
+  console.log('[RSVP] removeEventRsvp result | data:', data, '| error:', error);
   if (error) throw error;
   if (!data || data.length === 0) {
     throw new Error('RSVP_NOT_FOUND');
