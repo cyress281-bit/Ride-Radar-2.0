@@ -280,5 +280,8 @@ export async function removeEventRsvp(broadcastId, userId) {
     .select();
 
   if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error('No RSVP found to cancel. It may have already been removed.');
+  }
   return { data, error: null };
 }
