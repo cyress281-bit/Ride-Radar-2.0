@@ -320,5 +320,5 @@ useEffect(() => {
 
 | Issue | Status | Notes |
 |---|---|---|
-| RSVP toggle deselect | In progress | Tapping "Interested" or "Going" a second time should cancel — currently broken. Debug logs added in commit `05cf45b`. Awaiting console output from iPhone test. |
+| RSVP toggle deselect | FIXED | Resolved. Root cause was vercel.json invalid wildcard pattern silently failing all deploys. Once fixed, the RSVP_NOT_FOUND error handling and toggle logic worked correctly. |
 | PWA iOS SW update delay | Investigated, no fix applied | iOS Safari 24hr SW update throttle + static `?v=velocity` string. SW never re-fetches between builds on iOS. Investigation done, fix pending user direction. |

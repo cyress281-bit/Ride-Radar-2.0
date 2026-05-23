@@ -1190,7 +1190,6 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
       await removeEventRsvp(broadcast.id, user.id);
     },
     onMutate: async () => {
-      console.log('[RSVP] remove onMutate | setting localStatus → null, cache → null');
       setLocalStatus(null);
       await qc.cancelQueries({ queryKey });
       const previous = qc.getQueryData(queryKey);
@@ -1198,10 +1197,8 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
       return { previous, queryKey };
     },
     onSuccess: () => {
-      console.log('[RSVP] remove onSuccess | delete confirmed by Supabase');
     },
     onError: (error, _vars, context) => {
-      console.log('[RSVP] remove onError | full error:', error);
       setLocalStatus(myRSVP?.status || null);
       if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
       const isNotFound = error?.message === 'RSVP_NOT_FOUND';
@@ -1221,9 +1218,7 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
   const activeStatus = isPending ? localStatus : (myRSVP?.status || null);
 
   const handleInterested = () => {
-    console.log('[RSVP] handleInterested fired | activeStatus:', activeStatus);
     if (activeStatus === 'interested') {
-      console.log('[RSVP] remove.mutate() called | broadcastId:', broadcast.id, '| userId:', user.id);
       remove.mutate();
     } else {
       set.mutate('interested');
@@ -1231,9 +1226,7 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
   };
 
   const handleGoing = () => {
-    console.log('[RSVP] handleGoing fired | activeStatus:', activeStatus);
     if (activeStatus === 'going') {
-      console.log('[RSVP] remove.mutate() called | broadcastId:', broadcast.id, '| userId:', user.id);
       remove.mutate();
     } else {
       set.mutate('going');
