@@ -1129,9 +1129,11 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
   const qc = useQueryClient();
   const [localStatus, setLocalStatus] = useState(myRSVP?.status || null);
 
-  // Sync local status with prop when not mutating
+  // Only sync local status from prop when no mutation is in flight
   useEffect(() => {
-    setLocalStatus(myRSVP?.status || null);
+    if (!localStatus || !myRSVP) {
+      setLocalStatus(myRSVP?.status || null);
+    }
   }, [myRSVP?.status]);
 
   const set = useMutation({
@@ -1207,24 +1209,24 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
     <div>
       <div className="grid grid-cols-2 gap-3">
         <Button
-          variant={myRSVP?.status === 'interested' ? 'default' : 'outline'}
+          variant={activeStatus === 'interested' ? 'default' : 'outline'}
           className={cn(
             'h-14 rounded-full text-base font-bold pressable transition-colors',
-            myRSVP?.status === 'interested'
+            activeStatus === 'interested'
               ? 'bg-brand-radar hover:bg-brand-radar/90 text-white glow-yamaha'
               : 'border-brand-radar/30 text-brand-radar hover:bg-brand-radar/10 hover:border-brand-radar/50'
           )}
           onClick={handleInterested}
           disabled={isPending}
         >
-          <Heart className={cn('w-5 h-5 mr-1.5', myRSVP?.status === 'interested' && 'fill-current')} />
-          {myRSVP?.status === 'interested' ? 'Interested' : 'Interested'} · {counts.interested}
+          <Heart className={cn('w-5 h-5 mr-1.5', activeStatus === 'interested' && 'fill-current')} />
+          {activeStatus === 'interested' ? 'Interested' : 'Interested'} · {counts.interested}
         </Button>
         <Button
-          variant={myRSVP?.status === 'going' ? 'default' : 'outline'}
+          variant={activeStatus === 'going' ? 'default' : 'outline'}
           className={cn(
             'h-14 rounded-full text-base font-bold pressable transition-colors',
-            myRSVP?.status === 'going'
+            activeStatus === 'going'
               ? 'bg-primary hover:bg-primary/90 text-primary-foreground glow-kawasaki-sm'
               : 'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50'
           )}
@@ -1232,7 +1234,7 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
           disabled={isPending}
         >
           <Check className="w-5 h-5 mr-1.5" />
-          {myRSVP?.status === 'going' ? 'Going' : 'Going'} · {counts.going}
+          {activeStatus === 'going' ? 'Going' : 'Going'} · {counts.going}
         </Button>
       </div>
       {myRSVP && (
