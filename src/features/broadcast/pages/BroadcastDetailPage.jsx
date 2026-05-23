@@ -1199,8 +1199,11 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
     onError: (error, _vars, context) => {
       setLocalStatus(myRSVP?.status || null);
       if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
-      toast.error('Could not cancel RSVP', {
-        description: error?.message || 'Please try again.',
+      const isNotFound = error?.message === 'RSVP_NOT_FOUND';
+      toast.error(isNotFound ? 'Already cancelled' : 'Could not cancel RSVP', {
+        description: isNotFound
+          ? 'This RSVP was already removed.'
+          : error?.message || 'Please try again.',
       });
     },
     onSettled: () => {

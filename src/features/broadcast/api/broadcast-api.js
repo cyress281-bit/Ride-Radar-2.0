@@ -270,12 +270,16 @@ export async function setEventRsvp(broadcastId, userId, status) {
  * @returns {Promise<{data: null, error: null}>}
  */
 export async function removeEventRsvp(broadcastId, userId) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('event_rsvps')
     .delete()
     .eq('broadcast_id', broadcastId)
-    .eq('user_id', userId);
+    .eq('user_id', userId)
+    .select();
 
   if (error) throw error;
-  return { data: null, error: null };
+  if (!data || data.length === 0) {
+    throw new Error('RSVP_NOT_FOUND');
+  }
+  return { data, error: null };
 }
