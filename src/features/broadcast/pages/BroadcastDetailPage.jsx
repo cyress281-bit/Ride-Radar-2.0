@@ -1126,19 +1126,30 @@ function BroadcastDetailPage() {
 }
 
 const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onChange }) {
+  const qc = useQueryClient();
+  const queryKey = ['myRSVP', broadcast.id, user.id];
+
   const set = useMutation({
     mutationFn: async (status) => {
       const { data, error } = await setEventRsvp(broadcast.id, user.id, status);
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      onChange();
+    onMutate: async (status) => {
+      await qc.cancelQueries({ queryKey });
+      const previous = qc.getQueryData(queryKey);
+      qc.setQueryData(queryKey, { status, broadcast_id: broadcast.id, user_id: user.id });
+      return { previous, queryKey };
     },
-    onError: (error) => {
+    onError: (error, _status, context) => {
+      if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
       toast.error('RSVP failed', {
         description: error?.message || 'Could not update your RSVP. Try again.',
       });
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey });
+      onChange();
     },
   });
 
@@ -1146,13 +1157,21 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
     mutationFn: async () => {
       await removeEventRsvp(broadcast.id, user.id);
     },
-    onSuccess: () => {
-      onChange();
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey });
+      const previous = qc.getQueryData(queryKey);
+      qc.setQueryData(queryKey, null);
+      return { previous, queryKey };
     },
-    onError: (error) => {
+    onError: (error, _vars, context) => {
+      if (context?.previous) qc.setQueryData(context.queryKey, context.previous);
       toast.error('Could not cancel RSVP', {
         description: error?.message || 'Please try again.',
       });
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey });
+      onChange();
     },
   });
 
