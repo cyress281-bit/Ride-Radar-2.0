@@ -143,7 +143,7 @@ export async function registerServiceWorker() {
       if (existing && existing.scope) {
         const swUrl = existing.active?.scriptURL || existing.installing?.scriptURL || existing.waiting?.scriptURL;
         // If the SW URL doesn't contain our version marker, unregister it
-        if (swUrl && !swUrl.includes('v=velocity')) {
+        if (swUrl && !swUrl.includes('v=' + __SW_VERSION__)) {
           await existing.unregister();
           // Clear all caches to ensure no stale assets
           if ('caches' in window) {
@@ -170,7 +170,7 @@ export async function registerServiceWorker() {
         );
       }
 
-      registration = await navigator.serviceWorker.register('/sw.js?v=velocity', {
+      registration = await navigator.serviceWorker.register('/sw.js?v=' + __SW_VERSION__, {
         scope: '/',
       });
       attachServiceWorkerUpdateListeners();

@@ -17,6 +17,9 @@ if (process.env.SENTRY_AUTH_TOKEN && process.env.NODE_ENV === 'production') {
 // https://vite.dev/config/
 export default defineConfig({
   logLevel: 'error',
+  define: {
+    __SW_VERSION__: JSON.stringify(Date.now().toString()),
+  },
   plugins: [
     react(),
     VitePWA({
