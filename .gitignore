@@ -41,3 +41,5 @@ NUL
 .vite
 .vercel
 .env*.local
+
+.env*

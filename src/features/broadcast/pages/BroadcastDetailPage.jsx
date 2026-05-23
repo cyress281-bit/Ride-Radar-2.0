@@ -25,6 +25,7 @@ import {
   getLatestOfficialEventRequest,
 } from '@/features/broadcast/api/official-event-requests-api.js';
 import { useConnectionRequestWith, useSendConnectionRequest } from '@/features/connections/hooks/use-connection-requests.js';
+import { useProfileBatch } from '@/hooks/use-profile-batch.js';
 import { broadcastKeys, useRemoveBroadcast, useUpdateBroadcast, useResolveBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
 import BroadcastComments from '@/features/broadcast/components/BroadcastComments.jsx';
 
@@ -437,6 +438,75 @@ const OfficialEventReviewPanel = memo(function OfficialEventReviewPanel({ broadc
   );
 });
 
+function RsvpAvatarRow({ userIds, profiles, label, onExpand }) {
+  if (userIds.length === 0) return null;
+  const visible = userIds.slice(0, 5);
+  const overflow = userIds.length - 5;
+  return (
+    <button onClick={onExpand} className="flex items-center gap-3 w-full pressable py-1">
+      <div className="flex -space-x-2">
+        {visible.map((uid) => {
+          const p = profiles.get(uid);
+          return p?.avatar_url ? (
+            <img key={uid} src={p.avatar_url} alt={p.display_name || 'Rider'}
+              className="w-8 h-8 rounded-full object-cover border-2 border-background" />
+          ) : (
+            <div key={uid}
+              className="w-8 h-8 rounded-full bg-surface-elevated border-2 border-background flex items-center justify-center text-xs font-bold text-foreground/60">
+              {p?.display_name?.[0] || '?'}
+            </div>
+          );
+        })}
+        {overflow > 0 && (
+          <div className="w-8 h-8 rounded-full bg-surface-elevated border-2 border-background flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+            +{overflow}
+          </div>
+        )}
+      </div>
+      <Text variant="caption" color="muted" className="font-semibold">
+        {label} · {userIds.length}
+      </Text>
+    </button>
+  );
+}
+
+function RsvpAttendeeSheet({ userIds, profiles, label, onClose }) {
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/60" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[28px] bg-surface border-t border-white/[0.06] px-5 pt-5 pb-8 max-h-[70vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-4">
+          <Text variant="h3" className="font-bold">{label}</Text>
+          <button onClick={onClose}
+            className="pressable text-sm font-semibold text-muted-foreground hover:text-foreground min-h-[44px] px-2">
+            Done
+          </button>
+        </div>
+        <VStack gap={3}>
+          {userIds.map((uid) => {
+            const p = profiles.get(uid);
+            return (
+              <HStack key={uid} gap={3} align="center">
+                {p?.avatar_url ? (
+                  <img src={p.avatar_url} alt={p.display_name || 'Rider'}
+                    className="w-10 h-10 rounded-full object-cover border border-white/[0.08] shrink-0" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-surface-elevated border border-white/[0.08] flex items-center justify-center text-sm font-bold text-foreground/60 shrink-0">
+                    {p?.display_name?.[0] || '?'}
+                  </div>
+                )}
+                <Text variant="bodySm" className="font-semibold truncate">
+                  {p?.display_name || 'Rider'}
+                </Text>
+              </HStack>
+            );
+          })}
+        </VStack>
+      </div>
+    </>
+  );
+}
+
 /**
  * Single broadcast detail page.
  */
@@ -539,19 +609,28 @@ function BroadcastDetailPage() {
     },
   });
 
-  const { data: rsvpCounts = { interested: 0, going: 0 } } = useQuery({
-    queryKey: ['rsvpCounts', id],
+  const { data: rsvpAttendees = { interested: 0, going: 0, rows: [] } } = useQuery({
+    queryKey: ['rsvpAttendees', id],
     enabled: !!broadcast && broadcast.type === 'event',
     queryFn: async () => {
       const { data, error } = await getEventRsvps(id);
       if (error) throw error;
+      const rows = data || [];
       return {
-        interested: (data || []).filter((r) => r.status === 'interested').length,
-        going: (data || []).filter((r) => r.status === 'going').length,
+        interested: rows.filter((r) => r.status === 'interested').length,
+        going: rows.filter((r) => r.status === 'going').length,
+        rows,
       };
     },
   });
 
+  const rsvpCounts = { interested: rsvpAttendees.interested, going: rsvpAttendees.going };
+
+  const goingUserIds = rsvpAttendees.rows.filter((r) => r.status === 'going').map((r) => r.user_id);
+  const interestedUserIds = rsvpAttendees.rows.filter((r) => r.status === 'interested').map((r) => r.user_id);
+  const { profiles: rsvpProfiles } = useProfileBatch([...goingUserIds, ...interestedUserIds]);
+
+  const [sheetStatus, setSheetStatus] = useState(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [removeError, setRemoveError] = useState('');
   const [editOpen, setEditOpen] = useState(false);
@@ -603,7 +682,7 @@ function BroadcastDetailPage() {
           filter: `broadcast_id=eq.${id}`,
         },
         () => {
-          qc.invalidateQueries({ queryKey: ['rsvpCounts', id] });
+          qc.invalidateQueries({ queryKey: ['rsvpAttendees', id] });
           qc.invalidateQueries({ queryKey: ['myRSVP', id, user?.id] });
         }
       )
@@ -1135,6 +1214,33 @@ function BroadcastDetailPage() {
         </div>
       )}
 
+      {/* RSVP Attendee List */}
+      {broadcast.type === 'event' && (goingUserIds.length > 0 || interestedUserIds.length > 0) && (
+        <div className="mt-4 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-4 space-y-3">
+          <RsvpAvatarRow
+            userIds={goingUserIds}
+            profiles={rsvpProfiles}
+            label="Going"
+            onExpand={() => setSheetStatus('going')}
+          />
+          <RsvpAvatarRow
+            userIds={interestedUserIds}
+            profiles={rsvpProfiles}
+            label="Interested"
+            onExpand={() => setSheetStatus('interested')}
+          />
+        </div>
+      )}
+
+      {sheetStatus && (
+        <RsvpAttendeeSheet
+          userIds={sheetStatus === 'going' ? goingUserIds : interestedUserIds}
+          profiles={rsvpProfiles}
+          label={sheetStatus === 'going' ? 'Going' : 'Interested'}
+          onClose={() => setSheetStatus(null)}
+        />
+      )}
+
       {/* Comments */}
       <div id="comments">
         <BroadcastComments
@@ -1330,7 +1436,7 @@ const BroadcastActions = memo(function BroadcastActions({ broadcast, user, myRSV
 
   const handleRsvpChange = useCallback(() => {
     qc.invalidateQueries({ queryKey: ['myRSVP', id, user?.id] });
-    qc.invalidateQueries({ queryKey: ['rsvpCounts', id] });
+    qc.invalidateQueries({ queryKey: ['rsvpAttendees', id] });
   }, [qc, id, user?.id]);
 
   const handleConnectionChange = useCallback(() => {
