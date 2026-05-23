@@ -255,14 +255,12 @@ export async function getMyEventRsvp(broadcastId, userId) {
  * @returns {Promise<{data: object|null, error: Error|null}>}
  */
 export async function setEventRsvp(broadcastId, userId, status) {
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('event_rsvps')
-    .upsert({ broadcast_id: broadcastId, user_id: userId, status }, { onConflict: 'broadcast_id,user_id' })
-    .select()
-    .single();
+    .upsert({ broadcast_id: broadcastId, user_id: userId, status }, { onConflict: 'broadcast_id,user_id' });
 
   if (error) throw error;
-  return { data, error: null };
+  return { data: null, error: null };
 }
 
 /**
@@ -272,16 +270,12 @@ export async function setEventRsvp(broadcastId, userId, status) {
  * @returns {Promise<{data: null, error: null}>}
  */
 export async function removeEventRsvp(broadcastId, userId) {
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('event_rsvps')
     .delete()
     .eq('broadcast_id', broadcastId)
-    .eq('user_id', userId)
-    .select();
+    .eq('user_id', userId);
 
   if (error) throw error;
-  if (!data || data.length === 0) {
-    throw new Error('No RSVP found to cancel. It may have already been removed.');
-  }
-  return { data, error: null };
+  return { data: null, error: null };
 }
