@@ -590,6 +590,30 @@ function BroadcastDetailPage() {
     };
   }, [id, hasValidBroadcastId, qc]);
 
+  // Realtime sync for RSVP counts — instant update when anyone RSVPs
+  useEffect(() => {
+    if (!hasValidBroadcastId || !broadcast || broadcast.type !== 'event') return;
+    const channel = supabase
+      .channel(`event-rsvps-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_rsvps',
+          filter: `broadcast_id=eq.${id}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: ['rsvpCounts', id] });
+          qc.invalidateQueries({ queryKey: ['myRSVP', id, user?.id] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, hasValidBroadcastId, broadcast?.type, user?.id, qc]);
+
   const canEditTitle = broadcast?.type === 'solo_ride' || broadcast?.type === 'iso' || broadcast?.type === 'event';
   const saveDisabled = updateSignal.isPending || (canEditTitle && editTitle.trim().length < 3);
 
