@@ -23,18 +23,14 @@ export function useAdminRole() {
     queryFn: async () => {
       if (!user?.id) return null;
 
-      const { data: userData, error: queryError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle();
+      const { data: isAdmin, error: rpcError } = await supabase.rpc('is_admin');
 
-      if (queryError) {
-        logger.error('[useAdminRole] Error fetching user role:', queryError);
-        throw queryError;
+      if (rpcError) {
+        logger.error('[useAdminRole] Error fetching admin role:', rpcError);
+        throw rpcError;
       }
 
-      return userData;
+      return { role: isAdmin ? 'admin' : null };
     },
     enabled: isAuthenticated && !!user?.id,
     staleTime: 5 * 60 * 1000,
