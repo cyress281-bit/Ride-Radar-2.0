@@ -346,7 +346,7 @@ const RadarOverlay = memo(function RadarOverlay({
             onPointerMove={handlePadPointerMove}
             onPointerUp={handlePadPointerUp}
             onPointerCancel={handlePadPointerCancel}
-            style={{ touchAction: 'none' }}
+            style={{ touchAction: 'manipulation' }}
             className="flex flex-col items-center justify-center gap-[5px] h-6 border-b border-white/[0.05] cursor-grab active:cursor-grabbing select-none"
             aria-label="Drag to reposition controls. Double-tap to reset."
           >

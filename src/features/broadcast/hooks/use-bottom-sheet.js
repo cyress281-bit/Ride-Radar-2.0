@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock.js';
 
@@ -85,10 +85,25 @@ export function useBottomSheet(initialOpen = false) {
 
   useBodyScrollLock(sheetOpen);
 
+  // Attach non-passive touchmove listener to sheet ref so preventDefault() works
+  useEffect(() => {
+    const el = sheetRef.current;
+    if (!el) return;
+
+    const onTouchMove = (e) => {
+      e.preventDefault();
+      const delta = sheetStartY.current - e.touches[0].clientY;
+      sheetCurrentY.current = delta;
+    };
+
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onTouchMove);
+  }, []);
+
   const sheetTouchHandlers = useMemo(
     () => ({
       onTouchStart: handleSheetTouchStart,
-      onTouchMove: handleSheetTouchMove,
+      // onTouchMove is handled via non-passive listener in useEffect above
       onTouchEnd: handleSheetTouchEnd,
     }),
     [handleSheetTouchStart, handleSheetTouchMove, handleSheetTouchEnd]

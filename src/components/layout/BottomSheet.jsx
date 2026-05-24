@@ -45,6 +45,7 @@ const BottomSheet = memo(function BottomSheet({
   const isDragging = useRef(false);
 
   const handlePointerDown = useCallback((e) => {
+    e.preventDefault();
     isDragging.current = true;
     startY.current = e.clientY;
     currentY.current = e.clientY;
