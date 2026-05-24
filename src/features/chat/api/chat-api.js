@@ -38,7 +38,8 @@ export async function getConversations(userId) {
     .select('id, participant_ids, status, last_message_at, last_message_preview, last_message')
     .contains('participant_ids', [userId])
     .neq('status', 'archived')
-    .order('last_message_at', { ascending: false });
+    .order('last_message_at', { ascending: false })
+    .limit(50);
 
   return { data, error };
 }
@@ -48,14 +49,17 @@ export async function getConversations(userId) {
  * @param {string} conversationId
  * @returns {Promise<{data: Array<object>|null, error: Error|null}>}
  */
-export async function getMessages(conversationId) {
+export async function getMessages(conversationId, limit = 100) {
   const { data, error } = await supabase
     .from('messages')
     .select('id, conversation_id, from_user_id, body, created_at, image_url')
     .eq('conversation_id', conversationId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: false })
+    .limit(limit);
 
-  return { data: error ? data : await hydrateMessageImages(data || []), error };
+  if (error) return { data, error };
+  const messages = await hydrateMessageImages((data || []).reverse());
+  return { data: messages, error };
 }
 
 /**
