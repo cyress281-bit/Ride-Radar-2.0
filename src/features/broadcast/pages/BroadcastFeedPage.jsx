@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, useTransition, memo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState, useTransition, memo, useRef, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNearbyBroadcasts } from '@/features/broadcast/hooks/use-nearby-broadcasts.js';
 import { useLiveMapPresence } from '@/features/map/hooks/use-live-map.js';
@@ -9,7 +9,7 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useRadarLocation } from '@/features/broadcast/hooks/use-radar-location.js';
 import { useBottomSheet } from '@/features/broadcast/hooks/use-bottom-sheet.js';
 import { useRadarViewport } from '@/features/broadcast/hooks/use-radar-viewport.js';
-import LiveMap from '@/features/map/components/LiveMap';
+const LiveMap = lazy(() => import('@/features/map/components/LiveMap'));
 import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
 import { RADAR_OFFLINE_SNAPSHOT_KEY, RADAR_OFFLINE_SNAPSHOT_MAX_AGE_MS } from '@/lib/locationCache.js';
 import RadarOverlay from '@/features/broadcast/components/RadarOverlay';
@@ -237,24 +237,33 @@ function BroadcastFeedPage() {
     >
       {/* Full-screen map */}
       <div className="absolute inset-0 z-0">
-        <LiveMap
-          broadcasts={filteredBroadcasts}
-          presenceMarkers={visibleRiderMarkers}
-          getProfile={getProfile}
-          userLat={userLoc.lat}
-          userLng={userLoc.lng}
-          userAccuracyMeters={userLoc.accuracyMeters}
-          isLoading={isLoadingBroadcasts && !usingOfflineSnapshot}
-          variant="radar"
-          className="h-full w-full"
-          fitKey={hasUserLocation ? `self-${locateCount}` : 'default'}
-          focusUserLocation={hasUserLocation}
-          showSelfLocation={hasUserLocation}
-          offlineMode={usingOfflineSnapshot}
-          offlineSnapshotAt={offlineSnapshot?.cachedAt}
-          isLiveMapVisible={isLiveMapVisible}
-          resizeKey={radarViewport.version}
-        />
+        <Suspense
+          fallback={
+            <div className="flex h-full w-full flex-col items-center justify-center bg-background">
+              <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <p className="text-sm font-semibold text-foreground">Loading map…</p>
+            </div>
+          }
+        >
+          <LiveMap
+            broadcasts={filteredBroadcasts}
+            presenceMarkers={visibleRiderMarkers}
+            getProfile={getProfile}
+            userLat={userLoc.lat}
+            userLng={userLoc.lng}
+            userAccuracyMeters={userLoc.accuracyMeters}
+            isLoading={isLoadingBroadcasts && !usingOfflineSnapshot}
+            variant="radar"
+            className="h-full w-full"
+            fitKey={hasUserLocation ? `self-${locateCount}` : 'default'}
+            focusUserLocation={hasUserLocation}
+            showSelfLocation={hasUserLocation}
+            offlineMode={usingOfflineSnapshot}
+            offlineSnapshotAt={offlineSnapshot?.cachedAt}
+            isLiveMapVisible={isLiveMapVisible}
+            resizeKey={radarViewport.version}
+          />
+        </Suspense>
       </div>
 
       <RadarOverlay
