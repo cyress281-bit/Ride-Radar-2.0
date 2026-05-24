@@ -147,7 +147,21 @@ function RiderProfilePage() {
       }, () => {
         qc.invalidateQueries({ queryKey: friendshipKeys.all });
       })
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[RiderProfilePage] Realtime disconnected (expected reconnect)', { status });
+            markRealtimeSurfaceReconnecting('rider-profile');
+          } else {
+            logger.error('[RiderProfilePage] Realtime subscription error:', err);
+            markRealtimeSurfaceError('rider-profile');
+          }
+        } else if (status && status !== 'SUBSCRIBED') {
+          markRealtimeSurfaceReconnecting('rider-profile');
+        } else if (status === 'SUBSCRIBED') {
+          markRealtimeSurfaceSubscribed('rider-profile');
+        }
+      });
 
     return () => supabase.removeChannel(channel);
   }, [user?.id, userId, qc]);
@@ -169,7 +183,21 @@ function RiderProfilePage() {
           qc.invalidateQueries({ queryKey: broadcastKeys.author(userId) });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[RiderProfilePage] Realtime disconnected (expected reconnect)', { status });
+            markRealtimeSurfaceReconnecting('rider-profile');
+          } else {
+            logger.error('[RiderProfilePage] Realtime subscription error:', err);
+            markRealtimeSurfaceError('rider-profile');
+          }
+        } else if (status && status !== 'SUBSCRIBED') {
+          markRealtimeSurfaceReconnecting('rider-profile');
+        } else if (status === 'SUBSCRIBED') {
+          markRealtimeSurfaceSubscribed('rider-profile');
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

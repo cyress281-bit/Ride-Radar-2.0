@@ -7,6 +7,13 @@ import {
 } from '@/features/profile/api/comments-api.js';
 import { supabase } from '@/lib/supabase.js';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger.js';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
+import {
+  markRealtimeSurfaceSubscribed,
+  markRealtimeSurfaceReconnecting,
+  markRealtimeSurfaceError,
+} from '@/lib/realtimeHealthRegistry.js';
 
 const COMMENTS_KEY = 'post-comments';
 
@@ -37,7 +44,21 @@ export function usePostComments(postId) {
         { event: 'DELETE', schema: 'public', table: 'post_comments', filter: `post_id=eq.${postId}` },
         () => { qc.invalidateQueries({ queryKey: [COMMENTS_KEY, postId] }); }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[usePostComments] Realtime disconnected (expected reconnect)', { status });
+            markRealtimeSurfaceReconnecting('post-comments');
+          } else {
+            logger.error('[usePostComments] Realtime subscription error:', err);
+            markRealtimeSurfaceError('post-comments');
+          }
+        } else if (status && status !== 'SUBSCRIBED') {
+          markRealtimeSurfaceReconnecting('post-comments');
+        } else if (status === 'SUBSCRIBED') {
+          markRealtimeSurfaceSubscribed('post-comments');
+        }
+      });
 
     return () => { supabase.removeChannel(channel); };
   }, [postId, qc]);

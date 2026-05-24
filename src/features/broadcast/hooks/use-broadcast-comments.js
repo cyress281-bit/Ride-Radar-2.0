@@ -7,6 +7,13 @@ import {
 } from '@/features/broadcast/api/comments-api.js';
 import { supabase } from '@/lib/supabase.js';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger.js';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
+import {
+  markRealtimeSurfaceSubscribed,
+  markRealtimeSurfaceReconnecting,
+  markRealtimeSurfaceError,
+} from '@/lib/realtimeHealthRegistry.js';
 
 const COMMENTS_KEY = 'broadcast-comments';
 
@@ -36,7 +43,21 @@ export function useBroadcastComments(broadcastId) {
           qc.invalidateQueries({ queryKey: [COMMENTS_KEY, broadcastId] });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[useBroadcastComments] Realtime disconnected (expected reconnect)', { status });
+            markRealtimeSurfaceReconnecting('broadcast-comments');
+          } else {
+            logger.error('[useBroadcastComments] Realtime subscription error:', err);
+            markRealtimeSurfaceError('broadcast-comments');
+          }
+        } else if (status && status !== 'SUBSCRIBED') {
+          markRealtimeSurfaceReconnecting('broadcast-comments');
+        } else if (status === 'SUBSCRIBED') {
+          markRealtimeSurfaceSubscribed('broadcast-comments');
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

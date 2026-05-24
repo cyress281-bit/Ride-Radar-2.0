@@ -24,6 +24,13 @@ import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
 import { useUserPosts } from '@/features/profile/hooks/use-user-posts';
+import { logger } from '@/lib/logger';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects';
+import {
+  markRealtimeSurfaceSubscribed,
+  markRealtimeSurfaceReconnecting,
+  markRealtimeSurfaceError,
+} from '@/lib/realtimeHealthRegistry';
 import PostGrid from '@/features/profile/components/PostGrid';
 import PostCreateSheet from '@/features/profile/components/PostCreateSheet';
 import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
@@ -96,7 +103,21 @@ function ProfilePage() {
           qc.invalidateQueries({ queryKey: broadcastKeys.author(user.id) });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (err) {
+          if (isExpectedRealtimeDisconnect(err, status)) {
+            logger.debug('[ProfilePage] Realtime disconnected (expected reconnect)', { status });
+            markRealtimeSurfaceReconnecting('profile-page');
+          } else {
+            logger.error('[ProfilePage] Realtime subscription error:', err);
+            markRealtimeSurfaceError('profile-page');
+          }
+        } else if (status && status !== 'SUBSCRIBED') {
+          markRealtimeSurfaceReconnecting('profile-page');
+        } else if (status === 'SUBSCRIBED') {
+          markRealtimeSurfaceSubscribed('profile-page');
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
