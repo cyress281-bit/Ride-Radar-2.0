@@ -112,7 +112,7 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
   // ────────────────────────────────────────────────────────────────────────────
 
   const settingsQuery = useQuery({
-    queryKey: ['settings', userId],
+    queryKey: settingsKeys.detail(userId),
     enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase

@@ -20,6 +20,7 @@ import {
   useMarkAsRead,
   useMarkAllAsRead,
   useDeleteNotification,
+  notificationKeys,
 } from '@/features/notifications/hooks/use-notifications.js';
 import {
   useConnectionRequests,
@@ -138,7 +139,7 @@ function ErrorState() {
         <WifiOff className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
         <h2 className="mb-2 text-xl font-bold text-brand-emergency">Signal lost</h2>
         <p className="mb-4 text-sm text-muted-foreground">Unable to load notifications. Please try again.</p>
-        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['notifications'] })} variant="outline" className="rounded-full border-primary/20 bg-background text-foreground hover:bg-surface hover:text-foreground">
+        <Button onClick={() => queryClient.invalidateQueries({ queryKey: notificationKeys.all })} variant="outline" className="rounded-full border-primary/20 bg-background text-foreground hover:bg-surface hover:text-foreground">
           Retry
         </Button>
       </div>

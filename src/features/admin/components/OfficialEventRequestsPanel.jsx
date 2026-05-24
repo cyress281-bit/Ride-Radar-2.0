@@ -391,7 +391,7 @@ export default function OfficialEventRequestsPanel({ broadcasts = [], users = []
       qc.invalidateQueries({ queryKey: ['admin', 'official-event-requests'] });
       qc.invalidateQueries({ queryKey: ['admin', 'broadcasts'] });
       qc.invalidateQueries({ queryKey: broadcastKeys.all });
-      qc.invalidateQueries({ queryKey: broadcastKeys.details() });
+      qc.invalidateQueries({ queryKey: broadcastKeys.all });
       toast.success(
         variables.action === 'approve'
           ? 'Official badge approved'
