@@ -260,6 +260,48 @@ export async function setEventRsvp(broadcastId, userId, status) {
     .upsert({ broadcast_id: broadcastId, user_id: userId, status }, { onConflict: 'broadcast_id,user_id' });
 
   if (error) throw error;
+
+  // Best-effort notification to event creator — never blocks the RSVP itself.
+  try {
+    const { data: broadcast } = await supabase
+      .from('broadcasts')
+      .select('author_id, title')
+      .eq('id', broadcastId)
+      .maybeSingle();
+
+    if (broadcast?.author_id && broadcast.author_id !== userId) {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('display_name, username')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const actorName = profile?.display_name || profile?.username || 'A rider';
+      const STATUS_LABELS = { going: 'going', interested: 'interested', maybe: 'maybe', not_going: 'not going' };
+      const statusLabel = STATUS_LABELS[status] ?? status;
+
+      const { error: notifError } = await supabase.from('notifications').insert({
+        user_id: broadcast.author_id,
+        type: 'rsvp',
+        title: 'New RSVP on your event',
+        body: `${actorName} is ${statusLabel} on "${broadcast.title || 'your event'}".`,
+        data: {
+          broadcast_id: broadcastId,
+          actor_id: userId,
+          actor_display_name: actorName,
+          status,
+          related_entity_type: 'broadcast',
+          related_entity_id: broadcastId,
+        },
+        read: false,
+      });
+
+      if (notifError) logger.error('[setEventRsvp] Notification insert failed:', notifError);
+    }
+  } catch (err) {
+    logger.error('[setEventRsvp] Notification error:', err);
+  }
+
   return { data: null, error: null };
 }
 
