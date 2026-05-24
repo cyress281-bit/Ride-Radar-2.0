@@ -474,8 +474,18 @@ function RsvpAvatarRow({ userIds, profiles, label, onExpand }) {
 function RsvpAttendeeSheet({ userIds, profiles, label, onClose }) {
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[55] bg-black/60" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-[60] rounded-t-[28px] bg-surface border-t border-white/[0.06] px-5 pt-5 pb-safe max-h-[70vh] overflow-y-auto">
+      <div
+        className="fixed inset-x-0 top-0 z-[55] bg-black/60"
+        style={{ bottom: 'calc(70px + var(--rr-safe-area-bottom, 0px))' }}
+        onClick={onClose}
+      />
+      <div
+        className="fixed left-0 right-0 z-[60] rounded-t-[28px] bg-surface border-t border-white/[0.06] px-5 pt-5 pb-6 overflow-y-auto"
+        style={{
+          bottom: 'calc(70px + var(--rr-safe-area-bottom, 0px))',
+          maxHeight: 'calc(70vh - 70px - var(--rr-safe-area-bottom, 0px))',
+        }}
+      >
         <div className="flex items-center justify-between mb-4">
           <Text variant="h3" className="font-bold">{label}</Text>
           <button onClick={onClose}
