@@ -24,6 +24,7 @@ import {
   BACKGROUND_GRACE_MS,
   PRESENCE_TTL_MS,
 } from '@/lib/constants.js';
+import { settingsKeys } from '@/features/settings/hooks/use-settings.js';
 
 const LIVE_SESSION_KEY = 'rr:live-session';
 const PRESENCE_PUBLISH_MIN_DISTANCE_METERS = 150;
