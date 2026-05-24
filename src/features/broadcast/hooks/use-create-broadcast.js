@@ -6,9 +6,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRef } from 'react';
 import { supabase } from '@/lib/supabase.js';
-import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { BROADCAST_EXPIRY_MS, ALERT_PRESET_EXPIRY_MS } from '@/lib/constants.js';
 import { geocodeAddress, approximateLocation } from '@/lib/geocoding.js';
 import { logger } from '@/lib/logger.js';
@@ -21,17 +19,18 @@ function normalizeLocationText(text) {
   return String(text || '').trim().replace(/\s+/g, ' ');
 }
 
+const lastRunRef = { current: 0 };
+
 /**
  * Hook to create a new broadcast.
  */
 export function useCreateBroadcast() {
-  const { user } = useAuthState();
   const queryClient = useQueryClient();
-  const lastRunRef = useRef(0);
 
   return useMutation({
     mutationFn: async (broadcastData) => {
-      if (!user) throw new Error('Must be authenticated to create a broadcast');
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      if (!freshUser) throw new Error('Must be authenticated to create a broadcast');
 
       const throttleNow = Date.now();
       const cooldownMs = broadcastData.type === 'bike_down' ? 20_000 : 10_000;
@@ -79,7 +78,7 @@ export function useCreateBroadcast() {
           frozenLocation = approximateLocation(
             broadcastData.lat,
             broadcastData.lng,
-            `${user.id}:${now.toISOString()}:${broadcastData.type}`
+            `${freshUser.id}:${now.toISOString()}:${broadcastData.type}`
           );
         }
       }
@@ -104,7 +103,7 @@ export function useCreateBroadcast() {
               frozenLocation = approximateLocation(
                 geocodeResult.lat,
                 geocodeResult.lng,
-                `${user.id}:${now.toISOString()}:event:${exactLocationText}`
+                `${freshUser.id}:${now.toISOString()}:event:${exactLocationText}`
               );
             }
           } catch (error) {
@@ -130,7 +129,7 @@ export function useCreateBroadcast() {
               : approximateLocation(
                   broadcastData.lat,
                   broadcastData.lng,
-                  `${user.id}:${now.toISOString()}:alert:pin`
+                  `${freshUser.id}:${now.toISOString()}:alert:pin`
                 );
         } else if (exactLocationText) {
           try {
@@ -139,7 +138,7 @@ export function useCreateBroadcast() {
               frozenLocation = approximateLocation(
                 geocodeResult.lat,
                 geocodeResult.lng,
-                `${user.id}:${now.toISOString()}:alert:${exactLocationText}`
+                `${freshUser.id}:${now.toISOString()}:alert:${exactLocationText}`
               );
             }
           } catch (error) {
@@ -153,8 +152,33 @@ export function useCreateBroadcast() {
         }
       }
 
+      // Upload images before inserting — track paths so we can clean up if the insert fails.
+      const uploadedPaths = [];
+
+      let event_image_url = null;
+      if (isLocalImage(broadcastData.eventImage)) {
+        const eventImagePath = `events/${freshUser.id}/${Date.now()}.webp`;
+        event_image_url = await uploadImage(broadcastData.eventImage.file, 'uploads', eventImagePath);
+        uploadedPaths.push(eventImagePath);
+      }
+
+      let alert_photos = [];
+      if (broadcastData.alertImages?.length) {
+        const uploadTs = Date.now();
+        alert_photos = await Promise.all(
+          broadcastData.alertImages
+            .filter(isLocalImage)
+            .map(async (img, index) => {
+              const alertPath = `alerts/${freshUser.id}/${uploadTs}-${index}.webp`;
+              const url = await uploadImage(img.file, 'uploads', alertPath);
+              uploadedPaths.push(alertPath);
+              return url;
+            })
+        );
+      }
+
       const broadcast = {
-        author_id: user.id,
+        author_id: freshUser.id,
         type: broadcastData.type === 'bike_down' ? 'alert' : broadcastData.type,
         alert_type: broadcastData.type === 'bike_down' ? 'bike_down' : null,
         iso_subtype: broadcastData.type === 'iso' ? (broadcastData.isoSubtype ?? null) : null,
@@ -162,51 +186,36 @@ export function useCreateBroadcast() {
         body: broadcastData.body || null,
         status: 'active',
         expires_at,
-
         frozen_lat: frozenLocation?.lat ?? null,
         frozen_lng: frozenLocation?.lng ?? null,
         location_name: exactLocationText || null,
-
         event_date: broadcastData.eventDate ? new Date(broadcastData.eventDate).toISOString() : null,
-
-        // Upload images to Supabase Storage before inserting (blob URLs are session-only)
-        // Use owner-scoped paths to satisfy RLS policies
-        event_image_url: isLocalImage(broadcastData.eventImage)
-          ? await uploadImage(
-              broadcastData.eventImage.file,
-              'uploads',
-              `events/${user.id}/${Date.now()}.webp`
-            )
-          : null,
-
-        alert_photos: broadcastData.alertImages?.length
-          ? await Promise.all(
-              broadcastData.alertImages
-                .filter(isLocalImage)
-                .map((img, index) =>
-                  uploadImage(
-                    img.file,
-                    'uploads',
-                    `alerts/${user.id}/${Date.now()}-${index}.webp`
-                  )
-                )
-            )
-          : [],
+        event_image_url,
+        alert_photos,
       };
 
-      const { data, error } = await supabase
-        .from('broadcasts')
-        .insert(broadcast)
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('broadcasts')
+          .insert(broadcast)
+          .select()
+          .single();
 
-      if (error) {
-        logger.error('[useCreateBroadcast] Insert error:', error);
-        throw error;
+        if (error) {
+          logger.error('[useCreateBroadcast] Insert error:', error);
+          throw error;
+        }
+
+        lastRunRef.current = Date.now();
+        return data;
+      } catch (insertError) {
+        if (uploadedPaths.length > 0) {
+          supabase.storage.from('uploads').remove(uploadedPaths).catch((cleanupErr) => {
+            logger.warn('[useCreateBroadcast] Storage cleanup failed after insert error:', cleanupErr);
+          });
+        }
+        throw insertError;
       }
-
-      lastRunRef.current = Date.now();
-      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: broadcastKeys.all });
