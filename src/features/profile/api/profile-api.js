@@ -20,7 +20,7 @@ export async function getProfileByUserId(userId) {
 
   const { data, error } = await supabase
     .from('user_profiles')
-    .select('id, user_id, display_name, username, avatar_url, bio, is_public, is_online, bike_make, bike_model, bike_year, bike_photo_url')
+    .select('id, user_id, display_name, username, avatar_url, bio, is_public, bike_make, bike_model, bike_year, bike_photo_url')
     .eq('user_id', userId)
     .maybeSingle();
 
@@ -37,7 +37,7 @@ export async function getProfileById(profileId) {
 
   const { data, error } = await supabase
     .from('user_profiles')
-    .select('id, user_id, display_name, username, avatar_url, bio, is_public, is_online, bike_make, bike_model, bike_year, bike_photo_url')
+    .select('id, user_id, display_name, username, avatar_url, bio, is_public, bike_make, bike_model, bike_year, bike_photo_url')
     .eq('id', profileId)
     .maybeSingle();
 
@@ -64,7 +64,7 @@ export async function listProfilesByIds(ids) {
       chunks.map((chunk) =>
         supabase
           .from('user_profiles')
-          .select('id, user_id, display_name, username, avatar_url, bio, is_public, is_online, bike_make, bike_model, bike_year, bike_photo_url')
+          .select('id, user_id, display_name, username, avatar_url, bio, is_public, bike_make, bike_model, bike_year, bike_photo_url')
           .in('user_id', chunk)
       )
     );
@@ -137,8 +137,8 @@ export async function searchProfiles(query) {
 
   const pattern = `%${trimmed}%`;
   const [displayNameResult, usernameResult] = await Promise.all([
-    supabase.from('user_profiles').select('id, user_id, display_name, username, avatar_url, bio, is_public, is_online, bike_make, bike_model, bike_year, bike_photo_url').ilike('display_name', pattern).eq('is_public', true).limit(20),
-    supabase.from('user_profiles').select('id, user_id, display_name, username, avatar_url, bio, is_public, is_online, bike_make, bike_model, bike_year, bike_photo_url').ilike('username', pattern).eq('is_public', true).limit(20),
+    supabase.from('user_profiles').select('id, user_id, display_name, username, avatar_url, bio, is_public, bike_make, bike_model, bike_year, bike_photo_url').ilike('display_name', pattern).eq('is_public', true).limit(20),
+    supabase.from('user_profiles').select('id, user_id, display_name, username, avatar_url, bio, is_public, bike_make, bike_model, bike_year, bike_photo_url').ilike('username', pattern).eq('is_public', true).limit(20),
   ]);
 
   const error = displayNameResult.error || usernameResult.error;
