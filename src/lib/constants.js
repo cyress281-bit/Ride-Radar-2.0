@@ -31,16 +31,6 @@ export const ALERT_PRESET_EXPIRY_MS = {
 };
 
 // ------------------------------------------------------------------
-// Map defaults
-// ------------------------------------------------------------------
-
-/** Default search radius in miles. */
-export const DEFAULT_RADIUS_MILES = 50;
-
-/** Maximum number of broadcasts to render or fetch. */
-export const MAX_BROADCASTS = 100;
-
-// ------------------------------------------------------------------
 // Presence / real-time
 // ------------------------------------------------------------------
 

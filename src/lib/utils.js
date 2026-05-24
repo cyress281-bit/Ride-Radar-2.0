@@ -42,55 +42,6 @@ export function timeAgo(dateString) {
 }
 
 /**
- * Format a date string as time remaining until expiry.
- * @param {string|Date|null|undefined} dateString
- * @returns {string}
- */
-export function timeUntilExpiry(dateString) {
-  if (!dateString) return 'expired';
-  const date = new Date(dateString);
-  const timestamp = date.getTime();
-  if (!Number.isFinite(timestamp)) return 'expired';
-  const diffMs = timestamp - Date.now();
-  if (diffMs <= 0) return 'Expired';
-
-  const diffSec = Math.floor(diffMs / 1000);
-  const hours = Math.floor(diffSec / 3600);
-  const minutes = Math.floor((diffSec % 3600) / 60);
-
-  if (hours > 0 && minutes > 0) return `Expires in ${hours}h ${minutes}m`;
-  if (hours > 0) return `Expires in ${hours}h`;
-  if (minutes > 0) return `Expires in ${minutes}m`;
-  return 'Expires in <1m';
-}
-
-/**
- * Clamp a number between min and max (inclusive).
- * @param {number} num
- * @param {number} min
- * @param {number} max
- * @returns {number}
- */
-export function clamp(num, min, max) {
-  return Math.min(Math.max(num, min), max);
-}
-
-/**
- * Debounce a function so it only fires after `ms` of inactivity.
- * @template T
- * @param {(...args: T[]) => void} fn
- * @param {number} ms
- * @returns {(...args: T[]) => void}
- */
-export function debounce(fn, ms) {
-  let timeoutId;
-  return function debounced(...args) {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn.apply(this, args), ms);
-  };
-}
-
-/**
  * Validate whether a string is a valid UUID (v4 or generic).
  * @param {string|null|undefined} str
  * @returns {boolean}
