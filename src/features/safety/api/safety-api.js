@@ -51,15 +51,6 @@ export const createReport = throttle(async function createReport({
     status: 'open',
   };
 
-  // DEBUG: log values to diagnose RLS mismatch
-  const { data: { user } } = await supabase.auth.getUser();
-  console.error('[DEBUG createReport]', {
-    payload_reporter: reporter_user_id,
-    auth_uid: user?.id,
-    match: reporter_user_id === user?.id,
-    hasSession: !!user,
-  });
-
   const { data, error } = await supabase
     .from('reports')
     .insert(payload)
