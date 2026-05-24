@@ -582,12 +582,16 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
             <VStack gap={3}>
               <VStack gap={2}>
                 <Label htmlFor="start" className="rr-kicker text-muted-foreground mb-1 block">Starts</Label>
-                <Input id="start" type="datetime-local" {...register('eventDate')} className={cn(controlClass, 'w-full min-w-0 max-w-full')} style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }} />
+                <div style={{ display: 'flex', minWidth: 0, width: '100%' }}>
+                  <Input id="start" type="datetime-local" {...register('eventDate')} className={cn(controlClass, 'min-w-0')} style={{ flex: 1, minWidth: 0 }} />
+                </div>
                 {errors.eventDate && <p className="mt-1 text-xs text-destructive">{errors.eventDate.message}</p>}
               </VStack>
               <VStack gap={2}>
                 <Label htmlFor="end" className="rr-kicker text-muted-foreground mb-1 block">Ends</Label>
-                <Input id="end" type="datetime-local" {...register('eventEndTime')} className={cn(controlClass, 'w-full min-w-0 max-w-full')} style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }} />
+                <div style={{ display: 'flex', minWidth: 0, width: '100%' }}>
+                  <Input id="end" type="datetime-local" {...register('eventEndTime')} className={cn(controlClass, 'min-w-0')} style={{ flex: 1, minWidth: 0 }} />
+                </div>
                 {errors.eventEndTime && <p className="mt-1 text-xs text-destructive">{errors.eventEndTime.message}</p>}
               </VStack>
             </VStack>
