@@ -223,6 +223,11 @@ export default defineConfig({
             return 'vendor-leaflet';
           }
 
+          // MapLibre GL JS + React Map GL (future map engine)
+          if (id.includes('node_modules/maplibre-gl') || id.includes('node_modules/react-map-gl')) {
+            return 'vendor-maplibre';
+          }
+
           // Note: recharts was removed as a dead dependency.
           // If charts are re-added, restore this chunk:
           // if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) {

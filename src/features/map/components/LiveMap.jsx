@@ -23,6 +23,7 @@ import { BROADCAST_META, formatDistance, haversineMiles, timeAgo } from '@/lib/b
 import { cn } from '@/lib/utils.js';
 
 import 'leaflet/dist/leaflet.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 const US_CENTER = [39.8283, -98.5795];
 const DARK_TILE_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
