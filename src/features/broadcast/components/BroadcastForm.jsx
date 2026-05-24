@@ -160,6 +160,30 @@ function normalizeLocationText(value) {
   return String(value || '').trim().replace(/\s+/g, ' ');
 }
 
+const DRAFT_KEY_PREFIX = 'rr:broadcast-draft:';
+
+function readDraft(type) {
+  try {
+    const raw = window.localStorage.getItem(`${DRAFT_KEY_PREFIX}${type}`);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(type, data) {
+  try {
+    window.localStorage.setItem(`${DRAFT_KEY_PREFIX}${type}`, JSON.stringify(data));
+  } catch {}
+}
+
+function clearDraft(type) {
+  try {
+    window.localStorage.removeItem(`${DRAFT_KEY_PREFIX}${type}`);
+  } catch {}
+}
+
 /**
  * Two-step broadcast creation form — Electric Neon Edition.
  *
@@ -196,6 +220,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const [uploadError, setUploadError] = useState('');
   const [geoError, setGeoError] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [draftBanner, setDraftBanner] = useState(null);
   const [locationPrecision, setLocationPrecision] = useState('approximate');
   const eventPinSourceRef = useRef('');
   const eventPinAdjustedRef = useRef(false);
@@ -249,7 +274,36 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const exactLocationTextValue = watch('exactLocationText');
   const eventDateValue = watch('eventDate');
   const eventEndTimeValue = watch('eventEndTime');
+  const titleValue = watch('title');
+  const bodyValue = watch('body');
+  const lookingToValue = watch('lookingTo');
   const normalizedEventLocationText = normalizeLocationText(exactLocationTextValue);
+
+  useEffect(() => {
+    const draft = readDraft(type);
+    if (draft) setDraftBanner(draft);
+  }, [type]);
+
+  useEffect(() => {
+    const draft = {
+      title: titleValue,
+      body: bodyValue,
+      exactLocationText: exactLocationTextValue,
+      eventDate: eventDateValue,
+      eventEndTime: eventEndTimeValue,
+      isoSubtype,
+      lookingTo: lookingToValue,
+      alertPin,
+      eventPin,
+      eventPinAdjusted,
+      locationPrecision,
+    };
+    const timer = setTimeout(() => saveDraft(type, draft), 1000);
+    return () => clearTimeout(timer);
+  }, [
+    titleValue, bodyValue, exactLocationTextValue, eventDateValue, eventEndTimeValue,
+    isoSubtype, lookingToValue, alertPin, eventPin, eventPinAdjusted, locationPrecision, type,
+  ]);
 
   // When the user types a new address (not from pin drag), reset pin state
   // so the autocomplete can set a fresh pin when a suggestion is selected.
@@ -312,6 +366,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
     post.mutate(payload, {
       onSuccess: () => {
+        clearDraft(type);
         reset();
         if (eventImage) revokeLocalImage(eventImage);
         alertImages.forEach(revokeLocalImage);
@@ -344,6 +399,29 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     }).catch(() => {});
   };
 
+  const handleResumeDraft = () => {
+    if (!draftBanner) return;
+    reset({
+      title: draftBanner.title || '',
+      body: draftBanner.body || '',
+      exactLocationText: draftBanner.exactLocationText || '',
+      eventDate: draftBanner.eventDate || '',
+      eventEndTime: draftBanner.eventEndTime || '',
+      isoSubtype: draftBanner.isoSubtype || 'mechanic',
+      lookingTo: draftBanner.lookingTo || 'join_crew',
+    });
+    if (draftBanner.alertPin) setAlertPin(draftBanner.alertPin);
+    if (draftBanner.eventPin) setEventPin(draftBanner.eventPin);
+    if (draftBanner.eventPinAdjusted !== undefined) setEventPinAdjusted(draftBanner.eventPinAdjusted);
+    if (draftBanner.locationPrecision) setLocationPrecision(draftBanner.locationPrecision);
+    setDraftBanner(null);
+  };
+
+  const handleDiscardDraft = () => {
+    clearDraft(type);
+    setDraftBanner(null);
+  };
+
   const handleAddressSelect = (displayName, coords) => {
     setValue('exactLocationText', displayName, { shouldValidate: true });
     eventPinSourceRef.current = displayName;
@@ -367,7 +445,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
 
   return (
     <div className="px-5 pt-5 pb-2 bg-background scroll-smooth">{/* AppLayout <main> applies pb-nav-safe globally */}
-      <button type="button" onClick={onBack} aria-label="Back to signal type" className="pressable mb-3 flex min-h-[44px] items-center gap-1.5 px-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
+      <button type="button" onClick={() => { clearDraft(type); onBack(); }} aria-label="Back to signal type" className="pressable mb-3 flex min-h-[44px] items-center gap-1.5 px-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
         <ArrowLeft className="w-4 h-4" />
       </button>
 
@@ -383,6 +461,30 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           </Text>
         </VStack>
       </HStack>
+
+      {draftBanner && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-primary/25 bg-primary/10 px-4 py-3">
+          <Text variant="caption" className="text-primary font-medium">
+            You have an unsaved draft
+          </Text>
+          <HStack gap={2}>
+            <button
+              type="button"
+              onClick={handleResumeDraft}
+              className="text-xs font-bold text-primary pressable hover:underline"
+            >
+              Resume
+            </button>
+            <button
+              type="button"
+              onClick={handleDiscardDraft}
+              className="text-xs font-bold text-muted-foreground pressable hover:text-foreground"
+            >
+              Discard
+            </button>
+          </HStack>
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className={formSectionClass}>
