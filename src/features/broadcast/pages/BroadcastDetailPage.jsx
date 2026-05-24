@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
@@ -471,7 +472,7 @@ function RsvpAvatarRow({ userIds, profiles, label, onExpand }) {
 }
 
 function RsvpAttendeeSheet({ userIds, profiles, label, onClose }) {
-  return (
+  return createPortal(
     <>
       <div className="fixed inset-0 z-[55] bg-black/60" onClick={onClose} />
       <div className="fixed bottom-0 left-0 right-0 z-[60] rounded-t-[28px] bg-surface border-t border-white/[0.06] px-5 pt-5 pb-safe max-h-[70vh] overflow-y-auto">
@@ -503,7 +504,8 @@ function RsvpAttendeeSheet({ userIds, profiles, label, onClose }) {
           })}
         </VStack>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 
