@@ -7,6 +7,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { supabase } from '@/lib/supabase.js';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -39,12 +40,13 @@ export default function AccountDeletionPage() {
   const { user } = useAuthState();
 
   const [confirmText, setConfirmText] = useState('');
+  const [password, setPassword] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [storageCleanupWarning, setStorageCleanupWarning] = useState(null);
 
-  const canDelete = confirmText.trim() === 'DELETE';
+  const canDelete = confirmText.trim() === 'DELETE' && password.length > 0;
 
   const handleDelete = useCallback(async () => {
     if (!canDelete) return;
@@ -54,6 +56,17 @@ export default function AccountDeletionPage() {
     setStorageCleanupWarning(null);
 
     try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password,
+      });
+
+      if (authError) {
+        setError('Incorrect password. Please try again.');
+        setIsDeleting(false);
+        return;
+      }
+
       const { data: deletionData, error: rpcError } = await deleteAccount();
 
       if (rpcError) {
@@ -182,6 +195,24 @@ export default function AccountDeletionPage() {
             {/* Confirm Input */}
             <div className="rr-glass-panel p-5">
               <Text variant="bodySm" className="font-medium mb-2">
+                Enter your password to confirm
+              </Text>
+              <input
+                id="delete-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Your password"
+                autoComplete="current-password"
+                aria-label="Enter your password to confirm account deletion"
+                aria-required="true"
+                className={cn(
+                  'w-full rounded-xl border bg-surface-elevated/60 px-4 py-3 text-sm text-foreground',
+                  'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-emergency/40 focus-visible:border-brand-emergency/50',
+                  'transition-colors border-border/60'
+                )}
+              />
+              <Text variant="bodySm" className="font-medium mb-2 mt-4">
                 Type <strong className="text-brand-emergency rr-neon-red">DELETE</strong> to confirm
               </Text>
               <input
