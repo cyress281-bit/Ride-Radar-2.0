@@ -205,7 +205,8 @@
   a,
   input,
   textarea,
-  select {
+  select,
+  [role="button"] {
     touch-action: manipulation;
   }
 }
