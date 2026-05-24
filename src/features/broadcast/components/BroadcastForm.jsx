@@ -579,15 +579,15 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
               {uploadError && <p className="mt-2 text-sm text-destructive">{uploadError}</p>}
             </VStack>
 
-            <VStack gap={3} className="min-w-0">
+            <VStack gap={3}>
               <VStack gap={2}>
                 <Label htmlFor="start" className="rr-kicker text-muted-foreground mb-1 block">Starts</Label>
-                <Input id="start" type="datetime-local" {...register('eventDate')} className={cn(controlClass, 'w-full min-w-0')} />
+                <Input id="start" type="datetime-local" {...register('eventDate')} className={cn(controlClass, 'w-full min-w-0 max-w-full')} />
                 {errors.eventDate && <p className="mt-1 text-xs text-destructive">{errors.eventDate.message}</p>}
               </VStack>
               <VStack gap={2}>
                 <Label htmlFor="end" className="rr-kicker text-muted-foreground mb-1 block">Ends</Label>
-                <Input id="end" type="datetime-local" {...register('eventEndTime')} className={cn(controlClass, 'w-full min-w-0')} />
+                <Input id="end" type="datetime-local" {...register('eventEndTime')} className={cn(controlClass, 'w-full min-w-0 max-w-full')} />
                 {errors.eventEndTime && <p className="mt-1 text-xs text-destructive">{errors.eventEndTime.message}</p>}
               </VStack>
             </VStack>
