@@ -22,6 +22,7 @@ import { useCreateBroadcast } from '@/features/broadcast/hooks/use-create-broadc
 import { prepareLocalImage, revokeLocalImage } from '@/lib/image-utils.js';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
+import { reverseGeocodeCoords } from '@/lib/geocoding.js';
 
 const TYPES = [
   { id: 'solo_ride', label: 'Ride Now', desc: 'Open a live riding signal', color: 'solo' },
@@ -335,6 +336,12 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     setEventPinAdjusted(true);
     eventPinSourceRef.current = normalizedEventLocationText;
     setEventPin(nextPin);
+    reverseGeocodeCoords(nextPin.lat, nextPin.lng).then((name) => {
+      if (name) {
+        setValue('exactLocationText', name, { shouldValidate: true });
+        eventPinSourceRef.current = name;
+      }
+    }).catch(() => {});
   };
 
   const handleAddressSelect = (displayName, coords) => {

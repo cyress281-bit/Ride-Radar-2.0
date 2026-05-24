@@ -245,6 +245,64 @@ export async function geocodeAddress(address) {
 }
 
 /**
+ * Reverse-geocode coordinates to a human-readable address string using Nominatim.
+ * Results are cached in localStorage for 24 hours.
+ *
+ * @param {number} lat
+ * @param {number} lng
+ * @returns {Promise<string|null>}
+ */
+export async function reverseGeocodeCoords(lat, lng) {
+  if (!isValidCoordinate(lat, lng)) return null;
+
+  const cacheKey = `${GEOCODE_CACHE_PREFIX}reverse:${Number(lat).toFixed(5)}:${Number(lng).toFixed(5)}`;
+  const cached = getCachedGeocode(cacheKey);
+  if (cached) return cached;
+
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort(), 7000);
+
+  try {
+    const url = new URL('https://nominatim.openstreetmap.org/reverse');
+    url.searchParams.set('format', 'jsonv2');
+    url.searchParams.set('lat', String(lat));
+    url.searchParams.set('lon', String(lng));
+    url.searchParams.set('zoom', '16');
+    url.searchParams.set('addressdetails', '1');
+
+    const contactEmail = import.meta.env.VITE_SUPPORT_EMAIL || null;
+
+    const response = await fetch(url.toString(), {
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': `RideRadar/2.0${contactEmail ? ` (${contactEmail})` : ''}`,
+      },
+    });
+
+    if (!response.ok) throw new Error(`Reverse geocode failed with ${response.status}`);
+
+    const data = await response.json();
+    const addr = data?.address || {};
+
+    const parts = [
+      addr.amenity || addr.leisure || addr.tourism || addr.shop,
+      addr.road || addr.pedestrian || addr.path,
+      addr.city || addr.town || addr.village || addr.hamlet,
+      addr.state,
+    ].filter(Boolean);
+
+    const name = parts.length > 0 ? parts.join(', ') : (data.display_name || null);
+    if (!name) return null;
+
+    setCachedGeocode(cacheKey, name);
+    return name;
+  } finally {
+    globalThis.clearTimeout(timeout);
+  }
+}
+
+/**
  * Return deterministically fuzzed coordinates within ~1.5 miles of the original.
  * The same seed always produces the same offset, preserving privacy while
  * keeping the result stable across renders.
