@@ -117,7 +117,7 @@ export async function searchAddressSuggestions(query, options = {}) {
 
   const controller = new AbortController();
   const timeout = globalThis.setTimeout(() => controller.abort(), PHOTON_TIMEOUT_MS);
-  const abortSignal = signal
+  const abortSignal = signal && typeof AbortSignal.any === 'function'
     ? AbortSignal.any([signal, controller.signal])
     : controller.signal;
 

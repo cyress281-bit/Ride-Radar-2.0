@@ -21,6 +21,17 @@ function normalizeLocationText(text) {
 
 const lastRunRef = { current: 0 };
 
+async function withRetry(fn, retries = 2, delayMs = 500) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i === retries) throw err;
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+}
+
 /**
  * Hook to create a new broadcast.
  */
@@ -98,7 +109,7 @@ export function useCreateBroadcast() {
           };
         } else if (exactLocationText) {
           try {
-            geocodeResult = await geocodeAddress(exactLocationText);
+            geocodeResult = await withRetry(() => geocodeAddress(exactLocationText));
             if (geocodeResult) {
               frozenLocation = approximateLocation(
                 geocodeResult.lat,
@@ -133,7 +144,7 @@ export function useCreateBroadcast() {
                 );
         } else if (exactLocationText) {
           try {
-            geocodeResult = await geocodeAddress(exactLocationText);
+            geocodeResult = await withRetry(() => geocodeAddress(exactLocationText));
             if (geocodeResult) {
               frozenLocation = approximateLocation(
                 geocodeResult.lat,
