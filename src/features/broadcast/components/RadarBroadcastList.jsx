@@ -5,7 +5,7 @@ import VirtualList from '@/components/shared/VirtualList';
 import { VIRTUALIZATION_THRESHOLD } from '@/lib/constants.js';
 import { VStack } from '@/components/ui/primitives/Stack';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { LoadingState } from '@/components/shared/LoadingState';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Radio } from 'lucide-react';
 import { SIGNAL_TYPE_ICONS } from '@/components/brand/SignalIcon';
 
@@ -55,11 +55,19 @@ const RadarBroadcastList = memo(function RadarBroadcastList({
 
   if (isLoading && broadcasts.length === 0) {
     return (
-      <LoadingState
-        variant="spinner"
-        message="Scanning area…"
-        className="py-12"
-      />
+      <div className="space-y-3 p-4">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="rounded-2xl border border-white/[0.06] bg-surface p-4 space-y-3 animate-pulse">
+            <Skeleton className="h-5 w-16 rounded-full" />
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-3 w-full" />
+            <div className="flex items-center gap-2 pt-1">
+              <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+              <Skeleton className="h-3 w-2/5" />
+            </div>
+          </div>
+        ))}
+      </div>
     );
   }
 
