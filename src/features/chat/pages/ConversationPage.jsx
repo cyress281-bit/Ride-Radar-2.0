@@ -175,7 +175,8 @@ function ConversationPage() {
     ({ body, imageFile } = {}) => {
       if (send.isPending) return;
       if (isBlocked) return;
-      send.mutate({ body, imageFile });
+      const _tempId = `msg-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      send.mutate({ body, imageFile, _tempId });
     },
     [send, isBlocked]
   );
@@ -185,9 +186,10 @@ function ConversationPage() {
       <MessageBubble
         message={message}
         isMine={message.from_user_id === user?.id}
+        onRetry={message._failed ? () => send.mutate({ body: message.body, _tempId: message.id }) : undefined}
       />
     ),
-    [user?.id]
+    [user?.id, send]
   );
 
   // Auto-scroll to bottom on new messages
@@ -375,6 +377,7 @@ function ConversationPage() {
                 <MessageBubble
                   message={message}
                   isMine={message.from_user_id === user?.id}
+                  onRetry={message._failed ? () => send.mutate({ body: message.body, _tempId: message.id }) : undefined}
                 />
               </React.Fragment>
             );
