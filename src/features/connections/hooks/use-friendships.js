@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import { getFriendships, getFriendshipBetween, removeFriendship } from '@/features/connections/api/connections-api.js';
-import { connectionRequestKeys } from '@/features/connections/hooks/use-connection-requests.js';
 import {
   markRealtimeSurfaceSubscribed,
   markRealtimeSurfaceReconnecting,
