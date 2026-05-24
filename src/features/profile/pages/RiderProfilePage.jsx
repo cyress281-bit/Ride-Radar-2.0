@@ -27,6 +27,7 @@ import {
   Loader2,
   UserMinus,
   Users,
+  RefreshCw,
 } from 'lucide-react';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/shared/OptimizedImage';
@@ -59,6 +60,7 @@ import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
 import StatPill from '@/features/profile/components/StatPill.jsx';
 import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh.js';
 
 const profileAmbientTopStyle = {
   background:
@@ -297,6 +299,14 @@ function RiderProfilePage() {
     enabled: canSeeDetails && hasValidUserId && !!profile,
   });
 
+  const handleRefresh = useCallback(() => {
+    refetchProfile();
+    refetchBroadcasts();
+    refetchPosts();
+  }, [refetchProfile, refetchBroadcasts, refetchPosts]);
+
+  const { pullOffset, touchHandlers, containerRef } = usePullToRefresh(handleRefresh);
+
   useEffect(() => {
     if (!canSeeDetails && openPostId) {
       setSearchParams(prev => {
@@ -367,7 +377,12 @@ function RiderProfilePage() {
   }
 
   return (
-    <VStack gap={4} className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up bg-background min-h-dvh">
+    <VStack ref={containerRef} {...touchHandlers} gap={4} className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up bg-background min-h-dvh overflow-y-auto">
+      {pullOffset > 10 && (
+        <div className="flex justify-center py-2">
+          <RefreshCw className="h-5 w-5 text-primary animate-spin" />
+        </div>
+      )}
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
 

@@ -9,7 +9,7 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Check, Activity, Bell, WifiOff } from 'lucide-react';
+import { Check, Activity, Bell, WifiOff, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import RRLogo from '@/components/RRLogo';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ import VirtualList from '@/components/shared/VirtualList';
 import NotificationItem from '@/features/notifications/components/NotificationItem.jsx';
 import ConnectionRequestCard from '@/features/notifications/components/ConnectionRequestCard.jsx';
 import NotificationSection from '@/features/notifications/components/NotificationSection.jsx';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh.js';
 
 // ------------------------------------------------------------------
 // Virtualized notification list
@@ -156,7 +157,9 @@ export default function NotificationsPage() {
   const {
     data: notifications = [],
     isLoading: notificationsLoading,
+    isRefetching,
     error: notificationsError,
+    refetch,
   } = useNotifications(user?.id);
 
   const { mutate: markRead } = useMarkAsRead();
@@ -204,11 +207,19 @@ export default function NotificationsPage() {
   const { today, yesterday, earlier } = groupNotificationsByDate(visibleNotifications);
   const shouldVirtualize = visibleNotifications.length >= VIRTUALIZATION_THRESHOLD;
 
+  const { pullOffset, touchHandlers, containerRef } = usePullToRefresh(() => refetch?.());
+
   if (notificationsError) return <ErrorState />;
 
   return (
-    <div className="px-5 pt-3 pb-8 bg-background min-h-dvh">
+    <div ref={containerRef} {...touchHandlers} className="px-5 pt-3 pb-8 bg-background min-h-dvh overflow-y-auto">
       <NotificationHeader unreadCount={unreadCount} />
+
+      {pullOffset > 10 && (
+        <div className="flex justify-center py-2">
+          <RefreshCw className={cn('h-5 w-5 text-primary', isRefetching && 'animate-spin')} />
+        </div>
+      )}
 
       {unreadCount > 0 && (
         <div className="mb-4 flex justify-end">
