@@ -51,8 +51,8 @@ import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils.js';
-import { LoadingState } from '@/components/shared/LoadingState';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { useUserPosts } from '@/features/profile/hooks/use-user-posts';
 import PostGrid from '@/features/profile/components/PostGrid';
@@ -663,7 +663,19 @@ function RiderProfilePage() {
 
           <TabsContent value="broadcasts" className="mt-4">
             {isBroadcastsLoading ? (
-              <LoadingState variant="section" message="Loading signals..." />
+              <div className="space-y-3 mt-4">
+                {[0,1,2].map((i) => (
+                  <div key={i} className="rounded-2xl border border-white/[0.06] bg-surface p-4 space-y-3 animate-pulse">
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-3 w-full" />
+                    <div className="flex items-center gap-2 pt-1">
+                      <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+                      <Skeleton className="h-3 w-2/5" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : broadcastsError ? (
               <ErrorState title="Signals unavailable" onRetry={refetchBroadcasts} />
             ) : activeBroadcasts.length > 0 ? (
@@ -681,7 +693,11 @@ function RiderProfilePage() {
 
           <TabsContent value="media" className="mt-4">
             {postsLoading ? (
-              <LoadingState variant="section" message="Loading shots..." />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+                {[0,1,2,3,4,5].map((i) => (
+                  <Skeleton key={i} className="aspect-[4/3] rounded-2xl w-full" />
+                ))}
+              </div>
             ) : postsFailed ? (
               <ErrorState title="Shots unavailable" onRetry={refetchPosts} />
             ) : riderPosts.length === 0 ? (
