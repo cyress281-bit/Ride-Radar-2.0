@@ -306,6 +306,12 @@
     will-change: box-shadow;
   }
 
+  input[type="datetime-local"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
   /* ---------- Interaction ---------- */
   .rr-haptic {
     @apply transition-transform duration-150 ease-out transform-gpu;
