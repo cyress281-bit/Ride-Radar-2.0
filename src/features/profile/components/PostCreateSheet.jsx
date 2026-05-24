@@ -5,6 +5,7 @@ import { useCreatePost } from '@/features/profile/hooks/use-user-posts';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
+import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock.js';
 
 const MAX_PHOTOS = 6;
 const ACCEPTED = 'image/jpeg,image/jpg,image/png,image/webp';
@@ -15,6 +16,8 @@ const ACCEPTED = 'image/jpeg,image/jpg,image/png,image/webp';
  * @param {{ open: boolean, onClose: () => void, userId: string }} props
  */
 const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId }) {
+  useBodyScrollLock(open);
+
   const [photos, setPhotos] = useState([]);
   const [caption, setCaption] = useState('');
   const [error, setError] = useState('');

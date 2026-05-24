@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
+import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock.js';
 
 const HEIGHT_MAP = {
   auto: undefined,
@@ -36,6 +37,8 @@ const BottomSheet = memo(function BottomSheet({
   height = 'auto',
   className,
 }) {
+  useBodyScrollLock(isOpen);
+
   const contentRef = useRef(null);
   const startY = useRef(0);
   const currentY = useRef(0);

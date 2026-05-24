@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock.js';
 
 /**
  * Hook to manage the radar bottom sheet state, drag gestures,
@@ -82,17 +83,7 @@ export function useBottomSheet(initialOpen = false) {
     e.stopPropagation();
   }, [pullOffset, queryClient]);
 
-  // Prevent body scroll when bottom sheet is open.
-  // Always restore on cleanup so unmounting with an open sheet doesn't leave
-  // overflow:hidden stuck on the body.
-  useEffect(() => {
-    if (!sheetOpen) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [sheetOpen]);
+  useBodyScrollLock(sheetOpen);
 
   const sheetTouchHandlers = useMemo(
     () => ({

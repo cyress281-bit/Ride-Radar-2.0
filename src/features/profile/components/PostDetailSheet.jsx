@@ -8,6 +8,7 @@ import { VStack } from '@/components/ui/primitives/Stack';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import PostComments from '@/features/profile/components/PostComments';
 import SafetyActions from '@/components/safety/SafetyActions';
+import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock.js';
 
 /**
  * PostDetailSheet — full-screen overlay for viewing a post and optionally deleting it.
@@ -20,6 +21,8 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, c
   useEffect(() => {
     setPhotoIdx(0);
   }, [post?.id]);
+
+  useBodyScrollLock(true);
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState('');
