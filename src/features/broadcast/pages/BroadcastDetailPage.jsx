@@ -473,8 +473,8 @@ function RsvpAvatarRow({ userIds, profiles, label, onExpand }) {
 function RsvpAttendeeSheet({ userIds, profiles, label, onClose }) {
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/60" onClick={onClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[28px] bg-surface border-t border-white/[0.06] px-5 pt-5 pb-8 max-h-[70vh] overflow-y-auto">
+      <div className="fixed inset-0 z-[55] bg-black/60" onClick={onClose} />
+      <div className="fixed bottom-0 left-0 right-0 z-[60] rounded-t-[28px] bg-surface border-t border-white/[0.06] px-5 pt-5 pb-safe max-h-[70vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <Text variant="h3" className="font-bold">{label}</Text>
           <button onClick={onClose}
