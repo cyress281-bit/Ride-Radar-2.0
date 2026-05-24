@@ -1,17 +1,8 @@
--- Deterministic location fuzzing for get_nearby_broadcasts RPC.
+-- Reduce deterministic GPS fuzz radius for solo_ride and iso broadcasts
+-- from ~1 mile (0.015°) to ~1/4 mile (0.004°).
 --
--- solo_ride and iso broadcasts: frozen_lat/frozen_lng fuzzed by ~1 mile
--- using a seed derived from the broadcast id via hashtext(). The same id
--- always produces the same offset — pin position is stable across refreshes.
---
--- alert, bike_down (both b.type='bike_down' and b.type='alert' with
--- alert_type='bike_down'), and event broadcasts: exact coordinates returned.
--- Precision is required for safety alerts and meetup pins.
---
--- Authors viewing their own broadcast always receive exact coordinates.
---
--- DROP required to follow the established pattern for this RPC.
--- RETURNS TABLE shape is unchanged from the previous migration.
+-- 0.004° latitude ≈ 0.27 miles. Provides privacy protection while keeping
+-- pins close enough to be useful for nearby rider discovery.
 
 DROP FUNCTION IF EXISTS public.get_nearby_broadcasts(
   double precision, double precision, double precision, integer, uuid[]
@@ -124,10 +115,6 @@ BEGIN
     c.status,
     c.title,
     c.body,
-    -- Fuzz lat/lng for solo_ride and iso only, unless the viewer is the author.
-    -- hashtext() returns int4 (~±2.1 billion); dividing by 2147483647 gives [-1, 1].
-    -- Multiplying by 0.004° gives ±0.004° offset (~1 mile at US latitudes).
-    -- IS DISTINCT FROM handles NULL auth.uid() safely (unauthenticated = fuzzed).
     CASE
       WHEN c.type IN ('solo_ride', 'iso')
         AND c.author_id IS DISTINCT FROM auth.uid()
