@@ -261,6 +261,8 @@ export async function setEventRsvp(broadcastId, userId, status) {
 
   if (error) throw error;
 
+  console.log('[RSVP-DEBUG] upsert succeeded | broadcastId:', broadcastId, '| userId:', userId, '| status:', status); // (a)
+
   // Best-effort notification to event creator — never blocks the RSVP itself.
   try {
     const { data: broadcast } = await supabase
@@ -269,12 +271,18 @@ export async function setEventRsvp(broadcastId, userId, status) {
       .eq('id', broadcastId)
       .maybeSingle();
 
+    console.log('[RSVP-DEBUG] broadcast fetch | author_id:', broadcast?.author_id, '| title:', broadcast?.title); // (b)
+
     if (broadcast?.author_id && broadcast.author_id !== userId) {
+      console.log('[RSVP-DEBUG] self-check passed — continuing to notify'); // (c) continued
+
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('display_name, username')
         .eq('user_id', userId)
         .maybeSingle();
+
+      console.log('[RSVP-DEBUG] profile fetch | display_name:', profile?.display_name, '| username:', profile?.username); // (d)
 
       const actorName = profile?.display_name || profile?.username || 'A rider';
       const STATUS_LABELS = { going: 'going', interested: 'interested', maybe: 'maybe', not_going: 'not going' };
@@ -296,7 +304,11 @@ export async function setEventRsvp(broadcastId, userId, status) {
         read: false,
       });
 
+      console.log('[RSVP-DEBUG] notification insert | error:', notifError); // (e)
+
       if (notifError) logger.error('[setEventRsvp] Notification insert failed:', notifError);
+    } else {
+      console.log('[RSVP-DEBUG] self-check skipped | broadcast?.author_id:', broadcast?.author_id, '| userId:', userId); // (c) skipped
     }
   } catch (err) {
     logger.error('[setEventRsvp] Notification error:', err);
