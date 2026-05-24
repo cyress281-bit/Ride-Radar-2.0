@@ -35,7 +35,7 @@ export async function hydrateMessageImages(messages) {
 export async function getConversations(userId) {
   const { data, error } = await supabase
     .from('conversations')
-    .select('*')
+    .select('id, participant_ids, status, last_message_at, last_message_preview, last_message')
     .contains('participant_ids', [userId])
     .neq('status', 'archived')
     .order('last_message_at', { ascending: false });
@@ -51,7 +51,7 @@ export async function getConversations(userId) {
 export async function getMessages(conversationId) {
   const { data, error } = await supabase
     .from('messages')
-    .select('*')
+    .select('id, conversation_id, from_user_id, body, created_at, image_url')
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: true });
 

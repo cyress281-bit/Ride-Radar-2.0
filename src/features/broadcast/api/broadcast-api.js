@@ -24,7 +24,7 @@ export async function getBroadcasts(options = {}) {
 
   let query = supabase
     .from('broadcasts')
-    .select('*')
+    .select('id, author_id, type, status, title, created_at, expires_at, event_date, is_official, location_name')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
