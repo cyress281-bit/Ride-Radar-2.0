@@ -412,7 +412,6 @@ export function useAuthProvider() {
     const seq = profileLoadSeq.current + 1;
     profileLoadSeq.current = seq;
     await loadUserProfile(user.id, session, seq);
-    queryClient.invalidateQueries({ queryKey: ['profile'] });
     queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
   }, [user?.id, loadUserProfile]);
 

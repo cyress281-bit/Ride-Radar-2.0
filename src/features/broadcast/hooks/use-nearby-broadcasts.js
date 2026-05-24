@@ -101,7 +101,7 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds =
     const debouncedInvalidate = () => {
       if (invalidateTimerRef.current) clearTimeout(invalidateTimerRef.current);
       invalidateTimerRef.current = setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['broadcasts', 'nearby'] });
+        queryClient.invalidateQueries({ queryKey: nearbyQueryKeyRef.current });
       }, 2000);
     };
 

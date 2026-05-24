@@ -156,8 +156,6 @@ export function useRemoveFriendship() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendshipKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      queryClient.invalidateQueries({ queryKey: connectionRequestKeys.all });
       toast.success('Friend removed');
     },
     onError: (error) => {

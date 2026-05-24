@@ -218,7 +218,6 @@ export function useCreateBroadcast() {
       }
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: broadcastKeys.all });
       queryClient.invalidateQueries({ queryKey: broadcastKeys.lists() });
       if (data?.id) {
         queryClient.invalidateQueries({ queryKey: broadcastKeys.detail(data.id) });
