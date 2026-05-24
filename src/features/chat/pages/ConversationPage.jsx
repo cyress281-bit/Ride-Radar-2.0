@@ -25,13 +25,21 @@ import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height.js';
 
 /**
  * Loading skeleton for the conversation header and message list.
  */
 function ConversationSkeleton() {
+  const keyboardHeight = useKeyboardHeight();
   return (
-    <VStack className="h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px)-3.5rem-var(--rr-safe-area-bottom,env(safe-area-inset-bottom,0px)))] min-h-0 overflow-hidden">
+    <VStack
+      className="min-h-0 overflow-hidden"
+      style={{
+        height: `calc(var(--rr-viewport-height, 100dvh) - 3.5rem - env(safe-area-inset-top, 0px) - 3.5rem - var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)) - ${keyboardHeight}px)`,
+        transition: 'height 0.15s ease-out',
+      }}
+    >
       <HStack align="center" gap={3} className="px-4 py-3 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl shrink-0">
         <Skeleton className="h-10 w-10 rounded-full" />
         <VStack gap={1.5} flex={1}>
@@ -64,6 +72,7 @@ function ConversationSkeleton() {
  * and auto-scrolls to the bottom on new messages.
  */
 function ConversationPage() {
+  const keyboardHeight = useKeyboardHeight();
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuthState();
@@ -246,7 +255,13 @@ function ConversationPage() {
   }
 
   return (
-    <VStack className="w-full h-[calc(100dvh-3.5rem-env(safe-area-inset-top,0px)-3.5rem-var(--rr-safe-area-bottom,env(safe-area-inset-bottom,0px)))] min-h-0 bg-background relative overflow-hidden">
+    <VStack
+      className="w-full min-h-0 bg-background relative overflow-hidden"
+      style={{
+        height: `calc(var(--rr-viewport-height, 100dvh) - 3.5rem - env(safe-area-inset-top, 0px) - 3.5rem - var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)) - ${keyboardHeight}px)`,
+        transition: 'height 0.15s ease-out',
+      }}
+    >
       {/* Header */}
       <HStack
         align="center"
