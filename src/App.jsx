@@ -19,6 +19,7 @@ import { getSafeAuthRedirectFromSearch } from './lib/auth-redirect';
 import { isValidUuid } from './lib/utils';
 import { preloadCoreRoutes } from './lib/routePreload';
 import { trackPageView } from './lib/analytics';
+import { getFlag, setFlag } from './lib/featureFlags';
 
 // ------------------------------------------------------------------
 // Eagerly loaded (shell components needed immediately)
@@ -333,6 +334,33 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
 });
 
 // ------------------------------------------------------------------
+// Debug: MapLibre feature-flag toggle (dev only)
+// ------------------------------------------------------------------
+
+const MapLibreDevToggle = memo(function MapLibreDevToggle() {
+  const [isMapLibre, setIsMapLibre] = useState(() => getFlag('maplibre'));
+
+  const handleToggle = useCallback(() => {
+    setFlag('maplibre', !isMapLibre);
+    window.location.reload();
+  }, [isMapLibre]);
+
+  if (!import.meta.env.DEV) return null;
+
+  return (
+    <button
+      onClick={handleToggle}
+      className="fixed bottom-20 left-3 z-[9999] flex h-9 items-center gap-1 rounded-full border border-white/10 bg-black/70 px-3 text-[11px] font-bold uppercase tracking-wider text-white shadow-lg backdrop-blur-md active:scale-95"
+      style={{ touchAction: 'manipulation' }}
+      aria-label={isMapLibre ? 'Switch to Leaflet' : 'Switch to MapLibre'}
+    >
+      <span className="text-sm">{isMapLibre ? '🗺️' : '🌿'}</span>
+      <span>{isMapLibre ? 'L' : 'ML'}</span>
+    </button>
+  );
+});
+
+// ------------------------------------------------------------------
 // App content
 // ------------------------------------------------------------------
 
@@ -345,6 +373,7 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
 const AppContent = memo(function AppContent() {
   return (
     <AppBootLoader>
+      <MapLibreDevToggle />
       <Suspense fallback={null}>
         <ScrollToTop />
         <ColdStartGuard />
