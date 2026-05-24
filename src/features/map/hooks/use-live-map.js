@@ -75,6 +75,8 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
   const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const userId = user?.id;
   const invalidateTimerRef = useRef(null);
+  const retryTimerRef = useRef(null);
+  const retryDelayRef = useRef(2_000);
   const radiusMiles = options.radiusMiles ?? 50;
   const blockedUserIds = Array.isArray(options.blockedUserIds) ? options.blockedUserIds : [];
   const blockedUserIdsKey = JSON.stringify(blockedUserIds);
@@ -195,9 +197,14 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     }
   }, [myPresenceQuery.isError, myPresenceQuery.isSuccess]);
 
-  // Real-time subscription
+  // Real-time subscription with exponential backoff reconnection
   useEffect(() => {
     if (!userId) return;
+
+    // Reset backoff when the effect re-runs (userId or instanceId change)
+    retryDelayRef.current = 2_000;
+
+    let activeChannel = null;
 
     const debouncedInvalidateAll = () => {
       if (invalidateTimerRef.current) clearTimeout(invalidateTimerRef.current);
@@ -206,44 +213,79 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
       }, 2000);
     };
 
-    const channel = supabase
-      .channel(`live-map-presence-realtime-${userId}-${instanceId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'live_map_presence' },
-        (payload) => {
-          debouncedInvalidateAll();
-          const changedUserId = payload.new?.user_id || payload.old?.user_id;
-          if (changedUserId === userId) {
-            queryClient.invalidateQueries({ queryKey: presenceKeys.me(userId) });
-          }
+    function scheduleRetry() {
+      const delay = retryDelayRef.current;
+      retryDelayRef.current = Math.min(delay * 2, 30_000);
+      markRealtimeSurfaceReconnecting('live-presence');
+      retryTimerRef.current = setTimeout(() => {
+        if (activeChannel) {
+          supabase.removeChannel(activeChannel);
+          activeChannel = null;
         }
-      )
-      .subscribe((status, err) => {
-        if (err) {
-          if (isExpectedRealtimeDisconnect(err, status)) {
-            logger.debug('[useLiveMapPresence] Realtime subscription disconnected (expected reconnect)', {
-              status,
-              name: err?.name,
-              code: err?.code,
-              message: err?.message,
-            });
-            markRealtimeSurfaceReconnecting('live-presence');
+        subscribeChannel();
+      }, delay);
+    }
+
+    function subscribeChannel() {
+      const channel = supabase
+        .channel(`live-map-presence-realtime-${userId}-${instanceId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'live_map_presence' },
+          (payload) => {
+            debouncedInvalidateAll();
+            const changedUserId = payload.new?.user_id || payload.old?.user_id;
+            if (changedUserId === userId) {
+              queryClient.invalidateQueries({ queryKey: presenceKeys.me(userId) });
+            }
+          }
+        )
+        .subscribe((status, err) => {
+          if (err) {
+            if (isExpectedRealtimeDisconnect(err, status)) {
+              logger.debug('[useLiveMapPresence] Realtime subscription disconnected (expected reconnect)', {
+                status,
+                name: err?.name,
+                code: err?.code,
+                message: err?.message,
+              });
+            } else {
+              logger.error('[useLiveMapPresence] Realtime subscription error:', err);
+              captureError(err, { source: 'useLiveMapPresence', status });
+            }
+            scheduleRetry();
+            return;
+          }
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            logger.warn('[useLiveMapPresence] Channel error/timeout, scheduling reconnect', { status });
+            scheduleRetry();
+          } else if (status === 'SUBSCRIBED') {
+            retryDelayRef.current = 2_000;
+            if (retryTimerRef.current) {
+              clearTimeout(retryTimerRef.current);
+              retryTimerRef.current = null;
+            }
+            markRealtimeSurfaceSubscribed('live-presence');
           } else {
-            logger.error('[useLiveMapPresence] Realtime subscription error:', err);
-            captureError(err, { source: 'useLiveMapPresence', status });
-            markRealtimeSurfaceError('live-presence');
+            markRealtimeSurfaceReconnecting('live-presence');
           }
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('live-presence');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('live-presence');
-        }
-      });
+        });
+
+      activeChannel = channel;
+    }
+
+    subscribeChannel();
 
     return () => {
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
       if (invalidateTimerRef.current) clearTimeout(invalidateTimerRef.current);
-      supabase.removeChannel(channel);
+      if (activeChannel) {
+        supabase.removeChannel(activeChannel);
+        activeChannel = null;
+      }
     };
   }, [instanceId, queryClient, userId]);
 
