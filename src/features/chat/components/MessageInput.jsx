@@ -160,7 +160,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
             rows={1}
             disabled={disabled || isSending}
             className={cn(
-              'w-full resize-none rounded-full border bg-surface/80 backdrop-blur-md px-5 py-3 text-sm text-foreground',
+              'w-full resize-none rounded-full border bg-surface/80 backdrop-blur-md px-5 py-3 text-foreground',
               'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/30',
               'disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',
               'border-white/[0.06] hover:border-white/[0.08] shadow-depth-1',
