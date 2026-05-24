@@ -112,7 +112,7 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds =
       .channel(`broadcasts-realtime-${instanceId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'broadcasts' },
+        { event: 'INSERT', schema: 'public', table: 'broadcasts', filter: 'status=eq.active' },
         () => {
           logger.debug('[useNearbyBroadcasts] New broadcast received');
           debouncedInvalidate();
