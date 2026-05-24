@@ -87,7 +87,8 @@ export function useAddPostComment() {
 
   return useMutation({
     mutationFn: async ({ postId, body }) => {
-      const { data } = await addPostComment(postId, body);
+      const { data, error } = await addPostComment(postId, body);
+      if (error) throw error;
       return data;
     },
     onSuccess: (_data, variables) => {

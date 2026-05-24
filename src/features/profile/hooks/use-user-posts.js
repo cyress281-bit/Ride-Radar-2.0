@@ -4,6 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getUserPosts, createPost, deletePost } from '@/features/profile/api/posts-api';
+import { toast } from 'sonner';
 
 const POSTS_KEY = 'user-posts';
 
@@ -45,6 +46,11 @@ export function useCreatePost() {
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: [POSTS_KEY, variables.userId] });
     },
+    onError: (error) => {
+      toast.error('Failed to create post', {
+        description: error?.message || 'Please try again.',
+      });
+    },
   });
 }
 
@@ -63,6 +69,11 @@ export function useDeletePost() {
     },
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: [POSTS_KEY, variables.userId] });
+    },
+    onError: (error) => {
+      toast.error('Failed to delete post', {
+        description: error?.message || 'Please try again.',
+      });
     },
   });
 }
