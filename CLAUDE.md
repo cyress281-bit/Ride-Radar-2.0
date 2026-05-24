@@ -230,6 +230,16 @@ Ride Radar is a fully functional PWA with offline support, installability, and b
 
 **iOS Safari known behavior:** Safari checks for SW updates at most once every 24 hours, regardless of HTTP headers. A `?v=velocity` static string cannot force updates — it must change between builds.
 
+### iOS Safari Known Quirks
+
+**iOS Safari — datetime-local input overflow fix:**
+`input[type="datetime-local"]` overflows its container on iOS regardless of `width:100%`, `max-width:100%`, or `overflow-hidden` on the parent. The ONLY fix that works is wrapping the input in a flex container with `min-width:0`, and setting `flex:1 min-width:0` on the input itself:
+```jsx
+<div style={{ display: 'flex', minWidth: 0, width: '100%' }}>
+  <Input type="datetime-local" style={{ flex: 1, minWidth: 0 }} />
+</div>
+```
+
 ---
 
 ## Linting Configuration
