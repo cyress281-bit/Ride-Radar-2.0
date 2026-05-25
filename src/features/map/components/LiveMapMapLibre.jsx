@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils.js';
 
 
 // MapLibre imports
-import { Map, useMap as useMapLibre } from 'react-map-gl/maplibre';
+import { Map as MapLibreMap, useMap as useMapLibre } from 'react-map-gl/maplibre';
 import { Marker as MaplibreMarker, Popup as MaplibrePopup } from 'maplibre-gl';
 
 const US_CENTER = [39.8283, -98.5795];
@@ -909,7 +909,7 @@ function LiveMapMapLibre({
             </div>
           )}
 
-          <Map
+          <MapLibreMap
             ref={mapRef}
             initialViewState={{
               latitude: Array.isArray(initialMapCenter) ? initialMapCenter[0] : initialMapCenter.lat ?? 39.8283,
@@ -955,7 +955,7 @@ function LiveMapMapLibre({
               userAccuracyMeters={userAccuracyMeters}
               onPresenceClick={handlePresenceClick}
             />
-          </Map>
+          </MapLibreMap>
         </div>
         {variant !== 'radar' && <SignalList items={items} userLat={userLat} userLng={userLng} variant={variant} />}
       </div>
