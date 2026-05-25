@@ -733,6 +733,14 @@ function useMapLibrePopup(mapRef) {
       .setDOMContent(container)
       .addTo(map.getMap());
 
+    const popupEl = popup.getElement();
+    console.log('[popup] popup element:', popupEl);
+    console.log('[popup] popup element in DOM:', document.contains(popupEl));
+    console.log('[popup] popup element styles:', popupEl?.style?.cssText);
+    console.log('[popup] popup element classList:', popupEl?.className);
+    console.log('[popup] container innerHTML:', popupEl?.innerHTML?.substring(0, 200));
+    console.log('[popup] maplibre CSS loaded:', !!document.querySelector('.maplibregl-popup'));
+
     popupRef.current = popup;
     rootRef.current = root;
 
