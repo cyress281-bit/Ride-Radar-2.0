@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 import { reverseGeocodeCoords } from '@/lib/geocoding.js';
 import { hasSeenLocationDisclosure } from '@/components/shared/LocationDisclosureDialog';
+import { containsProfanity } from '@/lib/content-filter.js';
 
 const TYPES = [
   { id: 'solo_ride', label: 'Ride Now', desc: 'Open a live riding signal', color: 'solo' },
@@ -348,6 +349,11 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
       toast.error('Add a meetup pin', {
         description: 'Enter a location and select a suggestion, or place the pin manually.',
       });
+      return;
+    }
+
+    if (containsProfanity(values.title) || containsProfanity(values.body)) {
+      toast.error('Please keep content appropriate for all riders');
       return;
     }
 

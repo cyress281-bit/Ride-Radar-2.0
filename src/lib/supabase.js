@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { capacitorStorage } from './capacitor-storage.js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY?.trim();
@@ -126,7 +127,7 @@ if (supabaseUrl && supabaseAnonKey) {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      storage: authStorage,
+      storage: capacitorStorage,
     },
     realtime: {
       params: {

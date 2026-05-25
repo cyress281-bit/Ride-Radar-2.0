@@ -491,7 +491,7 @@ function SettingsPage() {
                 onValueChange={handlePrecisionChange}
                 disabled={isSaving}
               >
-                <SelectTrigger className="w-36 rounded-xl border-border/60 bg-black/25 focus:ring-primary/40">
+                <SelectTrigger className="w-36 rounded-xl border-border/60 bg-background/25 focus:ring-primary/40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="border-border/60 bg-surface-elevated">
