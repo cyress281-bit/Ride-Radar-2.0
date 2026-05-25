@@ -521,7 +521,8 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
           const hasWarning = props.hasWarning === true || props.hasWarning === 'true';
           const el = getClusterElement(count, hasBikeDown, hasWarning);
           el.style.cursor = 'pointer';
-          const handler = () => {
+          const handler = (e) => {
+            e.stopPropagation();
             map.getSource(sourceId).getClusterExpansionZoom(
               props.cluster_id,
               (err, zoom) => {
@@ -554,7 +555,8 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
           const coordinates = unclusteredFeatures[0].geometry.coordinates;
           const el = getMarkerElement(item.markerType || item.type);
           el.style.cursor = 'pointer';
-          const handler = () => {
+          const handler = (e) => {
+            e.stopPropagation();
             onMarkerClick?.(item, coordinates);
           };
           el.addEventListener('click', handler);
@@ -666,7 +668,10 @@ const MapLibrePresenceMarkerLayer = memo(function MapLibrePresenceMarkerLayer({
       if (!markersRef.current.has(markerId)) {
         const el = getRiderMarkerElement(item);
         el.style.cursor = 'pointer';
-        el.addEventListener('click', () => onPresenceClick?.(item));
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          onPresenceClick?.(item);
+        });
         const marker = new MaplibreMarker({ element: el, anchor: 'center' })
           .setLngLat([item.lng, item.lat])
           .addTo(map.getMap());
