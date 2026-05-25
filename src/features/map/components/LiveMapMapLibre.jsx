@@ -743,7 +743,7 @@ function useMapLibrePopup(mapRef, navigate) {
 
     const popup = new MaplibrePopup({
       closeButton: true,
-      closeOnClick: true,
+      closeOnClick: false,
       maxWidth: '288px',
       className: 'rr-map-popup',
       offset: 18,
@@ -882,6 +882,10 @@ function LiveMapMapLibre({
     setHasLoadedAnyTile(false);
   }, []);
 
+  const handleMapClick = useCallback(() => {
+    closePopup();
+  }, [closePopup]);
+
   useEffect(() => {
     if (variant === 'radar') setAutoFitDisabled(false);
   }, [fitKey, variant]);
@@ -972,6 +976,7 @@ function LiveMapMapLibre({
             attributionControl={false}
             onDragStart={handleMapInteraction}
             onZoomStart={handleMapInteraction}
+            onClick={handleMapClick}
             onLoad={() => {
               setTilesLoading(false);
               setHasLoadedAnyTile(true);
