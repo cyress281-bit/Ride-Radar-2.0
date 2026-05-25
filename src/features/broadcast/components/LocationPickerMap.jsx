@@ -124,7 +124,7 @@ function LeafletLocationPickerMap({ defaultCenter, value, onChange, color, zoomL
 // ------------------------------------------------------------------
 
 function MapLibreMapViewportSync({ center, zoom }) {
-  const map = useMapLibre();
+  const map = useMapLibre().current;
   const lastViewRef = useRef('');
 
   useEffect(() => {
@@ -132,7 +132,7 @@ function MapLibreMapViewportSync({ center, zoom }) {
     const nextView = `${center.lat.toFixed(6)}:${center.lng.toFixed(6)}:${zoom}`;
     if (lastViewRef.current === nextView) return;
     lastViewRef.current = nextView;
-    const mapInstance = map.getMap();
+    const mapInstance = map?.getMap();
     if (!mapInstance) return;
     mapInstance.jumpTo({ center: [center.lng, center.lat], zoom });
   }, [center, zoom, map]);
