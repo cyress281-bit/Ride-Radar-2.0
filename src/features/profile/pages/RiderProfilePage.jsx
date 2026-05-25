@@ -45,6 +45,13 @@ import {
   connectionRequestKeys,
 } from '@/features/connections/hooks/use-connection-requests.js';
 import { supabase } from '@/lib/supabase.js';
+import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
+import {
+  markRealtimeSurfaceSubscribed,
+  markRealtimeSurfaceReconnecting,
+  markRealtimeSurfaceError,
+} from '@/lib/realtimeHealthRegistry.js';
+import { logger } from '@/lib/logger.js';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/primitives/Text';
