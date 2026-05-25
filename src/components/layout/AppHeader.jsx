@@ -154,7 +154,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
       className={cn(
         'fixed top-0 left-0 right-0 z-40 pt-safe select-none transition-all duration-300',
         isTransparent
-          ? 'bg-black/30 backdrop-blur-md'
+          ? 'bg-background/30 backdrop-blur-md'
           : scrolled
             ? 'bg-background/80 backdrop-blur-xl border-b border-white/[0.04]'
             : 'bg-transparent'

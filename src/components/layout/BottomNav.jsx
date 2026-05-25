@@ -25,7 +25,7 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
         className={cn(
           'mx-auto max-w-xl pointer-events-auto',
           'relative overflow-hidden rounded-[28px]',
-          'border border-white/[0.08] bg-black/82 backdrop-blur-2xl',
+          'border border-white/[0.08] bg-background/82 backdrop-blur-2xl',
           'shadow-[0_-18px_42px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.03)]'
         )}
       >
