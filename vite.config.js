@@ -84,11 +84,14 @@ export default defineConfig({
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        cacheId: 'rr-v2.1', // Bust caches on deploy — increment when changing runtimeCaching or CSP
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         runtimeCaching: [
           {
-            // Cache dark map tiles so Radar can still show recently viewed areas under poor signal.
-            urlPattern: /^https:\/\/[a-d]\.basemaps\.cartocdn\.com\/dark_all\/.*/i,
+            // Cache vector map tiles for MapLibre (Carto dark-matter).
+            // Matches tiles-a.basemaps.cartocdn.com through tiles-d.basemaps.cartocdn.com
+            urlPattern: /^https:\/\/tiles-[a-d]\.basemaps\.cartocdn\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'radar-map-tile-cache',
