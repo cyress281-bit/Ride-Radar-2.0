@@ -287,8 +287,14 @@ export default defineConfig({
       },
     },
   },
+  // Prevent Vite from pre-bundling maplibre-gl through esbuild — let Rollup handle it
+  // so the package's internal class names and worker code are preserved.
+  optimizeDeps: {
+    exclude: ['maplibre-gl'],
+  },
   // Preserve maplibre-gl class names — minifier mangling breaks Marker, Popup constructors
   esbuild: {
     keepNames: true,
+    target: 'es2020',
   },
 });
