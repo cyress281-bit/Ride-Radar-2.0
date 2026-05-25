@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
-import * as ReactDOM from 'react-dom/client';
+import ReactDOM, { flushSync } from 'react-dom/client';
 import { Link } from 'react-router-dom';
 
 import {
@@ -715,6 +715,11 @@ function useMapLibrePopup(map) {
     }
 
     const container = document.createElement('div');
+    const root = ReactDOM.createRoot(container);
+    flushSync(() => {
+      root.render(<MapPopup item={item} userLat={userLat} userLng={userLng} />);
+    });
+
     const popup = new MaplibrePopup({
       closeButton: true,
       closeOnClick: false,
@@ -725,9 +730,6 @@ function useMapLibrePopup(map) {
       .setLngLat(coordinates)
       .setDOMContent(container)
       .addTo(map.getMap());
-
-    const root = ReactDOM.createRoot(container);
-    root.render(<MapPopup item={item} userLat={userLat} userLng={userLng} />);
 
     popupRef.current = popup;
     rootRef.current = root;
@@ -938,6 +940,10 @@ function LiveMapMapLibre({
             mapStyle={CARTO_DARK_VECTOR_STYLE}
             style={{ width: '100%', height: '100%' }}
             scrollZoom={variant === 'full' || variant === 'radar'}
+            dragPan={true}
+            dragRotate={false}
+            touchZoomRotate={true}
+            touchPitch={false}
             attributionControl={false}
             onDragStart={handleMapInteraction}
             onZoomStart={handleMapInteraction}
