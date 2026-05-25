@@ -90,8 +90,10 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const { isAdmin } = useAdminRole();
-  const { user, profile } = useAuthState();
-  const { data: unreadCount = 0 } = useUnreadCount(user?.id);
+  const { user, profile, isLoading: isAuthLoading } = useAuthState();
+  const { data: unreadCount = 0 } = useUnreadCount(user?.id, {
+    enabled: !!user?.id && !isAuthLoading,
+  });
   const isRadar = pathname === '/home';
   const isHome = pathname === '/home';
   const isConversation = /^\/messages\/.+/.test(pathname);

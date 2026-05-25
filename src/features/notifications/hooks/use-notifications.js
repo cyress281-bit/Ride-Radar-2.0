@@ -190,9 +190,12 @@ export function useNotifications(userId) {
  * so the badge stays fresh without opening another socket.
  *
  * @param {string|null} userId
+ * @param {object} [options]
+ * @param {boolean} [options.enabled] - Additional gate (e.g. wait for auth ready)
  */
-export function useUnreadCount(userId) {
+export function useUnreadCount(userId, options = {}) {
   const qc = useQueryClient();
+  const { enabled: enabledOverride = true } = options;
 
   useEffect(() => {
     const record = attachNotificationRealtimeChannel(userId, qc);
@@ -210,7 +213,7 @@ export function useUnreadCount(userId) {
       if (error) throw error;
       return data;
     },
-    enabled: !!userId,
+    enabled: !!userId && enabledOverride,
     staleTime: 60_000,
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
