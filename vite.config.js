@@ -185,6 +185,8 @@ export default defineConfig({
   build: {
     // Warn when any chunk exceeds 500KB (gzipped chunks above this hurt TTI)
     chunkSizeWarningLimit: 500,
+    // TEMPORARY: disable minification to diagnose maplibre-gl class mangling
+    minify: false,
     rollupOptions: {
       output: {
         manualChunks(id) {
