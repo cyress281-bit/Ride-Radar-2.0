@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import ReactDOM from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 
 import {
   AlertTriangle,
@@ -707,36 +707,57 @@ function useMapLibrePopup(mapRef) {
 
   const showPopup = useCallback((item, coordinates, userLat, userLng) => {
     const map = mapRef.current;
-    console.log('[showPopup] called, map:', !!map, 'coordinates:', coordinates);
-    if (!map) {
-      console.log('[showPopup] no map ref');
-      return;
-    }
+    if (!map) return;
 
-    // Close existing
+    // Close existing popup
     if (popupRef.current) {
       popupRef.current.remove();
+      rootRef.current?.unmount();
       popupRef.current = null;
+      rootRef.current = null;
     }
 
-    try {
-      const mapInstance = map.getMap();
-      console.log('[showPopup] mapInstance:', !!mapInstance);
+    const container = document.createElement('div');
+    container.addEventListener('click', (e) => {
+      const link = e.target.closest('a[href]');
+      if (link) {
+        e.preventDefault();
+        const href = link.getAttribute('href');
+        if (href) window.location.href = href;
+      }
+    });
+    const root = ReactDOM.createRoot(container);
+    flushSync(() => {
+      root.render(
+        <MemoryRouter>
+          <MapPopup item={item} userLat={userLat} userLng={userLng} />
+        </MemoryRouter>
+      );
+    });
 
-      const popup = new MaplibrePopup({
-        closeButton: true,
-        closeOnClick: true,
-        maxWidth: '300px',
-      })
-        .setLngLat(coordinates)
-        .setHTML('<div style="background:red;color:white;padding:20px;font-size:16px;">POPUP TEST - ' + (item?.id || 'no id') + '</div>')
-        .addTo(mapInstance);
+    const popup = new MaplibrePopup({
+      closeButton: true,
+      closeOnClick: false,
+      maxWidth: '288px',
+      className: 'rr-map-popup',
+      offset: 18,
+    })
+      .setLngLat(coordinates)
+      .setDOMContent(container)
+      .addTo(map.getMap());
 
-      console.log('[showPopup] popup added, element:', popup.getElement()?.tagName);
-      popupRef.current = popup;
-    } catch (err) {
-      console.error('[showPopup] error:', err);
-    }
+    popupRef.current = popup;
+    rootRef.current = root;
+
+    popup.on('close', () => {
+      if (rootRef.current === root) {
+        root.unmount();
+        popupRef.current = null;
+        rootRef.current = null;
+      } else {
+        root.unmount();
+      }
+    });
   }, [mapRef]);
 
   const closePopup = useCallback(() => {
