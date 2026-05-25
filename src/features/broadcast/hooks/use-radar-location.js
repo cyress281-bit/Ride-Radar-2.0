@@ -150,26 +150,21 @@ export function useRadarLocation() {
     return () => { if (watchId != null) navigator.geolocation.clearWatch(watchId); };
   }, [acceptLocation, hasUserLocation, highAccuracyMode]);
 
-  // Auto-refresh GPS on mount. Two paths:
-  // 1. Cache is fresh → refresh immediately (existing behavior, now with 4-hour TTL).
-  // 2. Cache is stale/absent → check permissions API (Chrome/Firefox/Safari 16+).
-  //    Only call requestLocation() if permission is already 'granted'. Never prompt.
-  //    iOS Safari ≤15 lacks navigator.permissions — falls through silently; the
-  //    extended TTL covers same-day reopen for those browsers.
+  // Auto-refresh GPS on mount ONLY if permission was previously granted.
+  // Never trigger the permission dialog without a user gesture.
+  // iOS Safari ≤15 lacks navigator.permissions — falls through silently;
+  // the extended TTL covers same-day reopen for those browsers.
   useEffect(() => {
-    const cached = readCachedRadarLocation();
-    if (cached.lat != null && cached.lng != null) {
-      requestLocation();
-      return;
-    }
-    if (!navigator.geolocation || !navigator.permissions) return;
+    if (!navigator.permissions) return;
     let cancelled = false;
     navigator.permissions
       .query({ name: 'geolocation' })
       .then((result) => {
         if (!cancelled && result.state === 'granted') requestLocation();
       })
-      .catch(() => {});
+      .catch(() => {
+        // permissions API not supported — do nothing, wait for user gesture
+      });
     return () => { cancelled = true; };
   }, [requestLocation]);
 
