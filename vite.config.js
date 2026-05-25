@@ -89,9 +89,9 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
         runtimeCaching: [
           {
-            // Cache vector map tiles for MapLibre (Carto dark-matter).
-            // Matches tiles-a.basemaps.cartocdn.com through tiles-d.basemaps.cartocdn.com
-            urlPattern: /^https:\/\/tiles-[a-d]\.basemaps\.cartocdn\.com\/.*/i,
+            // Cache vector map tiles and style JSON for MapLibre (Carto dark-matter).
+            // Matches basemaps.cartocdn.com (style JSON) and tiles-{a-d}.basemaps.cartocdn.com (vector tiles)
+            urlPattern: /^https:\/\/(?:tiles-[a-d]\.)?basemaps\.cartocdn\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'radar-map-tile-cache',
