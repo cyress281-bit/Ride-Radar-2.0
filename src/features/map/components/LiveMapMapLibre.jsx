@@ -277,7 +277,7 @@ const CARTO_DARK_VECTOR_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl
  * No private _loaded or _mapPane internals.
  */
 const MapLibreViewportPersistence = memo(function MapLibreViewportPersistence() {
-  const map = useMapLibre();
+  const map = useMapLibre().current;
 
   useEffect(() => {
     if (!map) return;
@@ -327,7 +327,7 @@ const MapLibreFitToItems = memo(function MapLibreFitToItems({
   fitKey,
   preserveViewportOnMount,
 }) {
-  const map = useMapLibre();
+  const map = useMapLibre().current;
   const lastAppliedFitKeyRef = useRef(null);
   const userLatRef = useRef(userLat);
   const userLngRef = useRef(userLng);
@@ -418,7 +418,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
   userLng,
   onMarkerClick,
 }) {
-  const map = useMapLibre();
+  const map = useMapLibre().current;
   const markersRef = useRef(new Map()); // id -> MaplibreMarker instance
   const handlersRef = useRef(new Map()); // markerId -> { el, handler }
   const sourceId = 'rr-broadcasts';
@@ -617,7 +617,7 @@ const MapLibrePresenceMarkerLayer = memo(function MapLibrePresenceMarkerLayer({
   userAccuracyMeters,
   onPresenceClick,
 }) {
-  const map = useMapLibre();
+  const map = useMapLibre().current;
   const markersRef = useRef(new Map());
 
   useEffect(() => {
