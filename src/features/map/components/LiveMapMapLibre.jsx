@@ -707,53 +707,36 @@ function useMapLibrePopup(mapRef) {
 
   const showPopup = useCallback((item, coordinates, userLat, userLng) => {
     const map = mapRef.current;
-    if (!map) return;
-
-    // Close existing popup
-    if (popupRef.current) {
-      popupRef.current.remove();
-      rootRef.current?.unmount();
-      popupRef.current = null;
-      rootRef.current = null;
+    console.log('[showPopup] called, map:', !!map, 'coordinates:', coordinates);
+    if (!map) {
+      console.log('[showPopup] no map ref');
+      return;
     }
 
-    const container = document.createElement('div');
-    const root = ReactDOM.createRoot(container);
-    flushSync(() => {
-      root.render(<MapPopup item={item} userLat={userLat} userLng={userLng} />);
-    });
+    // Close existing
+    if (popupRef.current) {
+      popupRef.current.remove();
+      popupRef.current = null;
+    }
 
-    const popup = new MaplibrePopup({
-      closeButton: true,
-      closeOnClick: false,
-      maxWidth: '288px',
-      className: 'rr-map-popup',
-      offset: 18,
-    })
-      .setLngLat(coordinates)
-      .setDOMContent(container)
-      .addTo(map.getMap());
+    try {
+      const mapInstance = map.getMap();
+      console.log('[showPopup] mapInstance:', !!mapInstance);
 
-    const popupEl = popup.getElement();
-    console.log('[popup] popup element:', popupEl);
-    console.log('[popup] popup element in DOM:', document.contains(popupEl));
-    console.log('[popup] popup element styles:', popupEl?.style?.cssText);
-    console.log('[popup] popup element classList:', popupEl?.className);
-    console.log('[popup] container innerHTML:', popupEl?.innerHTML?.substring(0, 200));
-    console.log('[popup] maplibre CSS loaded:', !!document.querySelector('.maplibregl-popup'));
+      const popup = new MaplibrePopup({
+        closeButton: true,
+        closeOnClick: true,
+        maxWidth: '300px',
+      })
+        .setLngLat(coordinates)
+        .setHTML('<div style="background:red;color:white;padding:20px;font-size:16px;">POPUP TEST - ' + (item?.id || 'no id') + '</div>')
+        .addTo(mapInstance);
 
-    popupRef.current = popup;
-    rootRef.current = root;
-
-    popup.on('close', () => {
-      if (rootRef.current === root) {
-        root.unmount();
-        popupRef.current = null;
-        rootRef.current = null;
-      } else {
-        root.unmount();
-      }
-    });
+      console.log('[showPopup] popup added, element:', popup.getElement()?.tagName);
+      popupRef.current = popup;
+    } catch (err) {
+      console.error('[showPopup] error:', err);
+    }
   }, [mapRef]);
 
   const closePopup = useCallback(() => {
