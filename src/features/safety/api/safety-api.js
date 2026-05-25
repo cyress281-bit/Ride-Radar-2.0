@@ -27,6 +27,7 @@ export const createReport = throttle(async function createReport({
   target_user_id,
   reason,
   details,
+  target_parent_id,
 }) {
   if (!isValidUuid(reporter_user_id)) {
     return { data: null, error: new Error('Invalid reporter_user_id') };

@@ -4,6 +4,7 @@ import { isRemoteImageUrl } from '@/lib/image-utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
 import { Check, Clock, ImageOff, XCircle } from 'lucide-react';
+import ReportButton from '@/features/safety/components/ReportButton';
 
 /**
  * Single message bubble.
@@ -79,7 +80,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine, onRetry }) 
           {message.body && <span className={cn(isMine && 'pl-1')}>{message.body}</span>}
         </div>
 
-        {/* Meta row: timestamp + delivery state */}
+        {/* Meta row: timestamp + delivery state + report */}
         <HStack align="center" gap={1.5} className="mt-1 px-1">
           <Text variant="micro" color="muted" className="font-mono-data tracking-wide">
             {timeAgo(message.created_at)}
@@ -100,6 +101,15 @@ const MessageBubble = memo(function MessageBubble({ message, isMine, onRetry }) 
                 <Check className="w-3 h-3" aria-hidden="true" />
               </span>
             )
+          )}
+          {!isMine && message?.id && message?.from_user_id && (
+            <ReportButton
+              targetType="message"
+              targetId={message.id}
+              targetUserId={message.from_user_id}
+              size="sm"
+              className="ml-auto"
+            />
           )}
         </HStack>
       </VStack>

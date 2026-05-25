@@ -9,6 +9,7 @@ import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { Avatar } from '@/components/shared/Avatar';
 import { Badge } from './Badge';
 import { withRoutePreload, preloadBroadcastDetail } from '@/lib/routePreload';
+import ReportButton from '@/features/safety/components/ReportButton';
 
 /**
  * Media-rich broadcast card for Ride Radar 2.0 — Electric Neon edition.
@@ -229,6 +230,14 @@ export const RideCard = memo(
               </HStack>
             </VStack>
           </HStack>
+          {broadcast?.id && broadcast?.author_id && (
+            <ReportButton
+              targetType="broadcast"
+              targetId={broadcast.id}
+              targetUserId={broadcast.author_id}
+              size="sm"
+            />
+          )}
         </HStack>
       </>
     );
