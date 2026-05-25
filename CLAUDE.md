@@ -20,13 +20,16 @@ Ride Radar 2.0 is a React-based social network for motorcyclists built on Supaba
 - Report safety alerts with geolocation
 
 **Tech Stack:**
-- React 18 + Vite
+- React 18 + Vite 6
 - Supabase (auth, database, storage, real-time)
-- TanStack Query (React Query) for data fetching with offline support
+- TanStack Query v5 for data fetching with offline support
 - React Router v6 for navigation
-- Tailwind CSS + Radix UI components
+- Tailwind CSS 3.4 + Radix UI components (shadcn/ui)
 - PostGIS for geospatial queries
+- MapLibre GL JS + react-map-gl v8 (maps)
+- Leaflet + react-leaflet (fallback, gated by feature flag)
 - PWA (Progressive Web App) with service worker caching
+- Capacitor 8 (iOS/Android native shells)
 - Deployed on Vercel
 
 **AI Development Tools:**
@@ -326,9 +329,42 @@ useEffect(() => {
 
 ---
 
+## MapLibre GL JS Migration (In Progress)
+
+The app is migrating from Leaflet to MapLibre GL JS. The `USE_MAPLIBRE` feature flag in `src/lib/featureFlags.js` controls dispatch.
+
+**Critical react-map-gl v8 constraint:** `useMapLibre()` returns a `MapCollection`, NOT the raw map instance. The actual `MapRef` is at `.current`:
+```jsx
+const map = useMapLibre().current;  // ✅ MapRef — has .getMap()
+const mapInstance = map.getMap();    // ✅ MapInstance — raw MapLibre GL API
+```
+
+**skipMethods (20 methods NOT proxied by MapRef):** `setMaxBounds`, `setMinZoom`, `setMaxZoom`, `setMinPitch`, `setMaxPitch`, `setRenderWorldCopies`, `setProjection`, `setStyle`, `addSource`, `removeSource`, `addLayer`, `removeLayer`, `setLayerZoomRange`, `setFilter`, `setPaintProperty`, `setLayoutProperty`, `setLight`, `setTerrain`, `setFog`, `remove`
+
+Any of these MUST be called on `mapInstance` (from `.getMap()`), NOT on the `MapRef`.
+
+**Ref vs. current trap:** When passing a map ref to a hook, pass the ref OBJECT, not `ref.current`:
+```jsx
+// ❌ Stale closure — captures null at render time
+const { showPopup } = useMapLibrePopup(mapRef.current);
+
+// ✅ Live ref read — reads .current at execution time
+const { showPopup } = useMapLibrePopup(mapRef);
+```
+
+### MapLibre Files
+- `src/features/map/components/LiveMapMapLibre.jsx` — Main radar map (drop-in replacement for Leaflet LiveMap)
+- `src/features/broadcast/components/LocationPickerMap.jsx` — Pin placement map for event/alert/bike_down forms
+- `src/features/broadcast/components/AlertPinMap.jsx` — Re-exports LocationPickerMap
+
+---
+
 ## Current Known Issues
 
 | Issue | Status | Notes |
 |---|---|---|
-| RSVP toggle deselect | FIXED | Resolved. Root cause was vercel.json invalid wildcard pattern silently failing all deploys. Once fixed, the RSVP_NOT_FOUND error handling and toggle logic worked correctly. |
-| PWA iOS SW update delay | Investigated, no fix applied | iOS Safari 24hr SW update throttle + static `?v=velocity` string. SW never re-fetches between builds on iOS. Investigation done, fix pending user direction. |
+| RSVP toggle deselect | FIXED | Resolved. Root cause was vercel.json invalid wildcard pattern silently failing all deploys. |
+| PWA iOS SW update delay | Investigated, no fix applied | iOS Safari 24hr SW update throttle + static `?v=velocity` string. |
+| Supabase migration history diverged | 🔴 Active | ~40 remote-only migrations not in local repo. `db push` fails. Manual SQL application required. |
+| Sentry fetch failures | 🟡 Active | POST to ingest endpoint failing — likely rate-limited or CORS. Not user-facing. |
+| requestAnimationFrame jank | 🟡 Active | 199ms frame time on lower-end devices. Needs React profiling. |
