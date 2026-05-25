@@ -151,6 +151,7 @@ const BottomSheet = memo(function BottomSheet({
           style={{
             maxHeight: heightStyle,
             height: heightStyle,
+            paddingBottom: 'env(keyboard-inset-height, 0px)',
           }}
           onOpenAutoFocus={(e) => e.preventDefault()}
           aria-describedby={undefined}

@@ -28,6 +28,8 @@
 	<string>Ride Radar uses the camera so you can add photos to your profile, posts, messages, or event content when you choose.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Ride Radar uses your location to show nearby ride signals, help place your signals on the map, and support optional live rider visibility when enabled.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Ride Radar uses your location in the background to support live rider visibility and safety alerts when you have explicitly enabled those features.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Ride Radar uses photo library access so you can upload photos to your profile, posts, messages, or event content when you choose.</string>
 	<key>UILaunchStoryboardName</key>
