@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import ReactDOM from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useNavigate } from 'react-router-dom';
 
 import {
   AlertTriangle,
@@ -701,7 +701,7 @@ const MapLibrePresenceMarkerLayer = memo(function MapLibrePresenceMarkerLayer({
  * Popup state manager — renders MapPopup content into a MaplibrePopup
  * using React createRoot() so full React context is preserved.
  */
-function useMapLibrePopup(mapRef) {
+function useMapLibrePopup(mapRef, navigate) {
   const popupRef = useRef(null);
   const rootRef = useRef(null);
 
@@ -723,7 +723,13 @@ function useMapLibrePopup(mapRef) {
       if (link) {
         e.preventDefault();
         const href = link.getAttribute('href');
-        if (href) window.location.href = href;
+        if (href) {
+          popupRef.current?.remove();
+          rootRef.current?.unmount();
+          popupRef.current = null;
+          rootRef.current = null;
+          navigate(href);
+        }
       }
     });
     const root = ReactDOM.createRoot(container);
@@ -737,7 +743,7 @@ function useMapLibrePopup(mapRef) {
 
     const popup = new MaplibrePopup({
       closeButton: true,
-      closeOnClick: false,
+      closeOnClick: true,
       maxWidth: '288px',
       className: 'rr-map-popup',
       offset: 18,
@@ -887,7 +893,9 @@ function LiveMapMapLibre({
     }
   }, [resizeKey]);
 
-  const { showPopup, closePopup } = useMapLibrePopup(mapRef);
+  const navigate = useNavigate();
+
+  const { showPopup, closePopup } = useMapLibrePopup(mapRef, navigate);
 
   const handleMarkerClick = useCallback((item, coordinates) => {
     showPopup(item, coordinates, userLat, userLng);
