@@ -401,7 +401,7 @@ const MapLibreFitToItems = memo(function MapLibreFitToItems({
       );
       lastAppliedFitKeyRef.current = fitKey;
     }
-  }, [fitKey, disabled, focusUserLocation, items.length, map, variant, preserveViewportOnMount]);
+  }, [fitKey, disabled, focusUserLocation, items, map, variant, preserveViewportOnMount]);
 
   return null;
 });
@@ -421,6 +421,8 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
   const map = useMapLibre().current;
   const markersRef = useRef(new Map()); // id -> MaplibreMarker instance
   const handlersRef = useRef(new Map()); // markerId -> { el, handler }
+  const onMarkerClickRef = useRef(onMarkerClick);
+  useEffect(() => { onMarkerClickRef.current = onMarkerClick; }, [onMarkerClick]);
   const sourceId = 'rr-broadcasts';
   const clusterLayerId = 'rr-cluster-circles';
   const unclusteredLayerId = 'rr-unclustered-points';
@@ -557,7 +559,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
           el.style.cursor = 'pointer';
           const handler = (e) => {
             e.stopPropagation();
-            onMarkerClick?.(item, coordinates);
+            onMarkerClickRef.current?.(item, coordinates);
           };
           el.addEventListener('click', handler);
           handlersRef.current.set(markerId, { el, handler });
@@ -584,7 +586,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
 
       // Remove stale cluster markers only
       markersRef.current.forEach((marker, id) => {
-        if (id.startsWith('cluster-') && !seen.has(id)) {
+        if (!seen.has(id)) {
           const entry = handlersRef.current.get(id);
           if (entry) { entry.el.removeEventListener('click', entry.handler); handlersRef.current.delete(id); }
           marker.remove();
@@ -944,7 +946,6 @@ export default memo(LiveMapMapLibre, (prev, next) => {
   return (
     prev.broadcasts === next.broadcasts &&
     prev.presenceMarkers === next.presenceMarkers &&
-    prev.getProfile === next.getProfile &&
     prev.userLat === next.userLat &&
     prev.userLng === next.userLng &&
     prev.userAccuracyMeters === next.userAccuracyMeters &&
