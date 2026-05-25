@@ -19,7 +19,7 @@ import { divIcon } from 'leaflet';
 // MapLibre imports (active when USE_MAPLIBRE is true)
 // ------------------------------------------------------------------
 import { Map, Marker as MapLibreMarker, useMap as useMapLibre } from 'react-map-gl/maplibre';
-import maplibregl from 'maplibre-gl';
+
 
 const DARK_TILE_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
 const CARTO_DARK_VECTOR_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
