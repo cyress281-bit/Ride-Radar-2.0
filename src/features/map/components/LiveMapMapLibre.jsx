@@ -449,7 +449,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
     if (map.getSource(sourceId)) {
       map.getSource(sourceId).setData(geojson);
     } else {
-      map.addSource(sourceId, {
+      map.getMap().addSource(sourceId, {
         type: 'geojson',
         data: geojson,
         cluster: true,
@@ -462,7 +462,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
       });
 
       // Invisible cluster layer so we can query clusters via querySourceFeatures
-      map.addLayer({
+      map.getMap().addLayer({
         id: clusterLayerId,
         type: 'circle',
         source: sourceId,
@@ -471,7 +471,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
       });
 
       // Invisible unclustered layer for querying
-      map.addLayer({
+      map.getMap().addLayer({
         id: unclusteredLayerId,
         type: 'circle',
         source: sourceId,
@@ -591,9 +591,9 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
       handlersRef.current.forEach(({ el, handler }) => el.removeEventListener('click', handler));
       handlersRef.current.clear();
       try {
-        if (map?.getLayer(clusterLayerId)) map.removeLayer(clusterLayerId);
-        if (map?.getLayer(unclusteredLayerId)) map.removeLayer(unclusteredLayerId);
-        if (map?.getSource(sourceId)) map.removeSource(sourceId);
+        if (map?.getMap()?.getLayer(clusterLayerId)) map.getMap().removeLayer(clusterLayerId);
+        if (map?.getMap()?.getLayer(unclusteredLayerId)) map.getMap().removeLayer(unclusteredLayerId);
+        if (map?.getMap()?.getSource(sourceId)) map.getMap().removeSource(sourceId);
       } catch {
         // Map may already be destroyed
       }
