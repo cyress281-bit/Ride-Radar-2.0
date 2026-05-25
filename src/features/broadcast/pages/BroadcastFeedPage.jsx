@@ -265,6 +265,7 @@ function BroadcastFeedPage() {
               offlineSnapshotAt={offlineSnapshot?.cachedAt}
               isLiveMapVisible={isLiveMapVisible}
               resizeKey={radarViewport.version}
+              navigate={navigate}
             />
           ) : (
             <LiveMap

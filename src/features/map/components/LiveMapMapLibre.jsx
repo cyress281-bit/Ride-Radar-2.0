@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import ReactDOM from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { MemoryRouter, useNavigate } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 
 import {
   AlertTriangle,
@@ -811,6 +811,7 @@ function LiveMapMapLibre({
   offlineSnapshotAt,
   isLiveMapVisible = false,
   resizeKey = 0,
+  navigate,
 }) {
   const [mapError, setMapError] = useState(false);
   const [autoFitDisabled, setAutoFitDisabled] = useState(false);
@@ -896,8 +897,6 @@ function LiveMapMapLibre({
       mapRef.current.resize();
     }
   }, [resizeKey]);
-
-  const navigate = useNavigate();
 
   const { showPopup, closePopup } = useMapLibrePopup(mapRef, navigate);
 
