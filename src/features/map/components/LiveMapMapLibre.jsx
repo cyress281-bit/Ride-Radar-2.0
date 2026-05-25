@@ -502,6 +502,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
     // Render DOM markers after source update
     const renderMarkers = () => {
       if (!map.isSourceLoaded(sourceId)) return;
+      if (map.isMoving()) return;
       const seen = new Set();
 
       // Get cluster features from the current viewport
