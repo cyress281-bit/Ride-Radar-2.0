@@ -424,6 +424,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
   const handlersRef = useRef(new Map()); // markerId -> { el, handler }
   const onMarkerClickRef = useRef(onMarkerClick);
   useEffect(() => { onMarkerClickRef.current = onMarkerClick; }, [onMarkerClick]);
+  const renderThrottleRef = useRef(null);
   const sourceId = 'rr-broadcasts';
   const clusterLayerId = 'rr-cluster-circles';
   const unclusteredLayerId = 'rr-unclustered-points';
@@ -597,12 +598,21 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
       });
     };
 
-    map.on('idle', renderMarkers);
-    map.on('sourcedata', renderMarkers);
+    const throttledRender = () => {
+      if (renderThrottleRef.current) return;
+      renderThrottleRef.current = setTimeout(() => {
+        renderThrottleRef.current = null;
+        renderMarkers();
+      }, 200);
+    };
+
+    map.on('idle', throttledRender);
+    map.on('sourcedata', throttledRender);
 
     return () => {
-      map.off('idle', renderMarkers);
-      map.off('sourcedata', renderMarkers);
+      if (renderThrottleRef.current) clearTimeout(renderThrottleRef.current);
+      map.off('idle', throttledRender);
+      map.off('sourcedata', throttledRender);
     };
   }, [items, map, onMarkerClick, styleReady]);
 
