@@ -185,6 +185,13 @@ export default defineConfig({
   build: {
     // Warn when any chunk exceeds 500KB (gzipped chunks above this hurt TTI)
     chunkSizeWarningLimit: 500,
+    // Use Terser instead of esbuild minify so we can keep class/function names
+    // for maplibre-gl's Web Worker (aggressive mangling breaks worker constructors).
+    minify: 'terser',
+    terserOptions: {
+      keep_classnames: true,
+      keep_fnames: true,
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
