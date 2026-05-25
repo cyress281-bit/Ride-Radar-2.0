@@ -185,10 +185,6 @@ export default defineConfig({
   build: {
     // Warn when any chunk exceeds 500KB (gzipped chunks above this hurt TTI)
     chunkSizeWarningLimit: 500,
-    // Preserve maplibre-gl class names — minifier mangling breaks Marker, Popup constructors
-    esbuild: {
-      keepNames: true,
-    },
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -290,5 +286,9 @@ export default defineConfig({
         },
       },
     },
+  },
+  // Preserve maplibre-gl class names — minifier mangling breaks Marker, Popup constructors
+  esbuild: {
+    keepNames: true,
   },
 });
