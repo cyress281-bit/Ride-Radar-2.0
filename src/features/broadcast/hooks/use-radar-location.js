@@ -150,23 +150,10 @@ export function useRadarLocation() {
     return () => { if (watchId != null) navigator.geolocation.clearWatch(watchId); };
   }, [acceptLocation, hasUserLocation, highAccuracyMode]);
 
-  // Auto-refresh GPS on mount ONLY if permission was previously granted.
-  // Never trigger the permission dialog without a user gesture.
-  // iOS Safari ≤15 lacks navigator.permissions — falls through silently;
-  // the extended TTL covers same-day reopen for those browsers.
-  useEffect(() => {
-    if (!navigator.permissions) return;
-    let cancelled = false;
-    navigator.permissions
-      .query({ name: 'geolocation' })
-      .then((result) => {
-        if (!cancelled && result.state === 'granted') requestLocation();
-      })
-      .catch(() => {
-        // permissions API not supported — do nothing, wait for user gesture
-      });
-    return () => { cancelled = true; };
-  }, [requestLocation]);
+  // NOTE: We intentionally do NOT auto-request location on mount.
+  // Safari requires geolocation to be requested in response to a user gesture.
+  // The cached location (from localStorage) is used until the user taps "Locate me".
+  // Once permission is granted, watchPosition (above) keeps the location updated.
 
   // Preload map tiles around user location for offline use
   useEffect(() => {
