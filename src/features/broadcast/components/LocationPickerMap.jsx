@@ -132,7 +132,9 @@ function MapLibreMapViewportSync({ center, zoom }) {
     const nextView = `${center.lat.toFixed(6)}:${center.lng.toFixed(6)}:${zoom}`;
     if (lastViewRef.current === nextView) return;
     lastViewRef.current = nextView;
-    map.jumpTo({ center: [center.lng, center.lat], zoom });
+    const mapInstance = map.getMap();
+    if (!mapInstance) return;
+    mapInstance.jumpTo({ center: [center.lng, center.lat], zoom });
   }, [center, zoom, map]);
 
   return null;
