@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils.js';
 
 // MapLibre imports
 import { Map, useMap as useMapLibre } from 'react-map-gl/maplibre';
-import maplibregl from 'maplibre-gl';
+import { Marker as MaplibreMarker, Popup as MaplibrePopup } from 'maplibre-gl';
 
 const US_CENTER = [39.8283, -98.5795];
 let lastRadarViewport = null;
@@ -410,7 +410,7 @@ const MapLibreFitToItems = memo(function MapLibreFitToItems({
  * Renders broadcast markers with MapLibre built-in GeoJSON clustering.
  * Replaces Leaflet's BroadcastClusterLayer + L.markerClusterGroup.
  * Uses MapLibre's cluster source to group markers, then renders
- * individual DOM markers via maplibregl.Marker for full CSS styling.
+ * individual DOM markers via MaplibreMarker for full CSS styling.
  */
 const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer({
   items,
@@ -419,7 +419,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
   onMarkerClick,
 }) {
   const map = useMapLibre();
-  const markersRef = useRef(new Map()); // id -> maplibregl.Marker instance
+  const markersRef = useRef(new Map()); // id -> MaplibreMarker instance
   const handlersRef = useRef(new Map()); // markerId -> { el, handler }
   const sourceId = 'rr-broadcasts';
   const clusterLayerId = 'rr-cluster-circles';
@@ -515,7 +515,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
           };
           el.addEventListener('click', handler);
           handlersRef.current.set(markerId, { el, handler });
-          const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+          const marker = new MaplibreMarker({ element: el, anchor: 'center' })
             .setLngLat(coordinates)
             .addTo(map.getMap());
           markersRef.current.set(markerId, marker);
@@ -542,7 +542,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
           };
           el.addEventListener('click', handler);
           handlersRef.current.set(markerId, { el, handler });
-          const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+          const marker = new MaplibreMarker({ element: el, anchor: 'center' })
             .setLngLat(coordinates)
             .addTo(map.getMap());
           markersRef.current.set(markerId, marker);
@@ -631,7 +631,7 @@ const MapLibrePresenceMarkerLayer = memo(function MapLibrePresenceMarkerLayer({
       seen.add(selfId);
       if (!markersRef.current.has(selfId)) {
         const el = getSelfMarkerElement(isLiveMapVisible);
-        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+        const marker = new MaplibreMarker({ element: el, anchor: 'center' })
           .setLngLat([userLng, userLat])
           .addTo(map.getMap());
         markersRef.current.set(selfId, marker);
@@ -648,7 +648,7 @@ const MapLibrePresenceMarkerLayer = memo(function MapLibrePresenceMarkerLayer({
         const el = getRiderMarkerElement(item);
         el.style.cursor = 'pointer';
         el.addEventListener('click', () => onPresenceClick?.(item));
-        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+        const marker = new MaplibreMarker({ element: el, anchor: 'center' })
           .setLngLat([item.lng, item.lat])
           .addTo(map.getMap());
         markersRef.current.set(markerId, marker);
@@ -677,7 +677,7 @@ const MapLibrePresenceMarkerLayer = memo(function MapLibrePresenceMarkerLayer({
 });
 
 /**
- * Popup state manager — renders MapPopup content into a maplibregl.Popup
+ * Popup state manager — renders MapPopup content into a MaplibrePopup
  * using React createRoot() so full React context is preserved.
  */
 function useMapLibrePopup(map) {
@@ -696,7 +696,7 @@ function useMapLibrePopup(map) {
     }
 
     const container = document.createElement('div');
-    const popup = new maplibregl.Popup({
+    const popup = new MaplibrePopup({
       closeButton: true,
       closeOnClick: false,
       maxWidth: '288px',
