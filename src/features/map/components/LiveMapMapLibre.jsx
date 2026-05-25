@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import ReactDOM from 'react-dom/client';
-import { flushSync } from 'react-dom';
+
 import { MemoryRouter } from 'react-router-dom';
 
 import {
