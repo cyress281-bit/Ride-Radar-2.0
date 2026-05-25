@@ -16,6 +16,7 @@ import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
 import { RADAR_OFFLINE_SNAPSHOT_KEY, RADAR_OFFLINE_SNAPSHOT_MAX_AGE_MS } from '@/lib/locationCache.js';
 import RadarOverlay from '@/features/broadcast/components/RadarOverlay';
 import RadarBottomSheet from '@/features/broadcast/components/RadarBottomSheet';
+import LocationDisclosureDialog, { hasSeenLocationDisclosure } from '@/components/shared/LocationDisclosureDialog';
 
 function readRadarOfflineSnapshot() {
   try {
@@ -81,13 +82,26 @@ function BroadcastFeedPage() {
 
   const [offlineSnapshot, setOfflineSnapshot] = useState(readRadarOfflineSnapshot);
   const [locateCount, setLocateCount] = useState(0);
+  const [showLocationDisclosure, setShowLocationDisclosure] = useState(false);
+
   const handleRequestLocation = useCallback(() => {
     if (hasUserLocation) {
       setLocateCount((c) => c + 1);
+    } else if (!hasSeenLocationDisclosure()) {
+      setShowLocationDisclosure(true);
     } else {
       requestLocation();
     }
   }, [hasUserLocation, requestLocation]);
+
+  const handleDisclosureAllow = useCallback(() => {
+    setShowLocationDisclosure(false);
+    requestLocation();
+  }, [requestLocation]);
+
+  const handleDisclosureDismiss = useCallback(() => {
+    setShowLocationDisclosure(false);
+  }, []);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('rank');
   const [isPending, startTransition] = useTransition();
@@ -326,6 +340,12 @@ function BroadcastFeedPage() {
         totalCount={visibleBroadcasts.length}
         hasUserLocation={hasUserLocation}
         liveRiders={visibleRiderMarkers}
+      />
+
+      <LocationDisclosureDialog
+        isOpen={showLocationDisclosure}
+        onAllow={handleDisclosureAllow}
+        onDismiss={handleDisclosureDismiss}
       />
     </div>
   );
