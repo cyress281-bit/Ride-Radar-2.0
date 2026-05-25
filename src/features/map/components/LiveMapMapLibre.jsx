@@ -845,6 +845,32 @@ function LiveMapMapLibre({
     }
   }, []);
 
+  // Tile load detection — confirms tiles are actually rendering
+  useEffect(() => {
+    const mapInstance = mapRef.current?.getMap();
+    if (!mapInstance) return;
+
+    let tileCount = 0;
+    const handleTileLoad = () => {
+      tileCount++;
+      if (tileCount === 1) {
+        console.info('[MapLibre] First tile loaded successfully');
+      }
+    };
+    const handleSourcedata = (e) => {
+      if (e.sourceId === 'carto' && e.isSourceLoaded) {
+        console.info('[MapLibre] Carto source fully loaded');
+      }
+    };
+
+    mapInstance.on('tile.load', handleTileLoad);
+    mapInstance.on('sourcedata', handleSourcedata);
+    return () => {
+      mapInstance.off('tile.load', handleTileLoad);
+      mapInstance.off('sourcedata', handleSourcedata);
+    };
+  }, []);
+
   const handleMarkerClick = useCallback((item, coordinates) => {
     setPopupState({ item, coordinates, userLat, userLng });
   }, [userLat, userLng]);
