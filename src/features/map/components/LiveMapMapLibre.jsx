@@ -424,9 +424,26 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
   const sourceId = 'rr-broadcasts';
   const clusterLayerId = 'rr-cluster-circles';
   const unclusteredLayerId = 'rr-unclustered-points';
+  const [styleReady, setStyleReady] = useState(false);
 
+  // Wait for map style to finish loading before adding sources/layers
   useEffect(() => {
     if (!map) return;
+    const mapInstance = map.getMap();
+    if (!mapInstance) return;
+    if (mapInstance.isStyleLoaded()) {
+      setStyleReady(true);
+      return;
+    }
+    const onLoad = () => setStyleReady(true);
+    mapInstance.once('load', onLoad);
+    return () => { mapInstance.off('load', onLoad); };
+  }, [map]);
+
+  useEffect(() => {
+    if (!map || !styleReady) return;
+    const mapInstance = map.getMap();
+    if (!mapInstance) return;
 
     // Build GeoJSON from items
     const geojson = {
@@ -449,7 +466,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
     if (map.getSource(sourceId)) {
       map.getSource(sourceId).setData(geojson);
     } else {
-      map.getMap().addSource(sourceId, {
+      mapInstance.addSource(sourceId, {
         type: 'geojson',
         data: geojson,
         cluster: true,
@@ -462,7 +479,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
       });
 
       // Invisible cluster layer so we can query clusters via querySourceFeatures
-      map.getMap().addLayer({
+      mapInstance.addLayer({
         id: clusterLayerId,
         type: 'circle',
         source: sourceId,
@@ -471,7 +488,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
       });
 
       // Invisible unclustered layer for querying
-      map.getMap().addLayer({
+      mapInstance.addLayer({
         id: unclusteredLayerId,
         type: 'circle',
         source: sourceId,
@@ -517,7 +534,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
           handlersRef.current.set(markerId, { el, handler });
           const marker = new MaplibreMarker({ element: el, anchor: 'center' })
             .setLngLat(coordinates)
-            .addTo(map.getMap());
+            .addTo(mapInstance);
           markersRef.current.set(markerId, marker);
         } else {
           markersRef.current.get(markerId).setLngLat(coordinates);
@@ -544,7 +561,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
           handlersRef.current.set(markerId, { el, handler });
           const marker = new MaplibreMarker({ element: el, anchor: 'center' })
             .setLngLat(coordinates)
-            .addTo(map.getMap());
+            .addTo(mapInstance);
           markersRef.current.set(markerId, marker);
         } else {
           // Check if still unclustered
@@ -581,7 +598,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
       map.off('idle', renderMarkers);
       map.off('sourcedata', renderMarkers);
     };
-  }, [items, map, onMarkerClick]);
+  }, [items, map, onMarkerClick, styleReady]);
 
   // Cleanup all markers and layers on unmount
   useEffect(() => {
@@ -591,9 +608,11 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
       handlersRef.current.forEach(({ el, handler }) => el.removeEventListener('click', handler));
       handlersRef.current.clear();
       try {
-        if (map?.getMap()?.getLayer(clusterLayerId)) map.getMap().removeLayer(clusterLayerId);
-        if (map?.getMap()?.getLayer(unclusteredLayerId)) map.getMap().removeLayer(unclusteredLayerId);
-        if (map?.getMap()?.getSource(sourceId)) map.getMap().removeSource(sourceId);
+        const mapInstance = map?.getMap();
+        if (!mapInstance) return;
+        if (mapInstance.getLayer(clusterLayerId)) mapInstance.removeLayer(clusterLayerId);
+        if (mapInstance.getLayer(unclusteredLayerId)) mapInstance.removeLayer(unclusteredLayerId);
+        if (mapInstance.getSource(sourceId)) mapInstance.removeSource(sourceId);
       } catch {
         // Map may already be destroyed
       }
