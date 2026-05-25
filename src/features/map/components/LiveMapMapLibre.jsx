@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
-import ReactDOM from 'react-dom/client';
-
-import { MemoryRouter } from 'react-router-dom';
+import { Popup as MapLibrePopupComponent } from 'react-map-gl/maplibre';
 
 import {
   AlertTriangle,
@@ -24,7 +22,7 @@ import { cn } from '@/lib/utils.js';
 
 // MapLibre imports
 import { Map as MapLibreMap, useMap as useMapLibre } from 'react-map-gl/maplibre';
-import { Marker as MaplibreMarker, Popup as MaplibrePopup } from 'maplibre-gl';
+import { Marker as MaplibreMarker } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const US_CENTER = [39.8283, -98.5795];
@@ -698,98 +696,6 @@ const MapLibrePresenceMarkerLayer = memo(function MapLibrePresenceMarkerLayer({
 });
 
 /**
- * Popup state manager — renders MapPopup content into a MaplibrePopup
- * using React createRoot() so full React context is preserved.
- */
-function useMapLibrePopup(mapRef, navigate) {
-  const popupRef = useRef(null);
-  const rootRef = useRef(null);
-
-  const showPopup = useCallback((item, coordinates, userLat, userLng) => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    // Close existing popup
-    if (popupRef.current) {
-      popupRef.current.remove();
-      rootRef.current?.unmount();
-      popupRef.current = null;
-      rootRef.current = null;
-    }
-
-    const container = document.createElement('div');
-    container.addEventListener('click', (e) => {
-      const link = e.target.closest('a[href]');
-      if (link) {
-        e.preventDefault();
-        const href = link.getAttribute('href');
-        if (href) {
-          popupRef.current?.remove();
-          rootRef.current?.unmount();
-          popupRef.current = null;
-          rootRef.current = null;
-          navigate(href);
-        }
-      }
-    });
-    const root = ReactDOM.createRoot(container);
-    flushSync(() => {
-      root.render(
-        <MemoryRouter>
-          <MapPopup item={item} userLat={userLat} userLng={userLng} />
-        </MemoryRouter>
-      );
-    });
-
-    const popup = new MaplibrePopup({
-      closeButton: true,
-      closeOnClick: false,
-      maxWidth: '288px',
-      className: 'rr-map-popup',
-      offset: 18,
-    })
-      .setLngLat(coordinates)
-      .setDOMContent(container)
-      .addTo(map.getMap());
-
-    popupRef.current = popup;
-    rootRef.current = root;
-
-    popup.on('close', () => {
-      if (rootRef.current === root) {
-        root.unmount();
-        popupRef.current = null;
-        rootRef.current = null;
-      } else {
-        root.unmount();
-      }
-    });
-  }, [mapRef]);
-
-  const closePopup = useCallback(() => {
-    const map = mapRef.current;
-    if (popupRef.current) {
-      popupRef.current.remove();
-      rootRef.current?.unmount();
-      popupRef.current = null;
-      rootRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      const map = mapRef.current;
-      if (popupRef.current) {
-        popupRef.current.remove();
-        rootRef.current?.unmount();
-      }
-    };
-  }, []);
-
-  return { showPopup, closePopup };
-}
-
-/**
  * LiveMapMapLibre — MapLibre GL JS implementation of LiveMap.
  * Drop-in replacement for LiveMap (Leaflet) with identical props.
  * Gated by USE_MAPLIBRE feature flag.
@@ -811,12 +717,12 @@ function LiveMapMapLibre({
   offlineSnapshotAt,
   isLiveMapVisible = false,
   resizeKey = 0,
-  navigate,
 }) {
   const [mapError, setMapError] = useState(false);
   const [autoFitDisabled, setAutoFitDisabled] = useState(false);
   const [tilesLoading, setTilesLoading] = useState(true);
   const [hasLoadedAnyTile, setHasLoadedAnyTile] = useState(false);
+  const [popupState, setPopupState] = useState(null);
   const mapRef = useRef(null);
 
   const getProfileRef = useRef(getProfile);
@@ -884,8 +790,8 @@ function LiveMapMapLibre({
   }, []);
 
   const handleMapClick = useCallback(() => {
-    closePopup();
-  }, [closePopup]);
+    setPopupState(null);
+  }, []);
 
   useEffect(() => {
     if (variant === 'radar') setAutoFitDisabled(false);
@@ -898,15 +804,13 @@ function LiveMapMapLibre({
     }
   }, [resizeKey]);
 
-  const { showPopup, closePopup } = useMapLibrePopup(mapRef, navigate);
-
   const handleMarkerClick = useCallback((item, coordinates) => {
-    showPopup(item, coordinates, userLat, userLng);
-  }, [showPopup, userLat, userLng]);
+    setPopupState({ item, coordinates, userLat, userLng });
+  }, [userLat, userLng]);
 
   const handlePresenceClick = useCallback((item) => {
-    showPopup(item, [item.lng, item.lat], userLat, userLng);
-  }, [showPopup, userLat, userLng]);
+    setPopupState({ item, coordinates: [item.lng, item.lat], userLat, userLng });
+  }, [userLat, userLng]);
 
   const showFatalError = mapError && variant !== 'radar' && items.length === 0 && !offlineMode;
 
@@ -1009,6 +913,20 @@ function LiveMapMapLibre({
               userAccuracyMeters={userAccuracyMeters}
               onPresenceClick={handlePresenceClick}
             />
+            {popupState && (
+              <MapLibrePopupComponent
+                longitude={popupState.coordinates[0]}
+                latitude={popupState.coordinates[1]}
+                closeButton={true}
+                closeOnClick={false}
+                maxWidth="288px"
+                className="rr-map-popup"
+                offset={18}
+                onClose={() => setPopupState(null)}
+              >
+                <MapPopup item={popupState.item} userLat={popupState.userLat} userLng={popupState.userLng} />
+              </MapLibrePopupComponent>
+            )}
           </MapLibreMap>
         </div>
         {variant !== 'radar' && <SignalList items={items} userLat={userLat} userLng={userLng} variant={variant} />}
