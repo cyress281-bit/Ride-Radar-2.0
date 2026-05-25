@@ -590,7 +590,23 @@
 }
 
 /* MapLibre popup dark theme */
+.maplibregl-popup {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  z-index: 450 !important;
+  pointer-events: none;
+}
+
+.maplibregl-popup-anchor-bottom {
+  flex-direction: column-reverse;
+}
+
 .maplibregl-popup-content {
+  pointer-events: auto;
   background: hsl(var(--surface)) !important;
   border: 1px solid hsl(var(--border) / 0.5) !important;
   border-radius: 16px !important;

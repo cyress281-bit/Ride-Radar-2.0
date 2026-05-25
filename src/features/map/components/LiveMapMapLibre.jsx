@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils.js';
 // MapLibre imports
 import { Map as MapLibreMap, useMap as useMapLibre } from 'react-map-gl/maplibre';
 import { Marker as MaplibreMarker, Popup as MaplibrePopup } from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 const US_CENTER = [39.8283, -98.5795];
 let lastRadarViewport = null;
