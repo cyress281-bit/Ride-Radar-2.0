@@ -812,6 +812,28 @@ function LiveMapMapLibre({
     }
   }, [resizeKey]);
 
+  // WebGL context loss handler for iOS backgrounding
+  useEffect(() => {
+    const mapInstance = mapRef.current?.getMap();
+    if (mapInstance) {
+      const canvas = mapInstance.getCanvas();
+      const handleContextLost = (e) => {
+        e.preventDefault();
+        console.warn('[MapLibre] WebGL context lost');
+      };
+      const handleContextRestored = () => {
+        console.info('[MapLibre] WebGL context restored');
+        mapInstance.triggerRepaint();
+      };
+      canvas.addEventListener('webglcontextlost', handleContextLost);
+      canvas.addEventListener('webglcontextrestored', handleContextRestored);
+      return () => {
+        canvas.removeEventListener('webglcontextlost', handleContextLost);
+        canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+      };
+    }
+  }, []);
+
   const handleMarkerClick = useCallback((item, coordinates) => {
     setPopupState({ item, coordinates, userLat, userLng });
   }, [userLat, userLng]);

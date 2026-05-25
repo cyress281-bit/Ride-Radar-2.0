@@ -60,11 +60,19 @@ export function getRiderMarkerIcon(presence) {
   const cacheKey = `${presence.user_id}:${presence.location_precision}:${label}`;
 
   if (!riderMarkerIconCache.has(cacheKey)) {
+    // Safe DOM construction — avoids XSS via innerHTML injection
+    const wrapper = document.createElement('span');
+    wrapper.className = 'rr-map-marker rr-map-marker-rider';
+    wrapper.setAttribute('aria-hidden', 'true');
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = label;
+    wrapper.appendChild(labelSpan);
+
     riderMarkerIconCache.set(
       cacheKey,
       divIcon({
         className: 'rr-map-marker-wrapper',
-        html: `<span class="rr-map-marker rr-map-marker-rider" aria-hidden="true"><span>${label}</span></span>`,
+        html: wrapper.outerHTML,
         iconSize: [34, 34],
         iconAnchor: [17, 17],
         popupAnchor: [0, -18],
