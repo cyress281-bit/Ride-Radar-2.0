@@ -338,7 +338,7 @@ const MapLibreFitToItems = memo(function MapLibreFitToItems({
     if (!map || disabled) return;
 
     // Trigger a resize so MapLibre recalculates its canvas dimensions
-    map.resize();
+    window.requestAnimationFrame(() => map.resize());
 
     if (preserveViewportOnMount && lastAppliedFitKeyRef.current === null) {
       lastAppliedFitKeyRef.current = fitKey;
@@ -420,6 +420,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
 }) {
   const map = useMapLibre();
   const markersRef = useRef(new Map()); // id -> maplibregl.Marker instance
+  const handlersRef = useRef(new Map()); // markerId -> { el, handler }
   const sourceId = 'rr-broadcasts';
   const clusterLayerId = 'rr-cluster-circles';
   const unclusteredLayerId = 'rr-unclustered-points';
@@ -482,47 +483,38 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
     // Render DOM markers after source update
     const renderMarkers = () => {
       if (!map.isSourceLoaded(sourceId)) return;
-
-      const features = map.querySourceFeatures(sourceId, { sourceLayer: undefined });
       const seen = new Set();
 
-      features.forEach((feature) => {
-        const { coordinates } = feature.geometry;
-        const props = feature.properties;
-        const isCluster = props.cluster;
-        const markerId = isCluster
-          ? `cluster-${props.cluster_id}`
-          : `item-${props.id}`;
+      // Get cluster features from the current viewport
+      const clusterFeatures = map.querySourceFeatures(sourceId, {
+        filter: ['has', 'point_count']
+      });
 
+      // Render cluster markers
+      clusterFeatures.forEach((feature) => {
+        const props = feature.properties;
+        const markerId = `cluster-${props.cluster_id}`;
+        const coordinates = feature.geometry.coordinates;
         if (seen.has(markerId)) return;
         seen.add(markerId);
 
         if (!markersRef.current.has(markerId)) {
-          let el;
-          if (isCluster) {
-            const count = props.point_count;
-            const hasBikeDown = props.hasBikeDown === true || props.hasBikeDown === 'true';
-            const hasWarning = props.hasWarning === true || props.hasWarning === 'true';
-            el = getClusterElement(count, hasBikeDown, hasWarning);
-            el.style.cursor = 'pointer';
-            el.addEventListener('click', () => {
-              map.getSource(sourceId).getClusterExpansionZoom(
-                props.cluster_id,
-                (err, zoom) => {
-                  if (err) return;
-                  map.easeTo({ center: coordinates, zoom: zoom + 0.5 });
-                }
-              );
-            });
-          } else {
-            el = getMarkerElement(props.markerType || props.type);
-            el.style.cursor = 'pointer';
-            el.addEventListener('click', () => {
-              const item = items.find((i) => i.id === props.id);
-              if (item) onMarkerClick?.(item, coordinates);
-            });
-          }
-
+          const count = props.point_count;
+          const hasBikeDown = props.hasBikeDown === true || props.hasBikeDown === 'true';
+          const hasWarning = props.hasWarning === true || props.hasWarning === 'true';
+          const el = getClusterElement(count, hasBikeDown, hasWarning);
+          el.style.cursor = 'pointer';
+          const handler = () => {
+            map.getSource(sourceId).getClusterExpansionZoom(
+              props.cluster_id,
+              (err, zoom) => {
+                if (err) return;
+                map.easeTo({ center: coordinates, zoom: zoom + 0.5 });
+              }
+            );
+          };
+          el.addEventListener('click', handler);
+          handlersRef.current.set(markerId, { el, handler });
           const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
             .setLngLat(coordinates)
             .addTo(map.getMap());
@@ -532,20 +524,61 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
         }
       });
 
-      // Remove stale markers
+      // Render ALL individual item markers (not just visible ones)
+      items.forEach((item) => {
+        const markerId = `item-${item.id}`;
+        seen.add(markerId);
+        if (!markersRef.current.has(markerId)) {
+          // Check if this item is currently unclustered
+          const unclusteredFeatures = map.querySourceFeatures(sourceId, {
+            filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'id'], item.id]]
+          });
+          if (unclusteredFeatures.length === 0) return; // hidden in cluster
+          const coordinates = unclusteredFeatures[0].geometry.coordinates;
+          const el = getMarkerElement(item.markerType || item.type);
+          el.style.cursor = 'pointer';
+          const handler = () => {
+            onMarkerClick?.(item, coordinates);
+          };
+          el.addEventListener('click', handler);
+          handlersRef.current.set(markerId, { el, handler });
+          const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+            .setLngLat(coordinates)
+            .addTo(map.getMap());
+          markersRef.current.set(markerId, marker);
+        } else {
+          // Check if still unclustered
+          const unclusteredFeatures = map.querySourceFeatures(sourceId, {
+            filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'id'], item.id]]
+          });
+          if (unclusteredFeatures.length === 0) {
+            // Now in a cluster — remove individual marker
+            const entry = handlersRef.current.get(markerId);
+            if (entry) { entry.el.removeEventListener('click', entry.handler); handlersRef.current.delete(markerId); }
+            markersRef.current.get(markerId).remove();
+            markersRef.current.delete(markerId);
+          } else {
+            markersRef.current.get(markerId).setLngLat(unclusteredFeatures[0].geometry.coordinates);
+          }
+        }
+      });
+
+      // Remove stale cluster markers only
       markersRef.current.forEach((marker, id) => {
-        if (!seen.has(id)) {
+        if (id.startsWith('cluster-') && !seen.has(id)) {
+          const entry = handlersRef.current.get(id);
+          if (entry) { entry.el.removeEventListener('click', entry.handler); handlersRef.current.delete(id); }
           marker.remove();
           markersRef.current.delete(id);
         }
       });
     };
 
-    map.on('render', renderMarkers);
+    map.on('idle', renderMarkers);
     map.on('sourcedata', renderMarkers);
 
     return () => {
-      map.off('render', renderMarkers);
+      map.off('idle', renderMarkers);
       map.off('sourcedata', renderMarkers);
     };
   }, [items, map, onMarkerClick]);
@@ -555,6 +588,8 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
     return () => {
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current.clear();
+      handlersRef.current.forEach(({ el, handler }) => el.removeEventListener('click', handler));
+      handlersRef.current.clear();
       try {
         if (map?.getLayer(clusterLayerId)) map.removeLayer(clusterLayerId);
         if (map?.getLayer(unclusteredLayerId)) map.removeLayer(unclusteredLayerId);
@@ -679,9 +714,13 @@ function useMapLibrePopup(map) {
     rootRef.current = root;
 
     popup.on('close', () => {
-      root.unmount();
-      popupRef.current = null;
-      rootRef.current = null;
+      if (rootRef.current === root) {
+        root.unmount();
+        popupRef.current = null;
+        rootRef.current = null;
+      } else {
+        root.unmount();
+      }
     });
   }, [map]);
 
