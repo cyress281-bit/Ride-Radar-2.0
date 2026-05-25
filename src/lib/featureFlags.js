@@ -12,7 +12,7 @@
 const FLAG_PREFIX = 'rr:flag:';
 
 const DEFAULTS = {
-  maplibre: false,
+  maplibre: true,
 };
 
 export function getFlag(name) {
