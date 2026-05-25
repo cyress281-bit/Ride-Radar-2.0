@@ -699,11 +699,12 @@ const MapLibrePresenceMarkerLayer = memo(function MapLibrePresenceMarkerLayer({
  * Popup state manager — renders MapPopup content into a MaplibrePopup
  * using React createRoot() so full React context is preserved.
  */
-function useMapLibrePopup(map) {
+function useMapLibrePopup(mapRef) {
   const popupRef = useRef(null);
   const rootRef = useRef(null);
 
   const showPopup = useCallback((item, coordinates, userLat, userLng) => {
+    const map = mapRef.current;
     if (!map) return;
 
     // Close existing popup
@@ -743,9 +744,10 @@ function useMapLibrePopup(map) {
         root.unmount();
       }
     });
-  }, [map]);
+  }, [mapRef]);
 
   const closePopup = useCallback(() => {
+    const map = mapRef.current;
     if (popupRef.current) {
       popupRef.current.remove();
       rootRef.current?.unmount();
@@ -756,6 +758,7 @@ function useMapLibrePopup(map) {
 
   useEffect(() => {
     return () => {
+      const map = mapRef.current;
       if (popupRef.current) {
         popupRef.current.remove();
         rootRef.current?.unmount();
@@ -870,7 +873,7 @@ function LiveMapMapLibre({
     }
   }, [resizeKey]);
 
-  const { showPopup, closePopup } = useMapLibrePopup(mapRef.current);
+  const { showPopup, closePopup } = useMapLibrePopup(mapRef);
 
   const handleMarkerClick = useCallback((item, coordinates) => {
     showPopup(item, coordinates, userLat, userLng);
