@@ -23,6 +23,7 @@ import { prepareLocalImage, revokeLocalImage } from '@/lib/image-utils.js';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 import { reverseGeocodeCoords } from '@/lib/geocoding.js';
+import { hasSeenLocationDisclosure } from '@/components/shared/LocationDisclosureDialog';
 
 const TYPES = [
   { id: 'solo_ride', label: 'Ride Now', desc: 'Open a live riding signal', color: 'solo' },
@@ -227,23 +228,28 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const eventLocationQueryRef = useRef('');
 
   useEffect(() => {
-    if (navigator.geolocation && (type === 'solo_ride' || type === 'iso')) {
-      setIsLocating(true);
-      setGeoError(false);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setGeoError(false);
-          setIsLocating(false);
-        },
-        (err) => {
-          setGeoError(true);
-          setIsLocating(false);
-          logger.warn('[BroadcastForm] Geolocation error:', err?.message);
-        },
-        { maximumAge: 60000, timeout: 10000, enableHighAccuracy: false }
-      );
-    }
+    if (!navigator.geolocation || (type !== 'solo_ride' && type !== 'iso')) return;
+    if (!hasSeenLocationDisclosure()) return;
+    if (!navigator.permissions) return;
+    navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+      if (result.state === 'granted') {
+        setIsLocating(true);
+        setGeoError(false);
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+            setGeoError(false);
+            setIsLocating(false);
+          },
+          (err) => {
+            setGeoError(true);
+            setIsLocating(false);
+            logger.warn('[BroadcastForm] Geolocation error:', err?.message);
+          },
+          { maximumAge: 60000, timeout: 10000, enableHighAccuracy: false }
+        );
+      }
+    }).catch(() => {});
   }, [type]);
 
   const schema =
