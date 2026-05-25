@@ -338,7 +338,8 @@ const MapLibreFitToItems = memo(function MapLibreFitToItems({
     if (!map || disabled) return;
 
     // Trigger a resize so MapLibre recalculates its canvas dimensions
-    window.requestAnimationFrame(() => map.resize());
+    const rafId = window.requestAnimationFrame(() => map.resize());
+    return () => { if (rafId) cancelAnimationFrame(rafId); };
 
     if (preserveViewportOnMount && lastAppliedFitKeyRef.current === null) {
       lastAppliedFitKeyRef.current = fitKey;
