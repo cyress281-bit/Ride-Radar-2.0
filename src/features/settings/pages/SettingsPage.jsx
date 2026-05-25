@@ -35,6 +35,7 @@ import {
   ClipboardCheck,
   BadgeInfo,
   HeartHandshake,
+  Bug,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -509,6 +510,18 @@ function SettingsPage() {
             toggle={settings?.analytics_enabled !== false}
             onToggle={(v) => handleToggle('analytics_enabled', v)}
             disabled={isSaving}
+          />
+        </div>
+        <div className="border-t border-border/40">
+          <SettingsRow
+            icon={Bug}
+            label="Help improve Ride Radar"
+            desc="Send anonymous crash reports to help us fix bugs faster"
+            toggle={window.localStorage.getItem('rr_crash_reporting_consent') === 'granted'}
+            onToggle={(v) => {
+              window.localStorage.setItem('rr_crash_reporting_consent', v ? 'granted' : 'denied');
+              window.location.reload();
+            }}
           />
         </div>
       </SettingsSection>

@@ -122,8 +122,15 @@ function scrubEvent(event) {
 export function initializeSentry() {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
   const environment = import.meta.env.VITE_APP_ENV || import.meta.env.MODE;
+  const isDev = import.meta.env.DEV;
+  const sentryConsent = window.localStorage.getItem('rr_crash_reporting_consent');
 
   if (!dsn) {
+    return;
+  }
+
+  // Only initialize Sentry in dev or if user has explicitly consented
+  if (!isDev && sentryConsent !== 'granted') {
     return;
   }
 
