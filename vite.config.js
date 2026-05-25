@@ -299,9 +299,8 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['maplibre-gl'],
   },
-  // Preserve maplibre-gl class names — minifier mangling breaks Marker, Popup constructors
+  // Target es2020 to avoid down-leveling class syntax (MapLibre relies on native classes)
   esbuild: {
-    keepNames: true,
     target: 'es2020',
   },
 });
