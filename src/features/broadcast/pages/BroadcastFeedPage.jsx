@@ -90,13 +90,13 @@ function BroadcastFeedPage() {
     } else if (!hasSeenLocationDisclosure()) {
       setShowLocationDisclosure(true);
     } else {
-      requestLocation();
+      requestLocation(); // Direct call stays in user gesture context
     }
   }, [hasUserLocation, requestLocation]);
 
   const handleDisclosureAllow = useCallback(() => {
+    requestLocation(); // Must call BEFORE state update to stay in user gesture context
     setShowLocationDisclosure(false);
-    requestLocation();
   }, [requestLocation]);
 
   const handleDisclosureDismiss = useCallback(() => {
