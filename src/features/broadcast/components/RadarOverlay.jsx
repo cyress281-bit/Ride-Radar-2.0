@@ -221,6 +221,88 @@ const RadarOverlay = memo(function RadarOverlay({
     };
   }, []);
 
+  // ── iOS touch fallback ─────────────────────────────────────────────────────
+  // iOS Safari Pointer Events are unreliable for drag — touchmove often doesn't
+  // fire after pointerdown because the browser treats it as a scroll gesture.
+  // We attach raw touch listeners to the drag handle as a fallback.
+  useEffect(() => {
+    const handle = padElRef.current?.querySelector('[data-rr-pad-handle]');
+    if (!handle) return;
+
+    let touchDragging = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartLeft = 0;
+    let touchStartTop = 0;
+    let touchRaf = null;
+
+    const onTouchStart = (e) => {
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      touchDragging = true;
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+      touchStartLeft = padPos.left;
+      touchStartTop = padPos.top;
+      if (padElRef.current) padElRef.current.style.transition = 'none';
+    };
+
+    const onTouchMove = (e) => {
+      if (!touchDragging || e.touches.length !== 1) return;
+      if (touchRaf) return;
+      const t = e.touches[0];
+      touchRaf = requestAnimationFrame(() => {
+        touchRaf = null;
+        if (!touchDragging) return;
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
+        const { left, top } = clampPos(touchStartLeft + dx, touchStartTop + dy);
+        if (padElRef.current) {
+          padElRef.current.style.left = `${left}px`;
+          padElRef.current.style.top = `${top}px`;
+        }
+      });
+    };
+
+    const onTouchEnd = (e) => {
+      if (!touchDragging) return;
+      touchDragging = false;
+      if (touchRaf) { cancelAnimationFrame(touchRaf); touchRaf = null; }
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+      const moved = Math.abs(dx) > 3 || Math.abs(dy) > 3;
+      const finalPos = moved
+        ? clampPos(touchStartLeft + dx, touchStartTop + dy)
+        : { left: touchStartLeft, top: touchStartTop };
+      if (padElRef.current) padElRef.current.style.transition = '';
+      setPadPos(finalPos);
+      if (moved) savePadPosition(finalPos);
+    };
+
+    const onTouchCancel = () => {
+      if (!touchDragging) return;
+      touchDragging = false;
+      if (touchRaf) { cancelAnimationFrame(touchRaf); touchRaf = null; }
+      if (padElRef.current) padElRef.current.style.transition = '';
+      if (padElRef.current) {
+        padElRef.current.style.left = `${touchStartLeft}px`;
+        padElRef.current.style.top = `${touchStartTop}px`;
+      }
+    };
+
+    handle.addEventListener('touchstart', onTouchStart, { passive: true });
+    handle.addEventListener('touchmove', onTouchMove, { passive: true });
+    handle.addEventListener('touchend', onTouchEnd);
+    handle.addEventListener('touchcancel', onTouchCancel);
+    return () => {
+      handle.removeEventListener('touchstart', onTouchStart);
+      handle.removeEventListener('touchmove', onTouchMove);
+      handle.removeEventListener('touchend', onTouchEnd);
+      handle.removeEventListener('touchcancel', onTouchCancel);
+    };
+  }, [padPos]);
+
   const handlePadPointerDown = useCallback((e) => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
@@ -346,8 +428,9 @@ const RadarOverlay = memo(function RadarOverlay({
             onPointerMove={handlePadPointerMove}
             onPointerUp={handlePadPointerUp}
             onPointerCancel={handlePadPointerCancel}
-            style={{ touchAction: 'manipulation' }}
+            style={{ touchAction: 'none' }}
             className="flex flex-col items-center justify-center gap-[5px] h-6 border-b border-white/[0.05] cursor-grab active:cursor-grabbing select-none"
+            data-rr-pad-handle
             aria-label="Drag to reposition controls. Double-tap to reset."
           >
             <div className="flex gap-[5px]">
