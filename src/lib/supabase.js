@@ -128,6 +128,9 @@ if (supabaseUrl && supabaseAnonKey) {
       autoRefreshToken: true,
       detectSessionInUrl: true,
       storage: capacitorStorage,
+      experimental: {
+        passkey: true,
+      },
     },
     realtime: {
       params: {

@@ -118,3 +118,99 @@ export async function updatePassword(newPassword) {
   const { data, error } = await supabase.auth.updateUser({ password: newPassword });
   return { data, error };
 }
+
+// ------------------------------------------------------------------
+// Session management
+// ------------------------------------------------------------------
+
+/**
+ * Sign out all sessions EXCEPT the current one.
+ * @returns {Promise<{ error: Error|null }>}
+ */
+export async function signOutOthers() {
+  const { error } = await supabase.auth.signOut({ scope: 'others' });
+  return { error };
+}
+
+// ------------------------------------------------------------------
+// OAuth provider linking
+// ------------------------------------------------------------------
+
+/**
+ * Link an OAuth identity to the current user.
+ * User must be signed in. Opens OAuth provider in same window.
+ * @param {string} provider - e.g. 'google', 'apple'
+ * @param {string} redirectTo - URL to return to after OAuth flow
+ * @returns {Promise<{ data: object|null, error: Error|null }>}
+ */
+export async function linkOAuthProvider(provider, redirectTo) {
+  const { data, error } = await supabase.auth.linkIdentity({
+    provider,
+    options: { redirectTo },
+  });
+  return { data, error };
+}
+
+/**
+ * Unlink an OAuth identity from the current user.
+ * @param {object} identity - The identity object from user.identities
+ * @returns {Promise<{ error: Error|null }>}
+ */
+export async function unlinkOAuthProvider(identity) {
+  const { error } = await supabase.auth.unlinkIdentity(identity);
+  return { error };
+}
+
+// ------------------------------------------------------------------
+// Passkeys (WebAuthn)
+// ------------------------------------------------------------------
+
+/**
+ * Check if the browser supports WebAuthn / passkeys.
+ * @returns {boolean}
+ */
+export function browserSupportsPasskeys() {
+  return typeof window !== 'undefined' &&
+    window.PublicKeyCredential !== undefined &&
+    typeof window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function';
+}
+
+/**
+ * Register a new passkey for the current user.
+ * @returns {Promise<{ data: object|null, error: Error|null }>}
+ */
+export async function registerPasskey() {
+  try {
+    const { data, error } = await supabase.auth.passkey.register();
+    return { data, error };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+/**
+ * List passkeys registered for the current user.
+ * @returns {Promise<{ data: Array|null, error: Error|null }>}
+ */
+export async function listPasskeys() {
+  try {
+    const { data, error } = await supabase.auth.passkey.list();
+    return { data, error };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+/**
+ * Delete a passkey by ID.
+ * @param {string} passkeyId
+ * @returns {Promise<{ error: Error|null }>}
+ */
+export async function deletePasskey(passkeyId) {
+  try {
+    const { error } = await supabase.auth.passkey.delete({ passkeyId });
+    return { error };
+  } catch (err) {
+    return { error: err };
+  }
+}

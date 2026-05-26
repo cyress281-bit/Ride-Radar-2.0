@@ -34,6 +34,13 @@ import {
   updatePassword as apiUpdatePassword,
   resetPassword as apiResetPassword,
   updateEmail as apiUpdateEmail,
+  signOutOthers,
+  linkOAuthProvider,
+  unlinkOAuthProvider,
+  browserSupportsPasskeys,
+  registerPasskey,
+  listPasskeys,
+  deletePasskey,
 } from '@/features/auth/api/auth-api.js';
 
 // ------------------------------------------------------------------
@@ -399,6 +406,39 @@ export function useAuthProvider() {
     return data;
   }, []);
 
+  const signOutOtherSessions = useCallback(async () => {
+    const { error } = await signOutOthers();
+    if (error) throw error;
+  }, []);
+
+  const linkProvider = useCallback(async (provider, redirectTo) => {
+    const { data, error } = await linkOAuthProvider(provider, redirectTo);
+    if (error) throw error;
+    return data;
+  }, []);
+
+  const unlinkProvider = useCallback(async (identity) => {
+    const { error } = await unlinkOAuthProvider(identity);
+    if (error) throw error;
+  }, []);
+
+  const addPasskey = useCallback(async () => {
+    const { data, error } = await registerPasskey();
+    if (error) throw error;
+    return data;
+  }, []);
+
+  const getPasskeys = useCallback(async () => {
+    const { data, error } = await listPasskeys();
+    if (error) throw error;
+    return data;
+  }, []);
+
+  const removePasskey = useCallback(async (passkeyId) => {
+    const { error } = await deletePasskey(passkeyId);
+    if (error) throw error;
+  }, []);
+
   const refreshProfile = useCallback(async () => {
     if (!user?.id) return;
     let session;
@@ -439,9 +479,16 @@ export function useAuthProvider() {
       updatePassword: updateUserPassword,
       resetPassword: resetUserPassword,
       updateEmail: updateUserEmail,
+      signOutOthers: signOutOtherSessions,
+      linkOAuthProvider: linkProvider,
+      unlinkOAuthProvider: unlinkProvider,
+      browserSupportsPasskeys,
+      registerPasskey: addPasskey,
+      listPasskeys: getPasskeys,
+      deletePasskey: removePasskey,
       refreshProfile,
     }),
-    [signIn, signUp, signInWithProvider, signOutUser, updateUserPassword, resetUserPassword, updateUserEmail, refreshProfile]
+    [signIn, signUp, signInWithProvider, signOutUser, updateUserPassword, resetUserPassword, updateUserEmail, signOutOtherSessions, linkProvider, unlinkProvider, addPasskey, getPasskeys, removePasskey, refreshProfile]
   );
 
   return { state, actions };
@@ -465,7 +512,7 @@ export function useAuthState() {
 
 /**
  * Consume the auth actions context (stable; does not trigger on state changes).
- * @returns {{ signIn: Function, signUp: Function, signInWithProvider: Function, signOut: Function, updatePassword: Function, resetPassword: Function, updateEmail: Function, refreshProfile: Function }}
+ * @returns {{ signIn: Function, signUp: Function, signInWithProvider: Function, signOut: Function, updatePassword: Function, resetPassword: Function, updateEmail: Function, signOutOthers: Function, linkOAuthProvider: Function, unlinkOAuthProvider: Function, browserSupportsPasskeys: Function, registerPasskey: Function, listPasskeys: Function, deletePasskey: Function, refreshProfile: Function }}
  */
 export function useAuthActions() {
   const context = useContext(AuthActionsContext);

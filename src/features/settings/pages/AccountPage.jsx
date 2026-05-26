@@ -2,11 +2,9 @@
  * Account management page for Ride Radar.
  *
  * Keeps account identity and security settings separate from the public profile.
- * Only implemented account actions are interactive; future auth capabilities are
- * rendered as disabled rows to avoid fake controls.
  */
 
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import * as z from 'zod';
 import {
@@ -15,13 +13,15 @@ import {
   AlertCircle,
   CheckCircle2,
   ChevronRight,
+  Fingerprint,
+  Globe,
   KeyRound,
   Laptop,
   Link2,
   LockKeyhole,
   Mail,
   ShieldCheck,
-  Sparkles,
+  Trash2,
   User,
   X,
 } from 'lucide-react';
@@ -63,6 +63,12 @@ function formatSessionExpiry(session) {
   return `Access token refreshes before ${expiresAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
 }
 
+const PROVIDER_CONFIG = {
+  google: { label: 'Google', icon: Globe },
+  apple: { label: 'Apple', icon: Globe },
+  email: { label: 'Email and password', icon: Mail },
+};
+
 const Section = memo(function Section({ title, icon: Icon, children }) {
   return (
     <div className="surface-card overflow-hidden">
@@ -87,6 +93,7 @@ const AccountRow = memo(function AccountRow({
   onClick,
   disabled = false,
   status,
+  action,
 }) {
   const interactive = !!onClick && !disabled;
   const Comp = interactive ? 'button' : 'div';
@@ -133,14 +140,26 @@ const AccountRow = memo(function AccountRow({
           {value}
         </Text>
       )}
-      {interactive && <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />}
+      {action && <div className="shrink-0">{action}</div>}
+      {interactive && !action && <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />}
     </Comp>
   );
 });
 
 function AccountPage() {
   const { user, profile } = useAuthState();
-  const { resetPassword, updateEmail } = useAuthActions();
+  const {
+    resetPassword,
+    updateEmail,
+    signOutOthers,
+    linkOAuthProvider,
+    unlinkOAuthProvider,
+    browserSupportsPasskeys,
+    registerPasskey,
+    listPasskeys,
+    deletePasskey,
+  } = useAuthActions();
+
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [currentSession, setCurrentSession] = useState(null);
@@ -150,10 +169,23 @@ function AccountPage() {
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [emailChangeSent, setEmailChangeSent] = useState(false);
 
+  // Session management state
+  const [isSigningOutOthers, setIsSigningOutOthers] = useState(false);
+
+  // OAuth linking state
+  const [isLinking, setIsLinking] = useState(null);
+  const [isUnlinking, setIsUnlinking] = useState(null);
+
+  // Passkey state
+  const [passkeys, setPasskeys] = useState([]);
+  const [isLoadingPasskeys, setIsLoadingPasskeys] = useState(false);
+  const [isRegisteringPasskey, setIsRegisteringPasskey] = useState(false);
+  const passkeySupported = useMemo(() => browserSupportsPasskeys?.() ?? false, [browserSupportsPasskeys]);
+
   const displayName = profile?.display_name || user?.user_metadata?.full_name || user?.email || 'Rider';
   const email = user?.email || '';
-  const providerLabel = useMemo(() => getProviderLabel(user), [user]);
 
+  // Load session
   useEffect(() => {
     let active = true;
     getSession()
@@ -167,6 +199,26 @@ function AccountPage() {
       active = false;
     };
   }, []);
+
+  // Load passkeys on mount
+  useEffect(() => {
+    if (!passkeySupported) return;
+    let active = true;
+    setIsLoadingPasskeys(true);
+    listPasskeys()
+      .then((data) => {
+        if (active) setPasskeys(data ?? []);
+      })
+      .catch(() => {
+        if (active) setPasskeys([]);
+      })
+      .finally(() => {
+        if (active) setIsLoadingPasskeys(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [listPasskeys, passkeySupported]);
 
   const handlePasswordReset = async () => {
     if (!email || isSendingReset) return;
@@ -226,6 +278,99 @@ function AccountPage() {
       setIsUpdatingEmail(false);
     }
   };
+
+  // ── Session management ─────────────────────────────────────────────
+  const handleSignOutOthers = useCallback(async () => {
+    if (isSigningOutOthers) return;
+    setIsSigningOutOthers(true);
+    try {
+      await signOutOthers();
+      toast.success('Signed out all other devices');
+    } catch (err) {
+      toast.error('Could not sign out other devices', {
+        description: err?.message || 'Please try again.',
+      });
+    } finally {
+      setIsSigningOutOthers(false);
+    }
+  }, [signOutOthers, isSigningOutOthers]);
+
+  // ── OAuth provider linking ─────────────────────────────────────────
+  const linkedProviders = useMemo(() => {
+    const ids = user?.identities ?? [];
+    return ids.map((i) => i.provider).filter(Boolean);
+  }, [user]);
+
+  const availableProviders = useMemo(() => {
+    const all = ['google', 'apple'];
+    return all.filter((p) => !linkedProviders.includes(p));
+  }, [linkedProviders]);
+
+  const canUnlink = useMemo(() => linkedProviders.length > 1, [linkedProviders]);
+
+  const handleLinkProvider = useCallback(async (provider) => {
+    if (isLinking) return;
+    setIsLinking(provider);
+    try {
+      const redirectTo = `${window.location.origin}/settings/account`;
+      await linkOAuthProvider(provider, redirectTo);
+      // linkIdentity redirects to OAuth provider; on return the page reloads
+    } catch (err) {
+      toast.error(`Could not link ${provider}`, {
+        description: err?.message || 'Please try again.',
+      });
+      setIsLinking(null);
+    }
+  }, [linkOAuthProvider, isLinking]);
+
+  const handleUnlinkProvider = useCallback(async (identity) => {
+    if (isUnlinking || !canUnlink) return;
+    setIsUnlinking(identity.provider);
+    try {
+      await unlinkOAuthProvider(identity);
+      toast.success(`${identity.provider} unlinked`);
+      // Refresh the page to update user.identities
+      window.location.reload();
+    } catch (err) {
+      toast.error(`Could not unlink ${identity.provider}`, {
+        description: err?.message || 'Please try again.',
+      });
+      setIsUnlinking(null);
+    }
+  }, [unlinkOAuthProvider, canUnlink]);
+
+  // ── Passkeys ───────────────────────────────────────────────────────
+  const handleRegisterPasskey = useCallback(async () => {
+    if (isRegisteringPasskey) return;
+    setIsRegisteringPasskey(true);
+    try {
+      await registerPasskey();
+      toast.success('Passkey registered', {
+        description: 'You can now sign in with this device.',
+      });
+      // Refresh passkey list
+      const data = await listPasskeys();
+      setPasskeys(data ?? []);
+    } catch (err) {
+      toast.error('Could not register passkey', {
+        description: err?.message || 'Your browser may not support passkeys.',
+      });
+    } finally {
+      setIsRegisteringPasskey(false);
+    }
+  }, [registerPasskey, listPasskeys, isRegisteringPasskey]);
+
+  const handleDeletePasskey = useCallback(async (passkeyId) => {
+    try {
+      await deletePasskey(passkeyId);
+      toast.success('Passkey removed');
+      setPasskeys((prev) => prev.filter((p) => p.id !== passkeyId));
+    } catch (err) {
+      toast.error('Could not remove passkey', {
+        description: err?.message || 'Please try again.',
+      });
+    }
+  }, [deletePasskey]);
 
   return (
     <div className="min-h-dvh bg-background px-4 py-6 pb-nav-safe text-foreground">
@@ -309,33 +454,137 @@ function AccountPage() {
             disabled={!email || isSendingReset}
             status={resetSent ? 'Sent' : undefined}
           />
+
+          {/* Passkeys */}
           <div className="border-t border-border/40">
-            <AccountRow
-              icon={Sparkles}
-              label="Passkeys"
-              desc="Not available yet. Requires a full WebAuthn/passkey account flow."
-              disabled
-              status="Not available"
-            />
+            {!passkeySupported ? (
+              <AccountRow
+                icon={Fingerprint}
+                label="Passkeys"
+                desc="Your browser does not support passkeys"
+                disabled
+                status="Unsupported"
+              />
+            ) : (
+              <>
+                <AccountRow
+                  icon={Fingerprint}
+                  label="Passkeys"
+                  desc={passkeys.length > 0 ? `${passkeys.length} registered` : 'Sign in with Face ID, Touch ID, or device PIN'}
+                  action={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRegisterPasskey}
+                      disabled={isRegisteringPasskey}
+                      className="h-8 rounded-full text-xs font-bold border border-primary/20 bg-primary/10 text-primary hover:bg-primary/20"
+                    >
+                      {isRegisteringPasskey ? 'Adding...' : 'Add'}
+                    </Button>
+                  }
+                />
+                {passkeys.map((pk) => (
+                  <div key={pk.id} className="border-t border-border/40">
+                    <AccountRow
+                      icon={Fingerprint}
+                      label={pk.friendly_name || 'Passkey'}
+                      desc={pk.device_type || 'Registered on this device'}
+                      action={
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePasskey(pk.id)}
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-destructive/20 text-destructive hover:bg-destructive/10 transition-colors"
+                          aria-label="Remove passkey"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      }
+                    />
+                  </div>
+                ))}
+              </>
+            )}
           </div>
+
+          {/* Linked sign-in methods */}
           <div className="border-t border-border/40">
             <AccountRow
               icon={Link2}
               label="Linked sign-in methods"
-              desc="Provider linking is not enabled in this app"
-              value={providerLabel}
-              disabled
-              status="Read only"
+              desc="Add or remove ways to sign in to your account"
             />
+            {/* Show linked providers */}
+            {(user?.identities ?? []).map((identity) => {
+              const cfg = PROVIDER_CONFIG[identity.provider] || { label: identity.provider, icon: Globe };
+              return (
+                <div key={identity.identity_id} className="border-t border-border/40">
+                  <AccountRow
+                    icon={cfg.icon}
+                    label={cfg.label}
+                    desc={identity.provider === 'email' ? 'Primary sign-in method' : 'Linked'}
+                    status={identity.provider === 'email' ? 'Primary' : 'Linked'}
+                    action={
+                      identity.provider !== 'email' && (
+                        <button
+                          type="button"
+                          onClick={() => handleUnlinkProvider(identity)}
+                          disabled={!canUnlink || isUnlinking === identity.provider}
+                          className={cn(
+                            'flex h-8 w-8 items-center justify-center rounded-full border transition-colors',
+                            canUnlink
+                              ? 'border-destructive/20 text-destructive hover:bg-destructive/10'
+                              : 'border-white/[0.06] text-muted-foreground opacity-50'
+                          )}
+                          aria-label={`Unlink ${cfg.label}`}
+                          title={canUnlink ? '' : 'You must keep at least one sign-in method'}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )
+                    }
+                  />
+                </div>
+              );
+            })}
+            {/* Show available providers to link */}
+            {availableProviders.map((provider) => {
+              const cfg = PROVIDER_CONFIG[provider] || { label: provider, icon: Globe };
+              return (
+                <div key={provider} className="border-t border-border/40">
+                  <AccountRow
+                    icon={cfg.icon}
+                    label={`Link ${cfg.label}`}
+                    desc={`Add ${cfg.label} as a sign-in option`}
+                    onClick={() => handleLinkProvider(provider)}
+                    disabled={isLinking === provider}
+                    status={isLinking === provider ? 'Linking...' : undefined}
+                  />
+                </div>
+              );
+            })}
           </div>
+
+          {/* Active sessions */}
           <div className="border-t border-border/40">
             <AccountRow
               icon={Laptop}
-              label="Current session"
+              label="Active sessions"
               desc={formatSessionExpiry(currentSession)}
-              value={currentSession ? 'Active' : 'Unavailable'}
-              disabled
-              status="Read only"
+              value="This device"
+              status="Active"
+              action={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSignOutOthers}
+                  disabled={isSigningOutOthers}
+                  className="h-8 rounded-full text-xs font-bold border border-white/[0.08] text-muted-foreground hover:text-foreground hover:bg-white/[0.05]"
+                >
+                  {isSigningOutOthers ? 'Signing out...' : 'Sign out others'}
+                </Button>
+              }
             />
           </div>
         </Section>
@@ -357,82 +606,58 @@ function AccountPage() {
             className="w-full max-w-md overflow-hidden rounded-[24px] border border-white/[0.08] bg-surface/95 shadow-[0_20px_60px_hsl(0_0%_0%/0.45)] backdrop-blur-xl"
             role="dialog"
             aria-modal="true"
-            aria-labelledby="change-email-title"
           >
-            <HStack align="center" justify="between" className="border-b border-white/[0.06] px-5 py-4">
-              <VStack gap={0.5}>
-                <Text id="change-email-title" variant="body" className="font-bold">Change email</Text>
-                <Text variant="caption" color="muted">Supabase will confirm the new address.</Text>
-              </VStack>
+            <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3.5">
+              <Text variant="body" className="font-bold">Change email</Text>
               <button
                 type="button"
                 onClick={() => setEmailDialogOpen(false)}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-white/[0.05] hover:text-foreground"
-                aria-label="Close change email"
+                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/[0.06] transition-colors"
+                aria-label="Close"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 text-muted-foreground" />
               </button>
-            </HStack>
-
-            <VStack gap={4} className="px-5 py-5">
-              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.025] px-4 py-3">
-                <Text variant="micro" color="muted" className="font-semibold uppercase tracking-wider">Current email</Text>
-                <Text variant="bodySm" className="mt-1 font-semibold">{email}</Text>
-              </div>
-
-              <label htmlFor="account-new-email" className="space-y-2">
-                <Text variant="micro" color="muted" className="font-semibold uppercase tracking-wider">
-                  New email
-                </Text>
-                <Input
-                  id="account-new-email"
-                  type="email"
-                  value={newEmail}
-                  onChange={(event) => {
-                    setNewEmail(event.target.value);
-                    setEmailError('');
-                    setEmailChangeSent(false);
-                  }}
-                  placeholder="new@email.com"
-                  autoComplete="email"
-                  disabled={isUpdatingEmail || emailChangeSent}
-                />
-              </label>
-
-              {emailError && (
-                <HStack align="start" gap={2} className="rounded-xl border border-brand-emergency/20 bg-brand-emergency/10 px-3 py-2.5">
-                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-brand-emergency" />
-                  <Text variant="caption" className="text-brand-emergency">{emailError}</Text>
-                </HStack>
-              )}
-
-              {emailChangeSent && (
-                <HStack align="start" gap={2} className="rounded-xl border border-primary/20 bg-primary/10 px-3 py-2.5">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            </div>
+            <div className="px-5 py-4 space-y-3">
+              {emailChangeSent ? (
+                <div className="flex items-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-4 py-3">
+                  <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
                   <Text variant="caption" className="text-primary">
-                    Email change requested. Depending on Supabase Auth settings, confirmation may be required from both the current and new inbox.
+                    Confirmation email sent. Check both your current and new inboxes.
                   </Text>
-                </HStack>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label htmlFor="new-email" className="block text-xs font-semibold text-muted-foreground mb-1.5">
+                      New email address
+                    </label>
+                    <Input
+                      id="new-email"
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => { setNewEmail(e.target.value); setEmailError(''); }}
+                      placeholder="you@example.com"
+                      className="h-11 rounded-xl"
+                      autoFocus
+                    />
+                    {emailError && (
+                      <div className="mt-1.5 flex items-center gap-1.5 text-destructive">
+                        <AlertCircle className="h-3 w-3 shrink-0" />
+                        <Text variant="micro" className="text-destructive">{emailError}</Text>
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isUpdatingEmail || !newEmail.trim()}
+                    className="h-11 w-full rounded-full font-bold"
+                  >
+                    {isUpdatingEmail ? 'Sending...' : 'Request email change'}
+                  </Button>
+                </>
               )}
-
-              <HStack gap={2} className="pt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setEmailDialogOpen(false)}
-                >
-                  Close
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1"
-                  disabled={isUpdatingEmail || emailChangeSent}
-                >
-                  {isUpdatingEmail ? 'Sending...' : 'Send confirmation'}
-                </Button>
-              </HStack>
-            </VStack>
+            </div>
           </form>
         </div>
       )}
@@ -440,4 +665,4 @@ function AccountPage() {
   );
 }
 
-export default memo(AccountPage);
+export default AccountPage;
