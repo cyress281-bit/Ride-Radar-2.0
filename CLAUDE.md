@@ -329,9 +329,9 @@ useEffect(() => {
 
 ---
 
-## MapLibre GL JS Migration (In Progress)
+## MapLibre GL JS
 
-The app is migrating from Leaflet to MapLibre GL JS. The `USE_MAPLIBRE` feature flag in `src/lib/featureFlags.js` controls dispatch.
+The app uses **MapLibre GL JS** via `react-map-gl` v8 for all maps. Leaflet has been fully removed.
 
 **Critical react-map-gl v8 constraint:** `useMapLibre()` returns a `MapCollection`, NOT the raw map instance. The actual `MapRef` is at `.current`:
 ```jsx
@@ -352,8 +352,8 @@ const { showPopup } = useMapLibrePopup(mapRef.current);
 const { showPopup } = useMapLibrePopup(mapRef);
 ```
 
-### MapLibre Files
-- `src/features/map/components/LiveMapMapLibre.jsx` — Main radar map (drop-in replacement for Leaflet LiveMap)
+### Map Files
+- `src/features/map/components/LiveMapMapLibre.jsx` — Main radar map
 - `src/features/broadcast/components/LocationPickerMap.jsx` — Pin placement map for event/alert/bike_down forms
 - `src/features/broadcast/components/AlertPinMap.jsx` — Re-exports LocationPickerMap
 

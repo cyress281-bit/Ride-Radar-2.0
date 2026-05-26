@@ -210,22 +210,34 @@ export default function OnboardingPage() {
     mutationFn: async (values) => {
       if (!user?.id) throw new Error('Not authenticated');
 
-      // Ensure public.users row exists before writing user_profiles
-      const { error: userRowError } = await supabase
+      // Ensure public.users row exists (trigger usually creates it, but we
+      // guard against race conditions).  A lightweight select is enough;
+      // if the row is missing we attempt an insert and ignore RLS silent
+      // failures by checking the returned data length.
+      const { data: userRow } = await supabase
         .from('users')
-        .upsert(
-          {
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!userRow) {
+        const { data: insertedUser, error: userInsertError } = await supabase
+          .from('users')
+          .insert({
             id: user.id,
             email: user.email,
             full_name: user.user_metadata?.full_name || null,
-          },
-          { onConflict: 'id' }
-        );
-      if (userRowError) {
-        logger.error('[Onboarding] Failed to ensure public.users row:', userRowError);
-        throw new Error(
-          'We could not finish your profile setup. Please refresh and try again.'
-        );
+          })
+          .select('id');
+        if (userInsertError && userInsertError.code !== '23505') {
+          logger.error('[Onboarding] Failed to create public.users row:', userInsertError);
+          throw new Error(
+            'We could not finish your profile setup. Please refresh and try again.'
+          );
+        }
+        if (!insertedUser || insertedUser.length === 0) {
+          logger.warn('[Onboarding] users insert returned no data; continuing');
+        }
       }
 
       // Upload images if needed — non-blocking so optional photos never block onboarding
@@ -266,14 +278,33 @@ export default function OnboardingPage() {
         is_public: true,
       };
 
-      const { data, error } = await supabase
+      const { data: existingProfile } = await supabase
         .from('user_profiles')
-        .upsert(payload, { onConflict: 'user_id' })
-        .select()
-        .single();
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      let result;
+      if (existingProfile) {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .update(payload)
+          .eq('user_id', user.id)
+          .select()
+          .single();
+        if (error) throw error;
+        result = data;
+      } else {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .insert(payload)
+          .select()
+          .single();
+        if (error) throw error;
+        result = data;
+      }
+
+      return result;
     },
     onSuccess: async () => {
       await refreshProfile();
@@ -295,38 +326,72 @@ export default function OnboardingPage() {
     setUploadError('');
     setSkipLoading(true);
     try {
-      // Ensure public.users row exists before writing user_profiles
-      const { error: userRowError } = await supabase
+      // If a profile already exists (e.g. transient load failure redirected
+      // an existing user here), just refresh auth state and go home.
+      const { data: existingProfile } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existingProfile) {
+        await refreshProfile();
+        navigate(redirectPath, { replace: true });
+        return;
+      }
+
+      // Ensure public.users row exists (trigger usually creates it, but we
+      // guard against race conditions).  A lightweight select is enough;
+      // if the row is missing we attempt an insert and ignore RLS silent
+      // failures by checking the returned data length.
+      const { data: userRow } = await supabase
         .from('users')
-        .upsert(
-          {
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!userRow) {
+        const { data: insertedUser, error: userInsertError } = await supabase
+          .from('users')
+          .insert({
             id: user.id,
             email: user.email,
             full_name: user.user_metadata?.full_name || null,
-          },
-          { onConflict: 'id' }
-        );
-      if (userRowError) {
-        logger.error('[Onboarding] Failed to ensure public.users row during skip:', userRowError);
+          })
+          .select('id');
+        if (userInsertError && userInsertError.code !== '23505') {
+          logger.error('[Onboarding] Failed to create public.users row during skip:', userInsertError);
+          throw new Error(
+            'We could not finish your profile setup. Please refresh and try again.'
+          );
+        }
+        if (!insertedUser || insertedUser.length === 0) {
+          // RLS silent failure or row already exists from a concurrent insert
+          logger.warn('[Onboarding] users insert returned no data; continuing');
+        }
+      }
+
+      const { data: insertedProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: user.id,
+          display_name:
+            user?.user_metadata?.full_name ||
+            user?.email?.split('@')[0] ||
+            'Rider',
+          is_public: true,
+        })
+        .select('id');
+      if (profileError && profileError.code !== '23505') {
+        logger.error('[Onboarding] Failed to create user_profiles row during skip:', profileError);
         throw new Error(
           'We could not finish your profile setup. Please refresh and try again.'
         );
       }
+      if (!insertedProfile || insertedProfile.length === 0) {
+        logger.warn('[Onboarding] user_profiles insert returned no data; profile may already exist');
+      }
 
-      const { error } = await supabase
-        .from('user_profiles')
-        .upsert(
-          {
-            user_id: user.id,
-            display_name:
-              user?.user_metadata?.full_name ||
-              user?.email?.split('@')[0] ||
-              'Rider',
-            is_public: true,
-          },
-          { onConflict: 'user_id' }
-        );
-      if (error) throw error;
       await refreshProfile();
       navigate(redirectPath, { replace: true });
     } catch (err) {

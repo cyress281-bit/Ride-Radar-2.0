@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock.js';
 
 /**
  * Hook to manage the radar bottom sheet state, drag gestures,
@@ -57,12 +56,13 @@ export function useBottomSheet(initialOpen = false) {
   }, []);
 
   // Pull-to-refresh feel on sheet content
+  // NOTE: Do NOT call e.stopPropagation() on iOS — it breaks momentum
+  // scrolling inside -webkit-overflow-scrolling:touch containers.
   const handleContentTouchStart = useCallback((e) => {
     const el = sheetContentRef.current;
     if (!el || el.scrollTop > 0) return;
     sheetStartY.current = e.touches[0].clientY;
     setIsPulling(true);
-    e.stopPropagation();
   }, []);
 
   const handleContentTouchMove = useCallback((e) => {
@@ -71,33 +71,62 @@ export function useBottomSheet(initialOpen = false) {
     if (delta > 0) {
       setPullOffset(Math.min(delta * 0.4, 80));
     }
-    e.stopPropagation();
   }, [isPulling]);
 
-  const handleContentTouchEnd = useCallback((e) => {
+  const handleContentTouchEnd = useCallback(() => {
     if (pullOffset > 40) {
       queryClient.invalidateQueries({ queryKey: ['broadcasts', 'nearby'] });
     }
     setIsPulling(false);
     setPullOffset(0);
-    e.stopPropagation();
   }, [pullOffset, queryClient]);
 
-  useBodyScrollLock(sheetOpen);
-
-  // Attach non-passive touchmove listener to sheet ref so preventDefault() works
+  // Attach non-passive touchmove listener ONLY to the handle element.
+  // Attaching to the entire sheet container breaks iOS Safari scrolling
+  // inside child elements because iOS disables native scroll when it sees
+  // a non-passive touchmove on a parent.
   useEffect(() => {
     const el = sheetRef.current;
     if (!el) return;
 
+    const handle = el.querySelector('[data-rr-sheet-handle]');
+    if (!handle) return;
+
+    let isDragging = false;
+
+    const onTouchStart = (e) => {
+      isDragging = true;
+      sheetStartY.current = e.touches[0].clientY;
+      sheetCurrentY.current = 0;
+    };
+
     const onTouchMove = (e) => {
+      if (!isDragging) return;
       e.preventDefault();
       const delta = sheetStartY.current - e.touches[0].clientY;
       sheetCurrentY.current = delta;
     };
 
-    el.addEventListener('touchmove', onTouchMove, { passive: false });
-    return () => el.removeEventListener('touchmove', onTouchMove);
+    const onTouchEnd = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      if (sheetCurrentY.current > 60) {
+        setSheetOpen(true);
+      } else if (sheetCurrentY.current < -60) {
+        setSheetOpen(false);
+      }
+    };
+
+    handle.addEventListener('touchstart', onTouchStart, { passive: true });
+    handle.addEventListener('touchmove', onTouchMove, { passive: false });
+    handle.addEventListener('touchend', onTouchEnd);
+    handle.addEventListener('touchcancel', onTouchEnd);
+    return () => {
+      handle.removeEventListener('touchstart', onTouchStart);
+      handle.removeEventListener('touchmove', onTouchMove);
+      handle.removeEventListener('touchend', onTouchEnd);
+      handle.removeEventListener('touchcancel', onTouchEnd);
+    };
   }, []);
 
   const sheetTouchHandlers = useMemo(

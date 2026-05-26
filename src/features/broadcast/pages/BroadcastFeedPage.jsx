@@ -9,8 +9,6 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useRadarLocation } from '@/features/broadcast/hooks/use-radar-location.js';
 import { useBottomSheet } from '@/features/broadcast/hooks/use-bottom-sheet.js';
 import { useRadarViewport } from '@/features/broadcast/hooks/use-radar-viewport.js';
-import { USE_MAPLIBRE } from '@/lib/featureFlags.js';
-const LiveMap = lazy(() => import('@/features/map/components/LiveMap'));
 const LiveMapMapLibre = lazy(() => import('@/features/map/components/LiveMapMapLibre'));
 import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
 import { RADAR_OFFLINE_SNAPSHOT_KEY, RADAR_OFFLINE_SNAPSHOT_MAX_AGE_MS } from '@/lib/locationCache.js';
@@ -248,7 +246,7 @@ function BroadcastFeedPage() {
 
   return (
     <div
-      className="fixed left-0 right-0 top-0 overflow-hidden bg-background"
+      className="fixed left-0 right-0 top-0 bg-background"
       style={{ height: 'var(--rr-viewport-height, 100dvh)' }}
     >
       {/* Full-screen map */}
@@ -261,45 +259,24 @@ function BroadcastFeedPage() {
             </div>
           }
         >
-          {USE_MAPLIBRE ? (
-            <LiveMapMapLibre
-              broadcasts={filteredBroadcasts}
-              presenceMarkers={visibleRiderMarkers}
-              getProfile={getProfile}
-              userLat={userLoc.lat}
-              userLng={userLoc.lng}
-              userAccuracyMeters={userLoc.accuracyMeters}
-              isLoading={isLoadingBroadcasts && !usingOfflineSnapshot}
-              variant="radar"
-              className="h-full w-full"
-              fitKey={hasUserLocation ? `self-${locateCount}` : 'default'}
-              focusUserLocation={hasUserLocation}
-              showSelfLocation={hasUserLocation}
-              offlineMode={usingOfflineSnapshot}
-              offlineSnapshotAt={offlineSnapshot?.cachedAt}
-              isLiveMapVisible={isLiveMapVisible}
-              resizeKey={radarViewport.version}
-            />
-          ) : (
-            <LiveMap
-              broadcasts={filteredBroadcasts}
-              presenceMarkers={visibleRiderMarkers}
-              getProfile={getProfile}
-              userLat={userLoc.lat}
-              userLng={userLoc.lng}
-              userAccuracyMeters={userLoc.accuracyMeters}
-              isLoading={isLoadingBroadcasts && !usingOfflineSnapshot}
-              variant="radar"
-              className="h-full w-full"
-              fitKey={hasUserLocation ? `self-${locateCount}` : 'default'}
-              focusUserLocation={hasUserLocation}
-              showSelfLocation={hasUserLocation}
-              offlineMode={usingOfflineSnapshot}
-              offlineSnapshotAt={offlineSnapshot?.cachedAt}
-              isLiveMapVisible={isLiveMapVisible}
-              resizeKey={radarViewport.version}
-            />
-          )}
+          <LiveMapMapLibre
+            broadcasts={filteredBroadcasts}
+            presenceMarkers={visibleRiderMarkers}
+            getProfile={getProfile}
+            userLat={userLoc.lat}
+            userLng={userLoc.lng}
+            userAccuracyMeters={userLoc.accuracyMeters}
+            isLoading={isLoadingBroadcasts && !usingOfflineSnapshot}
+            variant="radar"
+            className="h-full w-full"
+            fitKey={hasUserLocation ? `self-${locateCount}` : 'default'}
+            focusUserLocation={hasUserLocation}
+            showSelfLocation={hasUserLocation}
+            offlineMode={usingOfflineSnapshot}
+            offlineSnapshotAt={offlineSnapshot?.cachedAt}
+            isLiveMapVisible={isLiveMapVisible}
+            resizeKey={radarViewport.version}
+          />
         </Suspense>
       </div>
 

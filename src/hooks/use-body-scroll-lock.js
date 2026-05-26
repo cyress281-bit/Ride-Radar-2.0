@@ -23,21 +23,18 @@ export function useBodyScrollLock(locked) {
       top: document.body.style.top,
       width: document.body.style.width,
       overflow: document.body.style.overflow,
-      touchAction: document.body.style.touchAction,
     };
 
     document.body.style.position = 'fixed';
     document.body.style.top = `-${scrollY}px`;
     document.body.style.width = '100%';
     document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
 
     return () => {
       document.body.style.position = originalStyles.position;
       document.body.style.top = originalStyles.top;
       document.body.style.width = originalStyles.width;
       document.body.style.overflow = originalStyles.overflow;
-      document.body.style.touchAction = originalStyles.touchAction;
       window.scrollTo(0, scrollY);
     };
   }, [locked]);
