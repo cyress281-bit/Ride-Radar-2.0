@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '../lib/query-client';
 import { AuthProvider } from '../features/auth/components/AuthProvider';
+import { ViewportProvider } from './ViewportProvider';
 import { Toaster } from 'sonner';
 
 /**
@@ -9,18 +10,21 @@ import { Toaster } from 'sonner';
  *
  * Layers:
  * 1. QueryClientProvider - TanStack Query cache and defaults
- * 2. AuthProvider - Authentication state and session management
- * 3. Toaster - Toast notification surface (sonner)
+ * 2. ViewportProvider - Unified viewport + keyboard state (single visualViewport listener)
+ * 3. AuthProvider - Authentication state and session management
+ * 4. Toaster - Toast notification surface (sonner)
  *
  * @param {{ children: React.ReactNode }} props
  */
 export const AppProviders = memo(function AppProviders({ children }) {
   return (
     <QueryClientProvider client={queryClientInstance}>
-      <AuthProvider>
-        {children}
-        <Toaster position="top-center" richColors closeButton />
-      </AuthProvider>
+      <ViewportProvider>
+        <AuthProvider>
+          {children}
+          <Toaster position="top-center" richColors closeButton />
+        </AuthProvider>
+      </ViewportProvider>
     </QueryClientProvider>
   );
 });

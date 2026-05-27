@@ -7,6 +7,7 @@ import AppHeader from './AppHeader';
 import BottomNav from './BottomNav';
 import OfflineBanner from '@/components/OfflineBanner';
 import { useAppResumeRefresh } from '@/hooks/use-app-resume-refresh.js';
+import { useViewportContext } from '@/providers/ViewportProvider';
 import {
   activatePendingServiceWorkerUpdate,
   clearPendingServiceWorkerUpdateState,
@@ -22,6 +23,10 @@ import {
  * - Full-width bottom tab bar navigation
  * - Radar grid overlay + subtle neon ambient glow
  * - Deep space black background
+ *
+ * Viewport state is consumed from ViewportProvider (single visualViewport listener
+ * at the app root). AppLayout writes CSS custom properties so that non-React
+ * consumers (Tailwind utilities, inline styles, third-party map libs) still work.
  */
 
 function isStandalonePwa() {
@@ -68,7 +73,16 @@ const AppLayout = memo(function AppLayout() {
   const [hasUpdateAvailable, setHasUpdateAvailable] = useState(getPendingServiceWorkerUpdateState());
   const [isRefreshingUpdate, setIsRefreshingUpdate] = useState(false);
 
+  const { viewportHeight } = useViewportContext();
+
   useAppResumeRefresh();
+
+  // Sync viewport height from unified model to CSS custom property.
+  // This keeps non-React consumers (Tailwind, inline styles, map libs) working.
+  useEffect(() => {
+    const html = document.documentElement;
+    html.style.setProperty('--rr-viewport-height', `${viewportHeight}px`);
+  }, [viewportHeight]);
 
   // PWA cold-start settle nudge:
   // Installed iOS PWA pages can start with a shorter viewport until the
@@ -85,7 +99,7 @@ const AppLayout = memo(function AppLayout() {
     sentinel.setAttribute('aria-hidden', 'true');
     sentinel.style.cssText =
       'display:block;width:1px;height:1px;opacity:0;pointer-events:none;visibility:hidden;overflow:hidden;';
-    sentinel.style.marginTop = `${Math.round(window.visualViewport?.height ?? window.innerHeight) + 1}px`;
+    sentinel.style.marginTop = `${viewportHeight + 1}px`;
     body.appendChild(sentinel);
 
     const settle = () => {
@@ -93,7 +107,6 @@ const AppLayout = memo(function AppLayout() {
       requestAnimationFrame(() => {
         window.scrollTo(0, 0);
         html.style.setProperty('--rr-safe-area-bottom', `${readSafeAreaBottom()}px`);
-        html.style.setProperty('--rr-viewport-height', `${Math.round(window.visualViewport?.height ?? window.innerHeight)}px`);
       });
     };
 
@@ -111,26 +124,13 @@ const AppLayout = memo(function AppLayout() {
       }, 1600),
     ];
 
-    const vv = window.visualViewport;
-    const onResize = () => {
-      html.style.setProperty('--rr-safe-area-bottom', `${readSafeAreaBottom()}px`);
-      html.style.setProperty('--rr-viewport-height', `${Math.round(vv?.height ?? window.innerHeight)}px`);
-    };
-
-    vv?.addEventListener('resize', onResize, { passive: true });
-    vv?.addEventListener('scroll', onResize, { passive: true });
-    window.addEventListener('resize', onResize, { passive: true });
-
     return () => {
       cancelAnimationFrame(raf1);
       cancelAnimationFrame(raf2);
       timers.forEach(clearTimeout);
       sentinel.remove();
-      vv?.removeEventListener('resize', onResize);
-      vv?.removeEventListener('scroll', onResize);
-      window.removeEventListener('resize', onResize);
     };
-  }, []);
+  }, [viewportHeight]);
 
   useEffect(() => {
     const handleUpdateAvailable = () => setHasUpdateAvailable(true);
@@ -167,7 +167,6 @@ const AppLayout = memo(function AppLayout() {
     const html = document.documentElement;
     let raf1;
     let raf2;
-    let raf3;
     const savedMinH = html.style.minHeight;
     const savedScrollBehavior = html.style.scrollBehavior;
 
@@ -196,24 +195,10 @@ const AppLayout = memo(function AppLayout() {
       setTimeout(() => html.style.setProperty('--rr-safe-area-bottom', `${readSafeAreaBottom()}px`), 1500),
     ];
 
-    const updateVh = () => {
-      const h = window.visualViewport?.height ?? window.innerHeight;
-      html.style.setProperty('--rr-viewport-height', `${Math.round(h)}px`);
-    };
-    updateVh();
-    raf3 = requestAnimationFrame(updateVh);
-    const timer = setTimeout(updateVh, 50);
-    const vv = window.visualViewport;
-    vv?.addEventListener('resize', updateVh);
-    window.addEventListener('resize', updateVh);
     return () => {
       cancelAnimationFrame(raf1);
       if (raf2 !== undefined) cancelAnimationFrame(raf2);
-      cancelAnimationFrame(raf3);
-      clearTimeout(timer);
       safeAreaTimers.forEach(clearTimeout);
-      vv?.removeEventListener('resize', updateVh);
-      window.removeEventListener('resize', updateVh);
       html.style.minHeight = savedMinH;
       html.style.scrollBehavior = savedScrollBehavior;
     };

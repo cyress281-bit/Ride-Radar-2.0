@@ -17,9 +17,14 @@ const MIN_TOP = 128;          // below header (56px) + safe-area + signal pill
 const BOTTOM_CLEARANCE = 144; // above bottom sheet peek (60px) + bottom nav (56px) + margins
 
 function getViewportSize() {
+  // Read from the unified viewport CSS variable when available,
+  // falling back to visualViewport directly for non-React contexts.
+  const html = document.documentElement;
+  const vvHeight = html.style.getPropertyValue('--rr-viewport-height');
+  const height = vvHeight ? parseInt(vvHeight, 10) : Math.round(window.visualViewport?.height ?? window.innerHeight);
   return {
     width: window.visualViewport?.width ?? window.innerWidth,
-    height: window.visualViewport?.height ?? window.innerHeight,
+    height,
   };
 }
 
@@ -204,20 +209,14 @@ const RadarOverlay = memo(function RadarOverlay({
     };
     const frame = requestAnimationFrame(reclampPad);
     const timer = setTimeout(reclampPad, 250);
-    const visualViewport = window.visualViewport;
-
     window.addEventListener('resize', reclampPad, { passive: true });
     window.addEventListener('orientationchange', reclampPad, { passive: true });
-    visualViewport?.addEventListener('resize', reclampPad, { passive: true });
-    visualViewport?.addEventListener('scroll', reclampPad, { passive: true });
 
     return () => {
       cancelAnimationFrame(frame);
       clearTimeout(timer);
       window.removeEventListener('resize', reclampPad);
       window.removeEventListener('orientationchange', reclampPad);
-      visualViewport?.removeEventListener('resize', reclampPad);
-      visualViewport?.removeEventListener('scroll', reclampPad);
     };
   }, []);
 

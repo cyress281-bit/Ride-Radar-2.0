@@ -209,6 +209,40 @@
   [role="button"] {
     touch-action: manipulation;
   }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     iOS NATIVE FEEL — Gesture + scroll physics
+     ═══════════════════════════════════════════════════════════════════ */
+
+  /* Chat scroll containers: allow vertical pan only, no synthetic delays */
+  [role="log"],
+  [role="list"] {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Overlay drag handles: disable browser scroll intervention */
+  [aria-label="Drag to close"],
+  [data-rr-sheet-handle] {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Prevent callout menu on long-press (iOS) for non-text elements */
+  button,
+  [role="button"],
+  nav,
+  header,
+  img {
+    -webkit-touch-callout: none;
+  }
+
+  /* Smooth momentum scrolling for all overflow containers */
+  .overflow-y-auto,
+  .overflow-auto {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* ------------------------------------------------------------------

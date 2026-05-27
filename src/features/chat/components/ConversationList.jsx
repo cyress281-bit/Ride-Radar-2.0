@@ -92,7 +92,7 @@ function ConversationList({
       estimateSize={80}
       overscan={5}
       gap={8}
-      height="calc(100vh - 14rem)"
+      height="calc(100dvh - 14rem)"
       className="overflow-auto"
       getItemKey={(index) => conversations[index]?.id || index}
     />
