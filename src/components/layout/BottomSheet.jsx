@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock.js';
+import { useGestureCoordinator, GesturePriority } from '@/gestures/gesture-coordinator.js';
 
 const HEIGHT_MAP = {
   auto: undefined,
@@ -38,6 +39,9 @@ const BottomSheet = memo(function BottomSheet({
   className,
 }) {
   useBodyScrollLock(isOpen);
+
+  // Gesture coordination: overlay drag takes priority over scroll
+  const gestures = useGestureCoordinator('bottom-sheet', GesturePriority.OVERLAY);
 
   const contentRef = useRef(null);
   const startY = useRef(0);
@@ -163,6 +167,7 @@ const BottomSheet = memo(function BottomSheet({
               'touch-none select-none'
             )}
             onPointerDown={handlePointerDown}
+            {...gestures.bindOverlayHandle()}
             role="button"
             aria-label="Drag to close"
             tabIndex={0}
