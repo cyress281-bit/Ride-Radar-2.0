@@ -16,6 +16,14 @@ import { cn } from '@/lib/utils';
  * @property {string} [innerClassName] - Additional classes for the inner sizing div
  * @property {string} [itemClassName] - Additional classes for each virtual row wrapper
  * @property {(index: number) => string|number} [getItemKey] - Unique key extractor
+ * @property {boolean} [shouldAutoScroll] - When true, authority allows auto-scroll.
+ *   Replaces the old scrollToBottom boolean with policy-gated control.
+ * @property {React.RefObject<HTMLElement>} [containerRef] - Optional ref to the
+ *   scroll container element. When provided, the authority can read live scroll
+ *   position from the VirtualList's internal container.
+ * @property {(api: Object) => void} [onVirtualApiReady] - Callback that receives
+ *   the virtualizer API for use with the unified scroll runtime. The parent
+ *   (ConversationPage) passes this to useUnifiedScrollRuntime.
  */
 
 /**
@@ -24,6 +32,10 @@ import { cn } from '@/lib/utils';
  * Only renders visible rows + an overscan buffer, keeping DOM nodes at O(visible)
  * regardless of total list size. Essential for long feeds, message histories, and
  * large data sets.
+ *
+ * SCROLL POLICY: This component does NOT decide when to scroll. It only scrolls
+ * when `shouldAutoScroll` is true. The caller (ConversationPage via
+ * useScrollAuthority) is responsible for ALL scroll decisions.
  *
  * @param {VirtualListProps} props
  * @returns {JSX.Element}
@@ -37,13 +49,25 @@ const VirtualList = memo(function VirtualList({
   overscan = 5,
   height,
   scrollToBottom = false,
+  shouldAutoScroll,
   className,
   innerClassName,
   itemClassName,
   getItemKey,
   scrollElementRef,
+  containerRef: externalContainerRef,
+  onVirtualApiReady,
 }) {
   const internalRef = useRef(null);
+
+  // Expose the scroll container to the authority so it can read live
+  // scroll position and make consistent decisions across both paths.
+  useEffect(() => {
+    const el = scrollElementRef ? scrollElementRef.current : internalRef.current;
+    if (externalContainerRef && el) {
+      externalContainerRef.current = el;
+    }
+  }, [scrollElementRef, externalContainerRef]);
 
   const resolvedEstimateSize = estimateSizeProp ?? itemHeight ?? 60;
 
@@ -55,19 +79,26 @@ const VirtualList = memo(function VirtualList({
     getItemKey: getItemKey || ((index) => items[index]?.id ?? index),
   });
 
+  // Expose virtualizer API to parent for unified scroll runtime
+  useEffect(() => {
+    if (onVirtualApiReady) {
+      onVirtualApiReady(virtualizer);
+    }
+  }, [onVirtualApiReady, virtualizer]);
+
   const virtualItems = virtualizer.getVirtualItems();
 
   // Auto-scroll to bottom for chat-like UIs
+  // This is the ONLY scroll logic inside VirtualList, and it is gated
+  // entirely by the authority's shouldAutoScroll decision.
   useEffect(() => {
-    const el = scrollElementRef ? scrollElementRef.current : internalRef.current;
-    if (scrollToBottom && el) {
-      // Only scroll if user is already near bottom (within 150px)
-      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
-      if (isNearBottom || items.length <= overscan + 2) {
-        virtualizer.scrollToIndex(items.length - 1, { align: 'end', behavior: 'auto' });
-      }
-    }
-  }, [items.length, scrollToBottom, overscan, virtualizer, scrollElementRef]);
+    // If shouldAutoScroll is provided, it is the authority's decision.
+    // If not provided, fall back to legacy scrollToBottom behavior.
+    const allowed = shouldAutoScroll !== undefined ? shouldAutoScroll : scrollToBottom;
+    if (!allowed) return;
+
+    virtualizer.scrollToIndex(items.length - 1, { align: 'end', behavior: 'auto' });
+  }, [items.length, scrollToBottom, shouldAutoScroll, virtualizer]);
 
   const innerContent = (
     <div
