@@ -81,14 +81,24 @@ At the end of every session update the **Current Active Task** section with:
   - All feature hooks — removed `markRealtimeSurface*` health registry calls
 - All validations pass: build ✅, lint ✅, typecheck ✅, tests ✅
 
+### Today's Session (2026-05-28)
+- **Connected all three AIs (Claude, Codex, Kimi) to GitHub, Supabase, and Vercel MCP servers equally**
+- **Created `.mcp.json` in repo root** for shared MCP server configuration (Supabase HTTP, Vercel HTTP, GitHub stdio via npx)
+- **Added AI Team Charter to CLAUDE.md** defining roles (Claude = Architect & Reviewer, ChatGPT = Product & Vision, Kimi = Executor) and rules of engagement
+- **Added Dead Ends section to CLAUDE.md** documenting approaches already tried that did not work
+- **Added Current Active Task and AI Handoff Log section** for seamless AI-to-AI handoffs
+- **Confirmed Leaflet fully removed from codebase** via package-lock.json verification
+- Pushed `.mcp.json` to origin/main
+
 ### Next Step
-- Test DM page (`/messages/:id`) on iPhone PWA to verify messages load correctly after collapse
+- **Test DM page (`/messages/:id`) on iPhone PWA** to verify messages load correctly after System Collapse refactor
 - Monitor for any regressions in scroll behavior, realtime subscriptions, or auth flow
 - Update Known Issues table if DM page issue is resolved or if new issues surface
 
 ### AI Handoff Log
 | Session | AI Used | What Was Done |
 |---|---|---|
+| 2026-05-28 | Kimi | Connected all 3 AIs to MCP servers (GitHub, Supabase, Vercel); created `.mcp.json`; added AI Team Charter, Dead Ends, Current Active Task, and AI Handoff Log sections to CLAUDE.md; confirmed Leaflet fully removed |
 | 2026-05-28 | Claude browser | Planning session — Vercel/deployment review, CLAUDE.md overhaul, Leaflet cleanup confirmed |
 | 2026-05-27 | Kimi | System Collapse — removed 15 runtime files (~5,200 lines), simplified 24+ source files, restored Supabase + React Query as sole data flow systems |
 
