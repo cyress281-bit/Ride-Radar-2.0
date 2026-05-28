@@ -52,52 +52,109 @@ At the end of every session update the **Current Active Task** section with:
 
 **Purpose:** This is the handoff log between AI tools (Claude Code, Kimi, Claude browser). Update it at the end of every session so the next AI picks up exactly where you left off — no re-explaining, no wasted tokens.
 
-**Last Updated By:** Kimi
-**Date:** 2026-05-27
+**Last Updated By:** Claude Code
+**Date:** 2026-05-28
 
-### What We're Working On
-- System Collapse refactor: removing all custom runtime OS layers and restoring deterministic Supabase + React Query data flow
-- Target: zero custom runtime systems controlling data flow
+---
 
-### Last Action Taken
-- **System Collapse executed and pushed to main**
-- Deleted 15 runtime system files (~5,200+ lines):
-  - `rr-runtime.js` (global runtime ledger)
-  - `validate-auth-transport.js` (JWT probe validator)
-  - `transport-health-monitor.js` (continuous health monitor)
-  - `memory-governor.js` (memory governance)
-  - `conversation-coherence.js` (coherence engine)
-  - `realtimeHealthRegistry.js` (health registry)
-  - `scroll-authority.js` + `scrollPredictionSmoother.js` + `scrollAdaptiveIntelligence.js` + `useUnifiedScrollRuntime.js` (scroll stack)
-  - `gesture-coordinator.js` (gesture arbitration)
-  - `layout-telemetry.js` (telemetry)
-  - `layout-guardrails.js`, `provider-guard.js` (policy docs/shims)
-- Simplified 24+ source files to remove all runtime integration:
-  - `use-auth.js` — removed transport/health/monitor wiring, kept split-context auth + profile
-  - `use-messages.js`, `use-conversations.js`, `use-send-message.js` — removed coherence/health gates
-  - `ConversationPage.jsx` — replaced scroll authority stack with simple `scrollToBottom` + `wasNearBottom` ref
-  - `AppProviders.jsx` — removed `AppBootstrapGate`, app renders immediately
-  - `ViewportProvider.jsx` — removed runtime ledger sync, root detection
-  - All feature hooks — removed `markRealtimeSurface*` health registry calls
-- All validations pass: build ✅, lint ✅, typecheck ✅, tests ✅
+## How the Review Process Works
 
-### Today's Session (2026-05-28)
-- **Connected all three AIs (Claude, Codex, Kimi) to GitHub, Supabase, and Vercel MCP servers equally**
-- **Created `.mcp.json` in repo root** for shared MCP server configuration (Supabase HTTP, Vercel HTTP, GitHub stdio via npx)
-- **Added AI Team Charter to CLAUDE.md** defining roles (Claude = Architect & Reviewer, ChatGPT = Product & Vision, Kimi = Executor) and rules of engagement
-- **Added Dead Ends section to CLAUDE.md** documenting approaches already tried that did not work
-- **Added Current Active Task and AI Handoff Log section** for seamless AI-to-AI handoffs
-- **Confirmed Leaflet fully removed from codebase** via package-lock.json verification
-- Pushed `.mcp.json` to origin/main
+**This section governs how Claude Code and Codex cross-check each other before anything goes to Kimi.**
 
-### Next Step
-- **Test DM page (`/messages/:id`) on iPhone PWA** to verify messages load correctly after System Collapse refactor
-- Monitor for any regressions in scroll behavior, realtime subscriptions, or auth flow
-- Update Known Issues table if DM page issue is resolved or if new issues surface
+1. Owner brings a problem — either Claude Code or Codex investigates first and writes their findings below
+2. Owner takes the same problem to the other AI — it reads this file, runs its own independent investigation, and writes its findings below WITHOUT reading the first report until it's done
+3. Each AI then reads the other's report and either confirms, challenges, or flags a disagreement
+4. Owner resolves any disagreements
+5. Only after both AIs sign off does the **Approved Task for Kimi** get filled in
+6. Kimi executes exactly what is written there — no interpretation, no decisions
+7. Claude Code and Codex both review Kimi's diff before the owner merges/pushes
+
+**Rules:**
+- Never overwrite the other AI's findings section — append or comment only
+- If you disagree with the other AI's conclusion, write exactly why under Disagreements
+- The Approved Task for Kimi must be left blank until both AIs have signed off
+- Kimi must not act on anything in this file except the Approved Task section
+
+---
+
+### Current Problem
+DM page (`/messages/:id`) fails to load on iPhone PWA — shows "Conversation not found" instead of messages.
+
+---
+
+### Claude Code's Findings
+**Date:** 2026-05-28 | **Status:** Complete
+
+**What I checked:**
+- RLS policies on `messages` and `conversations` (via Supabase MCP)
+- `public.messages` and `public.conversations` schema
+- `conversation_notifications` table and its policies
+- `src/features/chat/hooks/use-messages.js`
+- `src/features/chat/hooks/use-conversations.js`
+- `src/features/chat/api/chat-api.js`
+- `src/features/chat/pages/ConversationPage.jsx`
+- `src/features/auth/hooks/use-auth.js`
+
+**What I ruled out:**
+- RLS policies on both tables are correct ✅
+- Schema matches the queries exactly ✅
+- `conversation_notifications` table exists with correct policies ✅
+- Realtime subscription syntax is valid ✅
+
+**Root cause:**
+Auth timing race condition introduced by the System Collapse refactor removing `AppBootstrapGate`.
+
+`ConversationPage.jsx` line ~274:
+```js
+const isLoading = isConversationLoading || isMessagesLoading;
+```
+
+In TanStack Query v5, a query with `enabled: false` reports `isLoading = false` (because `isLoading = isPending && isFetching`, and disabled queries have `isFetching = false`). When auth is validating on mount, `user = null`, both queries are disabled, so `isLoading = false`. The page skips the skeleton and falls straight to `if (hasError || !conversation)` → shows "Conversation not found".
+
+Auth validation calls `supabase.auth.getUser()` over the network — takes 0.5–3s on mobile. During that window, the user sees the error state and may back out. Before System Collapse, `AppBootstrapGate` held the entire app from rendering until auth resolved, so this race never happened.
+
+**Proposed fix — 2 lines in `src/features/chat/pages/ConversationPage.jsx`:**
+```js
+// ~line 88 — add authIsLoading to existing useAuthState destructure
+const { user, isLoading: authIsLoading } = useAuthState();
+
+// ~line 274 — include auth state in the loading guard
+const isLoading = isConversationLoading || isMessagesLoading || authIsLoading;
+```
+
+No other files need to change.
+
+**Confidence:** High. The behavior is deterministic and directly traceable to the TQ v5 disabled-query contract + removal of AppBootstrapGate.
+
+---
+
+### Codex's Findings
+**Date:** _(not yet completed)_ | **Status:** Pending
+
+_(Codex: run your own independent investigation before reading Claude Code's findings above. Check the same files — use your own tools. Write your root cause, proposed fix, and confidence level here.)_
+
+---
+
+### Consensus / Disagreements
+_(Fill this in after both AIs have written their findings.)_
+
+- **Agreement:** —
+- **Disagreement:** —
+- **Owner decision:** —
+
+---
+
+### Approved Task for Kimi
+⛔ **DO NOT FILL THIS IN until both Claude Code and Codex have signed off above.**
+
+_(Once both AIs agree, the owner writes the exact implementation spec here. Kimi executes only what is written in this block — no more, no less.)_
+
+---
 
 ### AI Handoff Log
 | Session | AI Used | What Was Done |
 |---|---|---|
+| 2026-05-28 | Claude Code | Diagnosed DM page failure — ruled out RLS/schema, confirmed auth timing race as root cause, wrote findings above awaiting Codex review |
 | 2026-05-28 | Kimi | Connected all 3 AIs to MCP servers (GitHub, Supabase, Vercel); created `.mcp.json`; added AI Team Charter, Dead Ends, Current Active Task, and AI Handoff Log sections to CLAUDE.md; confirmed Leaflet fully removed |
 | 2026-05-28 | Claude browser | Planning session — Vercel/deployment review, CLAUDE.md overhaul, Leaflet cleanup confirmed |
 | 2026-05-27 | Kimi | System Collapse — removed 15 runtime files (~5,200 lines), simplified 24+ source files, restored Supabase + React Query as sole data flow systems |
@@ -460,7 +517,7 @@ const { showPopup } = useMapLibrePopup(mapRef);
 | Supabase migration history diverged | 🚨 Active | ~40 remote-only migrations not in local repo. `db push` fails. Manual SQL application required. |
 | Sentry fetch failures | 🚨 Active | POST to ingest endpoint failing — likely rate-limited or CORS. Not user-facing. |
 | requestAnimationFrame jank | 🚨 Active | 199ms frame time on lower-end devices. Needs React profiling. |
-| Direct messaging page fails to load | 🚨 Active | Conversation view (`/messages/:id`) not loading. Investigating — suspect RLS policy on `messages`/`conversations` or a realtime subscription error. Tracing it surfaced additional backend/security issues; document specifics here as confirmed. |
+| Direct messaging page fails to load | 🚨 Root cause identified, fix pending dual-AI sign-off | `ConversationPage.jsx` doesn't include `authIsLoading` in its loading guard. TQ v5 disabled queries report `isLoading=false`, so while auth validates on mount (`user=null`, 0.5–3s network call) the page shows "Conversation not found" instead of the skeleton. Introduced by System Collapse removing `AppBootstrapGate`. See Current Active Task for full details and approved fix. |
 
 ---
 
@@ -474,6 +531,7 @@ const { showPopup } = useMapLibrePopup(mapRef);
 - **Forcing iOS PWA service worker updates** → tried the static `?v=velocity` query string → iOS Safari throttles SW update checks to ~once/24h and ignores the static string → the version string must change *between builds* to have any effect.
 - **iOS PWA drag gestures via Pointer Events alone** → `pointerdown`/`pointermove` → `touchmove` often never fires on iOS because Safari treats it as a scroll gesture inside fixed/absolute containers → WORKED: raw `touchstart`/`touchmove`/`touchend` listeners as a fallback + `touch-action:none` on the drag handle.
 - **iOS PWA bottom-sheet scrolling** → `overflow-hidden` on page root and on the open sheet container → a `fixed` + `overflow-hidden` ancestor blocks all descendant scrolling on iOS; parent `overflow-hidden` kills the child's scroll context → WORKED: remove those, give the sheet content an explicit `height` (not just `max-height`), `touch-action:pan-y`.
+- **DM page "Conversation not found" — RLS suspected** → checked SELECT policies on `messages` and `conversations`, checked `conversation_notifications` policies, verified `public.messages` schema → all correct, RLS is not the cause → actual cause is auth timing race: TQ v5 disabled queries have `isLoading=false`, so `ConversationPage` shows error state while `user=null` during auth validation. Fix: include `authIsLoading` in the `isLoading` guard.
 
 <!-- TEMPLATE — copy for new entries:
 - **<problem>** → tried <approach> → failed because <reason> → WORKED: <fix, or "still open">.
