@@ -10,11 +10,6 @@ import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import {
-  markRealtimeSurfaceSubscribed,
-  markRealtimeSurfaceReconnecting,
-  markRealtimeSurfaceError,
-} from '@/lib/realtimeHealthRegistry.js';
-import {
   getConnectionRequests,
   getSentRequests,
   getConnectionRequestBetween,
@@ -54,14 +49,6 @@ export function useConnectionRequests() {
   });
 
   useEffect(() => {
-    if (query.isSuccess) {
-      markRealtimeSurfaceSubscribed('connection-requests');
-    } else if (query.isError) {
-      markRealtimeSurfaceError('connection-requests');
-    }
-  }, [query.isError, query.isSuccess]);
-
-  useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
       .channel(`connection-requests-incoming-${user.id}-${instanceId.current}`)
@@ -86,15 +73,9 @@ export function useConnectionRequests() {
               code: err?.code,
               message: err?.message,
             });
-            markRealtimeSurfaceReconnecting('connection-requests');
-          } else {
+        } else {
             logger.error('[useConnectionRequests] Incoming subscription error:', err);
-            markRealtimeSurfaceError('connection-requests');
           }
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('connection-requests');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('connection-requests');
         }
       });
 
@@ -129,14 +110,6 @@ export function useSentRequests() {
   });
 
   useEffect(() => {
-    if (query.isSuccess) {
-      markRealtimeSurfaceSubscribed('connection-requests');
-    } else if (query.isError) {
-      markRealtimeSurfaceError('connection-requests');
-    }
-  }, [query.isError, query.isSuccess]);
-
-  useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
       .channel(`connection-requests-sent-${user.id}-${instanceId.current}`)
@@ -161,15 +134,9 @@ export function useSentRequests() {
               code: err?.code,
               message: err?.message,
             });
-            markRealtimeSurfaceReconnecting('connection-requests');
-          } else {
+        } else {
             logger.error('[useConnectionRequests] Sent subscription error:', err);
-            markRealtimeSurfaceError('connection-requests');
           }
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('connection-requests');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('connection-requests');
         }
       });
 
@@ -200,14 +167,6 @@ export function useConnectionRequestWith(userId) {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
-
-  useEffect(() => {
-    if (query.isSuccess) {
-      markRealtimeSurfaceSubscribed('connection-requests');
-    } else if (query.isError) {
-      markRealtimeSurfaceError('connection-requests');
-    }
-  }, [query.isError, query.isSuccess]);
 
   return query;
 }

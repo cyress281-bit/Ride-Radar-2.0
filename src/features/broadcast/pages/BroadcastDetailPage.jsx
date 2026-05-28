@@ -30,11 +30,6 @@ import { useProfileBatch } from '@/hooks/use-profile-batch.js';
 import { broadcastKeys, useRemoveBroadcast, useUpdateBroadcast, useResolveBroadcast } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
-import {
-  markRealtimeSurfaceSubscribed,
-  markRealtimeSurfaceReconnecting,
-  markRealtimeSurfaceError,
-} from '@/lib/realtimeHealthRegistry.js';
 import BroadcastComments from '@/features/broadcast/components/BroadcastComments.jsx';
 
 function RemovedSignalScreen({ onBack, onHome }) {
@@ -685,15 +680,9 @@ function BroadcastDetailPage() {
         if (err) {
           if (isExpectedRealtimeDisconnect(err, status)) {
             logger.debug('[BroadcastDetailPage] Realtime disconnected (expected reconnect)', { status });
-            markRealtimeSurfaceReconnecting('broadcast-detail');
           } else {
             logger.error('[BroadcastDetailPage] Realtime subscription error:', err);
-            markRealtimeSurfaceError('broadcast-detail');
           }
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('broadcast-detail');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('broadcast-detail');
         }
       });
     return () => {
@@ -723,15 +712,9 @@ function BroadcastDetailPage() {
         if (err) {
           if (isExpectedRealtimeDisconnect(err, status)) {
             logger.debug('[BroadcastDetailPage] Realtime disconnected (expected reconnect)', { status });
-            markRealtimeSurfaceReconnecting('broadcast-detail');
           } else {
             logger.error('[BroadcastDetailPage] Realtime subscription error:', err);
-            markRealtimeSurfaceError('broadcast-detail');
           }
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('broadcast-detail');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('broadcast-detail');
         }
       });
     return () => {

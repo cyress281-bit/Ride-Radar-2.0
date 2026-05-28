@@ -1,15 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { telemetryTransition, telemetryKeyboard } from '@/lib/telemetry/layout-telemetry.js';
 
 /**
  * Layout state machine that derives a single phase from viewport changes.
  *
  * Phases:
- * - 'stable'          → viewport has not changed for 150–200ms
- * - 'keyboard-opening'→ viewport height dropped quickly (keyboard appearing)
- * - 'keyboard-open'   → keyboard is fully open and settled
- * - 'keyboard-closing'→ viewport height increased quickly (keyboard disappearing)
- * - 'resizing'        → viewport changed but not keyboard-related (orientation, etc.)
+ * - 'boot'              → initial state before first viewport measurement
+ * - 'initializing'      → first measurement received, settling
+ * - 'stable'            → viewport has not changed for 150–200ms
+ * - 'keyboard-opening'  → viewport height dropped quickly (keyboard appearing)
+ * - 'keyboard-open'     → keyboard is fully open and settled
+ * - 'keyboard-closing'  → viewport height increased quickly (keyboard disappearing)
+ * - 'resizing'          → viewport changed but not keyboard-related (orientation, etc.)
  *
  * @param {Object} viewport — output from useViewport() / useViewportContext()
  * @returns {{
@@ -22,16 +23,13 @@ import { telemetryTransition, telemetryKeyboard } from '@/lib/telemetry/layout-t
  * }}
  */
 export function useLayoutMachine(viewport) {
-  const [phase, setPhase] = useState('stable');
+  const [phase, setPhase] = useState('boot');
   const [transitionId, setTransitionId] = useState(0);
 
   const prevViewportRef = useRef(viewport);
   const stableTimerRef = useRef(null);
   const transitionCountRef = useRef(0);
-
-  // ── Observability: transition log buffer (last 20 entries) ───────────────
-  const transitionsRef = useRef([]);
-  const lastTransitionTimeRef = useRef(0);
+  const hasReceivedMeasurementRef = useRef(false);
 
   const settleToStable = useCallback(() => {
     setPhase((current) => {
@@ -46,9 +44,19 @@ export function useLayoutMachine(viewport) {
   useEffect(() => {
     const prev = prevViewportRef.current;
 
-    // ── Stabilization: skip if viewport values haven't changed ───────────────
-    // useViewport now deduplicates identical values, but we also guard here
-    // against reference-only changes.
+    // Boot → Initializing transition on first real measurement
+    if (!hasReceivedMeasurementRef.current && viewport.viewportHeight > 0) {
+      hasReceivedMeasurementRef.current = true;
+      setPhase('initializing');
+      if (stableTimerRef.current) clearTimeout(stableTimerRef.current);
+      stableTimerRef.current = setTimeout(() => {
+        settleToStable();
+      }, 100);
+      prevViewportRef.current = viewport;
+      return;
+    }
+
+    // Stabilization: skip if viewport values haven't changed
     if (
       viewport.viewportHeight === prev.viewportHeight &&
       viewport.viewportWidth === prev.viewportWidth &&
@@ -72,17 +80,14 @@ export function useLayoutMachine(viewport) {
     let didTransition = false;
 
     if (isKeyboardTransition) {
-      // Cancel any pending stable timer
       if (stableTimerRef.current) {
         clearTimeout(stableTimerRef.current);
         stableTimerRef.current = null;
       }
 
       if (heightDelta < 0) {
-        // Viewport shrank → keyboard opening
         nextPhase = 'keyboard-opening';
       } else {
-        // Viewport grew → keyboard closing
         nextPhase = 'keyboard-closing';
       }
 
@@ -90,7 +95,6 @@ export function useLayoutMachine(viewport) {
       setTransitionId(transitionCountRef.current);
       didTransition = nextPhase !== phase;
     } else if (absDelta > 0 && !isKeyboardTransition) {
-      // Small change (orientation, toolbar, etc.)
       if (stableTimerRef.current) clearTimeout(stableTimerRef.current);
       nextPhase = 'resizing';
       transitionCountRef.current += 1;
@@ -105,7 +109,6 @@ export function useLayoutMachine(viewport) {
       isKeyboardOpen &&
       !wasKeyboardOpen
     ) {
-      // Keyboard fully open — start settle timer
       if (stableTimerRef.current) clearTimeout(stableTimerRef.current);
       stableTimerRef.current = setTimeout(() => {
         settleToStable();
@@ -115,7 +118,6 @@ export function useLayoutMachine(viewport) {
       !isKeyboardOpen &&
       wasKeyboardOpen
     ) {
-      // Keyboard fully closed — start settle timer
       if (stableTimerRef.current) clearTimeout(stableTimerRef.current);
       stableTimerRef.current = setTimeout(() => {
         settleToStable();
@@ -135,61 +137,14 @@ export function useLayoutMachine(viewport) {
       setPhase(nextPhase);
     }
 
-    // ── Observability: record transition ───────────────────────────────────
-    const now = Date.now();
-    const transitions = transitionsRef.current;
-
-    if (didTransition) {
-      transitions.push({
-        timestamp: now,
-        from: phase,
-        to: nextPhase,
-        viewportHeight: viewport.viewportHeight,
-        keyboardHeight: viewport.keyboardHeight,
-      });
-      // Keep only last 20 entries
-      if (transitions.length > 20) {
-        transitions.shift();
-      }
-
-      // ── Telemetry: layout transition ─────────────────────────────────────
-      telemetryTransition(phase, nextPhase, viewport.viewportHeight, viewport.keyboardHeight, heightDelta);
-
-      // ── Observability: instability detection ─────────────────────────────
-      // Count transitions within the last 300ms
-      const recentWindow = 300;
-      const recentCount = transitions.filter(
-        (t) => now - t.timestamp <= recentWindow
-      ).length;
-
-      if (recentCount > 3) {
-        console.warn('[LAYOUT INSTABILITY] rapid phase oscillation', {
-          recentTransitions: recentCount,
-          windowMs: recentWindow,
-          transitions: transitions.slice(-6),
-        });
-        telemetryKeyboard('oscillation', viewport.keyboardHeight, prev.keyboardHeight, {
-          recentTransitions: recentCount,
-          phase: nextPhase,
-        });
-      }
-    }
-
-    lastTransitionTimeRef.current = now;
-
-    // ── Observability: dev-time debug hook ─────────────────────────────────
-    if (import.meta.env.DEV) {
-      window.__RR_LAYOUT_DEBUG = transitions;
-    }
-
-    if (import.meta.env.DEV) {
+    if (didTransition && import.meta.env.DEV) {
       console.log('[LAYOUT]', nextPhase, {
         viewportHeight: viewport.viewportHeight,
         keyboardHeight: viewport.keyboardHeight,
         delta: heightDelta,
       });
     }
-  }, [viewport, settleToStable]);
+  }, [viewport, settleToStable, phase]);
 
   // Cleanup on unmount
   useEffect(() => {

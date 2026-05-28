@@ -7,14 +7,6 @@ import { Toaster } from 'sonner';
 
 /**
  * AppProviders - Composition root wrapping all top-level providers.
- *
- * Layers:
- * 1. QueryClientProvider - TanStack Query cache and defaults
- * 2. ViewportProvider - Unified viewport + keyboard state (single visualViewport listener)
- * 3. AuthProvider - Authentication state and session management
- * 4. Toaster - Toast notification surface (sonner)
- *
- * @param {{ children: React.ReactNode }} props
  */
 export const AppProviders = memo(function AppProviders({ children }) {
   return (

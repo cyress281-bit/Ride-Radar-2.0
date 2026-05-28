@@ -17,13 +17,10 @@ import { cn } from '@/lib/utils';
  * @property {string} [itemClassName] - Additional classes for each virtual row wrapper
  * @property {(index: number) => string|number} [getItemKey] - Unique key extractor
  * @property {boolean} [shouldAutoScroll] - When true, authority allows auto-scroll.
- *   Replaces the old scrollToBottom boolean with policy-gated control.
  * @property {React.RefObject<HTMLElement>} [containerRef] - Optional ref to the
- *   scroll container element. When provided, the authority can read live scroll
- *   position from the VirtualList's internal container.
+ *   scroll container element.
  * @property {(api: Object) => void} [onVirtualApiReady] - Callback that receives
- *   the virtualizer API for use with the unified scroll runtime. The parent
- *   (ConversationPage) passes this to useUnifiedScrollRuntime.
+ *   the virtualizer API for external scroll control.
  */
 
 /**
@@ -34,8 +31,7 @@ import { cn } from '@/lib/utils';
  * large data sets.
  *
  * SCROLL POLICY: This component does NOT decide when to scroll. It only scrolls
- * when `shouldAutoScroll` is true. The caller (ConversationPage via
- * useScrollAuthority) is responsible for ALL scroll decisions.
+ * when `shouldAutoScroll` is true. The caller is responsible for scroll decisions.
  *
  * @param {VirtualListProps} props
  * @returns {JSX.Element}

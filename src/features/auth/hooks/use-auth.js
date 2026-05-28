@@ -67,9 +67,6 @@ export function useAuthProvider() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  // KNOWN ISSUE: authEvent is in the state context and triggers re-renders on every
-  // token refresh. Do NOT remove it from the context as it may break the password
-  // recovery flow. Components that don't need authEvent should use useAuthActions().
   const [authEvent, setAuthEvent] = useState(null);
   const profileLoadSeq = useRef(0);
   const profileTimeoutRef = useRef(null);
@@ -465,9 +462,8 @@ export function useAuthProvider() {
       profile,
       isAuthenticated,
       isLoading,
-      authEvent,
     }),
-    [user, profile, isAuthenticated, isLoading, authEvent]
+    [user, profile, isAuthenticated, isLoading]
   );
 
   const actions = useMemo(
@@ -499,25 +495,76 @@ export function useAuthProvider() {
 // ------------------------------------------------------------------
 
 /**
+ * SAFE fallback for auth state when called outside provider tree.
+ * Prevents crashes during deep-link cold boot or HMR.
+ */
+const AUTH_STATE_FALLBACK = Object.freeze({
+  user: null,
+  profile: null,
+  isAuthenticated: false,
+  isLoading: true,
+});
+
+/**
  * Consume the auth state context (lightweight; does not trigger on action changes).
+ * NEVER throws in production — returns safe fallback if provider is missing.
  * @returns {{ user: object|null, profile: object|null, isAuthenticated: boolean, isLoading: boolean }}
  */
 export function useAuthState() {
   const context = useContext(AuthStateContext);
+
   if (!context) {
-    throw new Error('useAuthState must be used within AuthProvider');
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[AuthProvider] useAuthState called outside provider tree. ' +
+        'Returning safe fallback (isLoading=true).'
+      );
+    }
+    return AUTH_STATE_FALLBACK;
   }
+
   return context;
 }
 
 /**
+ * SAFE fallback for auth actions when called outside provider tree.
+ * All actions are no-ops that return rejected promises.
+ */
+const AUTH_ACTIONS_FALLBACK = Object.freeze({
+  signIn: async () => { throw new Error('Auth not initialized'); },
+  signUp: async () => { throw new Error('Auth not initialized'); },
+  signInWithProvider: async () => { throw new Error('Auth not initialized'); },
+  signOut: async () => { throw new Error('Auth not initialized'); },
+  updatePassword: async () => { throw new Error('Auth not initialized'); },
+  resetPassword: async () => { throw new Error('Auth not initialized'); },
+  updateEmail: async () => { throw new Error('Auth not initialized'); },
+  signOutOthers: async () => { throw new Error('Auth not initialized'); },
+  linkOAuthProvider: async () => { throw new Error('Auth not initialized'); },
+  unlinkOAuthProvider: async () => { throw new Error('Auth not initialized'); },
+  browserSupportsPasskeys: () => false,
+  registerPasskey: async () => { throw new Error('Auth not initialized'); },
+  listPasskeys: async () => [],
+  deletePasskey: async () => { throw new Error('Auth not initialized'); },
+  refreshProfile: async () => {},
+});
+
+/**
  * Consume the auth actions context (stable; does not trigger on state changes).
+ * NEVER throws in production — returns safe fallback if provider is missing.
  * @returns {{ signIn: Function, signUp: Function, signInWithProvider: Function, signOut: Function, updatePassword: Function, resetPassword: Function, updateEmail: Function, signOutOthers: Function, linkOAuthProvider: Function, unlinkOAuthProvider: Function, browserSupportsPasskeys: Function, registerPasskey: Function, listPasskeys: Function, deletePasskey: Function, refreshProfile: Function }}
  */
 export function useAuthActions() {
   const context = useContext(AuthActionsContext);
   if (!context) {
-    throw new Error('useAuthActions must be used within AuthProvider');
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[AuthProvider] useAuthActions called outside provider tree. ' +
+        'Returning safe fallback (no-op actions).'
+      );
+    }
+    return AUTH_ACTIONS_FALLBACK;
   }
   return context;
 }

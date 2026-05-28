@@ -5,18 +5,12 @@ import { getMessages, hydrateMessageImages, markConversationRead } from '@/featu
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
-import {
-  markRealtimeSurfaceSubscribed,
-  markRealtimeSurfaceReconnecting,
-  markRealtimeSurfaceError,
-} from '@/lib/realtimeHealthRegistry.js';
 
 /**
  * Hook to fetch messages for a conversation with real-time updates.
  *
  * Own messages are handled by optimistic updates in useSendMessage.
  * Real-time subscription only appends messages from OTHER users.
- * Deduplication is handled via a seenIdsRef.
  */
 export function useMessages(conversationId) {
   const queryClient = useQueryClient();
@@ -25,7 +19,8 @@ export function useMessages(conversationId) {
   const channelIdRef = useRef(`msg-${Math.random().toString(36).slice(2)}`);
 
   const query = useQuery({
-    queryKey: ['messages', conversationId],
+    // Include user.id in the key so that auth state changes trigger a refetch.
+    queryKey: ['messages', conversationId, user?.id],
     queryFn: async () => {
       if (!conversationId) return [];
       const { data, error } = await getMessages(conversationId);
@@ -37,19 +32,23 @@ export function useMessages(conversationId) {
       seenIdsRef.current = new Set(messages.map((m) => m.id));
       return messages;
     },
-    enabled: !!conversationId,
+    enabled: !!conversationId && !!user?.id,
     staleTime: 60_000,
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
 
+  // When auth state changes (e.g. token refresh after app resume), invalidate
+  // this conversation's messages so stale/empty data is not served.
+  const prevUserIdRef = useRef(user?.id);
   useEffect(() => {
-    if (query.isSuccess) {
-      markRealtimeSurfaceSubscribed('messages');
-    } else if (query.isError) {
-      markRealtimeSurfaceError('messages');
+    if (prevUserIdRef.current !== user?.id) {
+      if (user?.id && conversationId) {
+        queryClient.invalidateQueries({ queryKey: ['messages', conversationId, user.id] });
+      }
+      prevUserIdRef.current = user?.id;
     }
-  }, [query.isError, query.isSuccess]);
+  }, [user?.id, conversationId, queryClient]);
 
   // Real-time subscription — only append messages from OTHER users
   useEffect(() => {
@@ -75,7 +74,7 @@ export function useMessages(conversationId) {
           if (seenIdsRef.current.has(newMessage.id)) return;
           seenIdsRef.current.add(newMessage.id);
 
-          queryClient.setQueryData(['messages', conversationId], (old = []) => {
+          queryClient.setQueryData(['messages', conversationId, user?.id], (old = []) => {
             if (old.some((m) => m.id === newMessage.id)) return old;
             return [...old, newMessage];
           });
@@ -104,15 +103,9 @@ export function useMessages(conversationId) {
               code: err?.code,
               message: err?.message,
             });
-            markRealtimeSurfaceReconnecting('messages');
           } else {
             logger.error('[useMessages] Realtime subscription error:', err);
-            markRealtimeSurfaceError('messages');
           }
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('messages');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('messages');
         }
       });
 

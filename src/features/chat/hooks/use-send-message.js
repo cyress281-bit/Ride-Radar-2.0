@@ -1,7 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
-import { useOnlineStatus } from '@/hooks/use-online-status.js';
 import { sendMessage as apiSendMessage } from '@/features/chat/api/chat-api.js';
 import { PRIVATE_MESSAGE_IMAGE_BUCKET, uploadPrivateImage } from '@/lib/image-utils.js';
 import { toast } from 'sonner';
@@ -14,45 +12,17 @@ import { trackMessageSent } from '@/lib/analytics.js';
  * Accepts { body, imageFile, _tempId }:
  *   body      — optional text string
  *   imageFile — optional File object; uploaded before insert
- *   _tempId   — stable client ID; used for optimistic dedup and offline queue
+ *   _tempId   — stable client ID; used for optimistic dedup
  *
- * Offline behaviour: text messages are queued to localStorage and sent
- * automatically when connectivity is restored. Failed sends are marked
- * _failed so the UI can show a retry tap target.
+ * Uses React Query's built-in offline-first mutation queuing.
  */
-
-const QUEUE_KEY = 'rr:message-queue';
-
-function loadQueue() {
-  try { return JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch { return []; }
-}
-function saveQueue(q) {
-  try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q)); } catch {}
-}
-function addToQueue(item) {
-  const q = loadQueue();
-  if (!q.find((e) => e._tempId === item._tempId)) { q.push(item); saveQueue(q); }
-}
-function removeFromQueue(tempId) {
-  saveQueue(loadQueue().filter((e) => e._tempId !== tempId));
-}
-
 export function useSendMessage(conversationId) {
   const { user } = useAuthState();
   const queryClient = useQueryClient();
-  const isOnline = useOnlineStatus();
 
   const mutation = useMutation({
     mutationFn: async ({ body, imageFile, _tempId } = {}) => {
       if (!user) throw new Error('Must be authenticated to send message');
-
-      // Queue text messages when offline; image sends fall through to fail naturally
-      if (!isOnline && !imageFile) {
-        addToQueue({ conversationId, body: body?.trim() || null, _tempId });
-        const err = new Error('You are offline. Your message will be sent when you reconnect.');
-        err._offline = true;
-        throw err;
-      }
 
       const trimmedBody = body?.trim() || null;
       if (!trimmedBody && !imageFile) throw new Error('Message cannot be empty');
@@ -75,19 +45,18 @@ export function useSendMessage(conversationId) {
         throw messageError;
       }
 
-      if (_tempId) removeFromQueue(_tempId);
       return message;
     },
 
     onMutate: async ({ body, imageFile, _tempId } = {}) => {
-      await queryClient.cancelQueries({ queryKey: ['messages', conversationId] });
+      await queryClient.cancelQueries({ queryKey: ['messages', conversationId, user?.id] });
 
-      const previousMessages = queryClient.getQueryData(['messages', conversationId]);
+      const previousMessages = queryClient.getQueryData(['messages', conversationId, user?.id]);
 
       const trimmedBody = body?.trim() || null;
       const optimisticImageUrl = imageFile ? URL.createObjectURL(imageFile) : null;
 
-      // Use caller-supplied _tempId so retries and queue drains replace the same bubble
+      // Use caller-supplied _tempId so retries replace the same bubble
       const optimisticId = _tempId || `optimistic-${Date.now()}`;
       const optimisticMessage = {
         id: optimisticId,
@@ -101,7 +70,7 @@ export function useSendMessage(conversationId) {
         _localImageUrl: optimisticImageUrl,
       };
 
-      queryClient.setQueryData(['messages', conversationId], (old = []) => {
+      queryClient.setQueryData(['messages', conversationId, user?.id], (old = []) => {
         const hasExisting = old.some((m) => m.id === optimisticId);
         if (hasExisting) return old.map((m) => m.id === optimisticId ? { ...optimisticMessage } : m);
         return [...old, optimisticMessage];
@@ -123,14 +92,14 @@ export function useSendMessage(conversationId) {
       return { previousMessages, optimisticMessage };
     },
 
-    onSuccess: (serverMessage, _variables, context) => {
+    onSuccess: (serverMessage, variables, context) => {
       if (context?.optimisticMessage?._localImageUrl) {
         URL.revokeObjectURL(context.optimisticMessage._localImageUrl);
       }
 
       trackMessageSent();
 
-      queryClient.setQueryData(['messages', conversationId], (old = []) =>
+      queryClient.setQueryData(['messages', conversationId, user?.id], (old = []) =>
         old.map((msg) =>
           msg.id === context.optimisticMessage.id ? serverMessage : msg
         )
@@ -150,18 +119,13 @@ export function useSendMessage(conversationId) {
       });
     },
 
-    onError: (error, _variables, context) => {
+    onError: (error, variables, context) => {
       if (context?.optimisticMessage?._localImageUrl) {
         URL.revokeObjectURL(context.optimisticMessage._localImageUrl);
       }
 
-      if (error._offline) {
-        // Keep the _pending optimistic bubble; no toast — user can see they're offline
-        return;
-      }
-
       // Mark as failed so the UI can show a retry tap target (not rolled back)
-      queryClient.setQueryData(['messages', conversationId], (old = []) =>
+      queryClient.setQueryData(['messages', conversationId, user?.id], (old = []) =>
         old.map((msg) =>
           msg.id === context?.optimisticMessage?.id
             ? { ...msg, _pending: false, _failed: true }
@@ -175,17 +139,6 @@ export function useSendMessage(conversationId) {
       });
     },
   });
-
-  // Drain queued messages for this conversation when connectivity is restored
-  useEffect(() => {
-    if (!isOnline) return;
-    const queue = loadQueue().filter((item) => item.conversationId === conversationId);
-    if (queue.length === 0) return;
-    for (const item of queue) {
-      mutation.mutate({ body: item.body, _tempId: item._tempId });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOnline, conversationId]);
 
   return mutation;
 }

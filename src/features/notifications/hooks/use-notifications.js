@@ -18,11 +18,6 @@ import {
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
-import {
-  markRealtimeSurfaceSubscribed,
-  markRealtimeSurfaceReconnecting,
-  markRealtimeSurfaceError,
-} from '@/lib/realtimeHealthRegistry.js';
 
 /**
  * Query key factory for notifications.
@@ -112,15 +107,9 @@ function attachNotificationRealtimeChannel(userId, qc, settings) {
             code: err?.code,
             message: err?.message,
           });
-          markRealtimeSurfaceReconnecting('notifications');
         } else {
           logger.error('[useNotifications] Shared subscription error:', err);
-          markRealtimeSurfaceError('notifications');
         }
-      } else if (status && status !== 'SUBSCRIBED') {
-        markRealtimeSurfaceReconnecting('notifications');
-      } else if (status === 'SUBSCRIBED') {
-        markRealtimeSurfaceSubscribed('notifications');
       }
     });
 
@@ -161,14 +150,6 @@ export function useNotifications(userId) {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
-
-  useEffect(() => {
-    if (query.isSuccess) {
-      markRealtimeSurfaceSubscribed('notifications');
-    } else if (query.isError) {
-      markRealtimeSurfaceError('notifications');
-    }
-  }, [query.isError, query.isSuccess]);
 
   // Real-time subscription for notifications and unread count updates
   useEffect(() => {
@@ -218,14 +199,6 @@ export function useUnreadCount(userId, options = {}) {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
-
-  useEffect(() => {
-    if (query.isSuccess) {
-      markRealtimeSurfaceSubscribed('notifications');
-    } else if (query.isError) {
-      markRealtimeSurfaceError('notifications');
-    }
-  }, [query.isError, query.isSuccess]);
 
   return query;
 }

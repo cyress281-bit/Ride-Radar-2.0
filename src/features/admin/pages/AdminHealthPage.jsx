@@ -7,22 +7,11 @@ import { cn } from '@/lib/utils.js';
 import AdminPageShell from '@/features/admin/components/AdminPageShell.jsx';
 import AdminLayout from '@/features/admin/components/AdminLayout.jsx';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRealtimeHealthSnapshot } from '@/lib/realtimeHealthRegistry.js';
 
 /**
- * Admin Health Monitor — Real-time system health dashboard.
+ * Admin Health Monitor — System health dashboard.
  */
 const DEPLOYMENT_URL = 'https://www.rideradarapp.com';
-
-function formatHealthTime(value) {
-  if (!value) return 'never';
-  const ms = Date.now() - Number(value);
-  if (!Number.isFinite(ms) || ms < 0) return 'never';
-  if (ms < 1000) return 'just now';
-  if (ms < 60_000) return `${Math.round(ms / 1000)}s ago`;
-  if (ms < 3_600_000) return `${Math.round(ms / 60_000)}m ago`;
-  return `${Math.round(ms / 3_600_000)}h ago`;
-}
 
 export default function AdminHealthPage() {
   return (
@@ -51,7 +40,6 @@ function AdminHealthContent() {
   const [checks, setChecks] = useState([]);
   const [running, setRunning] = useState(false);
   const [lastRun, setLastRun] = useState(null);
-  const realtimeHealth = useRealtimeHealthSnapshot();
 
   async function runHealthChecks() {
     setRunning(true);
@@ -174,15 +162,6 @@ function AdminHealthContent() {
 
   const allPass = checks.length > 0 && checks.every((c) => c.status === 'pass');
   const passCount = checks.filter((c) => c.status === 'pass').length;
-  const realtimeSurfaces = Object.entries(realtimeHealth.surfaces || {});
-  const realtimeCounts = realtimeSurfaces.reduce(
-    (acc, [, surface]) => {
-      const status = surface?.status || 'unknown';
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    },
-    { subscribed: 0, reconnecting: 0, stale: 0, error: 0, unknown: 0 }
-  );
 
   if (checks.length === 0 && running) {
     return (
@@ -247,79 +226,6 @@ function AdminHealthContent() {
           </div>
         </CardContent>
       </Card>
-
-      <div className="mt-4 rounded-[20px] border border-border bg-surface p-4">
-        <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Realtime surfaces
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Coarse internal health only. No payloads, locations, message text, or channel IDs.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wider">
-            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-primary">
-              {realtimeCounts.subscribed} subscribed
-            </span>
-            <span className="rounded-full bg-warning/10 px-2.5 py-1 text-warning">
-              {realtimeCounts.reconnecting} reconnecting
-            </span>
-            <span className="rounded-full bg-secondary px-2.5 py-1 text-muted-foreground">
-              {realtimeCounts.stale} stale
-            </span>
-            <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-destructive">
-              {realtimeCounts.error} error
-            </span>
-          </div>
-        </div>
-
-        <div className="mb-3 text-xs text-muted-foreground">
-          Last resume refresh: {formatHealthTime(realtimeHealth.lastResumeRefreshAt)}
-        </div>
-
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-          {realtimeSurfaces.map(([surfaceName, surfaceState]) => {
-            const status = surfaceState?.status || 'unknown';
-            const statusClass =
-              status === 'subscribed'
-                ? 'bg-primary/10 text-primary'
-                : status === 'reconnecting'
-                  ? 'bg-warning/10 text-warning'
-                  : status === 'stale'
-                    ? 'bg-secondary text-muted-foreground'
-                    : status === 'error'
-                      ? 'bg-destructive/10 text-destructive'
-                      : 'bg-muted text-muted-foreground';
-
-            return (
-              <div
-                key={surfaceName}
-                className="rounded-[18px] border border-border/70 bg-background/50 p-3"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="text-sm font-semibold capitalize">
-                    {surfaceName.replace(/-/g, ' ')}
-                  </div>
-                  <span
-                    className={cn(
-                      'rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wider',
-                      statusClass
-                    )}
-                  >
-                    {status}
-                  </span>
-                </div>
-                <div className="mt-2 grid gap-1 text-[11px] text-muted-foreground">
-                  <div>Last success: {formatHealthTime(surfaceState?.lastSuccessAt)}</div>
-                  <div>Last error: {formatHealthTime(surfaceState?.lastErrorAt)}</div>
-                  <div>Last resume: {formatHealthTime(surfaceState?.lastResumeRefreshAt)}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Individual checks */}
       <div className="mt-4 grid gap-3">

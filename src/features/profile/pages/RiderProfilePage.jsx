@@ -46,11 +46,6 @@ import {
 } from '@/features/connections/hooks/use-connection-requests.js';
 import { supabase } from '@/lib/supabase.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
-import {
-  markRealtimeSurfaceSubscribed,
-  markRealtimeSurfaceReconnecting,
-  markRealtimeSurfaceError,
-} from '@/lib/realtimeHealthRegistry.js';
 import { logger } from '@/lib/logger.js';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -160,15 +155,9 @@ function RiderProfilePage() {
         if (err) {
           if (isExpectedRealtimeDisconnect(err, status)) {
             logger.debug('[RiderProfilePage] Realtime disconnected (expected reconnect)', { status });
-            markRealtimeSurfaceReconnecting('rider-profile');
           } else {
             logger.error('[RiderProfilePage] Realtime subscription error:', err);
-            markRealtimeSurfaceError('rider-profile');
           }
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('rider-profile');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('rider-profile');
         }
       });
 
@@ -196,15 +185,9 @@ function RiderProfilePage() {
         if (err) {
           if (isExpectedRealtimeDisconnect(err, status)) {
             logger.debug('[RiderProfilePage] Realtime disconnected (expected reconnect)', { status });
-            markRealtimeSurfaceReconnecting('rider-profile');
           } else {
             logger.error('[RiderProfilePage] Realtime subscription error:', err);
-            markRealtimeSurfaceError('rider-profile');
           }
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('rider-profile');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('rider-profile');
         }
       });
 

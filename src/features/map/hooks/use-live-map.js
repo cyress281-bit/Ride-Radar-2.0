@@ -14,11 +14,6 @@ import { logger } from '@/lib/logger.js';
 import { captureError } from '@/lib/sentry.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import {
-  markRealtimeSurfaceSubscribed,
-  markRealtimeSurfaceReconnecting,
-  markRealtimeSurfaceError,
-} from '@/lib/realtimeHealthRegistry.js';
-import {
   HEARTBEAT_INTERVAL_MS,
   PRESENCE_REFRESH_MS,
   BACKGROUND_GRACE_MS,
@@ -165,14 +160,6 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     refetchInterval: PRESENCE_REFRESH_MS,
   });
 
-  useEffect(() => {
-    if (presenceQuery.isSuccess) {
-      markRealtimeSurfaceSubscribed('live-presence');
-    } else if (presenceQuery.isError) {
-      markRealtimeSurfaceError('live-presence');
-    }
-  }, [presenceQuery.isError, presenceQuery.isSuccess]);
-
   const myPresenceQuery = useQuery({
     queryKey: presenceKeys.me(userId),
     enabled: !!userId,
@@ -189,14 +176,6 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     staleTime: 30_000,
     refetchInterval: settingsQuery.data?.live_map_visible ? PRESENCE_REFRESH_MS : false,
   });
-
-  useEffect(() => {
-    if (myPresenceQuery.isSuccess) {
-      markRealtimeSurfaceSubscribed('live-presence');
-    } else if (myPresenceQuery.isError) {
-      markRealtimeSurfaceError('live-presence');
-    }
-  }, [myPresenceQuery.isError, myPresenceQuery.isSuccess]);
 
   // Real-time subscription with exponential backoff reconnection
   useEffect(() => {
@@ -217,7 +196,6 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
     function scheduleRetry() {
       const delay = retryDelayRef.current;
       retryDelayRef.current = Math.min(delay * 2, 30_000);
-      markRealtimeSurfaceReconnecting('live-presence');
       retryTimerRef.current = setTimeout(() => {
         if (activeChannel) {
           supabase.removeChannel(activeChannel);
@@ -266,9 +244,6 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
               clearTimeout(retryTimerRef.current);
               retryTimerRef.current = null;
             }
-            markRealtimeSurfaceSubscribed('live-presence');
-          } else {
-            markRealtimeSurfaceReconnecting('live-presence');
           }
         });
 
@@ -337,13 +312,11 @@ export function useLiveMapPresence(currentLocation = null, options = {}) {
 
       if (error) {
         logger.warn('[useLiveMapPresence] Publish failed:', error);
-        markRealtimeSurfaceError('live-presence');
         return false;
       }
 
       lastPublishRef.current = Date.now();
       lastPublishedCoordRef.current = { lat, lng };
-      markRealtimeSurfaceSubscribed('live-presence');
       queryClient.invalidateQueries({ queryKey: presenceKeys.all });
       queryClient.invalidateQueries({ queryKey: presenceKeys.me(userId) });
       return true;

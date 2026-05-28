@@ -16,11 +16,6 @@ import { getNearbyBroadcasts } from '@/features/broadcast/api/broadcast-api.js';
 import { logger } from '@/lib/logger.js';
 import { captureError } from '@/lib/sentry.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
-import {
-  markRealtimeSurfaceSubscribed,
-  markRealtimeSurfaceReconnecting,
-  markRealtimeSurfaceError,
-} from '@/lib/realtimeHealthRegistry.js';
 
 const OFFLINE_SNAPSHOT_KEY = 'rr:radar-offline-snapshot';
 const OFFLINE_SNAPSHOT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -85,14 +80,6 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds =
     refetchOnWindowFocus: false,
     placeholderData: () => initialOfflineSnapshot?.broadcasts || [],
   });
-
-  useEffect(() => {
-    if (query.isSuccess) {
-      markRealtimeSurfaceSubscribed('broadcasts');
-    } else if (query.isError) {
-      markRealtimeSurfaceError('broadcasts');
-    }
-  }, [query.isError, query.isSuccess]);
 
   // Real-time subscription
   useEffect(() => {
@@ -165,16 +152,10 @@ export function useNearbyBroadcasts(lat, lng, radiusMiles = 50, blockedUserIds =
               code: err?.code,
               message: err?.message,
             });
-            markRealtimeSurfaceReconnecting('broadcasts');
-          } else {
+        } else {
             logger.error('[useNearbyBroadcasts] Realtime subscription error:', err);
             captureError(err, { source: 'useNearbyBroadcasts', status });
-            markRealtimeSurfaceError('broadcasts');
           }
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('broadcasts');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('broadcasts');
         }
       });
 

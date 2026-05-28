@@ -6,8 +6,75 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Before doing anything else each session:
 1. Read this file fully
-2. Ask the user what they want to work on
-3. Do not assume the current app state — verify before acting
+2. Read the **Current Active Task** section below — this tells you exactly where we left off
+3. Ask the user what they want to work on
+4. Do not assume the current app state — verify before acting
+
+---
+
+---
+
+## AI Team Charter
+
+**This section governs how all AI tools collaborate on Ride Radar 2.0. Every AI must read this before contributing anything.**
+
+### The Team
+| Role | AI | Strengths | Primary Responsibility |
+|---|---|---|---|
+| **Architect & Reviewer** | Claude | Security, architecture, code quality, reasoning, debugging | Code review, security hardening, technical decisions, catching bad patterns |
+| **Product & Vision** | ChatGPT | Product thinking, UX strategy, feature prioritization, user experience | App direction, feature design, priority calls, UX decisions |
+| **Executor** | Kimi | Heavy code workload, long sessions, implementation | Writing and editing actual code based on approved plans |
+
+### Rules of Engagement
+1. **No AI has more leverage than another.** ChatGPT's history with this project does not make its decisions final. Claude's technical depth does not override product decisions. Every recommendation must be justified.
+2. **Challenge each other.** If Claude disagrees with a direction ChatGPT set — say so clearly and explain why. If ChatGPT disagrees with Claude's architecture — push back with reasoning. Blind agreement wastes the owner's time.
+3. **Document disagreements.** If two AIs reach different conclusions on the same problem, log both perspectives in this file under the relevant section and let the owner decide.
+4. **Kimi executes, never decides.** Kimi should not make architectural or product decisions. If Kimi encounters an ambiguous situation it stops and flags it rather than guessing.
+5. **No AI touches something outside its current task.** Minimum viable changes only. No scope creep.
+6. **The owner is always the final decision maker.** All AI input is a recommendation. Nothing gets built without owner approval.
+
+### Who Owns What
+- **Security decisions** → Claude leads, ChatGPT reviews
+- **Feature prioritization** → ChatGPT leads, Claude reviews for technical feasibility
+- **Architecture & code patterns** → Claude leads, ChatGPT reviews for product fit
+- **UI/UX decisions** → ChatGPT leads, Claude reviews for implementation complexity
+- **Database schema changes** → Claude leads (RLS, PostGIS, Supabase behavior)
+- **Code execution** → Kimi executes based on plans approved by Claude and/or ChatGPT
+
+### How to Hand Off Between AIs
+At the end of every session update the **Current Active Task** section with:
+- What was decided or built
+- Any open disagreements or unresolved questions
+- What the next AI should pick up
+- Which AI should handle the next step and why
+
+## Current Active Task
+
+**Purpose:** This is the handoff log between AI tools (Claude Code, Kimi, Claude browser). Update it at the end of every session so the next AI picks up exactly where you left off — no re-explaining, no wasted tokens.
+
+**Last Updated By:** Claude (browser)
+**Date:** 2026-05-28
+
+### What We're Working On
+- Resolving DM page (`/messages/:id`) failing to load
+- Suspected cause: RLS policy on `messages`/`conversations` table or broken realtime subscription
+- Tracing this issue surfaced additional backend/security items (document specifics as confirmed)
+
+### Last Action Taken
+- Updated and improved CLAUDE.md:
+  - Resolved Leaflet vs MapLibre contradiction (Leaflet confirmed fully removed via package-lock.json)
+  - Added DM page issue to Known Issues table
+  - Added Dead Ends section seeded with confirmed iOS/PWA fixes
+  - Added this Current Active Task section
+
+### Next Step
+- Run `grep -ri "leaflet" src/` in repo to confirm no stray Leaflet imports remain in source files
+- Begin tracing DM page load failure (start with `useConversationMessages` hook and RLS policies on `messages` table)
+
+### AI Handoff Log
+| Session | AI Used | What Was Done |
+|---|---|---|
+| 2026-05-28 | Claude browser | Planning session — Vercel/deployment review, CLAUDE.md overhaul, Leaflet cleanup confirmed |
 
 ---
 
@@ -26,8 +93,7 @@ Ride Radar 2.0 is a React-based social network for motorcyclists built on Supaba
 - React Router v6 for navigation
 - Tailwind CSS 3.4 + Radix UI components (shadcn/ui)
 - PostGIS for geospatial queries
-- MapLibre GL JS + react-map-gl v8 (maps)
-- Leaflet + react-leaflet (fallback, gated by feature flag)
+- MapLibre GL JS + react-map-gl v8 (maps) — fully migrated, Leaflet completely removed and confirmed absent from dependencies
 - PWA (Progressive Web App) with service worker caching
 - Capacitor 8 (iOS/Android native shells)
 - Deployed on Vercel
@@ -365,6 +431,24 @@ const { showPopup } = useMapLibrePopup(mapRef);
 |---|---|---|
 | RSVP toggle deselect | FIXED | Resolved. Root cause was vercel.json invalid wildcard pattern silently failing all deploys. |
 | PWA iOS SW update delay | Investigated, no fix applied | iOS Safari 24hr SW update throttle + static `?v=velocity` string. |
-| Supabase migration history diverged | 🔴 Active | ~40 remote-only migrations not in local repo. `db push` fails. Manual SQL application required. |
-| Sentry fetch failures | 🟡 Active | POST to ingest endpoint failing — likely rate-limited or CORS. Not user-facing. |
-| requestAnimationFrame jank | 🟡 Active | 199ms frame time on lower-end devices. Needs React profiling. |
+| Supabase migration history diverged | 🚨 Active | ~40 remote-only migrations not in local repo. `db push` fails. Manual SQL application required. |
+| Sentry fetch failures | 🚨 Active | POST to ingest endpoint failing — likely rate-limited or CORS. Not user-facing. |
+| requestAnimationFrame jank | 🚨 Active | 199ms frame time on lower-end devices. Needs React profiling. |
+| Direct messaging page fails to load | 🚨 Active | Conversation view (`/messages/:id`) not loading. Investigating — suspect RLS policy on `messages`/`conversations` or a realtime subscription error. Tracing it surfaced additional backend/security issues; document specifics here as confirmed. |
+
+---
+
+## Dead Ends — Approaches Already Tried That Did NOT Work
+
+**Purpose:** Read this before proposing fixes. Do not re-suggest anything listed here unless you have a specific, concrete reason it would now behave differently — and if so, state that reason explicitly. This section is the single biggest time/token saver in this file. Append to it whenever something is ruled out.
+
+**Format:** `Problem → what was tried → why it failed → what actually worked (if known)`
+
+- **iOS datetime-local input overflow** → tried `width:100%`, `max-width:100%`, and `overflow-hidden` on the parent → none constrained the input on iOS Safari → WORKED: flex wrapper with `min-width:0` plus `flex:1; min-width:0` on the input (see iOS Safari Quirks section).
+- **Forcing iOS PWA service worker updates** → tried the static `?v=velocity` query string → iOS Safari throttles SW update checks to ~once/24h and ignores the static string → the version string must change *between builds* to have any effect.
+- **iOS PWA drag gestures via Pointer Events alone** → `pointerdown`/`pointermove` → `touchmove` often never fires on iOS because Safari treats it as a scroll gesture inside fixed/absolute containers → WORKED: raw `touchstart`/`touchmove`/`touchend` listeners as a fallback + `touch-action:none` on the drag handle.
+- **iOS PWA bottom-sheet scrolling** → `overflow-hidden` on page root and on the open sheet container → a `fixed` + `overflow-hidden` ancestor blocks all descendant scrolling on iOS; parent `overflow-hidden` kills the child's scroll context → WORKED: remove those, give the sheet content an explicit `height` (not just `max-height`), `touch-action:pan-y`.
+
+<!-- TEMPLATE — copy for new entries:
+- **<problem>** → tried <approach> → failed because <reason> → WORKED: <fix, or "still open">.
+-->

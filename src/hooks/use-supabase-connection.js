@@ -2,11 +2,6 @@ import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase.js';
 import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
-import {
-  markRealtimeSurfaceSubscribed,
-  markRealtimeSurfaceReconnecting,
-  markRealtimeSurfaceError,
-} from '@/lib/realtimeHealthRegistry.js';
 
 const HEALTH_CHANNEL_NAME = 'ride-radar-health';
 
@@ -39,11 +34,9 @@ export function useSupabaseConnection() {
                 message: err?.message,
               });
               setStatus('reconnecting');
-              markRealtimeSurfaceReconnecting('supabase-connection');
             } else {
               logger.warn('[useSupabaseConnection] Health channel error:', err);
               setStatus('error');
-              markRealtimeSurfaceError('supabase-connection');
             }
             return;
           }
@@ -60,11 +53,6 @@ export function useSupabaseConnection() {
           setStatus(nextStatus);
           if (state === 'SUBSCRIBED') {
             setLastPingAt(Date.now());
-            markRealtimeSurfaceSubscribed('supabase-connection');
-          } else if (nextStatus === 'reconnecting') {
-            markRealtimeSurfaceReconnecting('supabase-connection');
-          } else if (nextStatus === 'error') {
-            markRealtimeSurfaceError('supabase-connection');
           }
         });
 

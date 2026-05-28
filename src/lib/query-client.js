@@ -16,7 +16,9 @@ function isRetryableError(error) {
   // Retry network errors and 5xx server errors; don't retry 4xx client errors
   if (!error) return true;
   const status = error?.status || error?.statusCode || error?.code;
-  if (typeof status === 'number' && status >= 400 && status < 500) return false;
+  if (typeof status === 'number') {
+    if (status >= 400 && status < 500) return false;
+  }
   if (error?.message?.includes('NetworkError') || error?.message?.includes('Failed to fetch')) return true;
   return true;
 }

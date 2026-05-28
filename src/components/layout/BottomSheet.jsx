@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock.js';
-import { useGestureCoordinator, GesturePriority } from '@/gestures/gesture-coordinator.js';
 
 const HEIGHT_MAP = {
   auto: undefined,
@@ -39,9 +38,6 @@ const BottomSheet = memo(function BottomSheet({
   className,
 }) {
   useBodyScrollLock(isOpen);
-
-  // Gesture coordination: overlay drag takes priority over scroll
-  const gestures = useGestureCoordinator('bottom-sheet', GesturePriority.OVERLAY);
 
   const contentRef = useRef(null);
   const startY = useRef(0);
@@ -127,7 +123,7 @@ const BottomSheet = memo(function BottomSheet({
   return (
     <DialogPrimitive.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogPrimitive.Portal>
-        {/* Backdrop overlay — Radix onOpenChange already closes on outside click */}
+        {/* Backdrop overlay */}
         <DialogPrimitive.Overlay
           className={cn(
             'fixed inset-0 z-50 bg-black/60 backdrop-blur-sm',
@@ -167,7 +163,6 @@ const BottomSheet = memo(function BottomSheet({
               'touch-none select-none'
             )}
             onPointerDown={handlePointerDown}
-            {...gestures.bindOverlayHandle()}
             role="button"
             aria-label="Drag to close"
             tabIndex={0}

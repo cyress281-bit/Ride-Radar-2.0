@@ -4,7 +4,6 @@ import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { notificationKeys } from '@/features/notifications/hooks/use-notifications.js';
 import { connectionRequestKeys } from '@/features/connections/hooks/use-connection-requests.js';
 import { friendshipKeys } from '@/features/connections/hooks/use-friendships.js';
-import { markRealtimeResumeRefresh } from '@/lib/realtimeHealthRegistry.js';
 
 const RESUME_REFRESH_DEBOUNCE_MS = 180;
 const RESUME_REFRESH_COOLDOWN_MS = 10_000;
@@ -41,7 +40,7 @@ function isBrowserOnline() {
 /**
  * App-wide lifecycle refresh hook.
  *
- * Invalidation is intentionally prefix-based so active realtime surfaces can
+ * Invalidation is intentionally prefix-based so active queries can
  * refetch once when the app returns from background/suspend/resume.
  */
 export function useAppResumeRefresh() {
@@ -70,7 +69,6 @@ export function useAppResumeRefresh() {
 
     inFlightRef.current = true;
     lastRefreshAtRef.current = now;
-    markRealtimeResumeRefresh('foreground-resume');
 
     try {
       await invalidateCoreQueries();

@@ -10,11 +10,6 @@ import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import { getFriendships, getFriendshipBetween, removeFriendship } from '@/features/connections/api/connections-api.js';
-import {
-  markRealtimeSurfaceSubscribed,
-  markRealtimeSurfaceReconnecting,
-  markRealtimeSurfaceError,
-} from '@/lib/realtimeHealthRegistry.js';
 
 /** Query key factory for friendships. */
 export const friendshipKeys = {
@@ -43,14 +38,6 @@ export function useFriendships() {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
-
-  useEffect(() => {
-    if (query.isSuccess) {
-      markRealtimeSurfaceSubscribed('friendships');
-    } else if (query.isError) {
-      markRealtimeSurfaceError('friendships');
-    }
-  }, [query.isError, query.isSuccess]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -90,15 +77,9 @@ export function useFriendships() {
               code: err?.code,
               message: err?.message,
             });
-            markRealtimeSurfaceReconnecting('friendships');
-          } else {
+        } else {
             logger.error('[useFriendships] Realtime subscription error:', err);
-            markRealtimeSurfaceError('friendships');
           }
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('friendships');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('friendships');
         }
       });
 
@@ -129,14 +110,6 @@ export function useIsFriend(userId) {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
-
-  useEffect(() => {
-    if (isSuccess) {
-      markRealtimeSurfaceSubscribed('friendships');
-    } else if (isError) {
-      markRealtimeSurfaceError('friendships');
-    }
-  }, [isError, isSuccess]);
 
   return { isFriend: !!friendship, friendship, isLoading };
 }

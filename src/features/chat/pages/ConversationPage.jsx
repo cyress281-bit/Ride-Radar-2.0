@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useCallback, memo, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useCallback, memo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useMessages, useMarkRead } from '@/features/chat/hooks/use-messages.js';
 import { useSendMessage } from '@/features/chat/hooks/use-send-message.js';
@@ -27,11 +27,6 @@ import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useViewportContext } from '@/providers/ViewportProvider';
 import { useMessagingScrollLock } from '@/hooks/use-messaging-scroll-lock.js';
-import { useScrollAuthority } from '@/scroll/scroll-authority.js';
-import { useUnifiedScrollRuntime } from '@/scroll/runtime/useUnifiedScrollRuntime.js';
-import { createScrollPredictionSmoother } from '@/scroll/runtime/scrollPredictionSmoother.js';
-import { createScrollAdaptiveIntelligence } from '@/scroll/runtime/scrollAdaptiveIntelligence.js';
-import { useGestureCoordinator, GesturePriority } from '@/gestures/gesture-coordinator.js';
 
 /**
  * iOS detection helper.
@@ -48,12 +43,11 @@ function isIOS() {
  * Loading skeleton for the conversation header and message list.
  */
 function ConversationSkeleton() {
-  const { keyboardHeight } = useViewportContext();
   return (
     <div
       className="flex flex-col w-full min-h-0 bg-background relative overflow-hidden"
       style={{
-        height: `calc(var(--rr-viewport-height, 100dvh) - 3.5rem - env(safe-area-inset-top, 0px) - 3.5rem - var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)) - ${keyboardHeight}px)`,
+        height: 'calc(var(--rr-viewport-height, 100dvh) - 3.5rem - env(safe-area-inset-top, 0px) - 3.5rem - var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)))',
       }}
     >
       <HStack align="center" gap={3} className="px-4 py-3 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl shrink-0">
@@ -86,32 +80,13 @@ function ConversationSkeleton() {
  *
  * Displays messages, handles real-time updates, optimistic sends,
  * and auto-scrolls to the bottom on new messages.
- *
- * iOS PWA SCROLL ARCHITECTURE:
- * - The root container is a flex column with an explicit height calculated
- *   from the visual viewport (not 100vh) minus header, nav, safe areas, and
- *   keyboard overlap.
- * - The message list is the ONLY scrollable region (`overflow-y-auto`).
- * - AppLayout main-content scroll is contained on conversation pages to
- *   prevent iOS from scrolling the entire page when the keyboard opens.
- * - Auto-scroll is controlled exclusively by useScrollAuthority.
- *   No component may scroll or decide to scroll outside this hook.
- *
- * UNIFIED SCROLL RUNTIME:
- * - ConversationPage creates the appropriate scroll runtime (native or virtual)
- *   via useUnifiedScrollRuntime and registers it with the authority.
- * - The authority is a pure decision engine with ZERO DOM/virtualization
- *   awareness. All physical scroll operations go through the runtime.
  */
 function ConversationPage() {
-  const {
-    keyboardHeight,
-    layoutPhase,
-    isLayoutStable,
-  } = useViewportContext();
+  const { keyboardHeight } = useViewportContext();
 
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuthState();
   const scrollContainerRef = useRef(null);
   const virtualApiRef = useRef(null);
@@ -119,51 +94,15 @@ function ConversationPage() {
   const lastMarkedLengthRef = useRef(0);
   const markedConversationIdRef = useRef(null);
   const prevCountRef = useRef(0);
+  const wasNearBottomRef = useRef(true);
 
-  const { data: messages = [], isLoading: isMessagesLoading } = useMessages(id);
+  const {
+    data: messages = [],
+    isLoading: isMessagesLoading,
+    error: messagesError,
+  } = useMessages(id);
 
   const shouldVirtualize = messages.length >= VIRTUALIZATION_THRESHOLD;
-
-  // ── Unified Scroll Runtime ────────────────────────────────────────────────
-  // ONE contract for ALL scroll behavior, regardless of native or virtual mode.
-  const baseRuntime = useUnifiedScrollRuntime({
-    mode: shouldVirtualize ? 'virtual' : 'native',
-    refs: {
-      containerRef: scrollContainerRef,
-      virtualApi: virtualApiRef.current,
-    },
-  });
-
-  // ── Frame-Level Scroll Prediction Smoother ────────────────────────────────
-  // Wraps the base runtime with velocity estimation, hysteresis gates,
-  // position projection, and burst coalescing. Authority is unaware.
-  const smoothedRuntime = useMemo(() => {
-    return createScrollPredictionSmoother(baseRuntime);
-  }, [baseRuntime]);
-
-  // ── Adaptive Scroll Intelligence ──────────────────────────────────────────
-  // Third layer: dynamic lookahead, adaptive hysteresis, intent confidence.
-  // Composes on top of the smoother. Authority is still unaware.
-  // Stack: baseRuntime → smoother → adaptive → authority
-  const scrollRuntime = useMemo(() => {
-    return createScrollAdaptiveIntelligence(smoothedRuntime);
-  }, [smoothedRuntime]);
-
-  // ── Scroll Authority — pure decision engine, zero DOM awareness ───────────
-  const authority = useScrollAuthority({ layoutPhase, isLayoutStable });
-
-  // Register the SMOOTHED runtime with the authority. The authority delegates
-  // all physical scroll operations to this runtime, which transparently adds
-  // predictive smoothing before executing.
-  useEffect(() => {
-    authority.registerRuntime(scrollRuntime);
-    return () => {
-      scrollRuntime.dispose?.();
-    };
-  }, [authority, scrollRuntime]);
-
-  // ── Gesture Coordinator — prevents scroll vs swipe-back conflicts ─────────
-  const gestures = useGestureCoordinator('chat-scroll', GesturePriority.SCROLL);
 
   // Contain AppLayout scroll on iOS so only the message list scrolls
   useMessagingScrollLock(isIOS());
@@ -173,7 +112,7 @@ function ConversationPage() {
     isLoading: isConversationLoading,
     error: conversationError,
   } = useQuery({
-    queryKey: ['conversation', id],
+    queryKey: ['conversation', id, user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('conversations')
@@ -183,7 +122,7 @@ function ConversationPage() {
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && !!user?.id,
     staleTime: 60_000,
   });
 
@@ -192,7 +131,7 @@ function ConversationPage() {
   const { mutate: blockUser } = useCreateBlock();
   const { mutate: reportUser } = useCreateReport();
 
-  // Mark as read immediately on conversation open, regardless of message count or sender
+  // Mark as read immediately on conversation open
   useEffect(() => {
     if (!id || !user?.id) return;
     if (markedConversationIdRef.current === id) return;
@@ -200,7 +139,7 @@ function ConversationPage() {
     markRead();
   }, [id, user?.id, markRead]);
 
-  // Mark as read when new messages from the other user arrive while the thread is open
+  // Mark as read when new messages from the other user arrive
   useEffect(() => {
     if (!id || messages.length === 0) return;
     const lastMessage = messages[messages.length - 1];
@@ -217,8 +156,8 @@ function ConversationPage() {
   const isBlocked = !!otherId && blockedIds.has(otherId);
 
   const { data: otherProfile } = useQuery({
-    queryKey: ['profile', otherId],
-    enabled: !!otherId,
+    queryKey: ['profile', otherId, user?.id],
+    enabled: !!otherId && !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -286,43 +225,51 @@ function ConversationPage() {
     [user?.id, send]
   );
 
-  // ── Scroll handlers delegated to authority ───────────────────────────────
+  // Simple scroll-to-bottom helper
+  const scrollToBottom = useCallback((behavior = 'smooth') => {
+    if (shouldVirtualize && virtualApiRef.current) {
+      virtualApiRef.current.scrollToIndex(messages.length - 1, { align: 'end', behavior });
+    } else if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior,
+      });
+    }
+  }, [shouldVirtualize, messages.length]);
 
+  // Detect if user is near bottom
   const handleScroll = useCallback(() => {
-    authority.onScroll();
-    setShowScrollButton(authority.isUserScrolledUp);
-  }, [authority]);
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const threshold = 120;
+    const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    wasNearBottomRef.current = nearBottom;
+    setShowScrollButton(!nearBottom);
+  }, []);
 
   const handleScrollToBottom = useCallback(() => {
-    authority.scrollToBottom({ behavior: 'smooth' });
+    scrollToBottom();
     setShowScrollButton(false);
-  }, [authority]);
+  }, [scrollToBottom]);
 
-  // ── Auto-scroll on new messages ──────────────────────────────────────────
+  // Auto-scroll on new messages if user was near bottom
   useEffect(() => {
     if (messages.length > prevCountRef.current) {
       const lastMessage = messages[messages.length - 1];
       const isFromSelf = lastMessage?.from_user_id === user?.id;
-      authority.onNewMessage({ isFromSelf });
-      setShowScrollButton(authority.isUserScrolledUp);
+      if (wasNearBottomRef.current || isFromSelf) {
+        scrollToBottom('smooth');
+      }
     }
     prevCountRef.current = messages.length;
-  }, [messages, authority, user?.id]);
+  }, [messages, scrollToBottom, user?.id]);
 
-  // ── Deferred scroll when layout stabilizes ───────────────────────────────
-  useEffect(() => {
-    if (isLayoutStable) {
-      authority.onLayoutStable();
-      setShowScrollButton(authority.isUserScrolledUp);
-    }
-  }, [isLayoutStable, authority]);
-
-  // ── Initial scroll to bottom on first load ───────────────────────────────
+  // Initial scroll to bottom on first load
   useEffect(() => {
     if (messages.length > 0 && prevCountRef.current === 0) {
-      authority.scrollToBottom({ behavior: 'auto' });
+      scrollToBottom('auto');
     }
-  }, [messages.length, authority]);
+  }, [messages.length, scrollToBottom]);
 
   const isLoading = isConversationLoading || isMessagesLoading;
 
@@ -330,12 +277,14 @@ function ConversationPage() {
     return <ConversationSkeleton />;
   }
 
-  if (conversationError || !conversation) {
+  const hasError = conversationError || messagesError;
+
+  if (hasError || !conversation) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100dvh-3.5rem)] px-6 text-center max-w-md mx-auto">
         <Text variant="h3" color="default">Conversation not found</Text>
         <Text variant="bodySm" color="muted">
-          {conversationError?.message || 'This conversation may have been deleted or you do not have access.'}
+          {conversationError?.message || messagesError?.message || 'This conversation may have been deleted or you do not have access.'}
         </Text>
         <button
           type="button"
@@ -456,7 +405,7 @@ function ConversationPage() {
             overscan={10}
             gap={8}
             height="100%"
-            shouldAutoScroll={!authority.isUserScrolledUp}
+            shouldAutoScroll={wasNearBottomRef.current}
             containerRef={scrollContainerRef}
             getItemKey={(index) => messages[index]?.id || index}
             onVirtualApiReady={(api) => { virtualApiRef.current = api; }}
@@ -467,7 +416,6 @@ function ConversationPage() {
           className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-4 py-4 scroll-smooth"
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          {...gestures.bindScrollContainer()}
           role="log"
           aria-live="polite"
           aria-label="Message history"
@@ -502,7 +450,7 @@ function ConversationPage() {
         </div>
       )}
 
-      {/* Scroll to bottom button — positioned relative to the root flex container */}
+      {/* Scroll to bottom button */}
       {showScrollButton && (
         <button
           type="button"
@@ -526,7 +474,7 @@ function ConversationPage() {
         </div>
       )}
 
-      {/* Input — sits naturally in flex flow, no fixed positioning */}
+      {/* Input */}
       <MessageInput
         onSend={handleSend}
         isSending={send.isPending}

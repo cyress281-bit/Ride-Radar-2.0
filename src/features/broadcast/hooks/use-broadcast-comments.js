@@ -9,11 +9,6 @@ import { supabase } from '@/lib/supabase.js';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
-import {
-  markRealtimeSurfaceSubscribed,
-  markRealtimeSurfaceReconnecting,
-  markRealtimeSurfaceError,
-} from '@/lib/realtimeHealthRegistry.js';
 
 const COMMENTS_KEY = 'broadcast-comments';
 
@@ -47,15 +42,9 @@ export function useBroadcastComments(broadcastId) {
         if (err) {
           if (isExpectedRealtimeDisconnect(err, status)) {
             logger.debug('[useBroadcastComments] Realtime disconnected (expected reconnect)', { status });
-            markRealtimeSurfaceReconnecting('broadcast-comments');
           } else {
             logger.error('[useBroadcastComments] Realtime subscription error:', err);
-            markRealtimeSurfaceError('broadcast-comments');
           }
-        } else if (status && status !== 'SUBSCRIBED') {
-          markRealtimeSurfaceReconnecting('broadcast-comments');
-        } else if (status === 'SUBSCRIBED') {
-          markRealtimeSurfaceSubscribed('broadcast-comments');
         }
       });
 
