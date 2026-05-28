@@ -52,29 +52,45 @@ At the end of every session update the **Current Active Task** section with:
 
 **Purpose:** This is the handoff log between AI tools (Claude Code, Kimi, Claude browser). Update it at the end of every session so the next AI picks up exactly where you left off — no re-explaining, no wasted tokens.
 
-**Last Updated By:** Claude (browser)
-**Date:** 2026-05-28
+**Last Updated By:** Kimi
+**Date:** 2026-05-27
 
 ### What We're Working On
-- Resolving DM page (`/messages/:id`) failing to load
-- Suspected cause: RLS policy on `messages`/`conversations` table or broken realtime subscription
-- Tracing this issue surfaced additional backend/security items (document specifics as confirmed)
+- System Collapse refactor: removing all custom runtime OS layers and restoring deterministic Supabase + React Query data flow
+- Target: zero custom runtime systems controlling data flow
 
 ### Last Action Taken
-- Updated and improved CLAUDE.md:
-  - Resolved Leaflet vs MapLibre contradiction (Leaflet confirmed fully removed via package-lock.json)
-  - Added DM page issue to Known Issues table
-  - Added Dead Ends section seeded with confirmed iOS/PWA fixes
-  - Added this Current Active Task section
+- **System Collapse executed and pushed to main**
+- Deleted 15 runtime system files (~5,200+ lines):
+  - `rr-runtime.js` (global runtime ledger)
+  - `validate-auth-transport.js` (JWT probe validator)
+  - `transport-health-monitor.js` (continuous health monitor)
+  - `memory-governor.js` (memory governance)
+  - `conversation-coherence.js` (coherence engine)
+  - `realtimeHealthRegistry.js` (health registry)
+  - `scroll-authority.js` + `scrollPredictionSmoother.js` + `scrollAdaptiveIntelligence.js` + `useUnifiedScrollRuntime.js` (scroll stack)
+  - `gesture-coordinator.js` (gesture arbitration)
+  - `layout-telemetry.js` (telemetry)
+  - `layout-guardrails.js`, `provider-guard.js` (policy docs/shims)
+- Simplified 24+ source files to remove all runtime integration:
+  - `use-auth.js` — removed transport/health/monitor wiring, kept split-context auth + profile
+  - `use-messages.js`, `use-conversations.js`, `use-send-message.js` — removed coherence/health gates
+  - `ConversationPage.jsx` — replaced scroll authority stack with simple `scrollToBottom` + `wasNearBottom` ref
+  - `AppProviders.jsx` — removed `AppBootstrapGate`, app renders immediately
+  - `ViewportProvider.jsx` — removed runtime ledger sync, root detection
+  - All feature hooks — removed `markRealtimeSurface*` health registry calls
+- All validations pass: build ✅, lint ✅, typecheck ✅, tests ✅
 
 ### Next Step
-- Run `grep -ri "leaflet" src/` in repo to confirm no stray Leaflet imports remain in source files
-- Begin tracing DM page load failure (start with `useConversationMessages` hook and RLS policies on `messages` table)
+- Test DM page (`/messages/:id`) on iPhone PWA to verify messages load correctly after collapse
+- Monitor for any regressions in scroll behavior, realtime subscriptions, or auth flow
+- Update Known Issues table if DM page issue is resolved or if new issues surface
 
 ### AI Handoff Log
 | Session | AI Used | What Was Done |
 |---|---|---|
 | 2026-05-28 | Claude browser | Planning session — Vercel/deployment review, CLAUDE.md overhaul, Leaflet cleanup confirmed |
+| 2026-05-27 | Kimi | System Collapse — removed 15 runtime files (~5,200 lines), simplified 24+ source files, restored Supabase + React Query as sole data flow systems |
 
 ---
 
