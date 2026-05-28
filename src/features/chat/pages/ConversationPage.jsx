@@ -87,7 +87,7 @@ function ConversationPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { user } = useAuthState();
+  const { user, isLoading: authIsLoading } = useAuthState();
   const scrollContainerRef = useRef(null);
   const virtualApiRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -271,7 +271,7 @@ function ConversationPage() {
     }
   }, [messages.length, scrollToBottom]);
 
-  const isLoading = isConversationLoading || isMessagesLoading;
+  const isLoading = isConversationLoading || isMessagesLoading || authIsLoading;
 
   if (isLoading) {
     return <ConversationSkeleton />;
