@@ -52,7 +52,7 @@ At the end of every session update the **Current Active Task** section with:
 
 **Purpose:** This is the handoff log between AI tools (Claude Code, Kimi, Claude browser). Update it at the end of every session so the next AI picks up exactly where you left off — no re-explaining, no wasted tokens.
 
-**Last Updated By:** Claude Code
+**Last Updated By:** Codex
 **Date:** 2026-05-28
 
 ---
@@ -129,25 +129,53 @@ No other files need to change.
 ---
 
 ### Codex's Findings
-**Date:** _(not yet completed)_ | **Status:** Pending
+**Date:** 2026-05-28 | **Status:** Complete
 
-_(Codex: run your own independent investigation before reading Claude Code's findings above. Check the same files — use your own tools. Write your root cause, proposed fix, and confidence level here.)_
+**What I checked:**
+- `src/features/chat/hooks/use-messages.js`
+- `src/features/chat/hooks/use-conversations.js`
+- `src/features/chat/api/chat-api.js`
+- `src/features/chat/pages/ConversationPage.jsx`
+- RLS/policy migrations for `public.messages` and `public.conversations`
+
+**What I found:**
+- `useMessages` is the actual message hook; it fetches by `conversationId` and only runs when both `conversationId` and `user?.id` are present.
+- `useConversations` fetches by `participant_ids` and then applies blocked-user filtering client-side.
+- `ConversationPage` fails hard if either the conversation lookup or the messages query returns no row, because it renders the generic error state when `hasError || !conversation`.
+- The `messages` policies allow participant/sender/admin access, and the `conversations` policies allow participant/admin access, so the RLS policy set itself looks consistent with the client queries.
+
+**Root cause:**
+The page can still fall into the error state before auth is ready. On mount, both queries are disabled until `user?.id` exists, and `ConversationPage` currently does not include auth loading in its loading guard. That means the page can render “Conversation not found” while Supabase auth is still resolving, especially on mobile where `getUser()` can take noticeable time.
+
+**Proposed fix:**
+- Read `isLoading` from `useAuthState()`
+- Include `authIsLoading` in `const isLoading = isConversationLoading || isMessagesLoading || authIsLoading;`
+
+**Confidence:** High
 
 ---
 
 ### Consensus / Disagreements
-_(Fill this in after both AIs have written their findings.)_
+**Updated by:** Claude Code | **Date:** 2026-05-28
 
-- **Agreement:** —
-- **Disagreement:** —
-- **Owner decision:** —
+- **Agreement:** Root cause is confirmed by both AIs — `ConversationPage.jsx` never includes `authIsLoading` in its `isLoading` guard. TQ v5 disabled queries report `isLoading=false`, so while `user=null` during auth validation the page skips the skeleton and shows "Conversation not found". Fix direction agreed: add `authIsLoading` from `useAuthState()` to the loading guard.
+
+- **Disagreement (resolved):** Codex flagged that Claude Code's finding "RLS ruled out ✅" was overstated given the diverged migration history. Claude Code clarified that RLS was checked against the **live database via Supabase MCP** — not local migration files — so the divergence does not affect the result. Both AIs agreed to soften the language: RLS is **not evidenced as the cause based on live DB inspection**, not categorically ruled out forever.
+
+- **Disagreement (resolved):** Codex noted the root cause was attributed too heavily to "System Collapse removing AppBootstrapGate" rather than the concrete code defect. Claude Code accepted this. The precise defect is: `ConversationPage` never wired `authIsLoading` into its loading guard — that bug was always latent. System Collapse exposed it by removing `AppBootstrapGate`, but the fix lives in `ConversationPage`, not in restoring a gate.
+
+- **Owner decision:** Approved. Kimi should implement the minimal auth-loading guard fix in `src/features/chat/pages/ConversationPage.jsx`.
 
 ---
 
 ### Approved Task for Kimi
-⛔ **DO NOT FILL THIS IN until both Claude Code and Codex have signed off above.**
+**Approved by owner:** 2026-05-28
 
-_(Once both AIs agree, the owner writes the exact implementation spec here. Kimi executes only what is written in this block — no more, no less.)_
+**Implement exactly this:**
+- In `src/features/chat/pages/ConversationPage.jsx`, change the auth destructure from `const { user } = useAuthState();` to `const { user, isLoading: authIsLoading } = useAuthState();`
+- Update the loading guard from `const isLoading = isConversationLoading || isMessagesLoading;` to `const isLoading = isConversationLoading || isMessagesLoading || authIsLoading;`
+
+**Do not change anything else.**
 
 ---
 
