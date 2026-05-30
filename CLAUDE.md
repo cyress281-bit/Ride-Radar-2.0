@@ -189,6 +189,7 @@ The page can still fall into the error state before auth is ready. On mount, bot
 ### AI Handoff Log
 | Session | AI Used | What Was Done |
 |---|---|---|
+| 2026-05-30 | Claude Code + Codex + Kimi | Radar "Locate me" no longer centered/zoomed. Three-way independent investigation reached unanimous root cause: a misplaced cleanup `return` on the `map.resize()` line in `MapLibreFitToItems` (`LiveMapMapLibre.jsx`) made all `flyTo`/`fitBounds` camera logic unreachable dead code. Kimi applied the approved fix (relocated RAF cleanup so every exit path returns it and the camera branches are reachable). Claude Code verified the diff against the approved task — matches verbatim; lint + typecheck pass. Awaiting iPhone PWA verification. Secondary watch item (raised by Codex): `autoFitDisabled` (lines ~801/962) could block recenter after manual pan, but the `fitKey` reset effect (~815-817) already handles it — test case 3 below confirms. |
 | 2026-05-29 | Claude Code | Post-fix independent verification of DM page fix. Confirmed fix correct in source. Updated findings section with full independent report. Flagged open question: same latent `authIsLoading` bug may exist in `/broadcast/:id` and `/profile/:userId`. |
 | 2026-05-28 | Codex | Independently inspected `/messages/:id` chat page issue. Confirmed the current working tree already includes the auth-loading guard fix in `src/features/chat/pages/ConversationPage.jsx`, no local diff remains, and the remaining risk is whether the deployed build includes that change. |
 | 2026-05-28 | Claude Code | Diagnosed DM page failure — ruled out RLS/schema, confirmed auth timing race as root cause, wrote findings above awaiting Codex review |
@@ -555,6 +556,7 @@ const { showPopup } = useMapLibrePopup(mapRef);
 | Sentry fetch failures | 🚨 Active | POST to ingest endpoint failing — likely rate-limited or CORS. Not user-facing. |
 | requestAnimationFrame jank | 🚨 Active | 199ms frame time on lower-end devices. Needs React profiling. |
 | Direct messaging page fails to load | FIXED — awaiting iPhone PWA verification | `ConversationPage.jsx` now includes `authIsLoading` in its loading guard (commit `d6823ce`, 2026-05-29). Open follow-up: audit `/broadcast/:id` and `/profile/:userId` for the same latent pattern. |
+| Radar "Locate me" locates but doesn't center/zoom | FIXED — awaiting iPhone PWA verification | Misplaced cleanup `return` after `map.resize()` in `MapLibreFitToItems` (`LiveMapMapLibre.jsx`) made the `flyTo`/`fitBounds` camera logic unreachable. Fix relocates the RAF cleanup to every exit path so the camera branches run (2026-05-30). Test: locate w/ no prior fix, locate when already located, and locate after a manual pan (validates `autoFitDisabled` reset). |
 
 ---
 

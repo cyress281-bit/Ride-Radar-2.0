@@ -339,11 +339,10 @@ const MapLibreFitToItems = memo(function MapLibreFitToItems({
 
     // Trigger a resize so MapLibre recalculates its canvas dimensions
     const rafId = window.requestAnimationFrame(() => map.resize());
-    return () => { if (rafId) cancelAnimationFrame(rafId); };
 
     if (preserveViewportOnMount && lastAppliedFitKeyRef.current === null) {
       lastAppliedFitKeyRef.current = fitKey;
-      return;
+      return () => { if (rafId) cancelAnimationFrame(rafId); };
     }
 
     const prefersReducedMotion =
@@ -359,7 +358,7 @@ const MapLibreFitToItems = memo(function MapLibreFitToItems({
         duration: prefersReducedMotion ? 0 : 600,
       });
       lastAppliedFitKeyRef.current = fitKey;
-      return;
+      return () => { if (rafId) cancelAnimationFrame(rafId); };
     }
 
     if (items.length === 0) {
@@ -371,7 +370,7 @@ const MapLibreFitToItems = memo(function MapLibreFitToItems({
         animate: false,
       });
       lastAppliedFitKeyRef.current = fitKey;
-      return;
+      return () => { if (rafId) cancelAnimationFrame(rafId); };
     }
 
     if (items.length === 1) {
@@ -381,7 +380,7 @@ const MapLibreFitToItems = memo(function MapLibreFitToItems({
         animate: !prefersReducedMotion,
       });
       lastAppliedFitKeyRef.current = fitKey;
-      return;
+      return () => { if (rafId) cancelAnimationFrame(rafId); };
     }
 
     if (fitKey !== lastAppliedFitKeyRef.current) {
@@ -402,6 +401,8 @@ const MapLibreFitToItems = memo(function MapLibreFitToItems({
       );
       lastAppliedFitKeyRef.current = fitKey;
     }
+
+    return () => { if (rafId) cancelAnimationFrame(rafId); };
   }, [fitKey, disabled, focusUserLocation, items, map, variant, preserveViewportOnMount]);
 
   return null;
