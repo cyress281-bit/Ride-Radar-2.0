@@ -52,8 +52,8 @@ At the end of every session update the **Current Active Task** section with:
 
 **Purpose:** This is the handoff log between AI tools (Claude Code, Kimi, Claude browser). Update it at the end of every session so the next AI picks up exactly where you left off — no re-explaining, no wasted tokens.
 
-**Last Updated By:** Codex
-**Date:** 2026-05-28
+**Last Updated By:** Claude Code
+**Date:** 2026-05-29
 
 ---
 
@@ -83,48 +83,53 @@ DM page (`/messages/:id`) fails to load on iPhone PWA — shows "Conversation no
 ---
 
 ### Claude Code's Findings
-**Date:** 2026-05-28 | **Status:** Complete
+**Date:** 2026-05-29 | **Status:** Complete (post-fix verification)
 
-**What I checked:**
-- RLS policies on `messages` and `conversations` (via Supabase MCP)
-- `public.messages` and `public.conversations` schema
-- `conversation_notifications` table and its policies
-- `src/features/chat/hooks/use-messages.js`
-- `src/features/chat/hooks/use-conversations.js`
-- `src/features/chat/api/chat-api.js`
-- `src/features/chat/pages/ConversationPage.jsx`
-- `src/features/auth/hooks/use-auth.js`
+**Evidence checked:**
+
+| File | What I looked at |
+|---|---|
+| `src/features/chat/pages/ConversationPage.jsx` | Full file — loading guard, query gating, error render path |
+| `src/features/auth/hooks/use-auth.js` | `useAuthState()` shape, `isLoading` initial value, `handleSession()` flow, `validateAndHandleSession()` |
+| `src/features/chat/hooks/use-messages.js` | `enabled` condition, TQ v5 query config |
+| `src/features/auth/components/AuthProvider.jsx` | Context split structure |
+| `src/providers/AppProviders.jsx` | Provider order, whether any app-level gate exists |
 
 **What I ruled out:**
-- RLS policies on both tables are correct ✅
-- Schema matches the queries exactly ✅
-- `conversation_notifications` table exists with correct policies ✅
-- Realtime subscription syntax is valid ✅
+- **RLS:** Both queries are gated on `!!user?.id` — when auth is unresolved the queries never execute. RLS is never reached during the failure window. Not the cause.
+- **Routing:** `useParams()` returns a valid `id`. Not the cause.
+- **Schema mismatch:** Queries use `select('*')` — no column-specific mismatch possible. Not the cause.
+- **App-level gate:** `AppProviders.jsx` wraps children in `AuthProvider` with no gate holding render until auth resolves. Individual pages must handle the auth-loading window themselves.
 
 **Root cause:**
-Auth timing race condition introduced by the System Collapse refactor removing `AppBootstrapGate`.
+Auth timing race condition. The failure is deterministic and mechanical:
 
-`ConversationPage.jsx` line ~274:
+1. `AuthProvider` initializes with `isLoading = true` (`useState(true)` in `use-auth.js:69`)
+2. On mount it calls `getSession()` → `supabase.auth.getUser()` (network round-trip — 0.5–3s on mobile)
+3. During that window: `user = null`
+4. Both queries have `enabled: !!id && !!user?.id` — disabled while `user=null`
+5. **TQ v5 contract:** disabled query → `isPending=true`, `isFetching=false` → `isLoading = isPending && isFetching = false`
+6. Before fix: `const isLoading = isConversationLoading || isMessagesLoading` → both `false` → falls to `if (hasError || !conversation)` → `conversation=undefined` → **"Conversation not found"** shown immediately
+
+The bug was latent in `ConversationPage` — it assumed its own query loading states were sufficient guards, but those states only become meaningful once auth has resolved and queries are enabled.
+
+**Fix applied (commit `d6823ce`):**
 ```js
-const isLoading = isConversationLoading || isMessagesLoading;
-```
-
-In TanStack Query v5, a query with `enabled: false` reports `isLoading = false` (because `isLoading = isPending && isFetching`, and disabled queries have `isFetching = false`). When auth is validating on mount, `user = null`, both queries are disabled, so `isLoading = false`. The page skips the skeleton and falls straight to `if (hasError || !conversation)` → shows "Conversation not found".
-
-Auth validation calls `supabase.auth.getUser()` over the network — takes 0.5–3s on mobile. During that window, the user sees the error state and may back out. Before System Collapse, `AppBootstrapGate` held the entire app from rendering until auth resolved, so this race never happened.
-
-**Proposed fix — 2 lines in `src/features/chat/pages/ConversationPage.jsx`:**
-```js
-// ~line 88 — add authIsLoading to existing useAuthState destructure
+// line 90
 const { user, isLoading: authIsLoading } = useAuthState();
 
-// ~line 274 — include auth state in the loading guard
+// line 274
 const isLoading = isConversationLoading || isMessagesLoading || authIsLoading;
 ```
 
-No other files need to change.
+`authIsLoading` starts `true`, remains `true` through the full session validation + profile load sequence (both network calls), and only becomes `false` once `loadUserProfile()` completes. This correctly holds `<ConversationSkeleton />` for the entire race window.
 
-**Confidence:** High. The behavior is deterministic and directly traceable to the TQ v5 disabled-query contract + removal of AppBootstrapGate.
+**Confidence:** High. Failure path fully traceable in code — TQ v5 disabled-query contract is documented behavior, `isLoading` initial value is explicit in source.
+
+**Open questions / risks:**
+1. **`setTimeout(0)` deferral in `handleSession`:** `setUser(authUser)` and `setIsLoading(true)` are called synchronously (lines 242, 248) then profile load is deferred via `setTimeout(0)`. React 18 batches these into one render. Theoretical edge: if batching fails, there is a one-render window where `user` is set but `isLoading=false` — queries would fire once and re-fire. Not a "Conversation not found" bug; at worst a double-fetch. Probability: very low.
+2. **Same latent bug may exist on other pages.** `ConversationPage` was the only reported failure likely because it has a hard error state for a missing record. `/broadcast/:id` and `/profile/:userId` should be audited for the same `authIsLoading` omission.
+3. **Profile load timeout is 8s.** On very slow mobile `isLoading` holds `true` for up to 8s — correct behavior but skeleton may persist longer than expected.
 
 ---
 
@@ -156,32 +161,36 @@ The page can still fall into the error state before auth is ready. On mount, bot
 ---
 
 ### Consensus / Disagreements
-**Updated by:** Claude Code | **Date:** 2026-05-28
+**Updated by:** Claude Code | **Date:** 2026-05-29
 
-- **Agreement:** Root cause is confirmed by both AIs — `ConversationPage.jsx` never includes `authIsLoading` in its `isLoading` guard. TQ v5 disabled queries report `isLoading=false`, so while `user=null` during auth validation the page skips the skeleton and shows "Conversation not found". Fix direction agreed: add `authIsLoading` from `useAuthState()` to the loading guard.
+- **Agreement:** Root cause confirmed by both AIs independently — `ConversationPage.jsx` did not include `authIsLoading` in its `isLoading` guard. TQ v5 disabled queries report `isLoading=false`, so while `user=null` during auth validation the page skipped the skeleton and showed "Conversation not found". Fix agreed: add `authIsLoading` from `useAuthState()` to the loading guard. Fix applied in commit `d6823ce`, 2026-05-29. Awaiting iPhone PWA verification.
 
-- **Disagreement (resolved):** Codex flagged that Claude Code's finding "RLS ruled out ✅" was overstated given the diverged migration history. Claude Code clarified that RLS was checked against the **live database via Supabase MCP** — not local migration files — so the divergence does not affect the result. Both AIs agreed to soften the language: RLS is **not evidenced as the cause based on live DB inspection**, not categorically ruled out forever.
+- **Disagreement (resolved — original round):** Codex flagged that Claude Code's "RLS ruled out ✅" was overstated given diverged migration history. Claude Code clarified RLS was checked against the live DB via Supabase MCP, not local files. Both AIs softened the language: RLS is **not evidenced as the cause based on live DB inspection**, not categorically ruled out forever.
 
-- **Disagreement (resolved):** Codex noted the root cause was attributed too heavily to "System Collapse removing AppBootstrapGate" rather than the concrete code defect. Claude Code accepted this. The precise defect is: `ConversationPage` never wired `authIsLoading` into its loading guard — that bug was always latent. System Collapse exposed it by removing `AppBootstrapGate`, but the fix lives in `ConversationPage`, not in restoring a gate.
+- **Disagreement (resolved — original round):** Codex noted root cause was attributed too heavily to "System Collapse removing AppBootstrapGate" rather than the concrete code defect. Claude Code accepted this. The precise defect is that `ConversationPage` never wired `authIsLoading` into its loading guard — always latent, exposed by System Collapse.
 
-- **Owner decision:** Approved. Kimi should implement the minimal auth-loading guard fix in `src/features/chat/pages/ConversationPage.jsx`.
+- **Disagreement (resolved — post-fix review):** Claude Code incorrectly claimed Codex did not read `use-auth.js`. Codex confirmed it did inspect that file along with all chat hooks. Claude Code also flagged `useConversations` as an imprecision — Codex clarified it was inspected as supporting context only, not as the hook used by `ConversationPage`. No diagnostic disagreement exists.
+
+- **Open follow-up (Claude Code):** Same latent `authIsLoading` omission may exist in `/broadcast/:id` and `/profile/:userId`. Recommend auditing before closing this issue class entirely.
+
+- **Owner decision:** Both AIs agree on root cause and fix. Fix shipped. Awaiting test confirmation.
 
 ---
 
 ### Approved Task for Kimi
-**Approved by owner:** 2026-05-28
+**Status: COMPLETED** — Fix applied directly by owner on 2026-05-29 (commit `d6823ce`). Kimi execution was not required.
 
-**Implement exactly this:**
-- In `src/features/chat/pages/ConversationPage.jsx`, change the auth destructure from `const { user } = useAuthState();` to `const { user, isLoading: authIsLoading } = useAuthState();`
-- Update the loading guard from `const isLoading = isConversationLoading || isMessagesLoading;` to `const isLoading = isConversationLoading || isMessagesLoading || authIsLoading;`
-
-**Do not change anything else.**
+~~Implement exactly this:~~
+- ~~In `src/features/chat/pages/ConversationPage.jsx`, change the auth destructure from `const { user } = useAuthState();` to `const { user, isLoading: authIsLoading } = useAuthState();`~~
+- ~~Update the loading guard from `const isLoading = isConversationLoading || isMessagesLoading;` to `const isLoading = isConversationLoading || isMessagesLoading || authIsLoading;`~~
 
 ---
 
 ### AI Handoff Log
 | Session | AI Used | What Was Done |
 |---|---|---|
+| 2026-05-29 | Claude Code | Post-fix independent verification of DM page fix. Confirmed fix correct in source. Updated findings section with full independent report. Flagged open question: same latent `authIsLoading` bug may exist in `/broadcast/:id` and `/profile/:userId`. |
+| 2026-05-28 | Codex | Independently inspected `/messages/:id` chat page issue. Confirmed the current working tree already includes the auth-loading guard fix in `src/features/chat/pages/ConversationPage.jsx`, no local diff remains, and the remaining risk is whether the deployed build includes that change. |
 | 2026-05-28 | Claude Code | Diagnosed DM page failure — ruled out RLS/schema, confirmed auth timing race as root cause, wrote findings above awaiting Codex review |
 | 2026-05-28 | Kimi | Connected all 3 AIs to MCP servers (GitHub, Supabase, Vercel); created `.mcp.json`; added AI Team Charter, Dead Ends, Current Active Task, and AI Handoff Log sections to CLAUDE.md; confirmed Leaflet fully removed |
 | 2026-05-28 | Claude browser | Planning session — Vercel/deployment review, CLAUDE.md overhaul, Leaflet cleanup confirmed |
@@ -545,7 +554,7 @@ const { showPopup } = useMapLibrePopup(mapRef);
 | Supabase migration history diverged | 🚨 Active | ~40 remote-only migrations not in local repo. `db push` fails. Manual SQL application required. |
 | Sentry fetch failures | 🚨 Active | POST to ingest endpoint failing — likely rate-limited or CORS. Not user-facing. |
 | requestAnimationFrame jank | 🚨 Active | 199ms frame time on lower-end devices. Needs React profiling. |
-| Direct messaging page fails to load | 🚨 Root cause identified, fix pending dual-AI sign-off | `ConversationPage.jsx` doesn't include `authIsLoading` in its loading guard. TQ v5 disabled queries report `isLoading=false`, so while auth validates on mount (`user=null`, 0.5–3s network call) the page shows "Conversation not found" instead of the skeleton. Introduced by System Collapse removing `AppBootstrapGate`. See Current Active Task for full details and approved fix. |
+| Direct messaging page fails to load | FIXED — awaiting iPhone PWA verification | `ConversationPage.jsx` now includes `authIsLoading` in its loading guard (commit `d6823ce`, 2026-05-29). Open follow-up: audit `/broadcast/:id` and `/profile/:userId` for the same latent pattern. |
 
 ---
 

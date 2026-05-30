@@ -166,7 +166,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
               'border-white/[0.06] hover:border-white/[0.08] shadow-depth-1',
               isOverLimit && 'border-brand-emergency focus-visible:ring-brand-emergency focus-visible:border-brand-emergency'
             )}
-            style={{ minHeight: '44px', maxHeight: '160px' }}
+            style={{ minHeight: '44px', maxHeight: '160px', fontSize: '16px' }}
           />
           <div
             className={cn(

@@ -25,7 +25,6 @@ import { Text } from '@/components/ui/primitives/Text';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useViewportContext } from '@/providers/ViewportProvider';
 import { useMessagingScrollLock } from '@/hooks/use-messaging-scroll-lock.js';
 
 /**
@@ -82,8 +81,6 @@ function ConversationSkeleton() {
  * and auto-scrolls to the bottom on new messages.
  */
 function ConversationPage() {
-  const { keyboardHeight } = useViewportContext();
-
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -304,7 +301,7 @@ function ConversationPage() {
     <div
       className="flex flex-col w-full min-h-0 bg-background relative overflow-hidden"
       style={{
-        height: `calc(var(--rr-viewport-height, 100dvh) - 3.5rem - env(safe-area-inset-top, 0px) - 3.5rem - var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)) - ${keyboardHeight}px)`,
+        height: 'calc(var(--rr-viewport-height, 100dvh) - 3.5rem - env(safe-area-inset-top, 0px) - 3.5rem - var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)))',
       }}
     >
       {/* Header */}

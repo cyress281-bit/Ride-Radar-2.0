@@ -34,7 +34,7 @@ export function useMessagingScrollLock(enabled) {
     // Contain scroll within the main content area — do NOT touch body/html
     main.style.overflow = 'hidden';
     main.style.overscrollBehavior = 'none';
-    main.style.touchAction = 'none';
+    main.style.touchAction = 'pan-y';
 
     return () => {
       const saved = savedStylesRef.current;
