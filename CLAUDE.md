@@ -556,7 +556,7 @@ const { showPopup } = useMapLibrePopup(mapRef);
 | Sentry fetch failures | 🚨 Active | POST to ingest endpoint failing — likely rate-limited or CORS. Not user-facing. |
 | requestAnimationFrame jank | 🚨 Active | 199ms frame time on lower-end devices. Needs React profiling. |
 | Direct messaging page fails to load | FIXED — awaiting iPhone PWA verification | `ConversationPage.jsx` now includes `authIsLoading` in its loading guard (commit `d6823ce`, 2026-05-29). Open follow-up: audit `/broadcast/:id` and `/profile/:userId` for the same latent pattern. |
-| Radar "Locate me" locates but doesn't center/zoom | FIXED — awaiting iPhone PWA verification | Misplaced cleanup `return` after `map.resize()` in `MapLibreFitToItems` (`LiveMapMapLibre.jsx`) made the `flyTo`/`fitBounds` camera logic unreachable. Fix relocates the RAF cleanup to every exit path so the camera branches run (2026-05-30). Test: locate w/ no prior fix, locate when already located, and locate after a manual pan (validates `autoFitDisabled` reset). |
+| Radar "Locate me" locates but doesn't center/zoom | FIXED — verified on iPhone PWA (2026-05-30) | Misplaced cleanup `return` after `map.resize()` in `MapLibreFitToItems` (`LiveMapMapLibre.jsx`) made the `flyTo`/`fitBounds` camera logic unreachable. Fix relocates the RAF cleanup to every exit path so the camera branches run (commit `45b55ef`). Verified on device: all three cases pass — locate w/ no prior fix, locate when already located, and locate after a manual pan (`autoFitDisabled` reset confirmed working). |
 
 ---
 
