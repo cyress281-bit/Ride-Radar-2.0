@@ -137,7 +137,7 @@ function BroadcastFeedPage() {
     hasUserLocation ? effectiveLoc.lat : null,
     hasUserLocation ? effectiveLoc.lng : null,
     50,
-    Array.from(blockedIds)
+    Array.from(blockedIds ?? new Set())
   );
 
   const usingOfflineSnapshot = !isOnline && !!offlineSnapshot;
@@ -146,7 +146,7 @@ function BroadcastFeedPage() {
 
   const { markers: riderMarkers, isLiveMapVisible, needsResumePrompt, markLiveSessionActive, clearLiveSession } = useLiveMapPresence(
     { lat: userLoc.lat, lng: userLoc.lng, accuracyMeters: userLoc.accuracyMeters },
-    { autoPublish: true, source: 'radar', radiusMiles: 50, blockedUserIds: Array.from(blockedIds) }
+    { autoPublish: true, source: 'radar', radiusMiles: 50, blockedUserIds: Array.from(blockedIds ?? new Set()) }
   );
 
   const visibleBroadcasts = useMemo(
