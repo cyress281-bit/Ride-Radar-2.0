@@ -4,11 +4,12 @@ import { Map, MessageCircle, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
+import { withRoutePreload, preloadHome, preloadMessages, preloadProfile } from '@/lib/routePreload';
 
 const TABS = [
-  { to: '/home', icon: Map, label: 'Radar' },
-  { to: '/messages', icon: MessageCircle, label: 'Comm.' },
-  { to: '/profile', icon: User, label: 'Profile' },
+  { to: '/home', icon: Map, label: 'Radar', preload: preloadHome },
+  { to: '/messages', icon: MessageCircle, label: 'Comm.', preload: preloadMessages },
+  { to: '/profile', icon: User, label: 'Profile', preload: preloadProfile },
 ];
 
 const BottomNav = memo(function BottomNav({ isOverlay = false }) {
@@ -48,6 +49,7 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
                 role="tab"
                 aria-selected={isActive}
                 aria-label={tab.label}
+                {...withRoutePreload(tab.preload)}
                 className={cn(
                   'group relative flex min-h-[58px] flex-col items-center justify-center overflow-hidden rounded-[22px]',
                   'px-2 py-2',
