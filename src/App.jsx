@@ -297,15 +297,22 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
   const stateRef = useRef({ minElapsed: false, authDone: false, exiting: false });
   const exitTimerRef = useRef(null);
 
-  // First-launch gate (runs once per session)
+  // First-launch gate — captured ONCE via lazy initializers so the value
+  // can't flip mid-cinematic when auth-state changes trigger a re-render
+  // (the mount effect below sets the sessionStorage flag after this reads it).
   const SPLASH_SESSION_KEY = 'rr_splash_seen';
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let firstLaunch = false;
-  try {
-    firstLaunch = !sessionStorage.getItem(SPLASH_SESSION_KEY);
-  } catch {
-    firstLaunch = false;
-  }
+  const [reduced] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+  const [firstLaunch] = useState(() => {
+    try {
+      return !sessionStorage.getItem(SPLASH_SESSION_KEY);
+    } catch {
+      return false;
+    }
+  });
 
   const MIN_DISPLAY = firstLaunch && !reduced ? 3400 : 600;
 

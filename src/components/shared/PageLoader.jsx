@@ -2,6 +2,11 @@ import { memo, useLayoutEffect } from 'react';
 import { cn } from '@/lib/utils';
 
 const PageLoader = memo(function PageLoader({ className, exiting = false }) {
+  // Clear the index.html pre-paint overlay once this loader is mounted.
+  useLayoutEffect(() => {
+    document.getElementById('rr-prepaint')?.remove();
+  }, []);
+
   return (
     <div
       className={cn(
@@ -11,9 +16,6 @@ const PageLoader = memo(function PageLoader({ className, exiting = false }) {
       )}
       role="status"
     >
-      {useLayoutEffect(() => {
-        document.getElementById('rr-prepaint')?.remove();
-      }, [])}
       <style>{`
         .rr-ekg-line {
           stroke: hsl(var(--primary));

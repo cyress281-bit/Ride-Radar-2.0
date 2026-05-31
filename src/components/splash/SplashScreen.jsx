@@ -67,11 +67,14 @@ const SplashScreen = memo(function SplashScreen({ exiting, onSkip }) {
     onSkip();
   }, [onSkip]);
 
-  /* ── Reduced-motion: static frame only ── */
+  /* ── Reduced-motion: static frame only (opacity-only exit, no motion) ── */
   if (reduced) {
     return (
       <div
-        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#040406]"
+        className={cn(
+          'fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#040406] transition-opacity duration-500 ease-out',
+          exiting && 'opacity-0'
+        )}
         role="status"
         aria-label="Loading Ride Radar"
       >
