@@ -102,20 +102,24 @@ function triggerOnce(loader, element) {
  *   onPointerDown: (e: React.PointerEvent<HTMLElement>) => void;
  * }}
  */
-export function withRoutePreload(loader) {
+export function withRoutePreload(loader, dataLoader) {
+  const trigger = (el) => {
+    triggerOnce(loader, el);
+    if (dataLoader) Promise.resolve().then(() => { try { dataLoader(); } catch {} });
+  };
   return {
     onPointerEnter(e) {
       // Only preload on hover (mouse), not on touch devices where pointerenter fires on tap
       if (e.pointerType === 'mouse') {
-        triggerOnce(loader, e.currentTarget);
+        trigger(e.currentTarget);
       }
     },
     onFocus(e) {
-      triggerOnce(loader, e.currentTarget);
+      trigger(e.currentTarget);
     },
     onPointerDown(e) {
       // Mobile: preload on touch start / pointer down before navigation
-      triggerOnce(loader, e.currentTarget);
+      trigger(e.currentTarget);
     },
   };
 }

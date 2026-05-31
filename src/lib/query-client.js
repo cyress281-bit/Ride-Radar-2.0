@@ -1,6 +1,8 @@
 import { QueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase.js';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
+import { getBroadcastById } from '@/features/broadcast/api/broadcast-api.js';
+import { getProfileByUserId } from '@/features/profile/api/profile-api';
 
 /**
  * Shared TanStack Query client for Ride Radar 2.0.
@@ -63,11 +65,7 @@ export function prefetchBroadcastDetail(qc, broadcastId) {
   qc.prefetchQuery({
     queryKey: broadcastKeys.detail(broadcastId),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('broadcasts')
-        .select('*')
-        .eq('id', broadcastId)
-        .single();
+      const { data, error } = await getBroadcastById(broadcastId);
       if (error) throw error;
       return data;
     },
@@ -113,15 +111,10 @@ export function prefetchRiderProfile(qc, userId) {
   qc.prefetchQuery({
     queryKey: ['profile', userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_public', true)
-        .maybeSingle();
+      const { data, error } = await getProfileByUserId(userId);
       if (error) throw error;
-      return data || null;
+      return data;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30000,
   });
 }

@@ -1,5 +1,6 @@
 import { memo, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { SlidersHorizontal, ChevronUp, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import RRLogo from '@/components/RRLogo';
@@ -8,6 +9,7 @@ import { Text } from '@/components/ui/primitives/Text';
 import { HStack } from '@/components/ui/primitives/Stack';
 import RadarBroadcastList from './RadarBroadcastList';
 import { withRoutePreload, preloadRiderProfile } from '@/lib/routePreload.js';
+import { prefetchRiderProfile } from '@/lib/query-client';
 
 const FILTER_TYPES = [
   { id: 'all', label: 'All', Icon: Radio },
@@ -30,6 +32,7 @@ const FILTER_STYLES = {
  * Links to their profile if user_id is available.
  */
 const LiveRiderRow = memo(function LiveRiderRow({ rider }) {
+  const qc = useQueryClient();
   const userId = rider.user_id || rider.userId;
   const initial = (rider.display_name || 'R').charAt(0).toUpperCase();
 
@@ -77,7 +80,7 @@ const LiveRiderRow = memo(function LiveRiderRow({ rider }) {
       <Link
         to={`/profile/${userId}`}
         className="block pressable"
-        {...withRoutePreload(preloadRiderProfile)}
+        {...withRoutePreload(preloadRiderProfile, () => prefetchRiderProfile(qc, userId))}
       >
         {content}
       </Link>

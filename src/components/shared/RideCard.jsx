@@ -1,5 +1,6 @@
 import { memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { MapPin, Clock } from 'lucide-react';
 import { cn, formatDistance, timeAgo } from '@/lib/utils';
 import { haversineMiles, timeUntilExpiry } from '@/lib/broadcastUtils';
@@ -9,6 +10,7 @@ import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { Avatar } from '@/components/shared/Avatar';
 import { Badge } from './Badge';
 import { withRoutePreload, preloadBroadcastDetail } from '@/lib/routePreload';
+import { prefetchBroadcastDetail } from '@/lib/query-client';
 import ReportButton from '@/features/safety/components/ReportButton';
 
 /**
@@ -25,6 +27,7 @@ import ReportButton from '@/features/safety/components/ReportButton';
  */
 export const RideCard = memo(
   function RideCard({ broadcast, author, userLat, userLng, onPress, to, compactNoMedia = false }) {
+    const qc = useQueryClient();
     const distance = useMemo(() => {
       if (
         !broadcast ||
@@ -255,7 +258,7 @@ export const RideCard = memo(
           to={to}
           className={className}
           aria-label={`${broadcast.type}: ${broadcast.title}`}
-          {...withRoutePreload(preloadBroadcastDetail)}
+          {...withRoutePreload(preloadBroadcastDetail, () => prefetchBroadcastDetail(qc, broadcast.id))}
         >
           {cardContent}
         </Link>
