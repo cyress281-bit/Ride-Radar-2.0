@@ -27,14 +27,8 @@ const PageLoader = memo(function PageLoader({
     >
       <style>{`
         @keyframes rr-brand-breathe {
-          0%, 100% {
-            transform: scale(1);
-            filter: drop-shadow(0 0 12px hsl(107 100% 54% / 0.35));
-          }
-          50% {
-            transform: scale(1.035);
-            filter: drop-shadow(0 0 22px hsl(107 100% 54% / 0.55));
-          }
+          0%, 100% { transform: scale(1); }
+          50%      { transform: scale(1.03); }
         }
         @keyframes rr-brand-bloom {
           0%   { transform: scale(0.9); opacity: 0; }
@@ -64,7 +58,7 @@ const PageLoader = memo(function PageLoader({
           alt=""
           aria-hidden="true"
           className={cn(
-            'h-28 w-auto',
+            'h-auto w-auto max-h-[72vh] max-w-[88vw] object-contain',
             !reduced && 'rr-brand-alive'
           )}
           style={
