@@ -34,6 +34,14 @@ const PageLoader = memo(function PageLoader({
           0%   { transform: scale(0.9); opacity: 0; }
           100% { transform: scale(1); opacity: 1; }
         }
+        @keyframes rr-brand-wordin {
+          0%   { opacity: 0; transform: translateY(10px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes rr-brand-wordglow {
+          0%, 100% { text-shadow: 0 0 10px hsl(107 100% 54% / 0.35); }
+          50%      { text-shadow: 0 0 18px hsl(107 100% 54% / 0.6); }
+        }
         @media (prefers-reduced-motion: reduce) {
           .rr-brand-alive {
             animation: none !important;
@@ -52,17 +60,16 @@ const PageLoader = memo(function PageLoader({
         </button>
       )}
 
-      <div className="relative flex flex-col items-center justify-center" aria-hidden="true">
+      <div className="relative flex flex-col items-center justify-center gap-6" aria-hidden="true">
+        {/* logo-mark.png = logo.png cropped tight to the green art (no baked-in
+            padding), so it fills the width cleanly and the wordmark sits right
+            beneath it. */}
         <img
-          src="/logo.png"
+          src="/logo-mark.png"
           alt=""
           aria-hidden="true"
           className={cn(
-            // logo.png has ~9% black padding L/R baked in; scale past the
-            // viewport so the GREEN art (not the padding) reaches near the
-            // edges. The black padding overflows off-screen invisibly
-            // (matches the #040406 bg) and is clipped by overflow-hidden.
-            'h-auto w-[104vw] max-w-none object-contain',
+            'h-auto w-auto max-h-[46vh] max-w-[88vw] object-contain',
             !reduced && 'rr-brand-alive'
           )}
           style={
@@ -75,6 +82,22 @@ const PageLoader = memo(function PageLoader({
                 }
           }
         />
+        <span
+          className="text-[clamp(20px,6vw,34px)] font-extrabold uppercase tracking-[0.32em] text-[hsl(107,100%,54%)]"
+          style={
+            reduced
+              ? { textIndent: '0.32em', textShadow: '0 0 12px hsl(107 100% 54% / 0.45)' }
+              : {
+                  textIndent: '0.32em',
+                  textShadow: '0 0 12px hsl(107 100% 54% / 0.45)',
+                  animation: intro
+                    ? 'rr-brand-wordin 0.7s ease-out 0.45s both, rr-brand-wordglow 2.6s ease-in-out 1.15s infinite'
+                    : 'rr-brand-wordglow 2.6s ease-in-out infinite',
+                }
+          }
+        >
+          Ride Radar
+        </span>
       </div>
     </div>
   );
