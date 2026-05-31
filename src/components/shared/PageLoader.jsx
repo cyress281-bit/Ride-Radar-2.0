@@ -1,8 +1,16 @@
 import { memo, useLayoutEffect } from 'react';
 import { cn } from '@/lib/utils';
 
-const PageLoader = memo(function PageLoader({ className, exiting = false }) {
-  // Clear the index.html pre-paint overlay once this loader is mounted.
+const PageLoader = memo(function PageLoader({
+  className,
+  exiting = false,
+  intro = false,
+  onSkip,
+}) {
+  const reduced =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   useLayoutEffect(() => {
     document.getElementById('rr-prepaint')?.remove();
   }, []);
@@ -10,80 +18,66 @@ const PageLoader = memo(function PageLoader({ className, exiting = false }) {
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 flex flex-col items-center justify-center bg-black transition-all duration-500 ease-out',
+        'fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#040406] transition-all duration-500 ease-out',
         exiting && 'opacity-0 scale-[1.02] blur-sm',
         className
       )}
       role="status"
+      aria-label="Loading Ride Radar"
     >
       <style>{`
-        .rr-ekg-line {
-          stroke: hsl(var(--primary));
-          stroke-dasharray: 1;
-          stroke-dashoffset: 1;
-          animation: rr-ekg-draw 2.4s ease-in-out infinite;
-          filter: drop-shadow(0 0 5px hsl(var(--primary) / 0.55));
+        @keyframes rr-brand-breathe {
+          0%, 100% {
+            transform: scale(1);
+            filter: drop-shadow(0 0 12px hsl(107 100% 54% / 0.35));
+          }
+          50% {
+            transform: scale(1.035);
+            filter: drop-shadow(0 0 22px hsl(107 100% 54% / 0.55));
+          }
         }
-        .rr-ekg-label {
-          animation: rr-ekg-label 2.4s ease-in-out infinite;
-        }
-        @keyframes rr-ekg-draw {
-          0%   { stroke-dashoffset: 1; opacity: 0; }
-          5%   { stroke-dashoffset: 1; opacity: 1; }
-          65%  { stroke-dashoffset: 0; opacity: 1; }
-          80%  { stroke-dashoffset: 0; opacity: 1; }
-          95%  { stroke-dashoffset: 1; opacity: 0; }
-          100% { stroke-dashoffset: 1; opacity: 0; }
-        }
-        @keyframes rr-ekg-label {
-          0%   { opacity: 0; }
-          28%  { opacity: 0; }
-          42%  { opacity: 0.65; }
-          78%  { opacity: 0.65; }
-          92%  { opacity: 0; }
-          100% { opacity: 0; }
+        @keyframes rr-brand-bloom {
+          0%   { transform: scale(0.9); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .rr-ekg-line {
-            animation: none;
-            stroke-dashoffset: 0;
-            opacity: 1;
-          }
-          .rr-ekg-label {
-            animation: none;
-            opacity: 0.65;
+          .rr-brand-alive {
+            animation: none !important;
           }
         }
       `}</style>
 
-      <div className="relative w-full">
-        <svg
-          viewBox="0 0 400 100"
-          className="w-full fill-none"
-          aria-hidden="true"
+      {onSkip && (
+        <button
+          type="button"
+          onClick={onSkip}
+          className="absolute right-4 top-4 z-10 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md bg-white/5 text-sm font-medium text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
+          aria-label="Skip intro"
         >
-          <path
-            pathLength="1"
-            className="rr-ekg-line"
-            d="M 0 50 L 100 50 L 104 58 L 116 8 L 128 80 L 140 50 L 170 50 L 184 30 L 200 50 L 400 50"
-            strokeWidth="3"
-            strokeLinecap="butt"
-            strokeLinejoin="miter"
-          />
-        </svg>
-        <span
-          className="rr-ekg-label pointer-events-none absolute select-none whitespace-nowrap text-[16px] font-extrabold uppercase tracking-[0.3em] text-primary"
-          style={{
-            left: '55%',
-            top: 'calc(50% - 8px)',
-            transform: 'translateY(-100%)',
-          }}
-        >
-          Ride Radar
-        </span>
-      </div>
+          Skip
+        </button>
+      )}
 
-      <span className="sr-only">Loading</span>
+      <div className="relative flex flex-col items-center justify-center" aria-hidden="true">
+        <img
+          src="/logo.png"
+          alt=""
+          aria-hidden="true"
+          className={cn(
+            'h-28 w-auto',
+            !reduced && 'rr-brand-alive'
+          )}
+          style={
+            reduced
+              ? {}
+              : {
+                  animation: intro
+                    ? 'rr-brand-bloom 0.6s ease-out both, rr-brand-breathe 2.6s ease-in-out 0.6s infinite'
+                    : 'rr-brand-breathe 2.6s ease-in-out infinite',
+                }
+          }
+        />
+      </div>
     </div>
   );
 });
