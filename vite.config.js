@@ -228,11 +228,6 @@ export default defineConfig({
             return 'vendor-virtual';
           }
 
-          // Leaflet + react-leaflet (heavy, only for map view)
-          if (id.includes('node_modules/leaflet') || id.includes('node_modules/react-leaflet')) {
-            return 'vendor-leaflet';
-          }
-
           // MapLibre GL JS + React Map GL — intentionally NOT manually chunked.
           // Forcing it into a named vendor chunk trapped Rollup's shared runtime
           // helper inside the 918 KB map bundle, so EVERY page chunk (incl. login,
