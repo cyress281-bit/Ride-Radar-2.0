@@ -233,10 +233,12 @@ export default defineConfig({
             return 'vendor-leaflet';
           }
 
-          // MapLibre GL JS + React Map GL (future map engine)
-          if (id.includes('node_modules/maplibre-gl') || id.includes('node_modules/react-map-gl')) {
-            return 'vendor-maplibre';
-          }
+          // MapLibre GL JS + React Map GL — intentionally NOT manually chunked.
+          // Forcing it into a named vendor chunk trapped Rollup's shared runtime
+          // helper inside the 918 KB map bundle, so EVERY page chunk (incl. login,
+          // legal, settings) statically imported the whole map bundle just to get
+          // that helper. Letting Rollup async-split it keeps MapLibre in a shared
+          // chunk loaded ONLY by the map routes (radar + broadcast form).
 
           // Note: recharts was removed as a dead dependency.
           // If charts are re-added, restore this chunk:
