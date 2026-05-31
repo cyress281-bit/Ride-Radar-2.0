@@ -1,8 +1,8 @@
 import { QueryClient } from '@tanstack/react-query';
-import { supabase } from './supabase.js';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { getBroadcastById } from '@/features/broadcast/api/broadcast-api.js';
 import { getProfileByUserId } from '@/features/profile/api/profile-api';
+import { getMessages } from '@/features/chat/api/chat-api.js';
 
 /**
  * Shared TanStack Query client for Ride Radar 2.0.
@@ -77,20 +77,17 @@ export function prefetchBroadcastDetail(qc, broadcastId) {
  * Prefetch messages for a conversation.
  * @param {QueryClient} qc
  * @param {string} conversationId
+ * @param {string} userId
  */
-export function prefetchConversationMessages(qc, conversationId) {
-  if (!conversationId) return;
-  const existing = qc.getQueryData(['messages', conversationId]);
+export function prefetchConversationMessages(qc, conversationId, userId) {
+  if (!conversationId || !userId) return;
+  const existing = qc.getQueryData(['messages', conversationId, userId]);
   if (existing) return;
 
   qc.prefetchQuery({
-    queryKey: ['messages', conversationId],
+    queryKey: ['messages', conversationId, userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+      const { data, error } = await getMessages(conversationId);
       if (error) throw error;
       return data || [];
     },

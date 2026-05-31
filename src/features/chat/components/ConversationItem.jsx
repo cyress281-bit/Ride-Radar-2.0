@@ -15,6 +15,7 @@ import { archiveConversation } from '@/features/chat/api/chat-api.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { toast } from 'sonner';
 import { withRoutePreload, preloadConversation } from '@/lib/routePreload.js';
+import { prefetchConversationMessages } from '@/lib/query-client.js';
 
 /**
  * Single conversation row item.
@@ -88,7 +89,11 @@ const ConversationItem = memo(function ConversationItem({
           onClick={handleClick}
           className="flex flex-1 items-center gap-3.5 min-w-0 text-left pressable active:opacity-80"
           aria-label={`Open conversation with ${profile?.display_name || 'Rider'}`}
-          {...withRoutePreload(preloadConversation)}
+          {...withRoutePreload(preloadConversation, () => {
+            if (user?.id && conversation?.id) {
+              prefetchConversationMessages(queryClient, conversation.id, user.id);
+            }
+          })}
         >
           {/* Avatar with status */}
           <div className="relative shrink-0">

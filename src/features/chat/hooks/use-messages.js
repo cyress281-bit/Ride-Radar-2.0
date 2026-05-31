@@ -50,6 +50,14 @@ export function useMessages(conversationId) {
     }
   }, [user?.id, conversationId, queryClient]);
 
+  // Defensive: seed seenIdsRef from cached data when the hook mounts with
+  // prefetched cache (queryFn won't re-run if data is already fresh).
+  useEffect(() => {
+    if (query.data) {
+      query.data.forEach((m) => seenIdsRef.current.add(m.id));
+    }
+  }, [query.data]);
+
   // Real-time subscription — only append messages from OTHER users
   useEffect(() => {
     if (!conversationId || !user?.id) return;
