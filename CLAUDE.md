@@ -175,76 +175,64 @@ Unified cold-start sequence, skippable, reduced-motion-safe:
 | 6 | Logo asset | verify res | 1024² ok if not upscaled | _TBD_ |
 | 7 | Animation tech | (conceded) CSS keyframes | CSS keyframes | _TBD_ |
 
-### Approved Task for Kimi — Splash & Loading "B→C" Premium Polish
-**Status: DONE-pending-device-verification — All 4 phases executed, committed, and pushed. Build (lint + typecheck + build) passed for all phases. Awaiting owner on-device acceptance checklist (see below) and Claude Code diff review.**
+### Approved Task for Kimi — REVISED: "Alive Logo" Splash (SUPERSEDES the B→C cinematic)
+**Status: APPROVED — REVISED 2026-05-31 after owner on-device test.** The prior B→C cinematic shipped, but on device it produced **two competing loaders** — the new cinematic AND the OLD EKG-heartbeat `PageLoader` that still renders during auth-gating — which overlapped and looked cluttered/ugly. Owner scrapped that direction. **New direction: ONE clean, elegant, logo-centric "alive" loader used EVERYWHERE (cold-start boot + auth-gating), so there is never a second/different loader to overlap.** This task removes the old EKG animation AND the busy cinematic.
 
-**LOCKED DECISIONS (do not deviate):** unhurried cinematic **~3.4s** first-launch-only + skippable · **logo-as-hero + restrained wordmark** finale · **`sessionStorage` first-launch gate** · copy **`RADAR ONLINE` / `SIGNAL LOCKED` / `RIDE READY`** · **web/PWA only (do NOT touch `capacitor.config.ts` or native splash)** · logo `public/logo.png` (1024², **never upscale beyond native**) · **CSS keyframes ONLY — do NOT import `framer-motion`** (it is code-split out of the boot path per `vite.config.js:247-250`; importing it regresses cold-start).
+**LOCKED DECISIONS (do not deviate):**
+- **Single unified loader.** Every loading state in the app uses the SAME visual. No second style anywhere — this is the whole point; it structurally eliminates the overlap.
+- **Logo-centric & "alive":** centered `public/logo.png` on `#040406` with a calm, premium idle animation (gentle breathing scale + neon glow pulse). "Alive," not busy. **No grid, no EKG line, no scan line, no typed terminal — those are removed.**
+- First launch (per session) gets a one-time **bloom-in intro** (logo fades/scales in) then settles into the idle breathing. An **unhurried hold is fine** (owner values an unrushed moment) — it simply stays calmly alive. In-session / auth-gating loads start directly in the idle breathing (no re-intro).
+- Keep the existing **`sessionStorage` first-launch gate** + stable lazy-`useState` `firstLaunch`/`reduced`. · **web/PWA only — do NOT touch `capacitor.config.ts`/native splash.** · logo `public/logo.png` (**never upscale beyond native**). · **CSS keyframes ONLY — do NOT import `framer-motion`** (code-split out of the boot path per `vite.config.js:247-250`). · reduced motion = static logo, no animation, opacity-only exit.
 
 **GLOBAL RULES:**
-- Execute exactly what is written. No extra files, no refactors, no touching adjacent code. If any step would alter an existing **Protected Behavior** or you hit ambiguity, STOP and flag here — do not guess.
-- **Per-phase workflow:** implement → `npm run lint` AND `npm run typecheck` AND `npm run build` → only if all three pass, `git commit` + `git push origin main` → next phase. One commit per phase.
-- Visual reference for the grid/EKG/scan/typed-terminal look = the worktree prototype `.claude/worktrees/practical-blackburn-a80afa/src/components/layout/SplashScreen.jsx`. **Port its VISUALS only; do NOT port its App integration** (it hides the app behind opacity + has an auth-bypassing safety timeout — both forbidden).
-- Color tokens — write LITERAL `hsl(...)` values where CSS variables may not be loaded (pre-paint): neon = `hsl(107 100% 54%)`, background = `#040406`, grid = `hsl(240 14% 6%)`. Inside React/CSS components you MAY use `hsl(var(--primary))` etc.
-- Reduced motion + a11y are mandatory in every phase that renders UI (details per phase).
+- Execute exactly what is written. No extra files beyond those named; no unrelated refactors. If a step would alter a **Protected Behavior** or is ambiguous, STOP and flag here.
+- **Per-phase workflow:** implement → `npm run lint` AND `npm run typecheck` AND `npm run build` → only if all three pass, `git commit` + `git push origin main` → next phase.
+- Color literals where CSS vars may be unavailable (pre-paint): neon `hsl(107 100% 54%)`, bg `#040406`. Inside React/CSS you may use `hsl(var(--primary))`.
+- a11y mandatory: `role="status"` + one stable `aria-label="Loading Ride Radar"`; decorative visuals `aria-hidden`.
 
 ---
 
-#### PHASE 1 — instant pre-paint (kills the cold-load blank flash)
-File: `index.html` only.
-1. In `<head>`, add after the manifest link: `<link rel="preload" as="image" href="/logo.png" />`.
-2. In `<head>`, add an inline `<style>` defining `#rr-prepaint` (full-screen fixed overlay, `z-index:2147483646`, flex-center, `background:#040406`), a faint grid layer (`hsl(240 14% 6%)` lines, ~0.12 opacity, via `linear-gradient` background — purely decorative), and a wordmark (`font: 800 16px/1 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; letter-spacing:.3em; text-transform:uppercase; color:hsl(107 100% 54%); text-shadow:0 0 8px hsl(107 100% 54% / .5)`). **No external font, no `<img>`, no animation** — static only, so it paints on first parse.
-3. In `<body>`, AFTER `<div id="root"></div>` and BEFORE the module script, add:
-   ```html
-   <div id="rr-prepaint" aria-hidden="true"><div class="rr-pp-grid"></div><span class="rr-pp-word">Ride Radar</span></div>
+#### PHASE 1 — build the single "alive logo" loader (replaces the old EKG `PageLoader`)
+Rewrite `src/components/shared/PageLoader.jsx` into the ONE brand loader used everywhere:
+- Full-screen `fixed inset-0 z-50 bg-[#040406]`, flex-centered. Centered `<img src="/logo.png" alt="" aria-hidden="true">` capped (e.g. `h-28 w-auto`, never beyond native).
+- **Idle "alive" animation (default, continuous, calm):** gentle breathing — scale `1 → 1.035 → 1` PLUS a neon glow pulse (`drop-shadow` using `hsl(var(--primary))`) on a ~2.6s `ease-in-out` infinite loop. Optional: ONE very subtle slow radar-ring ping behind the logo (~3s loop, low opacity) — keep minimal; omit it if it adds any clutter.
+- **`intro` prop (boolean):** when true, the logo first blooms in once (scale `0.9 → 1` + fade, ~0.6s) then enters the idle loop. When false/absent, start directly in idle.
+- **`exiting` prop:** opacity + slight scale fade-out (~500ms) — keep the existing exit feel.
+- **`onSkip` prop (optional):** if provided, render a subtle Skip button — `min-w-[44px] min-h-[44px]`, top-right, keyboard-reachable, `aria-label="Skip intro"`, calls `onSkip`.
+- **On mount (`useLayoutEffect`, hoisted ABOVE the return):** `document.getElementById('rr-prepaint')?.remove();`
+- **Reduced motion** (`window.matchMedia('(prefers-reduced-motion: reduce)').matches`): render the static logo only (no animation, no intro); opacity-only exit.
+- `role="status"` + `aria-label="Loading Ride Radar"`; logo/ring `aria-hidden`.
+- **DELETE the old EKG heartbeat SVG, its inline `<style>` block, and the "Ride Radar" label entirely.**
+- **Verify:** build passes.
+
+#### PHASE 2 — delete the cinematic + unify the wiring (this is what kills the overlap)
+1. **Delete the file** `src/components/splash/SplashScreen.jsx`.
+2. `src/App.jsx` → `AppBootLoader`: remove the `import SplashScreen ...` line. Keep the stable lazy-`useState` `firstLaunch`/`reduced` gate, the `sessionStorage` set effect, and `MIN_DISPLAY` (3400 first-launch / 600 else) as-is. Keep `handleSkip`, `tryExit`, and the `minElapsed && authDone → exiting → 500ms → visible=false` machinery (the auth invariant — NO app-revealing safety timeout). Render the unified loader for BOTH paths:
+   ```jsx
+   {visible && (
+     <PageLoader
+       intro={firstLaunch && !reduced}
+       exiting={exiting}
+       onSkip={firstLaunch && !reduced ? handleSkip : undefined}
+     />
+   )}
    ```
-4. Do NOT remove it here — React removes it on overlay mount (Phase 3). If React never mounts, this branded frame correctly persists instead of a blank screen.
-- **Verify:** build passes; `npm run preview` shows the branded frame instantly on hard reload, replaced seamlessly once the app boots (no color jump — bg `#040406`, neon matches).
+   (Always `PageLoader`; only first launch gets `intro` + Skip.)
+3. **Leave `ProtectedRoute` (`~:97`) and `AdminRoute` (`~:118`) using `<PageLoader />`.** Now that `PageLoader` IS the alive-logo loader, the boot splash and the auth-gating loader are the SAME visual — so there is no second screen to overlap. Do NOT introduce any other loader component.
+4. **Verify:** build passes; `rg SplashScreen src` returns no remaining import/JSX reference.
 
-#### PHASE 2 — the cinematic component + keyframes (NEW, not yet wired → zero runtime change)
-Files: NEW `src/components/splash/SplashScreen.jsx`, and append a clearly-commented block to `src/index.css`.
-1. `src/index.css`: add a `/* === Splash cinematic === */` block with keyframes for: grid fade-in, EKG draw (reuse/adapt existing `rr-ekg`), scan-line sweep, typed-cursor blink, logo bloom (scale `0.85→1` + radial neon bloom opacity), radar-ring ping (reuse/adapt `rr-map-ping`), wordmark settle, and a subtle "holding" loop (gentle logo/ring pulse). Add a `@media (prefers-reduced-motion: reduce)` override that neutralizes ALL of them.
-2. `src/components/splash/SplashScreen.jsx` — a self-contained full-screen `fixed inset-0 z-[100] bg-[#040406]` overlay. Props: `{ exiting: boolean, onSkip: () => void }`.
-   - **On mount (`useLayoutEffect`):** `document.getElementById('rr-prepaint')?.remove();`
-   - **Reduced motion** (`window.matchMedia('(prefers-reduced-motion: reduce)').matches`): render ONLY a static frame — centered `public/logo.png` (capped, e.g. `h-24 w-auto`, never upscaled past native) + "RIDE RADAR" wordmark. No animation. (AppBootLoader gives it ~600ms.)
-   - **Full cinematic** (driven by a `phase` state + `setTimeout`s; typed text via `setInterval` ~22ms/char). Exact timeline (total ~3400ms, NO dead air — something is always animating):
-     | Phase | ms | What animates |
-     |---|---|---|
-     | 1 | 0–500 | radar grid fades in; center blip pulses |
-     | 2 | 500–1500 | EKG line traces across grid; vertical scan line sweeps; cells brighten on pass |
-     | 3 | 1500–2700 | typed lines appear w/ blinking cursor: `RADAR ONLINE` → `SIGNAL LOCKED` → `RIDE READY`; on the last line, EKG thickens + grid flash ("lock") |
-     | 4 | 2700–3300 | grid + text recede/dim; **`public/logo.png` blooms in** (scale 0.85→1 + radial neon bloom) + ONE radar-ring ping; restrained "RIDE RADAR" wordmark settles under the logo |
-     | 5 | 3300+ | logo holds; if `exiting` not yet true, run the subtle "holding" loop (no dead air) until it is |
-   - **Exit:** when `exiting` is true, apply `opacity-0 scale-[1.02] blur-sm` with a 500ms transition (match current `PageLoader` exit), then AppBootLoader unmounts it.
-   - **Skip button:** top-right, `min-w-[44px] min-h-[44px]`, keyboard-reachable, `aria-label="Skip intro"`, calls `onSkip`. Visible from ~300ms in.
-   - **A11y:** root `role="status"` with a single stable `aria-label="Loading Ride Radar"`; ALL cinematic visuals (svg/grid/typed text) `aria-hidden="true"` (the typed text must NOT be announced as it changes).
-   - **Logo:** `<img src="/logo.png" alt="" aria-hidden="true">`, capped height (never larger than native 1024²).
-- **Verify:** build passes. Component is NOT imported anywhere yet → app behavior unchanged. (Optionally eyeball it via a temporary local route, but do NOT commit any temporary wiring.)
-
-#### PHASE 3 — wire it in (the behavior change)
-File: `src/App.jsx` (the `AppBootLoader` component, ~lines 292–333). Also add the prepaint-removal line to `src/components/shared/PageLoader.jsx`.
-1. Import: `import SplashScreen from './components/splash/SplashScreen';`
-2. Rewrite `AppBootLoader` preserving the **auth invariant** (children render immediately underneath; overlay unmounts ONLY when min-display elapsed AND auth resolved — **NO safety timeout that reveals the app while auth is still loading**):
-   - Constants: `const SPLASH_SESSION_KEY = 'rr_splash_seen';`
-   - Once, on first render: `const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;` and `const firstLaunch = !sessionStorage.getItem(SPLASH_SESSION_KEY);` (guard `sessionStorage` access in try/catch for privacy modes; treat throw as `firstLaunch = false`).
-   - On mount effect: `try { sessionStorage.setItem(SPLASH_SESSION_KEY, '1'); } catch {}`
-   - `const MIN_DISPLAY = firstLaunch && !reduced ? 3400 : 600;` (use this for the existing min-elapsed timer; replace the hardcoded 1800).
-   - Keep the existing `minElapsed && authDone → setExiting → 500ms → setVisible(false)` machinery. **Remove the dead `longWait` state and the `longWait` prop pass** (it is unused).
-   - `onSkip`: sets `minElapsed = true` then `tryExit()` (so Skip still cannot reveal the app before `authDone` — if auth is slow it lands on the holding loop).
-   - Render: `firstLaunch && !reduced ? <SplashScreen exiting={exiting} onSkip={handleSkip} /> : <PageLoader exiting={exiting} />`. (Reduced-motion first-launch path uses `SplashScreen`'s internal static frame — so pass it too; i.e. render `<SplashScreen>` whenever `firstLaunch`, and `<PageLoader>` otherwise. SplashScreen handles reduced internally.)
-   - Net: **first cold launch of a session → full ~3.4s cinematic; every in-session reload / SW-update reload → light `PageLoader`** (sessionStorage persists across same-tab reloads, so the cinematic does not replay — this satisfies the PWA-update-reload requirement without touching `registerSW.js`).
-3. `src/components/shared/PageLoader.jsx`: add `useLayoutEffect(() => { document.getElementById('rr-prepaint')?.remove(); }, []);` so the non-first-launch path also clears the pre-paint. (Import `useLayoutEffect`.)
-- **Verify:** lint + typecheck + build pass. Then this phase needs **owner on-device test** before it's considered done (see below).
-
-#### PHASE 4 — loader consistency (no functional change expected)
-`src/components/shared/LoadingState.jsx` already shares the splash's vocabulary (`radar-sweep` + `glow-pulse` neon spinner). **No change required.** Only if trivially clean, ensure its spinner uses the same `hsl(var(--primary))` glow tokens as the finale. Do NOT redesign skeleton/shimmer. If any change is non-trivial, SKIP and note it — this phase is optional polish, not a blocker.
+#### PHASE 3 — simplify the pre-paint + clean up keyframes
+1. `index.html`: simplify `#rr-prepaint` to a CLEAN solid `#040406` screen — **remove the faint grid layer (`.rr-pp-grid`) and the "Ride Radar" wordmark text (`.rr-pp-word`)** so nothing clashes with / overlaps the React loader. (Optional: keep only a faint centered radial glow.) Keep `<link rel="preload" as="image" href="/logo.png">`, keep the `#rr-prepaint` node + its removal on React mount.
+2. `src/index.css`: **remove all now-unused keyframes** — the `rr-splash-*` set (`rr-splash-ekg-draw`, `rr-splash-scan`, `rr-splash-logo-bloom`, `rr-splash-ring-ping`, `rr-splash-wordmark-settle`, `rr-splash-hold-pulse`) and any old EKG keyframes (`rr-ekg`, `rr-ekg-draw`, `rr-ekg-label`) **only if nothing else references them** (grep `rr-splash` and `rr-ekg` first — `LoadingState`/others must not break). Add the new minimal keyframes the loader needs: `rr-brand-breathe` (scale + glow), `rr-brand-bloom` (intro), and optionally `rr-brand-ring`.
+3. **Verify:** build passes; grep shows no dangling references to deleted keyframes or to `SplashScreen`.
 
 ---
 
-**Owner on-device acceptance checklist (after Phase 3):**
-1. First cold PWA launch of a session → full unhurried ~3.4s B→C cinematic, no blank flash before it (pre-paint covers the gap), ends on the logo, fades into the app.
-2. Reload within the same session (and SW-update reload) → light loader only, NO cinematic replay.
-3. Skip button works, is easily tappable, and never reveals the app before sign-in/auth resolves.
-4. iOS reduced-motion on → static branded frame (~0.6s), no animation, then app.
+**Owner on-device acceptance checklist:**
+1. Cold launch → clean dark screen → logo blooms in and gently breathes (alive) → fades into the app. **No second/old animation appears at any point.**
+2. While auth resolves / on in-session reload → the SAME breathing-logo loader (never a different style; no overlap).
+3. iOS reduced-motion ON → static logo, no animation, then app.
+4. Skip (first launch only) works, is easily tappable, and never reveals the app before auth resolves.
 5. Protected Behaviors intact: no wiped form input on PWA update (#6), no false "not found"/early reveal during auth (#5), chat keyboard + radar unaffected.
 
 **When all phases done + pushed:** append an AI Handoff Log row with the commit hashes, set this task Status to DONE-pending-device-verification, and leave for Claude Code diff review.
