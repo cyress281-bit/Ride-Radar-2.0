@@ -5,6 +5,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
+    <link rel="preload" as="image" href="/logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, shrink-to-fit=no" />
@@ -36,9 +37,39 @@
     <meta name="twitter:image" content="https://www.rideradarapp.com/icon-1024.png" />
 
     <title>Ride Radar</title>
+    <style>
+      #rr-prepaint {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483646;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #040406;
+      }
+      .rr-pp-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(hsl(240 14% 6%) 1px, transparent 1px),
+          linear-gradient(90deg, hsl(240 14% 6%) 1px, transparent 1px);
+        background-size: 48px 48px;
+        opacity: 0.12;
+        pointer-events: none;
+      }
+      .rr-pp-word {
+        font: 800 16px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: hsl(107 100% 54%);
+        text-shadow: 0 0 8px hsl(107 100% 54% / 0.5);
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="rr-prepaint" aria-hidden="true"><div class="rr-pp-grid"></div><span class="rr-pp-word">Ride Radar</span></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
