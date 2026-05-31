@@ -239,6 +239,64 @@ Rewrite `src/components/shared/PageLoader.jsx` into the ONE brand loader used ev
 
 ---
 
+## Active Initiative — Navigation / Transition Speed (2026-05-31)
+
+**Status:** Inspected by both Kimi (read-only swarm) and Claude Code; findings reconciled. Navigation is already healthy (authenticated transitions show `RouteTransitionFallback`, not blank — `AppLayout.jsx:307`; detail chunks preload on intent; queries cache via `staleTime`). Kimi's full findings: `audit-listings/navigation-speed-findings.md`.
+
+**🔴 BIGGEST WIN — VERIFIED, Claude-led (NOT in Kimi's batch below):** the **main entry chunk statically imports the 918 KB `vendor-maplibre`** — confirmed: `dist/index.html` modulepreloads `vendor-maplibre-*.js` and `dist/assets/index-*.js` contains `from"./vendor-maplibre-*.js"`. So every page (login/settings/landing) downloads+parses MapLibre even with no map. Caused by the `manualChunks` `vendor-maplibre` rule (`vite.config.js:237-239`) bucketing a module the eager path transitively touches (likely a Rollup interop helper, or an eager import of a map util). **Fix needs tracing the exact dependency + verifying the radar still works (Protected Behavior) — chunking change, SAFE_TO_BATCH: NO → Claude Code follow-up, highest priority.** (Compensating control: Workbox precaches the chunk so repeat visits are SW-cached; first visit + SW-update reloads pay full cost.)
+
+**Reconciliation note:** Kimi#2=F2 (BottomNav, agree), Kimi#3=F1 (prefetch, agree — my task adds the key/queryFn alignment Kimi didn't spell out). Kimi#4 proposed `refetchOnMount:false` and claimed the TQ v5 default is `"always"` — **that's inaccurate (the default is `true` → only refetches when stale).** Our F3 (raise `gcTime`) is the safer fix for the same "revisit refetch" issue and is what's approved; `refetchOnMount:false` is a larger freshness change, not approved. Kimi#5 (BroadcastDetail waterfall) + #6 (public-route blank) are real but lower priority / out of this batch.
+
+The HIGH-impact safe gap actioned below: **data-prefetch helpers in `src/lib/query-client.js` are defined but never called AND are misaligned with the real page hooks.** Approved Task = wire them (aligned) + small preload/cache/cleanup wins. **Messages prefetch is HELD (chat = Protected Behavior #3).**
+
+### Approved Task for Kimi — Navigation Speed (F1 broadcast+rider, F2, F3, F5)
+**APPROVED. 4 phases, in order. Per phase:** implement → `npm run lint` + `npm run typecheck` + `npm run build` → only if all three pass, `git commit` + `git push origin main`. Touch ONLY the files named. No unrelated changes. If anything is ambiguous or would alter a Protected Behavior, STOP and flag. All of these are behavior-neutral perf wins (prefetch only warms the React Query cache; preload only fetches JS chunks; gcTime only retains cache longer).
+
+#### PHASE 1 — F1: wire data prefetch to intent (broadcast detail + rider profile)
+The chunks already preload on tap; the DATA does not. The existing helpers are **misaligned** — fix them to mirror the page hooks EXACTLY, then wire them via an extended `withRoutePreload`.
+
+1. **Fix the two helpers in `src/lib/query-client.js`** so their queryKey + queryFn are identical to the consuming page (otherwise the prefetch never hits the page's query):
+   - `prefetchBroadcastDetail(qc, broadcastId)`: keep key `broadcastKeys.detail(broadcastId)`; **replace the raw `supabase...select('*')` queryFn with `getBroadcastById(broadcastId)`** (exactly as `BroadcastDetailPage.jsx:566-570`). Import `getBroadcastById` from the same module `BroadcastDetailPage` imports it from. Keep `staleTime: 60000`.
+   - `prefetchRiderProfile(qc, userId)`: keep key `['profile', userId]`; **replace the raw query with `getProfileByUserId(userId)`** (exactly as `RiderProfilePage.jsx:208-212`). Import `getProfileByUserId` from `@/features/profile/api/profile-api`. Set `staleTime: 30000` (match the page). Keep the existing `getQueryData` early-return guard.
+   - **Do NOT touch `prefetchConversationMessages`** — it is HELD (see bottom).
+2. **Extend `withRoutePreload` in `src/lib/routePreload.js`** to accept an optional second arg `dataLoader` that also fires on the same intent (backward-compatible — existing single-arg call sites are unaffected). React Query dedupes prefetches internally, so no per-element guard is needed for the data loader. Exact shape:
+   ```js
+   export function withRoutePreload(loader, dataLoader) {
+     const trigger = (el) => {
+       triggerOnce(loader, el);
+       if (dataLoader) Promise.resolve().then(() => { try { dataLoader(); } catch {} });
+     };
+     return {
+       onPointerEnter(e) { if (e.pointerType === 'mouse') trigger(e.currentTarget); },
+       onFocus(e) { trigger(e.currentTarget); },
+       onPointerDown(e) { trigger(e.currentTarget); },
+     };
+   }
+   ```
+3. **Wire the two safe sites** (add `useQueryClient` + import the matching prefetch fn from `@/lib/query-client`, then pass the data loader as the 2nd arg to the existing `withRoutePreload`):
+   - `src/components/shared/RideCard.jsx:258` → `{...withRoutePreload(preloadBroadcastDetail, () => prefetchBroadcastDetail(qc, broadcast.id))}` (the card already has the `broadcast` prop; `qc = useQueryClient()`).
+   - `src/features/broadcast/components/RadarBottomSheet.jsx:80` → `{...withRoutePreload(preloadRiderProfile, () => prefetchRiderProfile(qc, userId))}` (the rider row already has `userId`; add `qc = useQueryClient()` to that component).
+- **Verify:** build green. Tapping a ride card / rider row warms its detail data so the destination renders with data already present (no spinner). No behavior change otherwise.
+
+#### PHASE 2 — F2: BottomNav intent preload
+`src/components/layout/BottomNav.jsx`: import `withRoutePreload` and `preloadHome`, `preloadMessages`, `preloadProfile` from `@/lib/routePreload`. Add a `preload` field to each `TABS` entry (`/home`→`preloadHome`, `/messages`→`preloadMessages`, `/profile`→`preloadProfile`) and spread `{...withRoutePreload(tab.preload)}` on each `<NavLink>`. Chunk-only preload; behavior-neutral.
+- **Verify:** build green.
+
+#### PHASE 3 — F3: retain query cache longer
+`src/lib/query-client.js`: in `defaultOptions.queries`, change `gcTime: 5 * 60 * 1000` → `gcTime: 30 * 60 * 1000`. (Returning to a list after >5 min now paints cached data instantly + background-refetches instead of showing a cold spinner; `staleTime` still governs freshness. Hooks with their own `gcTime` are unaffected.)
+- **Verify:** build green.
+
+#### PHASE 4 — F5: delete dead chunk rule
+`vite.config.js:231-234`: delete the `vendor-leaflet` `manualChunks` branch (Leaflet was fully removed). First `rg leaflet package.json` to confirm it's absent; if absent, remove the branch. Pure cleanup.
+- **Verify:** build green.
+
+#### HELD — F1c messages prefetch (Claude Code follow-up, NOT for Kimi)
+Wiring `prefetchConversationMessages` to `ConversationItem` is held: the helper's key `['messages', conversationId]` is misaligned with the hook's `['messages', conversationId, user?.id]` (`use-messages.js:23`) and the hook applies `hydrateMessageImages` (signed URLs) the raw helper skips — a wrong prefetch could cache unhydrated/broken data or never hit. Chat is **Protected Behavior #3**, so this needs Claude-led alignment + on-device verification.
+
+**When all phases done + pushed:** append an AI Handoff Log row with commit hashes, set this task Status to DONE-pending-device-verification, leave for Claude Code review.
+
+---
+
 ## Current Active Task
 
 **Purpose:** This is the handoff log between AI tools (Claude Code, Kimi, Claude browser). Update it at the end of every session so the next AI picks up exactly where you left off — no re-explaining, no wasted tokens.
