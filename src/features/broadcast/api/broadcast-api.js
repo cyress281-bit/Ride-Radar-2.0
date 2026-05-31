@@ -164,12 +164,22 @@ export async function updateBroadcast(id, fields) {
  * @returns {Promise<{data: null, error: Error|null}>}
  */
 export async function removeBroadcast(id) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('broadcasts')
     .update({ status: 'expired' })
-    .eq('id', id);
-  if (error) logger.error('[removeBroadcast] Error:', error);
-  return { data: null, error };
+    .eq('id', id)
+    .select('id');
+  if (error) {
+    logger.error('[removeBroadcast] Error:', error);
+    return { data: null, error };
+  }
+  // An RLS-blocked or non-existent update returns { error: null, data: [] }.
+  // Surface it as an error so the caller never reports a false success.
+  if (!data || data.length === 0) {
+    logger.error('[removeBroadcast] Blocked or not found — 0 rows affected');
+    return { data: null, error: new Error('Signal not found or you do not have permission to remove it.') };
+  }
+  return { data: null, error: null };
 }
 
 /**
@@ -182,16 +192,27 @@ export async function removeBroadcast(id) {
  * @returns {Promise<{data: null, error: Error|null}>}
  */
 export async function resolveBroadcast(id, note) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('broadcasts')
     .update({
       status: 'expired',
       resolved_at: new Date().toISOString(),
       resolved_note: note?.trim() || null,
     })
-    .eq('id', id);
-  if (error) logger.error('[resolveBroadcast] Error:', error);
-  return { data: null, error };
+    .eq('id', id)
+    .select('id');
+  if (error) {
+    logger.error('[resolveBroadcast] Error:', error);
+    return { data: null, error };
+  }
+  // An RLS-blocked or non-existent update returns { error: null, data: [] }.
+  // For a Bike Down "rider found safe" action, a false success is dangerous —
+  // surface it as an error so the rider knows the resolve did not take.
+  if (!data || data.length === 0) {
+    logger.error('[resolveBroadcast] Blocked or not found — 0 rows affected');
+    return { data: null, error: new Error('Signal not found or you do not have permission to resolve it.') };
+  }
+  return { data: null, error: null };
 }
 
 /**

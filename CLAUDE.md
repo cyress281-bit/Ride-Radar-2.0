@@ -357,9 +357,47 @@ Codex would approve these only after owner/Claude signoff:
 
 ---
 
+### Focused Swarm Audit (9 Sweeps, 2026-05-31) — Triage
+
+**Source:** Owner ran a second, focused 9-sweep swarm (~96 findings, one theme per agent). Claude Code triaged it read-only with live-DB verification.
+
+**Headline:** Same stale-checkout flaw as the 508-item audit — three claims are provably false (live `get_live_map_presence` already hardened; `AvatarWithStatus.jsx` exists; `SafetyActions.jsx` is a complete 313-line component, not "404/14 bytes"). BUT the *code-level* sweeps (2, 5, 6, 7) verified largely accurate.
+
+| Sweep | Verdict |
+|---|---|
+| 1 — Supabase Security (17) | ⛔ FALSE / unverifiable — stale local migrations ≠ live; RLS "missing policy" claims self-refuting (app works daily). No action without live verification. |
+| 2 — Silent failures (13) | ✅ CONFIRMED at code level — calls lack `.select()` row-count checks. ⚠️ NOT a safe blind batch (see read-back caveat). `deletePost` storage-before-delete ordering = real latent bug. |
+| 3 — Realtime leak (1) | Known (= C-020). Low, fails-open. |
+| 4 — Waterfalls (4) | Real, Low. Message-image N+1 needs infra (skip). |
+| 5 — Re-renders (3) | NotificationsPage memo = safe. **ViewportProvider memo = C-009, HELD** (iOS keyboard, Protected Behavior #3). Audit wrongly calls it "zero-risk." |
+| 6 — Loading/error states (5) | Mixed. `blockedIds ?? new Set()` guard = clean win (approved for Kimi). Error-state surfacing adds visible UI. |
+| 7 — API contract (14) | Real, mostly Low (C-012 class; callers re-throw / RQ catches). |
+| 8 — Dead code (missing files = FALSE; exports = real) | Missing-files false. Dead exports real but Low-value cleanup (violates minimum-viable-change). |
+| 9 — A11y (35) | Real but **visible** (H-027 class, owner-gated). Some files already comply. |
+
+**⚠️ Read-back caveat (the trap the audit missed):** adding `.select()` to a `.delete()`/`.update()` requires the row to be readable under that table's RLS SELECT policy (see "Supabase — Key Behaviors"). On a table whose SELECT policy hides the post-update state, `.select()` returns 0 rows *on success*, turning a working mutation into a false failure. So Sweep 2's "SAFE_TO_BATCH: yes" is wrong — each fix is a per-table, RLS-verified, Claude-led job, NOT a Kimi mechanical batch.
+
+**Done by Claude Code (2026-05-31):** Sweep 2 safety-flow fixes for `removeBroadcast` + `resolveBroadcast` (Bike Down) in `broadcast-api.js` — added `.select('id')` + 0-row detection so a blocked/no-op update surfaces an error instead of false success. **Verified safe against live RLS first:** both PERMISSIVE SELECT policies on `broadcasts` include `auth.uid() = author_id`, so the author always reads back their own row even after `status='expired'` — no read-back trap. Success-path UX is identical; only the (currently silent) failure path now surfaces. Callers (`useRemoveBroadcast`/`useResolveBroadcast`) already `if (error) throw` → toast. Build green.
+
+#### Approved Task for Kimi — `blockedIds` crash guard (one line, behavior-neutral)
+- File: `src/features/broadcast/pages/BroadcastFeedPage.jsx`
+- Find (~line 140, inside the `useNearbyBroadcasts(...)` args):
+  ```js
+  Array.from(blockedIds)
+  ```
+- There are **two** occurrences (the `useNearbyBroadcasts` call ~line 140 and the `useLiveMapPresence` `blockedUserIds` ~line 149). Replace **both** with:
+  ```js
+  Array.from(blockedIds ?? new Set())
+  ```
+- Behavior-neutral: `useBlockedIds()` returns a Set today, so `?? new Set()` only triggers if it's ever `undefined` — preventing a `TypeError` that would crash the entire radar page. No visible change.
+- **Verify:** lint + typecheck + build. Then commit + push per standard workflow. Do NOT touch anything else from the 9-sweep audit — the rest is FALSE, HELD, visible, or Claude-led (see triage table above).
+
+---
+
 ### AI Handoff Log
 | Session | AI Used | What Was Done |
 |---|---|---|
+| 2026-05-31 | Claude Code | **Triaged the focused 9-sweep swarm audit (~96 findings) + shipped Sweep 2 safety-flow fixes.** Same stale-checkout flaw as the 508 audit (3 claims provably false on live). Verdict table written above. Verified live `broadcasts` RLS SELECT policies before touching code — confirmed `.select()` read-back is safe (author-id clause). Added `.select('id')` + 0-row detection to `removeBroadcast` + `resolveBroadcast` (Bike Down silent-failure hardening); success UX unchanged, build green. Spec'd a one-line `blockedIds ?? new Set()` crash guard as an approved Kimi task. Everything else (Sweep 1 false, ViewportProvider/touch-targets held, dead-code low-value) left out. **Next:** Kimi executes the `blockedIds` guard; optional Claude-led continuation on remaining Sweep 2 items (each RLS-verified). |
 | 2026-05-31 | Claude Code | **Reviewed Kimi's audit batch + reverted the C-005 migration.** Verified all Phase 1 code diffs (C-019/C-010/C-012) match the approved spec verbatim and that no HELD files were touched — batch APPROVED, stays on `main`. Then, applying C-005 to live via Supabase MCP, discovered the live `get_live_map_presence` is a different, already-hardened **4-arg** function (`STABLE`, `search_path = public, auth`, full distance/self/block filtering); the `function_search_path_mutable` advisor does not list it. C-005 was **already fixed on live**. Kimi's migration targeted a stale zero-arg snapshot and, due to the signature mismatch, would have created a **second, far more permissive overload** (leaks all presence, no filtering, wrong search_path) — a security/Protected-Behavior regression. **Removed** the migration file (`supabase/migrations/20260531_harden_get_live_map_presence_search_path.sql`), marked C-005 CLOSED, and documented the live-vs-local migration divergence. Live DB was NOT modified. **Next:** optional Claude-led pass on the genuinely-mutable functions (`update_broadcast_location`, `lock_connection_request_participants`, `set_updated_at`, `update_conversation_last_message`), verifying live-vs-local first. |
 | 2026-05-31 | Kimi | **Executed approved 2-phase audit fix batch.** Phase 1 (`ccb445f`): C-019 added missing `Link` import in `LiveMapMapLibre.jsx`; C-010 changed `useBodyScrollLock(true)` → `useBodyScrollLock(!!post)` in `PostDetailSheet.jsx`; C-012 changed `hardDeleteBroadcast` to return `{ data: null, error }` instead of throwing. Phase 2 (`06db5ab`): created additive migration `20260531_harden_get_live_map_presence_search_path.sql` pinning `search_path = public, pg_temp` and adding `STABLE` to `get_live_map_presence()`. All changes behavior-neutral. Lint + typecheck + build passed for both phases. Held items untouched: H-027, C-011, C-009, C-017, and the full do-not-touch list. **Next:** Claude Code review of the diff. |
 | 2026-05-31 | Claude Code | **Owner finalized the Kimi execution plan.** Owner reviewed the 3 behavior-sensitive fixes (H-027 header sizes, C-011 broadcast images, C-009 viewport memo) and chose to HOLD all three (low payoff / higher regression risk / only verifiable on iPhone). Approved Task rewritten as a 2-phase agent-swarm plan for the 4 behavior-neutral fixes — Phase 1: C-019 `Link` import + C-010 defensive scroll-lock + C-012 `hardDeleteBroadcast` return contract; Phase 2: C-005 additive DB migration. Owner directed Kimi to commit + push to `main` after each phase whose build (`lint` + `typecheck` + `build`) passes, and to update this log + task status when done. C-017 remains Claude-led; the do-not-touch list stands. **Next:** Kimi executes the phased plan from the Approved Task section. |
