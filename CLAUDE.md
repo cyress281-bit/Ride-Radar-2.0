@@ -66,6 +66,61 @@ _Approved by owner 2026-05-31. Applies to Claude Code, Codex, and Kimi equally._
 
 ---
 
+## Active Initiative — Splash & Loading "Premium Polish" (2026-05-31)
+
+**Status:** INVESTIGATION + DESIGN SPEC written by Claude Code. **Awaiting Codex independent pass + comparison. NO edits until both AIs sign off and owner approves. Kimi executes only the Approved Task once filled.**
+
+**Owner decisions locked:**
+- **Scope:** Both the cold-start splash AND the in-content loaders, redesigned as one motion system, **plus** an instant pre-React paint in `index.html` to kill the cold-load blank flash.
+- **Visual direction: "B → C"** — a radar-grid cinematic boot-up that resolves into a logo-forward bloom reveal, then hands off to the app.
+
+### Claude Code's Findings — current state (verified read-only, 2026-05-31)
+- **Cold web/PWA load shows a blank `#040406` flash:** `index.html` `#root` is empty with no inline markup; nothing paints until the JS bundle loads and React mounts.
+- **`AppBootLoader` (`src/App.jsx:292–333)`** gates cold start: overlays `PageLoader` until BOTH auth `isLoading` resolves AND a **min 1800ms** elapses, then a 500ms `opacity+scale(1.02)+blur` fade. It passes a `longWait` prop that `PageLoader` **never uses** (dead prop).
+- **`src/components/shared/PageLoader.jsx` = the current "splash":** a single neon EKG/heartbeat line (SVG, 2.4s loop) + a fading "RIDE RADAR" wordmark on black. Reduced-motion handled inline. Also reused as the auth-gating loader in `ProtectedRoute`/`AdminRoute`.
+- **`src/components/shared/LoadingState.jsx` = in-content loaders** (separate motif): neon `radar-sweep` ring spinner + `skeleton` + `shimmer`.
+- **Native (Capacitor)** already has a static splash: `splash.png` via SplashScreen plugin (1000ms, `#040406`, no spinner) — see `capacitor.config.ts`.
+- **Prior art (NOT in main — lives only in worktree `practical-blackburn-a80afa/src/components/layout/SplashScreen.jsx`):** a full framer-motion radar-grid + EKG + scan-line + typed-terminal ("RIDE RADAR v2.0 / ESTABLISHING UPLINK… / PULSE DETECTED") + Skip + collapse-to-point splash (~3.2s). This is the direct basis to polish for the "B" half.
+- **Assets/tools:** `framer-motion` already a dependency; `src/index.css` has a deep keyframe vocabulary (`radar-sweep`, `ekg`, `glow-pulse`, `rr-map-ping`, `rr-tune-in`, `rr-lock`, `rr-arrive`, `rr-breathe`, `radar-grid-drift`…). Logo is **raster `public/logo.png` only — no SVG** (⚠️ the C bloom scales the logo up; a small PNG will look soft — verify native resolution or source an SVG/large PNG before building the finale).
+
+### Claude Code's proposed B→C design spec (for Codex to critique, NOT yet approved)
+Unified cold-start sequence, skippable, reduced-motion-safe:
+- **Phase 0 — instant pre-paint (in `index.html`, pre-React):** inline CSS paints black `#040406` + a faint static radar grid + dim "RIDE RADAR" immediately, so there is never a blank flash. Must visually match the React splash's first frame so the handoff is seamless (no jump/reflow).
+- **Phase 1 (0–0.4s):** React splash mounts; radar grid fades to full, center blip pulses.
+- **Phase 2 (0.4–1.4s):** EKG line traces across the grid; vertical scan line sweeps; cells brighten on pass.
+- **Phase 3 (1.4–2.2s):** typed terminal lines appear with cursor; final line triggers EKG thicken + grid flash ("lock").
+- **Phase 4 — B→C handoff (2.2–2.8s):** grid + text recede; the **RR logo blooms in** at center (neon radial bloom + one radar-ring ping); wordmark settles.
+- **Phase 5 — exit (2.8–3.0s):** logo holds a beat, then scale-up + fade into the app (reuse the existing blur/scale exit).
+- **Reduced motion:** skip the sequence → static frame (logo + "RIDE RADAR"), ~0.7s, then fade.
+- **Skip button** top-right throughout (from the prototype).
+- **First-cold-launch-only cinematic (proposed):** gate the full ~2.8s sequence behind a `sessionStorage` flag (like `ColdStartGuard`) so it does NOT replay on every in-session reload/navigation; in-session auth-gating loads use a LIGHT loader (EKG line or radar-sweep ring only), not the full cinematic. This is the key "premium but not annoying" decision.
+- **In-content loader unification:** re-skin `LoadingState` spinner to share the splash's neon glow/easing tokens; keep skeleton/shimmer aligned.
+
+### Likely files in scope (for the eventual Approved Task — NOT edited yet)
+`index.html` (pre-paint) · NEW `src/components/splash/SplashScreen.jsx` (adapt worktree prototype) · `src/App.jsx` (`AppBootLoader` wiring + sessionStorage gate; resolve dead `longWait`) · `src/components/shared/PageLoader.jsx` (becomes the light in-session loader / reduced-motion frame) · `src/components/shared/LoadingState.jsx` (motif alignment) · `src/index.css` (shared keyframes + reduced-motion coverage) · logo asset (verify/upgrade) · optionally `capacitor.config.ts` + native `splash.png` (match first frame; possibly out of scope for v1).
+
+### Risks / Protected Behaviors to honor
+- **#6 PWA updates must not wipe in-progress input or break launch** — splash must run on cold launch only, NOT on a service-worker update reload mid-session (the sessionStorage gate covers this; Codex should confirm).
+- **Accessibility / reduced-motion** — must collapse to a static branded frame (current PageLoader already does; preserve).
+- **Non-blocking** — splash overlays while the app renders underneath (current `AppBootLoader` pattern); must not delay auth or interactivity.
+- **Performance / no layout shift** — pre-paint CSS must be tiny and inline (no extra request); preload the logo so the Phase-4 bloom doesn't pop in; framer-motion is already loaded.
+- **No regression to the auth-loading guard** (Protected Behavior #5) — `AppBootLoader`'s "unmount only after auth resolves AND min display" logic must be preserved.
+
+### Open questions for owner / Codex
+1. Total duration — is ~2.8s right, or snappier?
+2. Logo finale: logo **standalone** or logo **+ wordmark**?
+3. First-cold-launch-only cinematic vs. every cold load?
+4. Keep the typed lines verbatim (`ESTABLISHING UPLINK… / PULSE DETECTED`) or new copy?
+5. Align the native Capacitor splash too, or web-only for v1?
+6. Logo asset: is `public/logo.png` high-res enough for a full-screen bloom, or do we need a better source?
+
+### Codex's Findings — (TO BE FILLED BY CODEX)
+_Independent pass requested: (a) verify the current-state findings above against the source; (b) critique the B→C spec for feasibility, perf, and PWA/reduced-motion risk; (c) confirm or challenge the first-launch-only gating approach and the `AppBootLoader` integration; (d) answer/own-opinion the open questions. Do not edit code._
+
+### Consensus / Approved Task for Kimi — (BLANK until both AIs sign off + owner approves)
+
+---
+
 ## Current Active Task
 
 **Purpose:** This is the handoff log between AI tools (Claude Code, Kimi, Claude browser). Update it at the end of every session so the next AI picks up exactly where you left off — no re-explaining, no wasted tokens.
