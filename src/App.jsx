@@ -13,7 +13,7 @@ import { AppProviders } from './providers/AppProviders';
 import AppLayout from './components/layout/AppLayout';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import PageLoader from './components/shared/PageLoader';
-import SplashScreen from './components/splash/SplashScreen';
+
 import { useAuthState } from './features/auth/hooks/use-auth';
 import { useAdminRole } from './features/auth/hooks/use-admin-role';
 import { getSafeAuthRedirectFromSearch } from './lib/auth-redirect';
@@ -356,12 +356,13 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
   return (
     <>
       {children}
-      {visible &&
-        (firstLaunch ? (
-          <SplashScreen exiting={exiting} onSkip={handleSkip} />
-        ) : (
-          <PageLoader exiting={exiting} />
-        ))}
+      {visible && (
+        <PageLoader
+          intro={firstLaunch && !reduced}
+          exiting={exiting}
+          onSkip={firstLaunch && !reduced ? handleSkip : undefined}
+        />
+      )}
     </>
   );
 });
