@@ -53,7 +53,7 @@ At the end of every session update the **Current Active Task** section with:
 **Purpose:** This is the handoff log between AI tools (Claude Code, Kimi, Claude browser). Update it at the end of every session so the next AI picks up exactly where you left off — no re-explaining, no wasted tokens.
 
 **Last Updated By:** Claude Code
-**Date:** 2026-05-29
+**Date:** 2026-05-31
 
 ---
 
@@ -78,117 +78,137 @@ At the end of every session update the **Current Active Task** section with:
 ---
 
 ### Current Problem
-DM page (`/messages/:id`) fails to load on iPhone PWA — shows "Conversation not found" instead of messages.
+Triage of the **Comprehensive Codebase Audit Report (dated 2026-05-31)** — an AI-generated audit produced by "20 parallel auditors" claiming 508 findings (48 CRITICAL, 134 HIGH, etc.). Before any of it becomes work, every finding needs independent verification: AI multi-agent audit dumps routinely contain a large fraction of false positives and already-fixed items. This review cycle triages the **20 explicitly-named CRITICAL findings (C-001 … C-020)** — the only ones the report specifies with enough detail to verify. The remaining 28 unnamed CRITICALs and all HIGH/MEDIUM/LOW items are referenced only by category counts and cannot be verified as written.
+
+**Goal of this cycle:** Determine which named CRITICALs are real, correct their severities, and hand only the genuinely-actionable residue forward — nothing gets fixed on the strength of the audit alone.
+
+> _Prior review cycle (DM page `/messages/:id` "Conversation not found") is CLOSED — fixed in commit `d6823ce`, verified on device. See the AI Handoff Log and Known Issues table for its record._
 
 ---
 
 ### Claude Code's Findings
-**Date:** 2026-05-29 | **Status:** Complete (post-fix verification)
+**Date:** 2026-05-31 | **Status:** Complete (independent triage of the 20 named CRITICAL findings)
 
-**Evidence checked:**
+**Method:** Read-only verification. I checked the four cheapest/most-falsifiable claims myself, then dispatched three parallel verification sub-agents (security+Supabase, error-handling, performance+PWA), each instructed to be skeptical, trace full enforcement/caller paths, and cite `file:line` evidence. No files were edited during triage. Verdict legend: **CONFIRMED** (real, severity correct) · **INFLATED** (real but severity overstated) · **FALSE** (wrong / already-fixed / unreachable).
 
-| File | What I looked at |
-|---|---|
-| `src/features/chat/pages/ConversationPage.jsx` | Full file — loading guard, query gating, error render path |
-| `src/features/auth/hooks/use-auth.js` | `useAuthState()` shape, `isLoading` initial value, `handleSession()` flow, `validateAndHandleSession()` |
-| `src/features/chat/hooks/use-messages.js` | `enabled` condition, TQ v5 query config |
-| `src/features/auth/components/AuthProvider.jsx` | Context split structure |
-| `src/providers/AppProviders.jsx` | Provider order, whether any app-level gate exists |
+**Verdict table — all 20 named CRITICALs:**
 
-**What I ruled out:**
-- **RLS:** Both queries are gated on `!!user?.id` — when auth is unresolved the queries never execute. RLS is never reached during the failure window. Not the cause.
-- **Routing:** `useParams()` returns a valid `id`. Not the cause.
-- **Schema mismatch:** Queries use `select('*')` — no column-specific mismatch possible. Not the cause.
-- **App-level gate:** `AppProviders.jsx` wraps children in `AuthProvider` with no gate holding render until auth resolves. Individual pages must handle the auth-loading window themselves.
+| ID | Claim (short) | Verdict | Real severity | Evidence / why |
+|---|---|---|---|---|
+| C-001 | JWT in localStorage (XSS theft) | INFLATED | Low | `supabase.js` + `capacitor-storage.js:17` — localStorage is the *standard* Supabase web default; native uses encrypted Capacitor storage. Proposed httpOnly-cookie+proxy fix is infeasible for an anon-key serverless arch. |
+| C-002 | `capacitor-storage.js` missing → auth crash | FALSE | — | File **exists** at `src/lib/capacitor-storage.js`. Auditor used a stale checkout. |
+| C-003 | 5 tables have no RLS | FALSE | — | All 5 have `CREATE TABLE` + `ENABLE ROW LEVEL SECURITY`: `20260519000003_add_user_posts_post_comments.sql`, `20260516000000_create_broadcast_comments.sql`, `20260521143125_add_official_event_requests.sql`. Stale checkout. |
+| C-004 | Admin client-side only → priv-esc | INFLATED | Low | `admin-api.js:183-189` client `assertAdmin()` is only defense-in-depth; DB enforces server-side via `is_admin()` RLS (`20260506_admin_rls_policies.sql:82-129`), and role self-change is blocked by `WITH CHECK`. No escalation path. |
+| C-005 | `get_live_map_presence()` no `search_path` | **CONFIRMED** | Low–Med | `20260512_live_map_presence_server_time.sql:44` — `SECURITY DEFINER` with no `SET search_path` and not `STABLE`. Genuine outlier; peer functions set it. Matches Supabase `function_search_path_mutable` advisory. |
+| C-006 | No offline fallback page | **CONFIRMED** | Low | `vite.config.js:174 navigateFallback: null`; no `offline.html` in `public/`. But Workbox precaches the app shell (`globPatterns`) so only a true cold deep-link while offline fails — edge case for an auth-gated SPA. |
+| C-007 | No bg sync → Bike Down lost offline | INFLATED | Low–Med | `query-client.js:32,41 networkMode: 'offlineFirst'` pauses + auto-resumes in-session mutations. Real gap is narrower: **no durable cross-reload queue** (no `persistQueryClient`/Background Sync), so an offline submit lost to an app-kill is gone. "Zero offline handling" is wrong. |
+| C-008 | Auth bypasses TanStack Query | **CONFIRMED** | Low | `use-auth.js:67-69` profile via `useState`; `use-profile.js:21-35` is a separate `useQuery(['profile',userId])` → possible duplicate self-fetch. Bridged partly by `refreshProfile` → `invalidateQueries`. Architectural smell, not a bug. |
+| C-009 | ViewportProvider value not memoized | **CONFIRMED** | Low | `ViewportProvider.jsx:58 const value = {` (no `useMemo`) → all subscribers re-render on every viewport change. Real perf nit. |
+| C-010 | Scroll-lock trap in PostDetailSheet | FALSE | — | `use-body-scroll-lock.js:33` cleanup is unconditional, AND both call sites mount only when `post` is truthy (`ProfilePage.jsx:424`, `RiderProfilePage.jsx:711`). Trap is unreachable. |
+| C-011 | Raw `<img>` on broadcast detail | **CONFIRMED** | Low | `BroadcastDetailPage.jsx:915/1024/454` are raw `<img>`, not `OptimizedImage`. But all have fixed Tailwind dims (`h-72`, `w-11 h-11`, `w-8 h-8`) → CLS impact minimal. |
+| C-012 | `hardDeleteBroadcast` throws, breaks contract | FALSE | — | `broadcast-api.js:130-134` does throw, but siblings throw too (the "{data,error}" header comment is aspirational), and the sole caller (`AdminReportsPage.jsx:166`) runs it inside a React Query `mutationFn` → throw is caught. No uncaught rejection. |
+| C-013 | Sign-out clears state before API | INFLATED | Low | `use-auth.js:372-386` actually `await`s `apiSignOut()` **first**, then clears, then re-throws. Optimistic clear is deliberate (commented) and is the safe-failure direction. Claim's premise (clears first) is factually wrong. |
+| C-014 | `Promise.all` uploads no error handling | FALSE | (Low edge) | `use-create-broadcast.js:208-227` wraps insert in `try/catch` + `storage.remove(uploadedPaths)` cleanup, plus `onError`. Only residual: a partial `Promise.all` rejection at `:179` can orphan already-uploaded files (narrow Low hardening), not "no error handling". |
+| C-015 | Onboarding upload no validation | FALSE | — | `OnboardingPage.jsx:174/190` → `prepareLocalImage` → `validateFile` (`image-utils.js:119`) enforces type + size; `uploadImage` re-validates at `:147`; inputs also `accept=`. Validation happens downstream. |
+| C-016 | No `prefers-reduced-motion` support | FALSE | — | `index.css:1017` has a comprehensive `@media (prefers-reduced-motion: reduce)` block using `*` + explicitly neutralizing every named animation (radar sweep, EKG, glow, shimmer, float, etc.). |
+| C-017 | `getEventRsvpCounts` client-side count | **CONFIRMED** | Low | `admin-api.js:164-178` fetches all matching `event_rsvps` rows and counts in a JS loop instead of DB aggregation. Admin-only, bounded by `.in()`. Perf nit. |
+| C-018 | All PWA icons missing from `public/` | FALSE | — | `public/` contains `icon-192.png`, `icon-512.png`, `maskable-icon-512.png`, `apple-touch-icon.png`, `icon-1024.png`, `favicon-32.png`, etc. Stale checkout. |
+| C-019 | `Link` used but never imported → crash | INFLATED | Low (latent) | `LiveMapMapLibre.jsx:238` uses `<Link>` with **no import** — but its only consumer `SignalListItem` is rendered by `SignalList`, gated behind `variant !== 'radar'` (`:1000`), and the sole mount (`BroadcastFeedPage.jsx:270`) passes `variant="radar"`. Latent landmine, not a live crash. One-line fix prevents future breakage. |
+| C-020 | Stale settings in shared realtime channel | INFLATED | Low | `use-notifications.js:182` channel created without settings; effect deps `[userId, qc]` exclude settings → stale closure is real. BUT undefined settings → `shouldShowNotification` returns **true** (fails *open*, shows extra) and the list `select` re-filters (`:147`). UX nit, not data exposure. |
 
-**Root cause:**
-Auth timing race condition. The failure is deterministic and mechanical:
+**Tally:** of the 20 named CRITICALs → **8 FALSE · 6 INFLATED · 6 CONFIRMED.** **Zero are actually critical-severity.** Every confirmed item is Low or Low–Med.
 
-1. `AuthProvider` initializes with `isLoading = true` (`useState(true)` in `use-auth.js:69`)
-2. On mount it calls `getSession()` → `supabase.auth.getUser()` (network round-trip — 0.5–3s on mobile)
-3. During that window: `user = null`
-4. Both queries have `enabled: !!id && !!user?.id` — disabled while `user=null`
-5. **TQ v5 contract:** disabled query → `isPending=true`, `isFetching=false` → `isLoading = isPending && isFetching = false`
-6. Before fix: `const isLoading = isConversationLoading || isMessagesLoading` → both `false` → falls to `if (hasError || !conversation)` → `conversation=undefined` → **"Conversation not found"** shown immediately
+**Cross-cutting conclusion:**
+The audit's `file:line` citations were accurate where checkable, but it **systematically inflated severity** by pattern-matching smells (localStorage tokens, client-side admin checks, `throw`, closure capture, raw `<img>`) without tracing the compensating control — server-side RLS, React Query mutation wrappers, downstream `validateFile`, `offlineFirst` pause/resume, fixed image dims, fail-open-then-re-filter. Several FALSE findings (C-002, C-003, C-018) prove at least one auditor ran against a **stale checkout**. One finding (C-016) describes a fix that is **already fully implemented**.
 
-The bug was latent in `ConversationPage` — it assumed its own query loading states were sufficient guards, but those states only become meaningful once auth has resolved and queries are enabled.
+**Recommendation:** Do **not** treat the report as a worklist. The genuinely-actionable residue is a small set of Low items (see proposed Approved Task). The 28 unnamed CRITICALs and 134 HIGHs should be presumed to carry the same ~70% false/inflated rate and be re-derived from code before any work, not lifted from the report.
 
-**Fix applied (commit `d6823ce`):**
-```js
-// line 90
-const { user, isLoading: authIsLoading } = useAuthState();
-
-// line 274
-const isLoading = isConversationLoading || isMessagesLoading || authIsLoading;
-```
-
-`authIsLoading` starts `true`, remains `true` through the full session validation + profile load sequence (both network calls), and only becomes `false` once `loadUserProfile()` completes. This correctly holds `<ConversationSkeleton />` for the entire race window.
-
-**Confidence:** High. Failure path fully traceable in code — TQ v5 disabled-query contract is documented behavior, `isLoading` initial value is explicit in source.
-
-**Open questions / risks:**
-1. **`setTimeout(0)` deferral in `handleSession`:** `setUser(authUser)` and `setIsLoading(true)` are called synchronously (lines 242, 248) then profile load is deferred via `setTimeout(0)`. React 18 batches these into one render. Theoretical edge: if batching fails, there is a one-render window where `user` is set but `isLoading=false` — queries would fire once and re-fire. Not a "Conversation not found" bug; at worst a double-fetch. Probability: very low.
-2. **Same latent bug may exist on other pages.** `ConversationPage` was the only reported failure likely because it has a hard error state for a missing record. `/broadcast/:id` and `/profile/:userId` should be audited for the same `authIsLoading` omission.
-3. **Profile load timeout is 8s.** On very slow mobile `isLoading` holds `true` for up to 8s — correct behavior but skeleton may persist longer than expected.
+**Confidence:** High on the 20 named items (each traced to source). Unverifiable on the unnamed/aggregate findings by design — the report does not specify them.
 
 ---
 
 ### Codex's Findings
-**Date:** 2026-05-28 | **Status:** Complete
+**Date:** 2026-05-31 | **Status:** Complete for first-pass subset, not a full C-001...C-020 independent triage
 
-**What I checked:**
-- `src/features/chat/hooks/use-messages.js`
-- `src/features/chat/hooks/use-conversations.js`
-- `src/features/chat/api/chat-api.js`
-- `src/features/chat/pages/ConversationPage.jsx`
-- RLS/policy migrations for `public.messages` and `public.conversations`
+**Process note:** Codex first inspected the high-signal runtime/accessibility subset originally proposed for a minimal patch, before seeing Claude Code's full verdict table in this file. After reading the current `CLAUDE.md`, Codex is **not claiming** this as the full independent 20-critical pass requested in Claude's placeholder. Treat this as a focused comparison report covering the files Codex actually inspected.
 
-**What I found:**
-- `useMessages` is the actual message hook; it fetches by `conversationId` and only runs when both `conversationId` and `user?.id` are present.
-- `useConversations` fetches by `participant_ids` and then applies blocked-user filtering client-side.
-- `ConversationPage` fails hard if either the conversation lookup or the messages query returns no row, because it renders the generic error state when `hasError || !conversation`.
-- The `messages` policies allow participant/sender/admin access, and the `conversations` policies allow participant/admin access, so the RLS policy set itself looks consistent with the client queries.
+**Scope inspected:**
 
-**Root cause:**
-The page can still fall into the error state before auth is ready. On mount, both queries are disabled until `user?.id` exists, and `ConversationPage` currently does not include auth loading in its loading guard. That means the page can render “Conversation not found” while Supabase auth is still resolving, especially on mobile where `getUser()` can take noticeable time.
+| File | What was checked |
+|---|---|
+| `src/lib/supabase.js` | Whether `capacitorStorage` import/use exists |
+| `src/lib/capacitor-storage.js` | Whether the alleged missing module exists and exports the adapter |
+| `src/components/shared/AvatarWithStatus.jsx` | Whether the alleged missing component exists and exports correctly |
+| `src/features/map/components/LiveMapMapLibre.jsx` | Whether `<Link>` is used without importing it |
+| `src/features/profile/components/PostDetailSheet.jsx` | Whether scroll lock is unconditional before the null render guard |
+| `src/features/broadcast/api/broadcast-api.js` | Whether `hardDeleteBroadcast()` throws despite the module-level `{ data, error }` convention |
+| `src/components/layout/AppHeader.jsx` | Whether header touch targets are below 44px |
+| `src/index.css` | Whether reduced-motion support exists and whether later animation utilities are covered |
+| `src/features/broadcast/pages/BroadcastDetailPage.jsx` | Whether raw `<img>` tags remain on the detail page |
 
-**Proposed fix:**
-- Read `isLoading` from `useAuthState()`
-- Include `authIsLoading` in `const isLoading = isConversationLoading || isMessagesLoading || authIsLoading;`
+#### Codex First-Pass Verdicts
 
-**Confidence:** High
+| Audit ID | Codex verdict | Corrected severity | Evidence | Recommendation |
+|---|---|---:|---|---|
+| `C-002` missing `capacitor-storage.js` | FALSE | — | `src/lib/capacitor-storage.js:15` exports `capacitorStorage`; `src/lib/supabase.js:2` imports it; `src/lib/supabase.js:130` uses it. | No action. Audit was stale. |
+| `H-043` missing `AvatarWithStatus.jsx` | FALSE | — | `src/components/shared/AvatarWithStatus.jsx:34` exports `AvatarWithStatus`; imports resolve in Settings, ConversationPage, RiderSearch, RequestsTab, CrewTab, and ConversationItem. | No action. Audit was stale. |
+| `C-019` `<Link>` used without import | CONFIRMED but inflated | Low latent runtime risk | `LiveMapMapLibre.jsx:238` renders `<Link>`; top imports do not include `Link` from `react-router-dom`. | Add `import { Link } from 'react-router-dom';`. This is a one-line hardening fix even if current route composition does not hit that branch. |
+| `C-010` PostDetailSheet scroll lock trap | CONFIRMED as a local code smell; reachability disputed | Low if reachable | `PostDetailSheet.jsx:25` calls `useBodyScrollLock(true)` before `if (!post) return null` at line 45. | Change to `useBodyScrollLock(!!post)` if touching this file. Claude says current call sites only mount when `post` is truthy, making the trap unreachable today. Codex agrees this lowers severity but still prefers the one-token defensive fix. |
+| `C-012` `hardDeleteBroadcast()` throws | CONFIRMED as contract inconsistency; severity disputed | Low | `broadcast-api.js:130-133` throws on error. The module header says all functions return `{ data, error }`. | Codex recommends returning `{ data: null, error }` for consistency. Claude notes the sole caller is a React Query mutation and catches throws, so this is not a crash bug. |
+| `H-027` AppHeader touch targets | CONFIRMED | Low accessibility | `AppHeader.jsx:256`, `275`, and `300` use `min-w-[40px] min-h-[40px]`. | Change the three header actions to `min-w-[44px] min-h-[44px]`. |
+| `C-016` missing reduced motion | INFLATED / partially false | Low polish | `index.css:1017` has a broad `@media (prefers-reduced-motion: reduce)` block. Later utilities at `index.css:1114`, `1123`, `1194`, `1197`, `1200`, `1203`, and `1208` define additional animations after that block. | The broad audit claim is false. Optional hardening: add a later reduced-motion override for the animation utilities declared after the first reduced-motion block. |
+| `C-011` raw `<img>` on broadcast detail | CONFIRMED but inflated | Low performance/CLS | `BroadcastDetailPage.jsx:454`, `504`, `915`, and `1024` use raw `<img>`; `OptimizedImage` exists but is not imported by this page. | Separate patch after layout check. Existing fixed dimensions lower CLS risk, but this remains a legitimate consistency/perf item. |
+
+#### Codex Proposed Minimal Patch Candidate
+
+Codex would approve these only after owner/Claude signoff:
+
+1. Add missing `Link` import in `LiveMapMapLibre.jsx`.
+2. Increase the three `AppHeader.jsx` action touch targets from 40px to 44px.
+3. Optionally change `PostDetailSheet.jsx` to `useBodyScrollLock(!!post)` as defensive hardening, while acknowledging current call sites likely make it unreachable.
+4. Optionally change `hardDeleteBroadcast()` to return `{ data: null, error }`, while acknowledging the current caller safely handles thrown mutation errors.
+5. Optionally add reduced-motion overrides for animation utility classes declared after the existing reduced-motion block.
+
+#### Codex Deferred Follow-Ups
+
+1. Replace raw `<img>` usage in `BroadcastDetailPage.jsx` with existing optimized image/avatar patterns after checking sizing and visual behavior.
+2. Perform a real independent C-001...C-020 pass if the owner still wants a full Codex-vs-Claude comparison. Codex has now read Claude's table, so a clean blind pass would need a separate model/session or should be labeled as a non-blind review.
+3. Validate the larger security/database claims against live Supabase before any database or RLS work.
 
 ---
 
 ### Consensus / Disagreements
-**Updated by:** Claude Code | **Date:** 2026-05-29
+**Status: PARTIAL CONSENSUS ONLY** — Claude completed a full 20-critical triage. Codex completed a focused first-pass subset, not a full independent 20-critical triage.
 
-- **Agreement:** Root cause confirmed by both AIs independently — `ConversationPage.jsx` did not include `authIsLoading` in its `isLoading` guard. TQ v5 disabled queries report `isLoading=false`, so while `user=null` during auth validation the page skipped the skeleton and showed "Conversation not found". Fix agreed: add `authIsLoading` from `useAuthState()` to the loading guard. Fix applied in commit `d6823ce`, 2026-05-29. Awaiting iPhone PWA verification.
-
-- **Disagreement (resolved — original round):** Codex flagged that Claude Code's "RLS ruled out ✅" was overstated given diverged migration history. Claude Code clarified RLS was checked against the live DB via Supabase MCP, not local files. Both AIs softened the language: RLS is **not evidenced as the cause based on live DB inspection**, not categorically ruled out forever.
-
-- **Disagreement (resolved — original round):** Codex noted root cause was attributed too heavily to "System Collapse removing AppBootstrapGate" rather than the concrete code defect. Claude Code accepted this. The precise defect is that `ConversationPage` never wired `authIsLoading` into its loading guard — always latent, exposed by System Collapse.
-
-- **Disagreement (resolved — post-fix review):** Claude Code incorrectly claimed Codex did not read `use-auth.js`. Codex confirmed it did inspect that file along with all chat hooks. Claude Code also flagged `useConversations` as an imprecision — Codex clarified it was inspected as supporting context only, not as the hook used by `ConversationPage`. No diagnostic disagreement exists.
-
-- **Open follow-up (Claude Code):** Same latent `authIsLoading` omission may exist in `/broadcast/:id` and `/profile/:userId`. Recommend auditing before closing this issue class entirely.
-
-- **Owner decision:** Both AIs agree on root cause and fix. Fix shipped. Awaiting test confirmation.
+- **Agreement:** The external audit is not a reliable worklist. Several claims were stale or already fixed (`capacitor-storage.js`, `AvatarWithStatus.jsx`, PWA icons per Claude), and the severities are inflated.
+- **Agreement:** `C-019` is real but low/latent: `LiveMapMapLibre.jsx` uses `<Link>` without importing it. One-line fix is reasonable.
+- **Agreement:** `C-011` is real but low: `BroadcastDetailPage.jsx` has raw `<img>` tags, but fixed dimensions reduce the claimed CLS severity.
+- **Agreement:** `C-016` is not a missing reduced-motion implementation. Codex adds nuance that later animation utility classes are declared after the existing reduced-motion block and could be covered by an extra override.
+- **Disagreement / nuance on `C-010`:** Claude rates it FALSE because current call sites only mount `PostDetailSheet` when `post` is truthy and the hook cleanup is unconditional. Codex agrees it is likely unreachable today, but still marks the local unconditional `useBodyScrollLock(true)` before a null guard as a low-risk defensive cleanup if the file is touched.
+- **Disagreement / nuance on `C-012`:** Claude rates it FALSE because the sole caller uses a React Query mutation and catches throws. Codex agrees there is no uncaught runtime bug, but still marks the function as inconsistent with the module header's `{ data, error }` contract.
+- **Owner decision:** Pending. No Kimi task is approved.
 
 ---
 
 ### Approved Task for Kimi
-**Status: COMPLETED** — Fix applied directly by owner on 2026-05-29 (commit `d6823ce`). Kimi execution was not required.
+**Status: BLANK — DO NOT ACT.** No task is approved until Codex completes its independent triage and both AIs sign off with the owner.
 
-~~Implement exactly this:~~
-- ~~In `src/features/chat/pages/ConversationPage.jsx`, change the auth destructure from `const { user } = useAuthState();` to `const { user, isLoading: authIsLoading } = useAuthState();`~~
-- ~~Update the loading guard from `const isLoading = isConversationLoading || isMessagesLoading;` to `const isLoading = isConversationLoading || isMessagesLoading || authIsLoading;`~~
+**Candidate residue (NOT yet approved — for owner + Codex review):** the only genuinely-actionable items surfaced by triage, all Low severity:
+- C-009 — wrap `ViewportProvider` context value (`ViewportProvider.jsx:58`) in `useMemo`.
+- C-019 — add the missing `Link` import in `LiveMapMapLibre.jsx` (prevents a latent crash if a non-`radar` variant is ever mounted).
+- C-017 — change `getEventRsvpCounts` (`admin-api.js:164-178`) to use `.select(..., { count: 'exact', head: true })` / DB aggregation.
+- C-005 — add `SET search_path = public, pg_temp` and `STABLE` to `get_live_map_presence()` (new additive migration; Claude Code leads per DB-ownership rule).
+- C-007 — durable offline queue for Bike Down alerts is a **product call for ChatGPT/owner**, not a Kimi quick fix. Flag, do not implement.
+
+Everything else from the audit is FALSE, already-fixed, or too inflated/unspecified to action.
 
 ---
 
 ### AI Handoff Log
 | Session | AI Used | What Was Done |
 |---|---|---|
+| 2026-05-31 | Codex | Added Codex's focused first-pass inspection report for the 2026-05-31 comprehensive audit. Confirmed stale/false claims for missing `capacitor-storage.js` and `AvatarWithStatus.jsx`; confirmed low-severity issues around missing `Link` import, raw `<img>` usage, AppHeader 40px touch targets, and nuanced local concerns for `PostDetailSheet` scroll lock and `hardDeleteBroadcast()` return contract. Logged partial consensus/disagreements against Claude's full triage. No code changes applied; no Kimi task approved. |
+| 2026-05-31 | Claude Code | Independent triage of the 2026-05-31 "Comprehensive Codebase Audit Report" (508 claimed findings). Verified all 20 named CRITICALs (C-001…C-020) read-only via direct checks + 3 parallel sub-agents tracing full enforcement/caller paths. Result: **8 FALSE, 6 INFLATED, 6 CONFIRMED — zero actually critical** (all confirmed items Low/Low-Med). At least one auditor used a stale checkout (C-002/C-003/C-018 false); C-016 describes an already-shipped fix. Full verdict table written to Claude Code's Findings. Candidate Low-severity residue listed under Approved Task (NOT approved). **Next:** Codex runs its own independent pass on the same 20 before any consensus or Kimi work. |
 | 2026-05-30 | Claude Code + Codex + Kimi | Radar "Locate me" no longer centered/zoomed. Three-way independent investigation reached unanimous root cause: a misplaced cleanup `return` on the `map.resize()` line in `MapLibreFitToItems` (`LiveMapMapLibre.jsx`) made all `flyTo`/`fitBounds` camera logic unreachable dead code. Kimi applied the approved fix (relocated RAF cleanup so every exit path returns it and the camera branches are reachable). Claude Code verified the diff against the approved task — matches verbatim; lint + typecheck pass. Awaiting iPhone PWA verification. Secondary watch item (raised by Codex): `autoFitDisabled` (lines ~801/962) could block recenter after manual pan, but the `fitKey` reset effect (~815-817) already handles it — test case 3 below confirms. |
 | 2026-05-29 | Claude Code | Post-fix independent verification of DM page fix. Confirmed fix correct in source. Updated findings section with full independent report. Flagged open question: same latent `authIsLoading` bug may exist in `/broadcast/:id` and `/profile/:userId`. |
 | 2026-05-28 | Codex | Independently inspected `/messages/:id` chat page issue. Confirmed the current working tree already includes the auth-loading guard fix in `src/features/chat/pages/ConversationPage.jsx`, no local diff remains, and the remaining risk is whether the deployed build includes that change. |
@@ -557,6 +577,7 @@ const { showPopup } = useMapLibrePopup(mapRef);
 | requestAnimationFrame jank | 🚨 Active | 199ms frame time on lower-end devices. Needs React profiling. |
 | Direct messaging page fails to load | FIXED — awaiting iPhone PWA verification | `ConversationPage.jsx` now includes `authIsLoading` in its loading guard (commit `d6823ce`, 2026-05-29). Open follow-up: audit `/broadcast/:id` and `/profile/:userId` for the same latent pattern. |
 | Radar "Locate me" locates but doesn't center/zoom | FIXED — verified on iPhone PWA (2026-05-30) | Misplaced cleanup `return` after `map.resize()` in `MapLibreFitToItems` (`LiveMapMapLibre.jsx`) made the `flyTo`/`fitBounds` camera logic unreachable. Fix relocates the RAF cleanup to every exit path so the camera branches run (commit `45b55ef`). Verified on device: all three cases pass — locate w/ no prior fix, locate when already located, and locate after a manual pan (`autoFitDisabled` reset confirmed working). |
+| 2026-05-31 "Comprehensive Codebase Audit Report" (508 findings) | TRIAGED — awaiting Codex pass | Claude Code verified all 20 named CRITICALs (C-001…C-020): **8 FALSE, 6 INFLATED, 6 CONFIRMED — none actually critical** (confirmed items all Low/Low-Med). Full verdict table + candidate Low residue (C-005, C-009, C-017, C-019; C-007 is a product call) in the Review Process section above. Do not action the report as a worklist — re-derive from code. |
 
 ---
 
