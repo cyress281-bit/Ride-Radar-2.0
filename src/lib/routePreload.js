@@ -46,7 +46,7 @@ export function preloadCoreRoutes() {
       preloadMessages();
       preloadBroadcast();
       preloadProfile();
-    }, 1000);
+    }, 100);
   };
 
   const handle = 'requestIdleCallback' in window

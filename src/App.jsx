@@ -13,6 +13,7 @@ import { AppProviders } from './providers/AppProviders';
 import AppLayout from './components/layout/AppLayout';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import PageLoader from './components/shared/PageLoader';
+import { RouteTransitionFallback } from './components/layout/AppLayout';
 
 import { useAuthState } from './features/auth/hooks/use-auth';
 import { useAdminRole } from './features/auth/hooks/use-admin-role';
@@ -380,7 +381,7 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
 const AppContent = memo(function AppContent() {
   return (
     <AppBootLoader>
-      <Suspense fallback={null}>
+      <Suspense fallback={<RouteTransitionFallback />}>
         <ScrollToTop />
         <ColdStartGuard />
         <Routes>

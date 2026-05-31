@@ -46,7 +46,7 @@ function readSafeAreaBottom() {
   return Math.round(safeBottom);
 }
 
-const RouteTransitionFallback = memo(function RouteTransitionFallback() {
+export const RouteTransitionFallback = memo(function RouteTransitionFallback() {
   const { pathname } = useLocation();
   const isRadar = pathname === '/home';
 
