@@ -114,10 +114,68 @@ Unified cold-start sequence, skippable, reduced-motion-safe:
 5. Align the native Capacitor splash too, or web-only for v1?
 6. Logo asset: is `public/logo.png` high-res enough for a full-screen bloom, or do we need a better source?
 
-### Codex's Findings — (TO BE FILLED BY CODEX)
-_Independent pass requested: (a) verify the current-state findings above against the source; (b) critique the B→C spec for feasibility, perf, and PWA/reduced-motion risk; (c) confirm or challenge the first-launch-only gating approach and the `AppBootLoader` integration; (d) answer/own-opinion the open questions. Do not edit code._
+### Codex's Findings
+**Date:** 2026-05-31 | **Status:** Complete independent pass, read-only. All major claims verified against source.
 
-### Consensus / Approved Task for Kimi — (BLANK until both AIs sign off + owner approves)
+**Current-state verification:**
+- **Confirmed (nuance):** cold load is a near-black blank flash, not white — `index.html:2` sets `#040406`, `index.html:41` empty `#root`. No pre-React branded paint.
+- **Confirmed:** `AppBootLoader` gates on auth + min display (`src/App.jsx:300-305`); actual timers are **1800ms min / 500ms exit** (`:308-313`, `:305`) — the comment at `:286-289` saying 2000/400 is **stale**.
+- **Confirmed:** dead `longWait` prop — passed at `:296/:311/:330` but `PageLoader.jsx:4-83` never reads it.
+- **Confirmed:** `PageLoader` is the splash + auth loader (`ProtectedRoute :96-98`, `AdminRoute :117-119`, `AppBootLoader :330`); reduced-motion at `PageLoader.jsx:41-51`.
+- **Confirmed:** `LoadingState` separate motif (`:19-29/:31-45/:48-66`); native splash (`capacitor.config.ts:17-24`); worktree prototype exists, not in main.
+- **Confirmed + measured:** logo is raster only; **`public/logo.png` is 1024×1024** (~205KB). SVGs exist for icons (`public/icon.svg`, `motorcycle-icon.svg`) but not for the logo.
+
+**Spec critique:**
+- **Do NOT copy the prototype's App integration.** It hides the whole app behind an opacity wrapper until splash completion and has an **8s safety timeout that reveals the app independent of auth** (`.claude/.../src/App.jsx:311-333`) — conflicts with **Protected Behavior #5**. Keep the current `AppBootLoader` pattern (route tree renders underneath; overlay unmounts only after auth resolved AND min display).
+- **⚠️ Correction to Claude — framer-motion is NOT "already loaded" on the boot path.** It's a dep (`package.json:49`) but `vite.config.js:247-250` deliberately splits it into `vendor-framer`, loaded only when a motion page is visited. Importing it in the boot path pulls that chunk into initial launch. **Prefer CSS/keyframes for the boot splash;** if framer is used, keep it narrow and verify bundle output.
+- **Inline pre-paint = right call, keep it tiny/static:** inline CSS/HTML only, no external font, no layout-affecting dims. `<link rel="preload" as="image" href="/logo.png">` reasonable, but logo is ~205KB — verify it doesn't compete with critical JS on slow mobile.
+- **Perf:** fixed-position overlays (no layout shift); animate opacity/transform only; avoid big full-screen blur/filter on iPhone; reuse existing `src/index.css` keyframes (`radar-sweep`, `glow-pulse`, `rr-ekg`, reduced-motion `:1017-1056`).
+- **A11y:** cinematic grid/terminal `aria-hidden`; one stable `role="status"`/`sr-only` label (not changing typed text); Skip must be keyboard-reachable, 44px, named. Reduced motion → static frame ~0.5-0.7s.
+- **PWA #6 risk:** SW update can reload on `controllerchange` (`src/lib/registerSW.js:21-33`) and old-SW recovery can force reload (`:140-157`); the update banner refresh is user-initiated (`AppLayout.jsx:148-155`). The full cinematic must NOT run on those mid-session reloads, and the splash work must add no new auto-refresh/activation.
+
+**Architectural calls:**
+- **First-cold-launch-only gate:** approve, via **`sessionStorage`** (not localStorage) — replay once per browser/PWA session. Precedent: `ColdStartGuard`'s `rr_session_active` (`src/App.jsx:197-201`); use a distinct splash key (or share deliberately + document).
+- **AppBootLoader integration:** approve **only if** it preserves the invariant — children render immediately; overlay removal waits for auth resolved AND min display. Cinematic finishes before auth → hold a light/static loader. Auth finishes before cinematic min → finish the min. **No safety timeout that reveals app while auth still loading.**
+- **SW-update reload:** full cinematic should NOT run; pre-paint static frame may appear (document reloads) but React picks the light loader when `sessionStorage` shows active session or SW reload markers (`sw-last-reload`/`sw-fresh`) are present.
+
+**Open-question recommendations (Codex):**
+1. **Duration:** 2.1-2.4s default for first-session cinematic; 2.8s is upper bound, not default. Reduced motion 0.5-0.7s.
+2. **Logo finale:** logo-forward bloom + restrained wordmark settle (logo is hero).
+3. **First-launch-only:** yes, session-only; light loaders after.
+4. **Terminal copy:** replace prototype copy with shorter/less gimmicky — recommend `RADAR ONLINE` / `SIGNAL LOCKED` / `RIDE READY`.
+5. **Native splash:** web/PWA first for v1; align Capacitor in a separate task after the final first-frame/logo is approved.
+6. **Logo asset:** 1024×1024 acceptable for a centered bloom **if capped to sane CSS sizes — do not upscale beyond native**; source a vector/larger PNG only if a huge full-screen logo is needed.
+
+**Codex disagreements / owner decisions needed:**
+- Disagrees with treating framer-motion as "already loaded" for cold-start perf (it's intentionally split out today).
+- Agrees on the sessionStorage gate but wants explicit cinematic-skip on SW-update reloads, not just general cold-start wording.
+- Worktree prototype = useful visual prior art, but its App-level integration must be **rejected** (hides app, can bypass auth-loading guard).
+
+---
+
+### Consensus / Disagreements (Claude Code + Codex, 2026-05-31)
+**Strong consensus — near-complete agreement. Two corrections where Codex was right and Claude concedes:**
+
+1. **framer-motion on the boot path (Codex correct → CONSENSUS):** Claude's "already loaded" was wrong — `vite.config.js:247-250` splits it into `vendor-framer`. **Decision: build the boot splash in CSS/keyframes** (reusing `src/index.css` vocabulary), not framer-motion. This also de-risks perf and keeps cold-start light. Claude concedes.
+2. **Reject the prototype's App integration (CONSENSUS):** both agree the worktree prototype is visual prior art ONLY. Its opacity-hide + 8s auth-independent safety timeout must NOT be ported (violates Protected Behavior #5). Keep the existing `AppBootLoader` invariant: app renders underneath; overlay unmounts only after auth resolved AND min display; no safety timeout that reveals content while auth loads.
+3. **SW-update reload (CONSENSUS):** full cinematic must be explicitly suppressed on `controllerchange`/recovery reloads (`registerSW.js:21-33`, `:140-157`), not just gated by general cold-start logic.
+4. **first-launch-only via `sessionStorage` (CONSENSUS):** session-scoped; light loader for in-session loads. Use a distinct key or document sharing with `rr_session_active`.
+5. **Pre-paint inline, tiny, static; fixed overlays; opacity/transform-only; a11y (aria-hidden cinematic + one stable status label + 44px named Skip); reduced-motion static frame (CONSENSUS).**
+
+**No hard disagreements remain.** Differences are owner-preference only (duration, copy) — both AIs' recommendations are logged below.
+
+### Owner decisions to lock before Kimi task is written
+| # | Question | Claude rec | Codex rec | Owner choice |
+|---|---|---|---|---|
+| 1 | Cinematic duration | ~2.8s | 2.1-2.4s default | ✅ **LOCKED — generous/cinematic, do NOT rush. Build target ~3.2–3.6s for the full first-launch sequence** (owner: "this part is very important to me"). Safe because it's first-launch-only + skippable + app renders underneath. Reduced-motion still ~0.6s. **Each phase must feel continuously alive — no static dead air; "unhurried," not "stuck."** Skip button always present for users who opt out. |
+| 2 | Logo finale | logo + optional wordmark | logo hero + restrained wordmark | ✅ **LOCKED — logo as hero + restrained wordmark settle** (both AIs agreed; owner did not object — revisit if desired). |
+| 3 | First-launch-only | yes | yes | _TBD_ |
+| 4 | Terminal copy | keep `UPLINK…/PULSE DETECTED` | `RADAR ONLINE / SIGNAL LOCKED / RIDE READY` | ✅ **LOCKED — punchier copy: `RADAR ONLINE` / `SIGNAL LOCKED` / `RIDE READY`** (owner choice). |
+| 5 | Native splash now? | web-first v1 | web-first v1 | _TBD_ |
+| 6 | Logo asset | verify res | 1024² ok if not upscaled | _TBD_ |
+| 7 | Animation tech | (conceded) CSS keyframes | CSS keyframes | _TBD_ |
+
+### Approved Task for Kimi — (BLANK until owner locks the table above)
 
 ---
 
