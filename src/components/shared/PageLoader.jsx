@@ -1,7 +1,7 @@
-import { memo } from 'react';
+import { memo, useLayoutEffect } from 'react';
 import { cn } from '@/lib/utils';
 
-const PageLoader = memo(function PageLoader({ className, exiting = false, longWait = false }) {
+const PageLoader = memo(function PageLoader({ className, exiting = false }) {
   return (
     <div
       className={cn(
@@ -11,6 +11,9 @@ const PageLoader = memo(function PageLoader({ className, exiting = false, longWa
       )}
       role="status"
     >
+      {useLayoutEffect(() => {
+        document.getElementById('rr-prepaint')?.remove();
+      }, [])}
       <style>{`
         .rr-ekg-line {
           stroke: hsl(var(--primary));

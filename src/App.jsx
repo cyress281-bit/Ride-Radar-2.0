@@ -13,6 +13,7 @@ import { AppProviders } from './providers/AppProviders';
 import AppLayout from './components/layout/AppLayout';
 import { ErrorBoundary } from './components/shared/ErrorBoundary';
 import PageLoader from './components/shared/PageLoader';
+import SplashScreen from './components/splash/SplashScreen';
 import { useAuthState } from './features/auth/hooks/use-auth';
 import { useAdminRole } from './features/auth/hooks/use-admin-role';
 import { getSafeAuthRedirectFromSearch } from './lib/auth-redirect';
@@ -293,9 +294,20 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
   const { isLoading } = useAuthState();
   const [visible, setVisible] = useState(true);
   const [exiting, setExiting] = useState(false);
-  const [longWait, setLongWait] = useState(false);
   const stateRef = useRef({ minElapsed: false, authDone: false, exiting: false });
   const exitTimerRef = useRef(null);
+
+  // First-launch gate (runs once per session)
+  const SPLASH_SESSION_KEY = 'rr_splash_seen';
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let firstLaunch = false;
+  try {
+    firstLaunch = !sessionStorage.getItem(SPLASH_SESSION_KEY);
+  } catch {
+    firstLaunch = false;
+  }
+
+  const MIN_DISPLAY = firstLaunch && !reduced ? 3400 : 600;
 
   const tryExit = useCallback(() => {
     const s = stateRef.current;
@@ -305,17 +317,27 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
     exitTimerRef.current = setTimeout(() => setVisible(false), 500);
   }, []);
 
+  const handleSkip = useCallback(() => {
+    stateRef.current.minElapsed = true;
+    tryExit();
+  }, [tryExit]);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(SPLASH_SESSION_KEY, '1');
+    } catch {}
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       stateRef.current.minElapsed = true;
-      if (!stateRef.current.authDone) setLongWait(true);
       tryExit();
-    }, 1800);
+    }, MIN_DISPLAY);
     return () => {
       clearTimeout(timer);
       if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
     };
-  }, [tryExit]);
+  }, [tryExit, MIN_DISPLAY]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -327,7 +349,12 @@ const AppBootLoader = memo(function AppBootLoader({ children }) {
   return (
     <>
       {children}
-      {visible && <PageLoader exiting={exiting} longWait={longWait} />}
+      {visible &&
+        (firstLaunch ? (
+          <SplashScreen exiting={exiting} onSkip={handleSkip} />
+        ) : (
+          <PageLoader exiting={exiting} />
+        ))}
     </>
   );
 });
