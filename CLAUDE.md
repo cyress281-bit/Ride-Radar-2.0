@@ -48,6 +48,24 @@ At the end of every session update the **Current Active Task** section with:
 - What the next AI should pick up
 - Which AI should handle the next step and why
 
+## Protected Behaviors
+
+**These are hard-won, owner-approved app behaviors. ANY change touching these areas is NOT "done" until it has been verified against the existing behavior on the actual iPhone PWA. This list overrides convenience, perf nits, and audit suggestions. If a proposed fix risks any of these, stop and get owner approval first.**
+
+1. **Radar "Locate me"** must reliably recenter **and** zoom to the user (ref commit `45b55ef`).
+2. **Radar rendering** must keep showing live **and** cached/offline signals.
+3. **Chat** input and messages must stay usable above the iOS keyboard (ref commit `99e72a0`).
+4. **Bottom sheets & modals** must not break page scroll (ref Dead Ends: iOS scroll lock).
+5. **Auth/session loading** must never show false "not found" states (ref commit `d6823ce`).
+6. **PWA updates** must not wipe in-progress form input or break launch.
+7. **Bike Down / safety flows** must not silently fail or change UX without owner approval.
+8. **Supabase migrations** must be additive unless a destructive change is explicitly approved by the owner.
+9. **iOS `datetime-local` flex-wrap fix** must be preserved (see iOS Safari Quirks).
+
+_Approved by owner 2026-05-31. Applies to Claude Code, Codex, and Kimi equally._
+
+---
+
 ## Current Active Task
 
 **Purpose:** This is the handoff log between AI tools (Claude Code, Kimi, Claude browser). Update it at the end of every session so the next AI picks up exactly where you left off — no re-explaining, no wasted tokens.
@@ -81,6 +99,8 @@ At the end of every session update the **Current Active Task** section with:
 Triage of the **Comprehensive Codebase Audit Report (dated 2026-05-31)** — an AI-generated audit produced by "20 parallel auditors" claiming 508 findings (48 CRITICAL, 134 HIGH, etc.). Before any of it becomes work, every finding needs independent verification: AI multi-agent audit dumps routinely contain a large fraction of false positives and already-fixed items. This review cycle triages the **20 explicitly-named CRITICAL findings (C-001 … C-020)** — the only ones the report specifies with enough detail to verify. The remaining 28 unnamed CRITICALs and all HIGH/MEDIUM/LOW items are referenced only by category counts and cannot be verified as written.
 
 **Goal of this cycle:** Determine which named CRITICALs are real, correct their severities, and hand only the genuinely-actionable residue forward — nothing gets fixed on the strength of the audit alone.
+
+**Raw listings available for reference (NOT verified):** Kimi organized the full 508-item audit dump into structured markdown at `audit-listings/README.md` with sub-files by severity, by file, and by category. These are comparison aids only — the triage below supersedes them.
 
 > _Prior review cycle (DM page `/messages/:id` "Conversation not found") is CLOSED — fixed in commit `d6823ce`, verified on device. See the AI Handoff Log and Known Issues table for its record._
 
@@ -186,27 +206,133 @@ Codex would approve these only after owner/Claude signoff:
 - **Agreement:** `C-016` is not a missing reduced-motion implementation. Codex adds nuance that later animation utility classes are declared after the existing reduced-motion block and could be covered by an extra override.
 - **Disagreement / nuance on `C-010`:** Claude rates it FALSE because current call sites only mount `PostDetailSheet` when `post` is truthy and the hook cleanup is unconditional. Codex agrees it is likely unreachable today, but still marks the local unconditional `useBodyScrollLock(true)` before a null guard as a low-risk defensive cleanup if the file is touched.
 - **Disagreement / nuance on `C-012`:** Claude rates it FALSE because the sole caller uses a React Query mutation and catches throws. Codex agrees there is no uncaught runtime bug, but still marks the function as inconsistent with the module header's `{ data, error }` contract.
-- **Owner decision:** Pending. No Kimi task is approved.
+- **Three-way agreement (Claude Code + Codex + Kimi, 2026-05-31):** All three independently read the source. Unanimous: **zero of the 20 named CRITICALs are actually critical**; the audit is a lead generator, not a worklist. The DB/security verdicts (C-003 FALSE, C-005 CONFIRMED, C-017 CONFIRMED) are now confirmed by all three independently — no longer resting on Claude's sub-agents alone.
+- **Resolved disagreement — C-009 (ViewportProvider memo):** Kimi initially rated it "zero risk." Claude Code and Codex both corrected this: `ViewportProvider` feeds `keyboardHeight`/layout phase into the iOS chat-keyboard flow (commit `99e72a0`), so a `useMemo` with an incomplete dependency list would silently freeze keyboard tracking. **Final team position: C-009 is OPTIONAL, line-by-line reviewed, and iPhone-keyboard-verified — NOT an automatic/improvised change.** Held out of the approved batch.
+- **Correction — C-017 (getEventRsvpCounts):** The audit's suggested `select('id', { count: 'exact', head: true })` is **WRONG** — `getEventRsvpCounts` returns *per-broadcast* counts and `head:true` returns only a grand total, which would break the per-event breakdown. The correct fix is a `GROUP BY` RPC, but that creates a code→DB dependency with a deploy-ordering hazard given the diverged migration history. **C-017 pulled from the mechanical batch → Claude-led optional follow-up only.**
+- **Owner decision (2026-05-31):** Owner approved the **Protected Behaviors** section (see top of file) and a tightly-scoped fix batch. **Kimi executes all approved code work.** Behavior-neutral items approved (C-019, C-005); H-027 owner-gated (visual change); everything else held. See Approved Task below. Governing rule from owner: *if any fix would alter the app's intended behavior, it is left out.*
 
 ---
 
 ### Approved Task for Kimi
-**Status: BLANK — DO NOT ACT.** No task is approved until Codex completes its independent triage and both AIs sign off with the owner.
+**Status: APPROVED — Kimi executes Tier 1 exactly as written. Tier 2 requires explicit owner "go" first. Touch nothing else.**
 
-**Candidate residue (NOT yet approved — for owner + Codex review):** the only genuinely-actionable items surfaced by triage, all Low severity:
-- C-009 — wrap `ViewportProvider` context value (`ViewportProvider.jsx:58`) in `useMemo`.
-- C-019 — add the missing `Link` import in `LiveMapMapLibre.jsx` (prevents a latent crash if a non-`radar` variant is ever mounted).
-- C-017 — change `getEventRsvpCounts` (`admin-api.js:164-178`) to use `.select(..., { count: 'exact', head: true })` / DB aggregation.
-- C-005 — add `SET search_path = public, pg_temp` and `STABLE` to `get_live_map_presence()` (new additive migration; Claude Code leads per DB-ownership rule).
-- C-007 — durable offline queue for Bike Down alerts is a **product call for ChatGPT/owner**, not a Kimi quick fix. Flag, do not implement.
+**Global rules for this task (from owner, 2026-05-31):**
+- Execute ONLY the changes specified below, character-for-character. No refactoring, no cleanup of adjacent code, no extra files.
+- These changes were chosen specifically because they do NOT alter the app's intended behavior. If, while implementing, you find ANY change would alter intended behavior or touch a **Protected Behavior** (see top of file), STOP and flag it — do not proceed.
+- After edits: run `npm run lint` and `npm run typecheck`. Do not commit/push — leave the diff for Claude Code review and owner approval.
 
-Everything else from the audit is FALSE, already-fixed, or too inflated/unspecified to action.
+---
+
+#### TIER 1 — APPROVED NOW (behavior-neutral)
+
+**Fix 1 — C-019: add the missing `Link` import.**
+- File: `src/features/map/components/LiveMapMapLibre.jsx`
+- Find this exact line (near the top imports):
+  ```js
+  import { cn } from '@/lib/utils.js';
+  ```
+- Insert a new line immediately AFTER it:
+  ```js
+  import { Link } from 'react-router-dom';
+  ```
+- Nothing else changes. (`<Link>` is already used at line ~238 inside `SignalListItem`; this only supplies the missing import. The component is not mounted on the radar variant today, so runtime behavior is unchanged — this only prevents a latent crash if a non-`radar` variant is ever rendered.)
+- **Verify:** lint + typecheck pass. No visual/behavior change expected.
+
+**Fix 2 — C-005: harden `get_live_map_presence()` (additive DB migration).**
+- Create a NEW file (do not edit any existing migration):
+  `supabase/migrations/20260531_harden_get_live_map_presence_search_path.sql`
+- Exact file contents:
+  ```sql
+  -- Hardening: pin search_path and mark STABLE on get_live_map_presence().
+  -- Additive and behavior-preserving. The function body is identical to the
+  -- original (20260512_live_map_presence_server_time.sql); only volatility
+  -- (STABLE) and SET search_path are added. It reads only public.live_map_presence
+  -- and now() — no PostGIS dependency — so search_path = public, pg_temp is safe.
+  -- Resolves Supabase advisor: function_search_path_mutable.
+
+  CREATE OR REPLACE FUNCTION get_live_map_presence()
+  RETURNS TABLE (
+    user_id uuid,
+    display_name text,
+    avatar_url text,
+    vehicle_label text,
+    is_visible boolean,
+    location_precision text,
+    lat double precision,
+    lng double precision,
+    accuracy_meters int,
+    approximate_radius_miles numeric,
+    source text,
+    last_seen_at timestamptz,
+    expires_at timestamptz,
+    updated_at timestamptz
+  )
+  LANGUAGE plpgsql
+  STABLE
+  SECURITY DEFINER
+  SET search_path = public, pg_temp
+  AS $$
+  BEGIN
+    RETURN QUERY
+    SELECT
+      p.user_id,
+      p.display_name,
+      p.avatar_url,
+      p.vehicle_label,
+      p.is_visible,
+      p.location_precision,
+      p.lat,
+      p.lng,
+      p.accuracy_meters,
+      p.approximate_radius_miles,
+      p.source,
+      p.last_seen_at,
+      p.expires_at,
+      p.updated_at
+    FROM live_map_presence p
+    WHERE p.is_visible = true
+      AND p.expires_at > now()
+    ORDER BY p.last_seen_at DESC
+    LIMIT 250;
+  END;
+  $$;
+
+  -- Preserve execute grant (CREATE OR REPLACE keeps existing privileges; included for clarity).
+  GRANT EXECUTE ON FUNCTION get_live_map_presence() TO authenticated;
+  ```
+- **Do NOT attempt `supabase db push`** (migration history is diverged — it fails). Just create the file. **Application to the live DB is a separate Claude-Code-led step** (via Supabase MCP / SQL editor) after owner approval. The app works whether or not this is applied yet (no code depends on it), so there is no deploy-ordering risk. Protected Behavior #8 satisfied: additive only.
+
+---
+
+#### TIER 2 — OWNER-GATED (do NOT run until owner explicitly says "do H-027")
+
+**Fix 3 — H-027: AppHeader touch targets 40px → 44px.**
+- This is a **visible UI change** (slightly larger header tap targets). It is an accessibility improvement, not behavior-neutral, so it needs explicit owner go-ahead and an on-device header check.
+- File: `src/components/layout/AppHeader.jsx`
+- Replace ALL THREE occurrences of the substring:
+  `min-w-[40px] min-h-[40px]`
+  with:
+  `min-w-[44px] min-h-[44px]`
+  (occurrences are at lines ~256, ~275, ~300 — the Admin, Notifications, and Profile actions).
+- **Verify on iPhone PWA:** header must not overflow, wrap, or shift; icons stay centered. If the header layout changes in any unexpected way, revert and flag (Protected Behavior #6 area).
+
+---
+
+#### HELD — Claude-led or not actioned (do NOT touch)
+
+- **C-017** — `getEventRsvpCounts`: the audit's `head:true` suggestion is WRONG (breaks per-broadcast counts). Correct fix needs a `GROUP BY` RPC with deploy-ordering care → **Claude Code follow-up only**, not Kimi.
+- **C-009** — `ViewportProvider` memo: held; only with line-by-line review + iPhone chat-keyboard verification (Protected Behavior #3). Not now.
+- **C-011 / C-010 / C-012 / C-020** — low upside, real or potential regression risk; not actioned.
+- **C-001 / C-006 / C-007 / C-008 / C-013** — do NOT touch (auth rewrite, offline page, Bike Down queue, auth→useQuery, sign-out behavior). C-007 is a ChatGPT/owner product decision.
+- Everything else from the audit is FALSE, already-fixed, or too inflated/unspecified to action.
 
 ---
 
 ### AI Handoff Log
 | Session | AI Used | What Was Done |
 |---|---|---|
+| 2026-05-31 | Claude Code | Finalized audit triage after three-way independent agreement (Claude+Codex+Kimi). Owner approved a **Protected Behaviors** section (added at top of file) and a tightly-scoped fix batch. Wrote precise fix-by-fix **Approved Task for Kimi**: Tier 1 (behavior-neutral, approved now) = C-019 `Link` import + C-005 additive DB hardening migration; Tier 2 (owner-gated, visual) = H-027 44px touch targets. Caught and corrected the C-017 trap (audit's `head:true` suggestion breaks per-broadcast counts → pulled from Kimi batch, now Claude-led). C-009 held (iOS keyboard regression risk). **Next:** Kimi executes Tier 1 exactly, runs lint+typecheck, leaves diff for Claude Code review — no commit/push. |
+| 2026-05-31 | Kimi | Organized the 508-audit findings into structured comparison-ready listings under `audit-listings/` — CRITICAL.md, HIGH.md, MEDIUM.md, LOW.md, by-file CROSS_REFERENCE.md, by-category CATEGORY_BREAKDOWN.md, and README index. These are for Codex/Claude comparison; they do NOT imply the findings are verified. See CLAUDE.md Current Active Task for triage status. |
 | 2026-05-31 | Codex | Added Codex's focused first-pass inspection report for the 2026-05-31 comprehensive audit. Confirmed stale/false claims for missing `capacitor-storage.js` and `AvatarWithStatus.jsx`; confirmed low-severity issues around missing `Link` import, raw `<img>` usage, AppHeader 40px touch targets, and nuanced local concerns for `PostDetailSheet` scroll lock and `hardDeleteBroadcast()` return contract. Logged partial consensus/disagreements against Claude's full triage. No code changes applied; no Kimi task approved. |
 | 2026-05-31 | Claude Code | Independent triage of the 2026-05-31 "Comprehensive Codebase Audit Report" (508 claimed findings). Verified all 20 named CRITICALs (C-001…C-020) read-only via direct checks + 3 parallel sub-agents tracing full enforcement/caller paths. Result: **8 FALSE, 6 INFLATED, 6 CONFIRMED — zero actually critical** (all confirmed items Low/Low-Med). At least one auditor used a stale checkout (C-002/C-003/C-018 false); C-016 describes an already-shipped fix. Full verdict table written to Claude Code's Findings. Candidate Low-severity residue listed under Approved Task (NOT approved). **Next:** Codex runs its own independent pass on the same 20 before any consensus or Kimi work. |
 | 2026-05-30 | Claude Code + Codex + Kimi | Radar "Locate me" no longer centered/zoomed. Three-way independent investigation reached unanimous root cause: a misplaced cleanup `return` on the `map.resize()` line in `MapLibreFitToItems` (`LiveMapMapLibre.jsx`) made all `flyTo`/`fitBounds` camera logic unreachable dead code. Kimi applied the approved fix (relocated RAF cleanup so every exit path returns it and the camera branches are reachable). Claude Code verified the diff against the approved task — matches verbatim; lint + typecheck pass. Awaiting iPhone PWA verification. Secondary watch item (raised by Codex): `autoFitDisabled` (lines ~801/962) could block recenter after manual pan, but the `fitKey` reset effect (~815-817) already handles it — test case 3 below confirms. |
