@@ -22,7 +22,7 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, c
     setPhotoIdx(0);
   }, [post?.id]);
 
-  useBodyScrollLock(true);
+  useBodyScrollLock(!!post);
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState('');

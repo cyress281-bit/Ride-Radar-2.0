@@ -129,7 +129,7 @@ export async function createBroadcast(broadcastData) {
  */
 export async function hardDeleteBroadcast(id) {
   const { error } = await supabase.from('broadcasts').delete().eq('id', id);
-  if (error) throw error;
+  if (error) return { data: null, error };
   return { data: null, error: null };
 }
 

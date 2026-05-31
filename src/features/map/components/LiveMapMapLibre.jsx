@@ -18,6 +18,7 @@ import MapPopup from './MapPopup';
 import { getMarkerElement, getRiderMarkerElement, getSelfMarkerElement, getClusterElement } from './MapMarker';
 import { BROADCAST_META, formatDistance, haversineMiles, timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils.js';
+import { Link } from 'react-router-dom';
 
 
 // MapLibre imports
