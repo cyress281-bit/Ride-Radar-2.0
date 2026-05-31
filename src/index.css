@@ -982,35 +982,6 @@
   50%      { opacity: 1; }
 }
 
-/* rr-ekg — one-shot horizontal heartbeat sweep.
-   Future use: fire on the radar's bottom edge when a real signal arrives.
-   The element using this class becomes the track; the ::after is the pulse. */
-.rr-ekg {
-  position: relative;
-  overflow: hidden;
-}
-.rr-ekg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    hsl(var(--primary) / 0.6) 50%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: rr-ekg 2s var(--rr-ease-cockpit) 1 both;
-  pointer-events: none;
-  will-change: transform, opacity;
-}
-@keyframes rr-ekg {
-  0%   { transform: translateX(-100%); opacity: 0; }
-  20%  { opacity: 1; }
-  80%  { opacity: 1; }
-  100% { transform: translateX(100%);  opacity: 0; }
-}
-
 /* ------------------------------------------------------------------
    8. REDUCED MOTION
    ------------------------------------------------------------------ */
@@ -1040,8 +1011,7 @@
   /* Phase 2 — Radar Motion System neutralization */
   .rr-tune-in,
   .rr-lock,
-  .rr-arrive,
-  .rr-ekg::after {
+  .rr-arrive {
     animation: none !important;
   }
 
@@ -1051,11 +1021,6 @@
     opacity: 1 !important;
   }
 
-  /* rr-ekg sweep is hidden under reduced-motion (track stays present) */
-  .rr-ekg::after {
-    opacity: 0 !important;
-    transform: none !important;
-  }
 }
 
 /* ------------------------------------------------------------------
@@ -1236,43 +1201,19 @@
   to { opacity: 1; transform: scale(1); }
 }
 
-/* === Splash cinematic ===
-   Reduced motion is handled in SplashScreen.jsx (early-returns a static frame
-   and never mounts these animated elements), so no CSS @media override is
-   needed here. */
-@keyframes rr-splash-ekg-draw {
-  0%   { stroke-dashoffset: 1; opacity: 0; }
-  5%   { stroke-dashoffset: 1; opacity: 1; }
-  65%  { stroke-dashoffset: 0; opacity: 1; }
-  80%  { stroke-dashoffset: 0; opacity: 1; }
-  95%  { stroke-dashoffset: 1; opacity: 0; }
-  100% { stroke-dashoffset: 1; opacity: 0; }
+/* === Alive Logo loader keyframes === */
+@keyframes rr-brand-breathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 12px hsl(107 100% 54% / 0.35));
+  }
+  50% {
+    transform: scale(1.035);
+    filter: drop-shadow(0 0 22px hsl(107 100% 54% / 0.55));
+  }
 }
 
-@keyframes rr-splash-scan {
-  0%   { transform: translateX(-100vw); opacity: 0; }
-  10%  { opacity: 1; }
-  90%  { opacity: 1; }
-  100% { transform: translateX(100vw); opacity: 0; }
-}
-
-@keyframes rr-splash-logo-bloom {
-  0%   { transform: scale(0.85); opacity: 0; }
-  60%  { transform: scale(1.02); opacity: 1; }
+@keyframes rr-brand-bloom {
+  0%   { transform: scale(0.9); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes rr-splash-ring-ping {
-  0%   { transform: scale(0.5); opacity: 0.8; }
-  100% { transform: scale(2.5); opacity: 0; }
-}
-
-@keyframes rr-splash-wordmark-settle {
-  0%   { opacity: 0; transform: translateY(8px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes rr-splash-hold-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.7; transform: scale(0.97); }
 }
