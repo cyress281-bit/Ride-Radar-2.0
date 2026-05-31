@@ -18,7 +18,7 @@ const PageLoader = memo(function PageLoader({
   return (
     <div
       className={cn(
-        'fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#040406] transition-all duration-500 ease-out',
+        'fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-[#040406] transition-all duration-500 ease-out',
         exiting && 'opacity-0 scale-[1.02] blur-sm',
         className
       )}
@@ -58,7 +58,11 @@ const PageLoader = memo(function PageLoader({
           alt=""
           aria-hidden="true"
           className={cn(
-            'h-auto w-auto max-h-[72vh] max-w-[88vw] object-contain',
+            // logo.png has ~9% black padding L/R baked in; scale past the
+            // viewport so the GREEN art (not the padding) reaches near the
+            // edges. The black padding overflows off-screen invisibly
+            // (matches the #040406 bg) and is clipped by overflow-hidden.
+            'h-auto w-[104vw] max-w-none object-contain',
             !reduced && 'rr-brand-alive'
           )}
           style={
