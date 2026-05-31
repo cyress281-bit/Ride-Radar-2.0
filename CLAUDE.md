@@ -809,6 +809,26 @@ const { showPopup } = useMapLibrePopup(mapRef);
 
 ---
 
+## Deferred Follow-Ups (owner-gated, to do later)
+
+Two non-urgent items parked here so they aren't lost. Neither is blocking; both need the owner + a real iPhone.
+
+### 1. On-device verification of the shipped moderation/safety fixes (DO THIS — free, ~5 min)
+The Sweep 2 + RLS-gap fixes (commits `ddd8a14`, `0b6646a`, `9e751aa`, `1ceb29c`) passed build + live-RLS checks but have NOT been tapped through on the device. A green build does not prove the safety/social flows still feel right. Verify:
+- **Admin "remove content"** on *another* user's broadcast AND message → content actually disappears (was a silent no-op before).
+- **Cancel a sent connection request** → it stays gone after refresh (was a silent no-op before).
+- **Bike Down resolve/remove** (Protected Behavior #7) → signal leaves Radar and still shows "Rider found safe"; normal success flow unchanged. Only the *failure* path now shows a toast instead of false success.
+Once confirmed, flip the relevant Known Issues rows from "awaiting iPhone verification" to "verified on device."
+
+### 2. Accessibility / touch-target batch (optional polish — VISIBLE changes, needs device eyeball)
+From Sweep 9 + H-027. All low-risk but they change how the UI looks, so they must be checked on device for layout shifts (esp. the header — Protected Behavior #3 area). Scope:
+- **Touch targets → 44px:** AppHeader 3 action buttons (40→44), RadarOverlay drag handle + "don't show again" checkbox, BroadcastForm chips/buttons, PostCreateSheet close/share/remove, BottomSheet drag handle + close, LoginForm password toggle, ReportButton trigger + close, MessageInput remove-image, LocationDisclosureDialog close.
+- **Labels:** add `aria-label`/`<label>` to the message textarea and the post caption textarea.
+- **Announcements:** add `aria-live="polite"` to status text (username availability, draft saved, report result, account-deletion status) and `role="button"` + `aria-expanded` where noted (failed-message retry, LoginForm "forgot password" toggle).
+These are batchable but should ship in a dedicated PR the owner reviews on the phone — NOT folded into unrelated work. Held until then.
+
+---
+
 ## Dead Ends — Approaches Already Tried That Did NOT Work
 
 **Purpose:** Read this before proposing fixes. Do not re-suggest anything listed here unless you have a specific, concrete reason it would now behave differently — and if so, state that reason explicitly. This section is the single biggest time/token saver in this file. Append to it whenever something is ruled out.
