@@ -933,6 +933,7 @@ function LiveMapMapLibre({
 
           <MapLibreMap
             ref={mapRef}
+            reuseMaps
             initialViewState={{
               latitude: Array.isArray(initialMapCenter) ? initialMapCenter[0] : initialMapCenter.lat ?? 39.8283,
               longitude: Array.isArray(initialMapCenter) ? initialMapCenter[1] : initialMapCenter.lng ?? -98.5795,
