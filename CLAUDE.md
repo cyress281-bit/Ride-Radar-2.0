@@ -214,16 +214,19 @@ Codex would approve these only after owner/Claude signoff:
 ---
 
 ### Approved Task for Kimi
-**Status: APPROVED — Kimi executes Tier 1 exactly as written. Tier 2 requires explicit owner "go" first. Touch nothing else.**
+**Status: APPROVED — Kimi executes the phases below in order using agent swarm mode. Owner-directed: commit + push to `main` after each phase whose build passes. Touch ONLY the files named in each phase. The three sensitive fixes (H-027, C-011, C-009) are HELD by owner — see bottom.**
 
 **Global rules for this task (from owner, 2026-05-31):**
 - Execute ONLY the changes specified below, character-for-character. No refactoring, no cleanup of adjacent code, no extra files.
-- These changes were chosen specifically because they do NOT alter the app's intended behavior. If, while implementing, you find ANY change would alter intended behavior or touch a **Protected Behavior** (see top of file), STOP and flag it — do not proceed.
-- After edits: run `npm run lint` and `npm run typecheck`. Do not commit/push — leave the diff for Claude Code review and owner approval.
+- Every change here was chosen because it does NOT alter the app's intended behavior. If, while implementing, you find ANY change would alter intended behavior or touch a **Protected Behavior** (top of file), STOP and flag it in this file — do not push it.
+- **Per-phase workflow:** implement the phase (agent swarm may parallelize across the *different* files within a phase) → run `npm run lint` **and** `npm run typecheck` **and** `npm run build` → ONLY if all three pass, `git commit` then `git push origin main` for that phase → then start the next phase. Never advance past or push a red build; fix it within the phase first.
+- One commit per phase, clear message (e.g. `fix(audit): phase 1 — behavior-neutral client fixes (C-019, C-010, C-012)`).
+- **Do NOT touch the HELD items** (H-027, C-011, C-009, C-017, and the do-not-touch list at the bottom).
+- When ALL phases are done: append an **AI Handoff Log** row summarizing what shipped (with commit hashes), set this task's Status to DONE, and leave the result for Claude Code review.
 
 ---
 
-#### TIER 1 — APPROVED NOW (behavior-neutral)
+#### PHASE 1 — behavior-neutral client code (3 independent files; swarm-parallel safe)
 
 **Fix 1 — C-019: add the missing `Link` import.**
 - File: `src/features/map/components/LiveMapMapLibre.jsx`
@@ -238,7 +241,41 @@ Codex would approve these only after owner/Claude signoff:
 - Nothing else changes. (`<Link>` is already used at line ~238 inside `SignalListItem`; this only supplies the missing import. The component is not mounted on the radar variant today, so runtime behavior is unchanged — this only prevents a latent crash if a non-`radar` variant is ever rendered.)
 - **Verify:** lint + typecheck pass. No visual/behavior change expected.
 
-**Fix 2 — C-005: harden `get_live_map_presence()` (additive DB migration).**
+**Fix 2 — C-010: make the scroll lock defensive in `PostDetailSheet`.**
+- File: `src/features/profile/components/PostDetailSheet.jsx`
+- Find this exact line (~line 25):
+  ```js
+  useBodyScrollLock(true);
+  ```
+- Replace it with:
+  ```js
+  useBodyScrollLock(!!post);
+  ```
+- Behavior-neutral: both call sites only mount this component when `post` is truthy, so `!!post` evaluates to `true` exactly when it does today. This only hardens against a future call site that could mount it with a null post. No visible change.
+- **Verify:** lint + typecheck pass.
+
+**Fix 3 — C-012: make `hardDeleteBroadcast` return `{ data, error }` instead of throwing.**
+- File: `src/features/broadcast/api/broadcast-api.js`
+- Find this exact function:
+  ```js
+  export async function hardDeleteBroadcast(id) {
+    const { error } = await supabase.from('broadcasts').delete().eq('id', id);
+    if (error) throw error;
+    return { data: null, error: null };
+  }
+  ```
+- Replace ONLY the line `if (error) throw error;` **inside this function** with:
+  ```js
+    if (error) return { data: null, error };
+  ```
+- Behavior-neutral: the sole caller (`AdminReportsPage.jsx`) does `const { error } = await hardDeleteBroadcast(...); if (error) throw error;` — so on error the same exception still reaches the same React Query handler. Success path unchanged. (Do NOT change the other functions in this file that also throw.)
+- **Verify:** lint + typecheck pass.
+
+---
+
+#### PHASE 2 — additive DB migration (no runtime dependency)
+
+**Fix 4 — C-005: harden `get_live_map_presence()` (additive DB migration).**
 - Create a NEW file (do not edit any existing migration):
   `supabase/migrations/20260531_harden_get_live_map_presence_search_path.sql`
 - Exact file contents:
@@ -304,26 +341,16 @@ Codex would approve these only after owner/Claude signoff:
 
 ---
 
-#### TIER 2 — OWNER-GATED (do NOT run until owner explicitly says "do H-027")
+#### HELD — do NOT touch (owner decision 2026-05-31)
 
-**Fix 3 — H-027: AppHeader touch targets 40px → 44px.**
-- This is a **visible UI change** (slightly larger header tap targets). It is an accessibility improvement, not behavior-neutral, so it needs explicit owner go-ahead and an on-device header check.
-- File: `src/components/layout/AppHeader.jsx`
-- Replace ALL THREE occurrences of the substring:
-  `min-w-[40px] min-h-[40px]`
-  with:
-  `min-w-[44px] min-h-[44px]`
-  (occurrences are at lines ~256, ~275, ~300 — the Admin, Notifications, and Profile actions).
-- **Verify on iPhone PWA:** header must not overflow, wrap, or shift; icons stay centered. If the header layout changes in any unexpected way, revert and flag (Protected Behavior #6 area).
+**Owner explicitly deferred these THREE — the payoff is small and the regression risk is higher. They compile/pass the build but can ONLY be verified safe by on-device iPhone testing, so they are held until the owner wants them done with that verification:**
+- **H-027** — AppHeader touch targets 40px → 44px. Visible UI/layout change (could nudge header height/alignment). HELD.
+- **C-011** — `BroadcastDetailPage` raw `<img>` → `OptimizedImage`. Visible layout/aspect risk on the hero image + avatars. HELD.
+- **C-009** — `ViewportProvider` `useMemo`. Feeds the iOS chat-keyboard flow (Protected Behavior #3, commit `99e72a0`); a wrong dependency list would silently freeze keyboard height. Low payoff, real downside. HELD.
 
----
-
-#### HELD — Claude-led or not actioned (do NOT touch)
-
-- **C-017** — `getEventRsvpCounts`: the audit's `head:true` suggestion is WRONG (breaks per-broadcast counts). Correct fix needs a `GROUP BY` RPC with deploy-ordering care → **Claude Code follow-up only**, not Kimi.
-- **C-009** — `ViewportProvider` memo: held; only with line-by-line review + iPhone chat-keyboard verification (Protected Behavior #3). Not now.
-- **C-011 / C-010 / C-012 / C-020** — low upside, real or potential regression risk; not actioned.
-- **C-001 / C-006 / C-007 / C-008 / C-013** — do NOT touch (auth rewrite, offline page, Bike Down queue, auth→useQuery, sign-out behavior). C-007 is a ChatGPT/owner product decision.
+**Other items — not for Kimi:**
+- **C-017** — `getEventRsvpCounts`: the audit's `head:true` suggestion is WRONG (breaks per-broadcast counts). Correct fix needs a `GROUP BY` RPC with deploy-ordering care → **Claude Code follow-up only**.
+- **C-001 / C-006 / C-007 / C-008 / C-013 / C-020** — do NOT touch (auth/cookie rewrite, offline page, Bike Down queue, auth→useQuery, sign-out behavior, notification-filter change). C-007 is a ChatGPT/owner product decision.
 - Everything else from the audit is FALSE, already-fixed, or too inflated/unspecified to action.
 
 ---
@@ -331,7 +358,8 @@ Codex would approve these only after owner/Claude signoff:
 ### AI Handoff Log
 | Session | AI Used | What Was Done |
 |---|---|---|
-| 2026-05-31 | Claude Code | Finalized audit triage after three-way independent agreement (Claude+Codex+Kimi). Owner approved a **Protected Behaviors** section (added at top of file) and a tightly-scoped fix batch. Wrote precise fix-by-fix **Approved Task for Kimi**: Tier 1 (behavior-neutral, approved now) = C-019 `Link` import + C-005 additive DB hardening migration; Tier 2 (owner-gated, visual) = H-027 44px touch targets. Caught and corrected the C-017 trap (audit's `head:true` suggestion breaks per-broadcast counts → pulled from Kimi batch, now Claude-led). C-009 held (iOS keyboard regression risk). **Next:** Kimi executes Tier 1 exactly, runs lint+typecheck, leaves diff for Claude Code review — no commit/push. |
+| 2026-05-31 | Claude Code | **Owner finalized the Kimi execution plan.** Owner reviewed the 3 behavior-sensitive fixes (H-027 header sizes, C-011 broadcast images, C-009 viewport memo) and chose to HOLD all three (low payoff / higher regression risk / only verifiable on iPhone). Approved Task rewritten as a 2-phase agent-swarm plan for the 4 behavior-neutral fixes — Phase 1: C-019 `Link` import + C-010 defensive scroll-lock + C-012 `hardDeleteBroadcast` return contract; Phase 2: C-005 additive DB migration. Owner directed Kimi to commit + push to `main` after each phase whose build (`lint` + `typecheck` + `build`) passes, and to update this log + task status when done. C-017 remains Claude-led; the do-not-touch list stands. **Next:** Kimi executes the phased plan from the Approved Task section. |
+| 2026-05-31 | Claude Code | Finalized audit triage after three-way independent agreement (Claude+Codex+Kimi). Owner approved a **Protected Behaviors** section (added at top of file) and a tightly-scoped fix batch. Wrote precise fix-by-fix **Approved Task for Kimi**: Tier 1 (behavior-neutral, approved now) = C-019 `Link` import + C-005 additive DB hardening migration; Tier 2 (owner-gated, visual) = H-027 44px touch targets. Caught and corrected the C-017 trap (audit's `head:true` suggestion breaks per-broadcast counts → pulled from Kimi batch, now Claude-led). C-009 held (iOS keyboard regression risk). |
 | 2026-05-31 | Kimi | Organized the 508-audit findings into structured comparison-ready listings under `audit-listings/` — CRITICAL.md, HIGH.md, MEDIUM.md, LOW.md, by-file CROSS_REFERENCE.md, by-category CATEGORY_BREAKDOWN.md, and README index. These are for Codex/Claude comparison; they do NOT imply the findings are verified. See CLAUDE.md Current Active Task for triage status. |
 | 2026-05-31 | Codex | Added Codex's focused first-pass inspection report for the 2026-05-31 comprehensive audit. Confirmed stale/false claims for missing `capacitor-storage.js` and `AvatarWithStatus.jsx`; confirmed low-severity issues around missing `Link` import, raw `<img>` usage, AppHeader 40px touch targets, and nuanced local concerns for `PostDetailSheet` scroll lock and `hardDeleteBroadcast()` return contract. Logged partial consensus/disagreements against Claude's full triage. No code changes applied; no Kimi task approved. |
 | 2026-05-31 | Claude Code | Independent triage of the 2026-05-31 "Comprehensive Codebase Audit Report" (508 claimed findings). Verified all 20 named CRITICALs (C-001…C-020) read-only via direct checks + 3 parallel sub-agents tracing full enforcement/caller paths. Result: **8 FALSE, 6 INFLATED, 6 CONFIRMED — zero actually critical** (all confirmed items Low/Low-Med). At least one auditor used a stale checkout (C-002/C-003/C-018 false); C-016 describes an already-shipped fix. Full verdict table written to Claude Code's Findings. Candidate Low-severity residue listed under Approved Task (NOT approved). **Next:** Codex runs its own independent pass on the same 20 before any consensus or Kimi work. |
