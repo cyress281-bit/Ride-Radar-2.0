@@ -128,9 +128,19 @@ export async function getBlocks(userId) {
 export async function removeBlock(blockId) {
   if (!isValidUuid(blockId)) return { data: null, error: new Error('Invalid blockId') };
 
-  const { error } = await supabase.from('user_blocks').delete().eq('id', blockId);
+  const { data, error } = await supabase
+    .from('user_blocks')
+    .delete()
+    .eq('id', blockId)
+    .select('id');
 
-  return { data: null, error };
+  if (error) return { data: null, error };
+  // An RLS-blocked or non-existent delete returns { error: null, data: [] } —
+  // surface it so an unblock can't silently no-op and leave the user still blocked.
+  if (!data || data.length === 0) {
+    return { data: null, error: new Error('Block not found or you do not have permission to remove it.') };
+  }
+  return { data: null, error: null };
 }
 
 /**

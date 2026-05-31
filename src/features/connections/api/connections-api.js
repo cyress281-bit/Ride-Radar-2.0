@@ -219,12 +219,19 @@ export async function cancelConnectionRequest(requestId) {
 export async function declineConnectionRequest(requestId) {
   if (!isValidUuid(requestId)) return { data: null, error: new Error('Invalid requestId') };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('connection_requests')
     .update({ status: 'declined' })
-    .eq('id', requestId);
+    .eq('id', requestId)
+    .select('id');
 
-  return { data: null, error };
+  if (error) return { data: null, error };
+  // An RLS-blocked or non-existent update returns { error: null, data: [] } —
+  // surface it so the caller never reports a false success.
+  if (!data || data.length === 0) {
+    return { data: null, error: new Error('Request not found or you do not have permission to decline it.') };
+  }
+  return { data: null, error: null };
 }
 
 /**
@@ -291,7 +298,17 @@ export async function getFriendshipsCount(userId) {
 export async function removeFriendship(friendshipId) {
   if (!isValidUuid(friendshipId)) return { data: null, error: new Error('Invalid friendshipId') };
 
-  const { error } = await supabase.from('friendships').delete().eq('id', friendshipId);
+  const { data, error } = await supabase
+    .from('friendships')
+    .delete()
+    .eq('id', friendshipId)
+    .select('id');
 
-  return { data: null, error };
+  if (error) return { data: null, error };
+  // An RLS-blocked or non-existent delete returns { error: null, data: [] } —
+  // surface it so an unfriend can't silently no-op and reappear on refresh.
+  if (!data || data.length === 0) {
+    return { data: null, error: new Error('Friendship not found or you do not have permission to remove it.') };
+  }
+  return { data: null, error: null };
 }

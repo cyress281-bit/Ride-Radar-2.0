@@ -128,7 +128,8 @@ export async function createPost(userId, { caption, photos }) {
 export async function deletePost(postId) {
   if (!isValidUuid(postId)) return { data: null, error: new Error('Invalid postId') };
 
-  // 1. Fetch storage paths before the row is gone.
+  // 1. Fetch storage paths BEFORE deleting the row (so we still know what to clean
+  //    up), but do NOT remove them yet — only after the row delete is confirmed.
   const { data: photos, error: fetchError } = await supabase
     .from('user_post_photos')
     .select('image_path')
@@ -139,19 +140,31 @@ export async function deletePost(postId) {
     throw fetchError;
   }
 
-  // 2. Remove storage objects (best-effort — do not abort deletion on storage failure).
-  const paths = (photos ?? []).map((p) => p.image_path).filter(Boolean);
-  if (paths.length > 0) {
-    const { error: storageError } = await supabase.storage.from('uploads').remove(paths);
-    if (storageError) logger.error('[deletePost] Storage removal error (non-fatal):', storageError);
-  }
-
-  // 3. Delete row — user_post_photos cascade via FK.
-  const { error: deleteError } = await supabase.from('user_posts').delete().eq('id', postId);
+  // 2. Delete the row first. .select() lets us detect an RLS-blocked / non-existent
+  //    delete, which otherwise returns { error: null, data: [] } and looks like success.
+  const { data: deleted, error: deleteError } = await supabase
+    .from('user_posts')
+    .delete()
+    .eq('id', postId)
+    .select('id');
 
   if (deleteError) {
     logger.error('[deletePost] Delete post error:', deleteError);
     throw deleteError;
+  }
+  if (!deleted || deleted.length === 0) {
+    logger.error('[deletePost] Blocked or not found — 0 rows affected');
+    throw new Error('Post not found or you do not have permission to delete it.');
+  }
+
+  // 3. Row is gone (user_post_photos cascade via FK). Now remove storage objects
+  //    (best-effort — do not fail the delete if storage cleanup errors). Doing this
+  //    AFTER the confirmed delete prevents orphaning a surviving post with its
+  //    images already wiped when the delete is silently blocked.
+  const paths = (photos ?? []).map((p) => p.image_path).filter(Boolean);
+  if (paths.length > 0) {
+    const { error: storageError } = await supabase.storage.from('uploads').remove(paths);
+    if (storageError) logger.error('[deletePost] Storage removal error (non-fatal):', storageError);
   }
 
   return { data: null, error: null };
