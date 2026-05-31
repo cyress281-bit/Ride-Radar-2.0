@@ -122,8 +122,17 @@ export async function createConversation(participantIds) {
  * @returns {Promise<{data: null, error: Error|null}>}
  */
 export async function deleteMessage(messageId) {
-  const { error } = await supabase.from('messages').delete().eq('id', messageId);
+  const { data, error } = await supabase
+    .from('messages')
+    .delete()
+    .eq('id', messageId)
+    .select('id');
   if (error) throw error;
+  // An RLS-blocked or non-existent delete returns { error: null, data: [] } —
+  // throw so admin moderation can't report a removal that didn't happen.
+  if (!data || data.length === 0) {
+    throw new Error('Message not found or you do not have permission to delete it.');
+  }
   return { data: null, error: null };
 }
 

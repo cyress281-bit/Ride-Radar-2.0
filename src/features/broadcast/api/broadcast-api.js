@@ -128,8 +128,17 @@ export async function createBroadcast(broadcastData) {
  * @returns {Promise<{data: null, error: Error|null}>}
  */
 export async function hardDeleteBroadcast(id) {
-  const { error } = await supabase.from('broadcasts').delete().eq('id', id);
+  const { data, error } = await supabase
+    .from('broadcasts')
+    .delete()
+    .eq('id', id)
+    .select('id');
   if (error) return { data: null, error };
+  // An RLS-blocked or non-existent delete returns { error: null, data: [] } —
+  // surface it so admin moderation can't report a removal that didn't happen.
+  if (!data || data.length === 0) {
+    return { data: null, error: new Error('Broadcast not found or you do not have permission to delete it.') };
+  }
   return { data: null, error: null };
 }
 

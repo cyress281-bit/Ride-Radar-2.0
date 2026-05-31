@@ -202,13 +202,20 @@ export async function acceptConnectionRequest(requestId) {
 export async function cancelConnectionRequest(requestId) {
   if (!isValidUuid(requestId)) return { data: null, error: new Error('Invalid requestId') };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('connection_requests')
     .delete()
     .eq('id', requestId)
-    .eq('status', 'pending');
+    .eq('status', 'pending')
+    .select('id');
 
-  return { data: null, error };
+  if (error) return { data: null, error };
+  // 0 rows means the request was already accepted/declined (no longer pending),
+  // doesn't exist, or isn't ours — surface it instead of a false success.
+  if (!data || data.length === 0) {
+    return { data: null, error: new Error('Request not found, already handled, or you do not have permission to cancel it.') };
+  }
+  return { data: null, error: null };
 }
 
 /**
