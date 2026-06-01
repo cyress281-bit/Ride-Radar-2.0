@@ -260,6 +260,14 @@ Ride Radar is a fully functional PWA with offline support, installability, and b
 
 **iOS Safari known behavior:** Safari checks for SW updates at most once every 24 hours, regardless of HTTP headers. A `?v=velocity` static string cannot force updates — it must change between builds.
 
+### Cold-start loading continuity (one shared brand visual)
+
+The cold-start chain must look like **one continuous screen** — the logo never disappears between paints. Sequence: iOS launch → `#rr-prepaint` (`index.html`) → `PageLoader` splash → route/map chunk loads → real screen. To avoid the splash fading out into a *different*-looking loader (the original "glitch"):
+
+- **All boot-path full-screen Suspense fallbacks render `<PageLoader />`** (its non-intro resting state): the top-level boot Suspense (`App.jsx`, wraps `<Routes>`), the `AdminLayout` heavy-route-group wrapper, and the map's inner Suspense in `BroadcastFeedPage.jsx` (`LiveMapMapLibre` is `lazy()`). The splash overlay (`AppBootLoader` → `PageLoader`) then fades to reveal an *identical* frame underneath = zero visual change. `LoginPage` already uses `PageLoader` internally.
+- **DO NOT** change `AppLayout.jsx`'s `<Outlet>` Suspense (the `RouteTransitionFallback` pill) — that is the **mid-session tab-switch** loader and must stay lightweight. Swapping the full-screen logo in there flashes the giant logo on every tab change. `RouteTransitionFallback` is still defined/used there; only its *boot* usages were replaced.
+- **One background color across the whole chain:** `manifest.json` `background_color`, `index.html` (`#rr-prepaint` + html), `PageLoader`, and `--background` (`hsl(240 20% 2%)`) all resolve to **`#040406`**. Keep them equal or the first paint flashes. (Fixed 2026-06-01; manifest was `#050508`.)
+
 ### iOS Safari Known Quirks
 
 **datetime-local input overflow fix:** `input[type="datetime-local"]` overflows its container on iOS regardless of `width:100%`, `max-width:100%`, or `overflow-hidden` on the parent. The ONLY fix that works is wrapping the input in a flex container with `min-width:0`, and setting `flex:1 min-width:0` on the input itself:

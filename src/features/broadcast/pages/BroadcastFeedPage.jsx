@@ -12,6 +12,7 @@ import { useRadarViewport } from '@/features/broadcast/hooks/use-radar-viewport.
 const LiveMapMapLibre = lazy(() => import('@/features/map/components/LiveMapMapLibre'));
 import { rankBroadcasts, haversineMiles } from '@/lib/broadcastUtils';
 import { RADAR_OFFLINE_SNAPSHOT_KEY, RADAR_OFFLINE_SNAPSHOT_MAX_AGE_MS } from '@/lib/locationCache.js';
+import PageLoader from '@/components/shared/PageLoader';
 import RadarOverlay from '@/features/broadcast/components/RadarOverlay';
 import RadarBottomSheet from '@/features/broadcast/components/RadarBottomSheet';
 import LocationDisclosureDialog, { hasSeenLocationDisclosure } from '@/components/shared/LocationDisclosureDialog';
@@ -251,14 +252,7 @@ function BroadcastFeedPage() {
     >
       {/* Full-screen map */}
       <div className="absolute inset-0 z-0">
-        <Suspense
-          fallback={
-            <div className="flex h-full w-full flex-col items-center justify-center bg-background">
-              <div className="mb-3 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              <p className="text-sm font-semibold text-foreground">Loading map…</p>
-            </div>
-          }
-        >
+        <Suspense fallback={<PageLoader />}>
           <LiveMapMapLibre
             broadcasts={filteredBroadcasts}
             presenceMarkers={visibleRiderMarkers}
