@@ -65,6 +65,7 @@ const PostGrid = memo(function PostGrid({
                     className="h-full w-full transition-transform duration-500 group-hover:scale-[1.03]"
                     objectFit="cover"
                     loading="lazy"
+                    disableAnimation
                     showSkeleton
                   />
                 ) : (

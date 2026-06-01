@@ -146,7 +146,8 @@ export async function prepareLocalImage(file, kind = 'event') {
 export async function uploadImage(file, bucket, path, kind = 'event') {
   validateFile(file, kind);
 
-  const { blob, format } = await convertImage(file, 1600, 0.82);
+  const maxDimension = kind === 'post' ? 1080 : 1600;
+  const { blob, format } = await convertImage(file, maxDimension, 0.82);
   const ext = format === 'webp' ? 'webp' : 'jpg';
   const contentType = format === 'webp' ? 'image/webp' : 'image/jpeg';
   const filePath = path.replace(/\.(jpe?g|png|webp)$/i, `.${ext}`);
