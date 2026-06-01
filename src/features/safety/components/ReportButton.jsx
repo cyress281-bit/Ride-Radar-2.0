@@ -88,7 +88,7 @@ const ReportButton = memo(function ReportButton({
             className="w-full max-w-sm rounded-[24px] border border-white/[0.08] bg-surface/95 p-5 shadow-[0_20px_60px_hsl(0_0%_0%/0.45)] backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <HStack justify="between" align="center" className="mb-4">
+            <HStack justify="between" align="center" className="mb-4" role="status" aria-live="polite">
               <Text variant="h3" className="text-base font-bold">
                 {submitted ? 'Report submitted' : 'Report content'}
               </Text>

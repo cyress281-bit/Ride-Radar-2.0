@@ -167,6 +167,7 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
         {/* Caption */}
         <div>
           <textarea
+            aria-label="Caption"
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
             placeholder="Add a caption… (optional)"

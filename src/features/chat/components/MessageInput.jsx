@@ -153,6 +153,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
           <textarea
             ref={textareaRef}
             id="message-input"
+            aria-label="Message"
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}

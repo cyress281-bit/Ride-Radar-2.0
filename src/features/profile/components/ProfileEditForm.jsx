@@ -318,7 +318,7 @@ export default function ProfileEditForm({ profile, onDone }) {
                     placeholder="unique_handle"
                   />
                 </FormControl>
-                <div className="flex items-center gap-1.5">
+                <div role="status" aria-live="polite" className="flex items-center gap-1.5">
                   {checkingUsername && (
                     <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                       <Loader2 className="h-3 w-3 animate-spin" /> Checking…

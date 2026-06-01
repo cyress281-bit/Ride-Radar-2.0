@@ -602,12 +602,14 @@ export default function OnboardingPage() {
                       Unique handle for your profile URL.
                     </FormDescription>
                     <FormMessage />
+                    <div role="status" aria-live="polite">
                     {usernameChecking && (
                       <p className="text-[11px] text-muted-foreground mt-1">Checking availability...</p>
                     )}
                     {usernameError && (
                       <p className="text-[11px] text-brand-emergency mt-1">{usernameError}</p>
                     )}
+                    </div>
                   </FormItem>
                 )}
               />

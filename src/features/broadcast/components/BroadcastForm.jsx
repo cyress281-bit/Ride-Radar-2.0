@@ -475,7 +475,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
       </HStack>
 
       {draftBanner && (
-        <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-primary/25 bg-primary/10 px-4 py-3">
+        <div role="status" aria-live="polite" className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-primary/25 bg-primary/10 px-4 py-3">
           <Text variant="caption" className="text-primary font-medium">
             You have an unsaved draft
           </Text>
@@ -861,7 +861,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
           </p>
         )}
         {isLocating && (type === 'solo_ride' || type === 'iso') && (
-          <p className="text-sm text-muted-foreground">Acquiring location…</p>
+          <p role="status" aria-live="polite" className="text-sm text-muted-foreground">Acquiring location…</p>
         )}
         {!geoError && !isLocating && coords.lat == null && (type === 'solo_ride' || type === 'iso') && (
           <p role="alert" className="text-sm text-destructive">
