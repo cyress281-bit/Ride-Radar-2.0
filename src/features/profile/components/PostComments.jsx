@@ -23,7 +23,6 @@ const PostComments = memo(function PostComments({ postId, postOwnerId, currentUs
         onDelete={deleteComment}
         stickyComposer
         showSafetyActions
-        autoScroll
       />
     </div>
   );

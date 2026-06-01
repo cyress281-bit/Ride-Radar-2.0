@@ -46,7 +46,7 @@ const profileAmbientBottomStyle = {
 };
 
 const profileTabsListClass =
-  'w-full grid grid-cols-2 rounded-full border border-white/[0.08] bg-surface/82 p-1.5 shadow-[0_16px_48px_hsl(0_0%_0%/0.30)] backdrop-blur-2xl';
+  'w-full grid grid-cols-2 h-auto rounded-full border border-white/[0.08] bg-surface/82 p-1.5 shadow-[0_16px_48px_hsl(0_0%_0%/0.30)] backdrop-blur-2xl';
 
 const profileTabsTriggerClass =
   'inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-all data-[state=active]:bg-primary/14 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_1px_0_hsl(0_0%_100%/0.08),0_0_18px_hsl(var(--primary)/0.16)]';

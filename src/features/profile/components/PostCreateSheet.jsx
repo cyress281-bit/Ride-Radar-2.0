@@ -75,7 +75,7 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto animate-fade-up"
+      className="fixed inset-0 z-50 bg-background overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-label="Create shot"
