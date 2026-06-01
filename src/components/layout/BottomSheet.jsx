@@ -187,7 +187,7 @@ const BottomSheet = memo(function BottomSheet({
                 <DialogPrimitive.Close
                   onClick={onClose}
                   className={cn(
-                    'flex items-center justify-center min-w-[40px] min-h-[40px] rounded-full',
+                    'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
                     'text-muted-foreground hover:text-foreground',
                     'transition-all duration-150',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',

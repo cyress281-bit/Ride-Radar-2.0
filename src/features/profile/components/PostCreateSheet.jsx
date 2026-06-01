@@ -85,7 +85,7 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
         <button
           onClick={handleClose}
           disabled={createPost.isPending}
-          className="flex items-center justify-center h-9 w-9 rounded-full hover:bg-white/[0.06] transition-colors disabled:opacity-50"
+          className="flex items-center justify-center h-11 w-11 rounded-full hover:bg-white/[0.06] transition-colors disabled:opacity-50"
           aria-label="Cancel"
         >
           <X className="h-5 w-5" />

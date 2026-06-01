@@ -95,7 +95,7 @@ const ReportButton = memo(function ReportButton({
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
