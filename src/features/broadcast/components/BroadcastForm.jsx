@@ -559,7 +559,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                     key={preset}
                     type="button"
                     onClick={() => setValue('title', preset)}
-                    className={cn('text-xs font-bold px-3 py-1.5 rounded-full border transition-colors pressable', typeStyles.chipInactive, 'text-alert/90')}
+                    className={cn('text-xs font-bold px-3 py-2.5 rounded-full border transition-colors pressable', typeStyles.chipInactive, 'text-alert/90')}
                   >
                     {preset}
                   </button>
