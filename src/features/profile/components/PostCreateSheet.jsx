@@ -124,7 +124,7 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
                 type="button"
                 onClick={() => removePhoto(idx)}
                 disabled={busy}
-                className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors disabled:opacity-50"
+                className="absolute top-1 right-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors disabled:opacity-50"
                 aria-label={`Remove photo ${idx + 1}`}
               >
                 <X className="h-3.5 w-3.5" />

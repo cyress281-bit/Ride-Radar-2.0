@@ -108,10 +108,10 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
             <button
               type="button"
               onClick={handleRemoveImage}
-              className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-surface-elevated border border-white/[0.12] flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute -top-1.5 -right-1.5 h-7 w-7 rounded-full bg-surface-elevated border border-white/[0.12] flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Remove image"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
