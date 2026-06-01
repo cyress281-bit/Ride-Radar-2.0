@@ -293,7 +293,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
                     placeholder="Enter a secure password"
                     autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
                     disabled={loading}
-                    className="h-12 bg-background border-border rounded-xl pr-10 focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                    className="h-12 bg-background border-border rounded-xl pr-12 focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                     {...field}
                   />
                 </FormControl>
@@ -301,7 +301,7 @@ export default function LoginForm({ onSuccess, defaultMode = 'signin', defaultEr
                   type="button"
                   tabIndex={-1}
                   onClick={() => setShowPassword((s) => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground active:scale-[0.96] transition-transform"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center text-muted-foreground hover:text-foreground active:scale-[0.96] transition-transform"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

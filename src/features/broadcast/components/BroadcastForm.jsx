@@ -805,7 +805,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 type="button"
                 onClick={() => setLocationPrecision('approximate')}
                 className={cn(
-                  'flex-1 rounded-2xl border px-3 py-2 text-xs font-bold transition-colors min-h-[42px] backdrop-blur-xl',
+                  'flex-1 rounded-2xl border px-3 py-2 text-xs font-bold transition-colors min-h-[44px] backdrop-blur-xl',
                   locationPrecision === 'approximate'
                     ? 'bg-primary/10 border-primary/40 text-primary shadow-[0_0_18px_hsl(var(--primary)/0.10)]'
                     : 'bg-white/[0.03] border-white/[0.08] text-muted-foreground hover:border-primary/25 hover:text-foreground'
@@ -817,7 +817,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                 type="button"
                 onClick={() => setLocationPrecision('precise')}
                 className={cn(
-                  'flex-1 rounded-2xl border px-3 py-2 text-xs font-bold transition-colors min-h-[42px] backdrop-blur-xl',
+                  'flex-1 rounded-2xl border px-3 py-2 text-xs font-bold transition-colors min-h-[44px] backdrop-blur-xl',
                   locationPrecision === 'precise'
                     ? 'bg-alert/10 border-alert/40 text-alert shadow-[0_0_18px_hsl(var(--alert)/0.10)]'
                     : 'bg-white/[0.03] border-white/[0.08] text-muted-foreground hover:border-alert/25 hover:text-foreground'

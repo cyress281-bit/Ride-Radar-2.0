@@ -70,7 +70,7 @@ const ReportButton = memo(function ReportButton({
         onClick={handleOpen}
         className={cn(
           'inline-flex items-center gap-1 text-muted-foreground hover:text-brand-emergency transition-colors',
-          'min-h-[32px] px-1',
+          'min-h-[44px] px-1',
           className
         )}
         aria-label="Report"
