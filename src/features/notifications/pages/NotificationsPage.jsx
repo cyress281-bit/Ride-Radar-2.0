@@ -34,6 +34,7 @@ import NotificationItem from '@/features/notifications/components/NotificationIt
 import ConnectionRequestCard from '@/features/notifications/components/ConnectionRequestCard.jsx';
 import NotificationSection from '@/features/notifications/components/NotificationSection.jsx';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh.js';
+import { cn } from '@/lib/utils';
 
 // ------------------------------------------------------------------
 // Virtualized notification list

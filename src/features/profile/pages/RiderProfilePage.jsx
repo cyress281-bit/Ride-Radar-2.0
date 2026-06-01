@@ -56,6 +56,7 @@ import { cn } from '@/lib/utils.js';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
+import { LoadingState } from '@/components/shared/LoadingState';
 import { useUserPosts } from '@/features/profile/hooks/use-user-posts';
 import PostGrid from '@/features/profile/components/PostGrid';
 import PostDetailSheet from '@/features/profile/components/PostDetailSheet';

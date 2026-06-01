@@ -45,6 +45,8 @@ export default [
     rules: {
       "no-unused-vars": "off",
       "react/jsx-uses-vars": "error",
+      "react/jsx-no-undef": "error",
+      "no-undef": "error",
       "react/jsx-uses-react": "error",
       "unused-imports/no-unused-imports": "error",
       "unused-imports/no-unused-vars": [
@@ -63,6 +65,25 @@ export default [
         { ignore: ["cmdk-input-wrapper", "toast-close"] },
       ],
       "react-hooks/rules-of-hooks": "error",
+    },
+  },
+  // Vitest globals for test files (so no-undef doesn't false-positive)
+  {
+    files: ["**/*.test.{js,mjs,cjs,jsx}", "**/*.spec.{js,mjs,cjs,jsx}"],
+    languageOptions: {
+      globals: {
+        vi: "readonly",
+        vitest: "readonly",
+        describe: "readonly",
+        it: "readonly",
+        test: "readonly",
+        suite: "readonly",
+        expect: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+      },
     },
   },
 ];
