@@ -415,11 +415,13 @@ function ProfilePage() {
             </VStack>
           )}
 
-          <PostCreateSheet
-            open={createSheetOpen}
-            onClose={() => setCreateSheetOpen(false)}
-            userId={user?.id}
-          />
+          {createSheetOpen && (
+            <PostCreateSheet
+              open={createSheetOpen}
+              onClose={() => setCreateSheetOpen(false)}
+              userId={user?.id}
+            />
+          )}
 
           {selectedPost && (
             <PostDetailSheet
