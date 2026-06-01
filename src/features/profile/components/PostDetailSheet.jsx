@@ -15,7 +15,7 @@ import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock.js';
  *
  * @param {{ post: object, onClose: () => void, userId: string }} props
  */
-const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, canDelete = false }) {
+const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId }) {
   const [photoIdx, setPhotoIdx] = useState(0);
 
   useEffect(() => {
@@ -30,6 +30,11 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, c
 
   const photos = post?.user_post_photos ?? [];
   const currentPhoto = photos[photoIdx];
+
+  // Only the post's owner may delete it (route-independent — works from
+  // ProfilePage and RiderProfilePage alike). The RLS policy enforces
+  // this server-side too: user_posts_delete = (user_id = auth.uid()) OR is_admin().
+  const isOwner = !!userId && userId === post?.user_id;
 
   const handleDelete = useCallback(async () => {
     setError('');
@@ -63,11 +68,11 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, c
         <div className="absolute left-1/2 -translate-x-1/2 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 shadow-[0_8px_24px_hsl(var(--background)/0.25)]">
           <Text variant="bodySm" className="font-extrabold tracking-wide text-foreground">Shot</Text>
         </div>
-        {canDelete && (
+        {isOwner && (
           <button
             onClick={() => setConfirmDelete(true)}
             disabled={deletePost.isPending}
-            className="flex items-center justify-center h-9 w-9 rounded-full hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+            className="flex items-center justify-center h-9 w-9 rounded-full text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
             aria-label="Delete shot"
           >
             <Trash2 className="h-4 w-4" />
@@ -188,7 +193,7 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId, c
       </VStack>
 
       {/* Delete confirmation */}
-      {canDelete && confirmDelete && (
+      {isOwner && confirmDelete && (
         <div
           className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-sm pb-8"
           onClick={() => setConfirmDelete(false)}

@@ -428,7 +428,6 @@ function ProfilePage() {
               post={selectedPost}
               onClose={() => setSelectedPost(null)}
               userId={user?.id}
-              canDelete
             />
           )}
         </TabsContent>
