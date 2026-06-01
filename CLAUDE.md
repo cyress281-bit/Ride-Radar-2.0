@@ -383,7 +383,7 @@ useEffect(() => {
 
 ## Deferred Follow-Ups (owner-gated, to do later)
 
-Both need the owner + a real iPhone. Neither is blocking.
+None blocking. All need the owner + a real iPhone.
 
 ### 1. On-device verification of shipped moderation/safety fixes (free, ~5 min)
 The Sweep 2 + admin/cancel RLS-gap fixes (commits `ddd8a14`, `0b6646a`, `9e751aa`, `1ceb29c`) passed build + live-RLS checks but were never tapped through on device. Verify:
@@ -391,11 +391,17 @@ The Sweep 2 + admin/cancel RLS-gap fixes (commits `ddd8a14`, `0b6646a`, `9e751aa
 - **Cancel a sent connection request** → stays gone after refresh (was a silent no-op before).
 - **Bike Down resolve/remove** (Protected Behavior #7) → signal leaves Radar and still shows "Rider found safe"; normal success flow unchanged. Only the *failure* path now shows a toast instead of false success.
 
-### 2. Accessibility / touch-target batch (optional polish — VISIBLE changes, needs device eyeball)
-All low-risk but they change how the UI looks (esp. the header — Protected Behavior #3 area), so check on device for layout shifts. Ship in a dedicated PR the owner reviews on the phone — NOT folded into unrelated work.
-- **Touch targets → 44px:** AppHeader 3 action buttons (40→44), RadarOverlay drag handle + "don't show again" checkbox, BroadcastForm chips/buttons, PostCreateSheet close/share/remove, BottomSheet drag handle + close, LoginForm password toggle, ReportButton trigger + close, MessageInput remove-image, LocationDisclosureDialog close.
-- **Labels:** add `aria-label`/`<label>` to the message textarea and post caption textarea.
-- **Announcements:** add `aria-live="polite"` to status text (username availability, draft saved, report result, account-deletion status) and `role="button"` + `aria-expanded` where noted (failed-message retry, LoginForm "forgot password" toggle).
+### 2. Verify tonight's Profile fixes on device (2026-05-31)
+Three profile regressions fixed in `544998b` (after the first attempts `db62c14`/`0ff7979`/`ceb5297` didn't fully land). Confirm on iPhone PWA:
+- **Add Shot** (Profile → Shots → "Add Shot") → sheet paints fully, **no black screen**. Root cause was the overlay's `backdrop-blur-xl` + `animate-fade-up` (`fill-mode:both`) failing to composite children on iOS; fix = solid opaque overlay (see Dead Ends). **If still black → next step is a portal to `document.body`** (not yet tried).
+- **Open an existing shot** → photo stays at the top; it no longer force-scrolls to the comment composer (removed `autoScroll` in `PostComments.jsx`).
+- **Signals/Shots tabs** → labels centered AND fit inside the pill border (added `h-auto` to the tabs list so `py-2.5` triggers aren't clipped by the base `h-11`).
+
+### 3. Slow loading of EXISTING profile images — owner decision needed (not started)
+Bike photo + shots images load slowly because they're served as **full-resolution public URLs** (stored up to 1600px, rendered in ~150px tiles) with **no resize**. Confirmed the Supabase org is on the **FREE plan**, so render transforms (`?width=`) are **unavailable**. Tonight's `ceb5297` only lowered *new* post uploads to 1080px + dropped per-tile framer-motion — it does **not** speed up already-uploaded images. To actually fix existing images, owner must choose: **(a)** upgrade to Supabase Pro (enables `getPublicUrl({ transform: { width } })`), or **(b)** generate a thumbnail at upload time (bigger pipeline change; still won't help already-uploaded photos without a backfill). Decision required before any further work.
+
+### 4. Accessibility / touch-target batch — DONE (shipped 2026-05-31), pending device eyeball
+The full H-027 / Sweep 9 a11y batch shipped this session and is **code-complete**; just needs an on-device glance for layout. Shipped: AppHeader buttons→44px (`fc1a7d2`, verified); modal close buttons→44px (`724288b`); labels + live-regions (`c566069`); Group C device-gated targets — approx/precise toggle, report trigger, password eye→44px (`17207f5`), alert chips modest bump (`a9e120f`), thumbnail ✕→28px (`3556641`). **Permanently EXCLUDED (Group D — Protected Behavior / Dead End):** BottomSheet drag handle + RadarOverlay drag handle (enlarging risks the iOS swipe/drag behavior). Device-check the password eye most closely.
 
 ---
 
@@ -410,3 +416,6 @@ All low-risk but they change how the UI looks (esp. the header — Protected Beh
 - **iOS PWA drag gestures via Pointer Events alone** → `pointerdown`/`pointermove` → `touchmove` often never fires on iOS because Safari treats it as a scroll gesture inside fixed/absolute containers → WORKED: raw `touchstart`/`touchmove`/`touchend` listeners as a fallback + `touch-action:none` on the drag handle.
 - **iOS PWA bottom-sheet scrolling** → `overflow-hidden` on page root and on the open sheet container → a `fixed` + `overflow-hidden` ancestor blocks all descendant scrolling on iOS; parent `overflow-hidden` kills the child's scroll context → WORKED: remove those, give the sheet content an explicit `height` (not just `max-height`), `touch-action:pan-y`.
 - **DM page "Conversation not found" — RLS suspected** → checked SELECT policies on `messages`/`conversations`/`conversation_notifications`, verified `public.messages` schema → all correct, RLS is not the cause → actual cause is auth timing race: TQ v5 disabled queries have `isLoading=false`, so the page shows error state while `user=null` during auth validation → WORKED: include `authIsLoading` in the `isLoading` guard (commit `d6823ce`).
+- **PostCreateSheet "Add Shot" black screen on iOS** → (1) suspected this session's a11y edits — ruled out (aria-label + h-6→h-7 can't blank a screen); (2) tried **conditional mount** from the parent to match the working `PostDetailSheet` (`db62c14`) — did NOT fix it → real cause: a full-screen overlay using `backdrop-blur-xl` + a translucent `bg-background/95` + `animate-fade-up` (`animation-fill-mode: both`) can fail to composite its CHILDREN on iOS — the opaque backdrop paints but the content stays invisible (the working sibling escaped it only because it immediately renders a `bg-black` eager photo that forces a compositing layer) → WORKED (pending device confirm): solid opaque overlay, drop `backdrop-blur` + `animate-fade-up` (`544998b`). **If it ever recurs, next untried step = render the sheet via a portal to `document.body`.**
+- **Profile shot detail force-scrolls to comments on open** → opening a shot jumped the sheet to the bottom (photo + header pushed off-screen) → cause: `PostComments` passed `autoScroll` to the shared `CommentThread`, whose `scrollIntoView` fires on mount → WORKED: remove `autoScroll` for the post-detail use (`544998b`).
+- **Profile tabs overflow their pill border vertically** → custom `profileTabsTriggerClass` used `py-2.5` (~52px) but the base `TabsList` hard-codes `h-11` (44px), clipping the triggers → WORKED: add `h-auto` to the tabs list class so it grows to fit the triggers (`544998b`).
