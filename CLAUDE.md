@@ -403,6 +403,9 @@ Bike photo + shots images are served as **full-resolution public URLs** (stored 
 ### 4. Radar location gate — Step 3 polish (optional, not started)
 The location gate shipped in two steps: `5ed3c91` (additive `LocationGateOverlay` + chip) and `760f798` (removed the old `geoError` banner). Remaining optional polish: **best-effort auto-dismiss on resume** — when the user enables location in iOS Settings and returns, re-attempt location (hook into `useAppResumeRefresh` / `visibilitychange`) so the gate/chip clear themselves instead of needing a manual tap; and optionally layer in `navigator.permissions.query({name:'geolocation'})` (where supported) to pre-detect "denied" on load. iOS PWA caveat: geolocation needs a user gesture, so full auto-dismiss isn't guaranteed — the chip remains the manual fallback. Pure enhancement; the feature works without it.
 
+### 5. Add "Cancel request" to the profile's "Request sent" state (small UX, not started)
+Cancelling an outgoing connection request only works from the **Requests tab** (`RequestsTab.jsx` `OutgoingRequestRow` → `useCancelConnectionRequest`). On `RiderProfilePage`, the outgoing-pending state (`isOutgoingPending`, ~line 571–583) shows a **disabled "Request sent"** button with no cancel — so a user who sent a request and revisits that rider's profile can't retract it from there. Add a cancel action to that state (reuse `useCancelConnectionRequest`; the backend `senders_can_cancel_connection_requests` DELETE policy already allows it). Minor discoverability friction, not a bug. (Surfaced during the 2026-06-02 moderation/safety device verification; confirmed by both Claude + Kimi.)
+
 ---
 
 ## Dead Ends — Approaches Already Tried That Did NOT Work
