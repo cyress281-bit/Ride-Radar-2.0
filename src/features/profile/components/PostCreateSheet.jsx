@@ -1,4 +1,5 @@
 import { useState, useCallback, memo } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, Loader2, AlertCircle } from 'lucide-react';
 import { prepareLocalImage, revokeLocalImage } from '@/lib/image-utils.js';
 import { useCreatePost } from '@/features/profile/hooks/use-user-posts';
@@ -73,7 +74,7 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
   const canAdd = photos.length < MAX_PHOTOS && !busy;
   const canSubmit = photos.length > 0 && !busy;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 bg-background overflow-y-auto"
       role="dialog"
@@ -194,7 +195,8 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
           </div>
         )}
       </VStack>
-    </div>
+    </div>,
+    document.body
   );
 });
 

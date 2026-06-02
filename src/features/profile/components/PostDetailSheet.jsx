@@ -1,4 +1,5 @@
 import { memo, useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Trash2, Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDeletePost } from '@/features/profile/hooks/use-user-posts';
 import { timeAgo } from '@/lib/broadcastUtils';
@@ -49,7 +50,7 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId })
 
   if (!post) return null;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl overflow-y-auto animate-fade-up"
       role="dialog"
@@ -232,7 +233,8 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId })
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 });
 
