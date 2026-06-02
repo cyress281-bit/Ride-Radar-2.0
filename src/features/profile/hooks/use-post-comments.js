@@ -68,20 +68,20 @@ export function usePostComments(postId) {
 
 /**
  * Mutation hook to add a comment to a post.
- * Expects: { postId, body }
+ * Expects: { entityId, body }
  * Invalidates the post's comment cache on success.
  */
 export function useAddPostComment() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ postId, body }) => {
-      const { data, error } = await addPostComment(postId, body);
+    mutationFn: async ({ entityId, body }) => {
+      const { data, error } = await addPostComment(entityId, body);
       if (error) throw error;
       return data;
     },
     onSuccess: (_data, variables) => {
-      qc.invalidateQueries({ queryKey: [COMMENTS_KEY, variables.postId] });
+      qc.invalidateQueries({ queryKey: [COMMENTS_KEY, variables.entityId] });
     },
     onError: (error) => {
       toast.error('Failed to post comment', {
@@ -93,7 +93,7 @@ export function useAddPostComment() {
 
 /**
  * Mutation hook to delete a comment.
- * Expects: { commentId, postId }
+ * Expects: { commentId, entityId }
  * Invalidates the post's comment cache on success.
  */
 export function useDeletePostComment() {
@@ -104,7 +104,7 @@ export function useDeletePostComment() {
       await deletePostComment(commentId);
     },
     onSuccess: (_data, variables) => {
-      qc.invalidateQueries({ queryKey: [COMMENTS_KEY, variables.postId] });
+      qc.invalidateQueries({ queryKey: [COMMENTS_KEY, variables.entityId] });
     },
     onError: (error) => {
       toast.error('Failed to delete comment', {

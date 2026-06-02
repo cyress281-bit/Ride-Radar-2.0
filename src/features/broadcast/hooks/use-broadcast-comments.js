@@ -69,18 +69,18 @@ export function useBroadcastComments(broadcastId) {
 
 /**
  * Mutation hook to add a comment to a broadcast.
- * Expects: { broadcastId, body }
+ * Expects: { entityId, body }
  */
 export function useAddBroadcastComment() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ broadcastId, body }) => {
-      const { data } = await addBroadcastComment(broadcastId, body);
+    mutationFn: async ({ entityId, body }) => {
+      const { data } = await addBroadcastComment(entityId, body);
       return data;
     },
     onSuccess: (_data, variables) => {
-      qc.invalidateQueries({ queryKey: [COMMENTS_KEY, variables.broadcastId] });
+      qc.invalidateQueries({ queryKey: [COMMENTS_KEY, variables.entityId] });
     },
     onError: (error) => {
       toast.error('Failed to post comment', {
@@ -92,7 +92,7 @@ export function useAddBroadcastComment() {
 
 /**
  * Mutation hook to delete a broadcast comment.
- * Expects: { commentId, broadcastId }
+ * Expects: { commentId, entityId }
  */
 export function useDeleteBroadcastComment() {
   const qc = useQueryClient();
@@ -102,7 +102,7 @@ export function useDeleteBroadcastComment() {
       await deleteBroadcastComment(commentId);
     },
     onSuccess: (_data, variables) => {
-      qc.invalidateQueries({ queryKey: [COMMENTS_KEY, variables.broadcastId] });
+      qc.invalidateQueries({ queryKey: [COMMENTS_KEY, variables.entityId] });
     },
     onError: (error) => {
       toast.error('Failed to delete comment', {

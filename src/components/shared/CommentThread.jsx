@@ -136,7 +136,7 @@ const CommentThread = memo(function CommentThread({
     const trimmed = body.trim();
     if (!trimmed || onAdd.isPending) return;
     try {
-      await onAdd.mutateAsync({ body: trimmed });
+      await onAdd.mutateAsync({ entityId, body: trimmed });
       setBody('');
     } catch {
       // error toast handled by caller hook
