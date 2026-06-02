@@ -229,7 +229,7 @@ export function useCreateBroadcast() {
       }
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: broadcastKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: broadcastKeys.all });
       if (data?.id) {
         queryClient.invalidateQueries({ queryKey: broadcastKeys.detail(data.id) });
       }
