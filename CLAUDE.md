@@ -406,7 +406,8 @@ The location gate shipped in two steps: `5ed3c91` (additive `LocationGateOverlay
 ### 5. Add "Cancel request" to the profile's "Request sent" state (small UX, not started)
 Cancelling an outgoing connection request only works from the **Requests tab** (`RequestsTab.jsx` `OutgoingRequestRow` → `useCancelConnectionRequest`). On `RiderProfilePage`, the outgoing-pending state (`isOutgoingPending`, ~line 571–583) shows a **disabled "Request sent"** button with no cancel — so a user who sent a request and revisits that rider's profile can't retract it from there. Add a cancel action to that state (reuse `useCancelConnectionRequest`; the backend `senders_can_cancel_connection_requests` DELETE policy already allows it). Minor discoverability friction, not a bug. (Surfaced during the 2026-06-02 moderation/safety device verification; confirmed by both Claude + Kimi.)
 
----
+### 6. Admin Reports: disambiguate "Remove content" vs "Mark resolved" (small UX, not started)
+On `AdminReportsPage`, two actions sit close together: **`removeContent`** (actually deletes/archives the reported content, then resolves — stamps details `content removed/archived`) and a separate **"Mark resolved" / dismiss** action (just closes the report — stamps `Admin marked report resolved`). During the 2026-06-02 verification the owner tapped *Mark resolved* thinking it removed a reported message; the report closed but the message stayed (resolved ≠ removed — DB-confirmed). Not a bug, but easy to confuse. Improve clarity: clearer labels, separation/ordering, or a confirm on the destructive "Remove content". (Always DB-verify admin removals — a resolved report does not imply the content was deleted.)
 
 ## Dead Ends — Approaches Already Tried That Did NOT Work
 
