@@ -17,37 +17,33 @@ Before doing anything else each session:
 
 **This section governs how all AI tools collaborate on Ride Radar 2.0. Every AI must read this before contributing anything.**
 
-### The Team
+### The Team (two AIs, as of 2026-06-02 — ChatGPT/Codex retired)
 | Role | AI | Strengths | Primary Responsibility |
 |---|---|---|---|
-| **Architect & Reviewer** | Claude | Security, architecture, code quality, reasoning, debugging | Code review, security hardening, technical decisions, catching bad patterns |
-| **Product & Vision** | ChatGPT | Product thinking, UX strategy, feature prioritization, user experience | App direction, feature design, priority calls, UX decisions |
-| **Executor** | Kimi | Heavy code workload, long sessions, implementation | Writing and editing actual code based on approved plans |
+| **Reviewer & Comparer** | Claude | Security, architecture, code quality, reasoning, debugging, RLS/Supabase | Independent investigation, root-cause analysis, **reconciling Claude's vs Kimi's findings**, writing the approved executor task, Charter-reviewing Kimi's diff |
+| **Investigator & Executor** | Kimi | Heavy code workload, long sessions, implementation | Independent investigation, then **the actual edits, changes, commits, and pushes** based on the approved task |
 
 ### Rules of Engagement
 1. **No AI has more leverage than another.** Every recommendation must be justified.
 2. **Challenge each other.** Push back with reasoning. Blind agreement wastes the owner's time.
-3. **Document disagreements.** If two AIs disagree on the same problem, log both perspectives and let the owner decide.
+3. **Document disagreements.** If the two AIs disagree on the same problem, log both perspectives and let the owner decide.
 4. **Kimi executes, never decides.** If Kimi hits an ambiguous situation it stops and flags it rather than guessing.
 5. **No AI touches something outside its current task.** Minimum viable changes only. No scope creep.
 6. **The owner is always the final decision maker.** All AI input is a recommendation.
 
 ### Who Owns What
-- **Security decisions** → Claude leads, ChatGPT reviews
-- **Feature prioritization** → ChatGPT leads, Claude reviews for technical feasibility
-- **Architecture & code patterns** → Claude leads, ChatGPT reviews for product fit
-- **UI/UX decisions** → ChatGPT leads, Claude reviews for implementation complexity
-- **Database schema changes** → Claude leads (RLS, PostGIS, Supabase behavior)
-- **Code execution** → Kimi executes based on plans approved by Claude and/or ChatGPT
+- **Security / RLS / DB schema** → Claude leads (RLS, PostGIS, Supabase behavior); Kimi implements.
+- **Architecture & code patterns** → Claude leads; Kimi implements.
+- **UI/UX decisions** → owner decides; Claude advises on implementation complexity.
+- **Code execution (edits, commits, pushes)** → **Kimi**, based on the task approved after reconciliation.
 
-### Review Process (before anything goes to Kimi)
-1. Owner brings a problem — one AI investigates first and writes findings
-2. Owner takes it to the other AI, which runs its own independent investigation WITHOUT reading the first report until done
-3. Each AI then reads the other's report and confirms, challenges, or flags a disagreement
-4. Owner resolves disagreements
-5. Only after both sign off does an **Approved Task for Kimi** get written
-6. Kimi executes exactly what is written — no interpretation, no decisions
-7. Both reviewers check Kimi's diff before the owner merges/pushes
+### Default Workflow (two-AI loop)
+1. Owner brings a problem. **Both Claude and Kimi run their own independent investigations** (Kimi does not read Claude's findings until done, and vice versa) — **unless it's a small fix and the owner says otherwise**.
+2. **Claude reconciles**: reads both reports, confirms / challenges / flags disagreements; owner resolves any disagreement.
+3. Only after agreement does Claude write the **Approved Task for Kimi**.
+4. **Kimi executes exactly what's written** — edits, then commits and pushes (no interpretation, no decisions).
+5. **Claude Charter-reviews Kimi's diff + verification** (lint/build, logic) before it's considered done.
+6. Claude does **not** commit/push by default — that's Kimi's job now — unless the owner explicitly asks Claude to.
 
 ---
 
