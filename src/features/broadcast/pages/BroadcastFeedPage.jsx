@@ -292,7 +292,6 @@ function BroadcastFeedPage() {
         hasUserLocation={hasUserLocation}
         onLocate={handleRequestLocation}
         usingOfflineSnapshot={usingOfflineSnapshot}
-        geoError={geoError}
         isLiveMapVisible={isLiveMapVisible}
         sheetOpen={sheetOpen}
         needsResumePrompt={needsResumePrompt}

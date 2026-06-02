@@ -83,7 +83,6 @@ const RadarOverlay = memo(function RadarOverlay({
   hasUserLocation,
   onLocate,
   usingOfflineSnapshot,
-  geoError,
   isLiveMapVisible,
   sheetOpen = false,
   // Fix C — resume awareness callbacks from useLiveMapPresence
@@ -503,16 +502,6 @@ const RadarOverlay = memo(function RadarOverlay({
           </div>
         </div>
       </div>
-
-      {/* Location error banner */}
-      {geoError && (
-        <div className="absolute top-32 left-4 right-4 z-[11] flex justify-center">
-          <div className="rounded-2xl border border-white/[0.04] bg-surface/80 backdrop-blur-xl px-4 py-3 text-center shadow-[0_0_20px_hsl(var(--primary)/0.15)]">
-            <p className="text-xs font-bold text-alert">Location access denied</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Enable location in settings to see nearby signals</p>
-          </div>
-        </div>
-      )}
 
       {/* Resume Live? sheet — shown when app reopens with stale live_map_visible = true */}
       <BottomSheet
