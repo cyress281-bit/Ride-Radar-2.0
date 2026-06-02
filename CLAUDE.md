@@ -391,22 +391,19 @@ useEffect(() => {
 
 None blocking.
 
-### 1. On-device verification of shipped moderation/safety fixes (~5 min)
-Sweep 2 + admin/cancel RLS-gap fixes (`ddd8a14`, `0b6646a`, `9e751aa`, `1ceb29c`) passed build + live-RLS checks but were never tapped through on device: **admin "remove content"** on another user's broadcast/message → content disappears; **cancel a sent connection request** → stays gone after refresh; **Bike Down resolve/remove** (Protected Behavior #7) → leaves Radar, still shows "Rider found safe" (only the failure path now toasts instead of false success).
-
-### 2. Slow loading of EXISTING profile images — owner decision needed (not started)
+### 1. Slow loading of EXISTING profile images — owner decision needed (not started)
 Bike photo + shots images are served as **full-resolution public URLs** (stored ≤1600px, rendered in ~150px tiles) with **no resize**. The Supabase org is on the **FREE plan**, so render transforms (`?width=`) are unavailable. `ceb5297` only lowered *new* uploads to 1080px — it does not speed up already-uploaded images. Owner must choose: **(a)** upgrade to Supabase Pro (enables `getPublicUrl({ transform: { width } })`), or **(b)** generate thumbnails at upload time (bigger change; still needs a backfill for existing photos).
 
-### 3. Refactor: share the common bits of `ProfilePage` and `RiderProfilePage` (not started)
+### 2. Refactor: share the common bits of `ProfilePage` and `RiderProfilePage` (not started)
 `ProfilePage` (own profile, `/profile`) and `RiderProfilePage` (another rider, `/profile/:userId`) are two separate components that are meant to look/behave the same but keep **drifting** — a fix lands on one and not the other. Already bitten us 3×: **canDelete** (delete button missing on the `RiderProfilePage` self-view), **force-scroll/portal** (sheets), and **Signals/Shots tab pill alignment**. Extract the shared presentation (tab classes, ambient styles, shots grid, sheet wiring) into one shared piece; keep ownership-specific behavior gated on "is this my profile?" (computed from ownership, like `isOwner`) — **not** by which file. **Safety note:** merging the *look* does not weaken access control — cross-user edits are blocked server-side by RLS (`user_profiles` UPDATE = `user_id = auth.uid()`), regardless of UI. **Do it later as a dedicated effort** (medium-risk, touches two core screens) with a before/after on-device pass on both profile views — NOT mid bug-hunt. Lightweight first step if wanted: just pull the duplicated *constants* (tab class strings, ambient bg styles) into one shared module.
 
-### 4. Radar location gate — Step 3 polish (optional, not started)
+### 3. Radar location gate — Step 3 polish (optional, not started)
 The location gate shipped in two steps: `5ed3c91` (additive `LocationGateOverlay` + chip) and `760f798` (removed the old `geoError` banner). Remaining optional polish: **best-effort auto-dismiss on resume** — when the user enables location in iOS Settings and returns, re-attempt location (hook into `useAppResumeRefresh` / `visibilitychange`) so the gate/chip clear themselves instead of needing a manual tap; and optionally layer in `navigator.permissions.query({name:'geolocation'})` (where supported) to pre-detect "denied" on load. iOS PWA caveat: geolocation needs a user gesture, so full auto-dismiss isn't guaranteed — the chip remains the manual fallback. Pure enhancement; the feature works without it.
 
-### 5. Add "Cancel request" to the profile's "Request sent" state (small UX, not started)
+### 4. Add "Cancel request" to the profile's "Request sent" state (small UX, not started)
 Cancelling an outgoing connection request only works from the **Requests tab** (`RequestsTab.jsx` `OutgoingRequestRow` → `useCancelConnectionRequest`). On `RiderProfilePage`, the outgoing-pending state (`isOutgoingPending`, ~line 571–583) shows a **disabled "Request sent"** button with no cancel — so a user who sent a request and revisits that rider's profile can't retract it from there. Add a cancel action to that state (reuse `useCancelConnectionRequest`; the backend `senders_can_cancel_connection_requests` DELETE policy already allows it). Minor discoverability friction, not a bug. (Surfaced during the 2026-06-02 moderation/safety device verification; confirmed by both Claude + Kimi.)
 
-### 6. Admin Reports: disambiguate "Remove content" vs "Mark resolved" (small UX, not started)
+### 5. Admin Reports: disambiguate "Remove content" vs "Mark resolved" (small UX, not started)
 On `AdminReportsPage`, two actions sit close together: **`removeContent`** (actually deletes/archives the reported content, then resolves — stamps details `content removed/archived`) and a separate **"Mark resolved" / dismiss** action (just closes the report — stamps `Admin marked report resolved`). During the 2026-06-02 verification the owner tapped *Mark resolved* thinking it removed a reported message; the report closed but the message stayed (resolved ≠ removed — DB-confirmed). Not a bug, but easy to confuse. Improve clarity: clearer labels, separation/ordering, or a confirm on the destructive "Remove content". (Always DB-verify admin removals — a resolved report does not imply the content was deleted.)
 
 ## Dead Ends — Approaches Already Tried That Did NOT Work
