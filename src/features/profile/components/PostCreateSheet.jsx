@@ -82,7 +82,10 @@ const PostCreateSheet = memo(function PostCreateSheet({ open, onClose, userId })
       aria-label="Create shot"
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 border-b border-white/[0.06] bg-surface/80 backdrop-blur-xl">
+      <div
+        className="sticky top-0 z-10 flex items-center justify-between px-4 pb-3 border-b border-white/[0.06] bg-surface/80 backdrop-blur-xl"
+        style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top, 0px))' }}
+      >
         <button
           onClick={handleClose}
           disabled={createPost.isPending}

@@ -58,7 +58,10 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId })
       aria-label="Shot"
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 border-b border-white/[0.06] bg-surface/80 backdrop-blur-xl">
+      <div
+        className="sticky top-0 z-10 flex items-center justify-between px-4 pb-3 border-b border-white/[0.06] bg-surface/80 backdrop-blur-xl"
+        style={{ paddingTop: 'calc(0.75rem + env(safe-area-inset-top, 0px))' }}
+      >
         <button
           onClick={onClose}
           className="flex items-center justify-center h-9 w-9 rounded-full hover:bg-white/[0.06] transition-colors"
