@@ -198,7 +198,7 @@ const CommentThread = memo(function CommentThread({
         onKeyDown={handleKeyDown}
         placeholder="Add a comment…"
         disabled={onAdd.isPending}
-        className="flex-1 min-w-0 bg-white/[0.05] border border-white/[0.08] rounded-full px-4 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-white/20 transition-colors disabled:opacity-50"
+        className="flex-1 min-w-0 bg-white/[0.05] border border-white/[0.08] rounded-full px-4 py-2 text-base placeholder:text-muted-foreground/50 focus:outline-none focus:border-white/20 transition-colors disabled:opacity-50"
       />
       <button
         onClick={handleSend}

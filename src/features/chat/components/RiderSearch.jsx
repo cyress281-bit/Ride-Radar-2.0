@@ -221,7 +221,7 @@ function RiderSearch({
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search riders"
           className={cn(
-            'w-full rounded-full border border-white/[0.06] bg-white/[0.05] backdrop-blur-xl pl-10 pr-10 py-3 text-sm text-foreground',
+            'w-full rounded-full border border-white/[0.06] bg-white/[0.05] backdrop-blur-xl pl-10 pr-10 py-3 text-base text-foreground',
             'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/30',
             'transition-all duration-200 shadow-[0_12px_28px_hsl(0_0%_0%/0.18)] hover:bg-white/[0.07] hover:border-white/[0.08]',
           )}

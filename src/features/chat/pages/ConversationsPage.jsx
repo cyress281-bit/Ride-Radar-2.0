@@ -217,7 +217,7 @@ function ConversationsPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search conversations..."
                 className={cn(
-                  'w-full rounded-full border border-white/[0.06] bg-surface/70 py-3 pl-10 pr-4 text-sm text-foreground backdrop-blur-xl',
+                  'w-full rounded-full border border-white/[0.06] bg-surface/70 py-3 pl-10 pr-4 text-base text-foreground backdrop-blur-xl',
                   'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-primary/30 focus-visible:ring-1 focus-visible:ring-primary/40',
                   'shadow-[0_12px_28px_hsl(0_0%_0%/0.18)] transition-all duration-200 hover:border-white/[0.08] hover:bg-surface/85',
                 )}
