@@ -1,4 +1,5 @@
 import { memo, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Flag, X } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { Text } from '@/components/ui/primitives/Text';
@@ -79,7 +80,7 @@ const ReportButton = memo(function ReportButton({
         <span className="text-xs font-medium">Report</span>
       </button>
 
-      {showModal && (
+      {showModal && createPortal(
         <div
           className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 px-4 pb-[calc(var(--rr-nav-h)+var(--rr-safe-area-bottom,env(safe-area-inset-bottom,0px))+1rem)] pt-20 backdrop-blur-sm sm:items-center sm:pb-4"
           onClick={handleClose}
@@ -131,7 +132,8 @@ const ReportButton = memo(function ReportButton({
               </VStack>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
