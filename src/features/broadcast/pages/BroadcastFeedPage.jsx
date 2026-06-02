@@ -16,6 +16,7 @@ import PageLoader from '@/components/shared/PageLoader';
 import RadarOverlay from '@/features/broadcast/components/RadarOverlay';
 import RadarBottomSheet from '@/features/broadcast/components/RadarBottomSheet';
 import LocationDisclosureDialog, { hasSeenLocationDisclosure } from '@/components/shared/LocationDisclosureDialog';
+import LocationGateOverlay from '@/features/broadcast/components/LocationGateOverlay';
 
 function readRadarOfflineSnapshot() {
   try {
@@ -66,7 +67,7 @@ function BroadcastFeedPage() {
   const isOnline = useOnlineStatus();
   const radarViewport = useRadarViewport();
 
-  const { userLoc, hasUserLocation, geoError, effectiveLoc, requestLocation } = useRadarLocation();
+  const { userLoc, hasUserLocation, geoError, locating, effectiveLoc, requestLocation } = useRadarLocation();
   const locationState = location.state && typeof location.state === 'object' ? location.state : null;
   const initialSheetOpen = locationState?.radarSheetOpen === true;
   const {
@@ -82,6 +83,7 @@ function BroadcastFeedPage() {
   const [offlineSnapshot, setOfflineSnapshot] = useState(readRadarOfflineSnapshot);
   const [locateCount, setLocateCount] = useState(0);
   const [showLocationDisclosure, setShowLocationDisclosure] = useState(false);
+  const [gateDismissed, setGateDismissed] = useState(false);
 
   const handleRequestLocation = useCallback(() => {
     if (hasUserLocation) {
@@ -273,6 +275,17 @@ function BroadcastFeedPage() {
           />
         </Suspense>
       </div>
+
+      <LocationGateOverlay
+        hasUserLocation={hasUserLocation}
+        geoError={geoError}
+        locating={locating}
+        usingOfflineSnapshot={usingOfflineSnapshot}
+        dismissed={gateDismissed}
+        onEnable={handleRequestLocation}
+        onDismiss={() => setGateDismissed(true)}
+        onReopen={() => setGateDismissed(false)}
+      />
 
       <RadarOverlay
         activeCount={activeCount}
