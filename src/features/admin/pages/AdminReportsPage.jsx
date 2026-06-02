@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
@@ -11,6 +11,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils.js';
 
 import { timeAgo } from '@/lib/broadcastUtils.js';
 import { supabase } from '@/lib/supabase.js';
@@ -61,6 +62,7 @@ export default function AdminReportsPage() {
 function AdminReportsContent() {
   const qc = useQueryClient();
   const { reports, profiles, broadcasts, isLoading } = useAdminData();
+  const [statusFilter, setStatusFilter] = useState('active');
 
   const reportsData = reports.data?.data || [];
   const profilesData = profiles.data?.data || [];
@@ -95,6 +97,12 @@ function AdminReportsContent() {
 
     return summary;
   }, [reportsData]);
+
+  const visibleReports = reportsData.filter((r) => {
+    if (statusFilter === 'active') return r.status === 'open' || r.status === 'reviewed';
+    if (statusFilter === 'resolved') return r.status === 'resolved' || r.status === 'dismissed';
+    return true;
+  });
 
   const profileByUserId = useMemo(
     () => new Map(profilesData.map((p) => [p.user_id || p.id, p])),
@@ -346,15 +354,35 @@ function AdminReportsContent() {
 
   return (
     <AdminLayout>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <h2 className="font-display text-xl font-bold">Reports</h2>
-        <span className="text-xs text-muted-foreground">
-          {reportsData.filter((r) => r.status === 'open' || r.status === 'reviewed').length} open
-        </span>
+        <span className="text-xs text-muted-foreground">{visibleReports.length} shown</span>
+      </div>
+
+      <div className="mb-4 flex gap-1.5">
+        {[
+          { key: 'active', label: 'Active' },
+          { key: 'resolved', label: 'Resolved' },
+          { key: 'all', label: 'All' },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setStatusFilter(key)}
+            className={cn(
+              'rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
+              statusFilter === key
+                ? 'border border-primary/25 bg-primary/15 text-primary'
+                : 'border border-border bg-surface text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <div className="space-y-3">
-        {reportsData.map((report) => {
+        {visibleReports.map((report) => {
           const reporter = profileByUserId.get(
             report.reporter_user_id || report.reporter_profile_id
           );
@@ -541,10 +569,10 @@ function AdminReportsContent() {
           );
         })}
 
-        {reportsData.length === 0 && (
+        {visibleReports.length === 0 && (
           <div className="rounded-[20px] border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             <ShieldAlert className="mx-auto mb-2 h-6 w-6 text-primary" />
-            No reports submitted.
+            {reportsData.length === 0 ? 'No reports submitted.' : 'No reports in this view.'}
           </div>
         )}
       </div>
