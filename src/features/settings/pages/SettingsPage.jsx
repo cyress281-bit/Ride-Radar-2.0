@@ -502,6 +502,11 @@ function SettingsPage() {
             </HStack>
           </div>
         )}
+        <div className="border-t border-border/40 px-4 py-4">
+          <Text variant="caption" color="muted" className="leading-relaxed">
+            <span className="font-semibold text-foreground/90">About your location</span> — Ride Radar uses your location only while the app is open, and only shares it with other riders when you go live or post a signal. Turning off &quot;Show me on the live map&quot; hides you from others. To turn off location access completely, go to iPhone Settings &rarr; Privacy &amp; Security &rarr; Location Services.
+          </Text>
+        </div>
         <div className="border-t border-border/40">
           <SettingsRow
             icon={ChartNoAxesColumn}
