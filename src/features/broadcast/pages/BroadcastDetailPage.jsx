@@ -478,14 +478,14 @@ function RsvpAttendeeSheet({ userIds, profiles, label, onClose }) {
     <>
       <div
         className="fixed inset-x-0 top-0 z-[55] bg-black/60"
-        style={{ bottom: 'calc(70px + var(--rr-safe-area-bottom, 0px))' }}
+        style={{ bottom: 'calc(var(--rr-nav-h, 56px) + 14px + var(--rr-safe-area-bottom, 0px))' }}
         onClick={onClose}
       />
       <div
         className="fixed left-0 right-0 z-[60] rounded-t-[28px] bg-surface border-t border-white/[0.06] px-5 pt-5 pb-6 overflow-y-auto"
         style={{
-          bottom: 'calc(70px + var(--rr-safe-area-bottom, 0px))',
-          maxHeight: 'calc(70vh - 70px - var(--rr-safe-area-bottom, 0px))',
+          bottom: 'calc(var(--rr-nav-h, 56px) + 14px + var(--rr-safe-area-bottom, 0px))',
+          maxHeight: 'calc(70vh - var(--rr-nav-h, 56px) - 14px - var(--rr-safe-area-bottom, 0px))',
         }}
       >
         <div className="flex items-center justify-between mb-4">
