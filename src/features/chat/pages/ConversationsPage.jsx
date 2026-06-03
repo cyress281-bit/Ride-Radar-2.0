@@ -1,4 +1,4 @@
-import React, { useMemo, memo, useState, useCallback } from 'react';
+import React, { useMemo, memo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
@@ -8,10 +8,8 @@ import { useConnectionRequests } from '@/features/connections/hooks/use-connecti
 import ConversationList from '@/features/chat/components/ConversationList.jsx';
 import CrewTab from '@/features/chat/components/CrewTab.jsx';
 import RequestsTab from '@/features/chat/components/RequestsTab.jsx';
-import RiderSearch from '@/features/chat/components/RiderSearch.jsx';
 import { supabase } from '@/lib/supabase.js';
-import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
-import { MessageSquare, Search, RefreshCw, UserPlus, Users } from 'lucide-react';
+import { MessageSquare, Search, UserPlus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { HStack, VStack } from '@/components/ui/primitives/Stack';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -31,13 +29,10 @@ function ConversationsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
 
   const [activeTab, setActiveTab] = useState(() => location.state?.tab === 'crew' ? 'crew' : 'chats');
   const { data: conversations = [], isLoading, isError, error, refetch } = useConversations();
   const { data: pendingRequests = [] } = useConnectionRequests();
-  const { blockedIds } = useBlockedIds();
   const pendingCount = pendingRequests.length;
 
   const { data: readNotifications = [] } = useQuery({
@@ -90,12 +85,6 @@ function ConversationsPage() {
     });
   }, [conversations, searchQuery, profiles, user?.id]);
 
-  const handleRefresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await refetch();
-    setTimeout(() => setIsRefreshing(false), 600);
-  }, [refetch]);
-
   return (
     <div className="relative bg-background min-h-dvh">
       <div
@@ -118,44 +107,7 @@ function ConversationsPage() {
         }}
       />
       <VStack gap={4} className="relative mx-auto max-w-2xl px-4 pb-8 pt-4">
-        <div className="rounded-[1.35rem] border border-white/[0.05] bg-background/35 backdrop-blur-xl shadow-[0_18px_60px_hsl(0_0%_0%/0.28)]">
-          <HStack justify="end" align="center" className="px-2 py-2.5">
-            <HStack gap={2} align="center">
-              <button
-                type="button"
-                onClick={() => setShowSearch((s) => !s)}
-                className={cn(
-                  'flex items-center justify-center rounded-full border p-2.5 transition-all active:scale-95 shadow-[0_10px_24px_hsl(0_0%_0%/0.22)]',
-                  showSearch
-                    ? 'border-primary/35 bg-primary/15 text-primary'
-                    : 'border-white/[0.06] bg-white/[0.04] text-muted-foreground backdrop-blur-xl hover:border-white/[0.1] hover:bg-white/[0.07] hover:text-foreground',
-                )}
-                aria-label={showSearch ? 'Close rider search' : 'Find riders'}
-              >
-                <Search className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={handleRefresh}
-                disabled={isRefreshing || isLoading}
-                className={cn(
-                  'flex items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.04] p-2.5 backdrop-blur-xl transition-all',
-                  'shadow-[0_10px_24px_hsl(0_0%_0%/0.22)] hover:border-white/[0.1] hover:bg-white/[0.07] hover:text-foreground active:scale-95 disabled:opacity-50',
-                )}
-                aria-label="Refresh"
-              >
-                <RefreshCw className={cn('h-4 w-4 text-muted-foreground', isRefreshing && 'animate-spin')} />
-              </button>
-            </HStack>
-          </HStack>
-
-          {showSearch && (
-            <div className="animate-fade-up px-2 pb-2">
-              <RiderSearch currentUserId={user?.id} blockedIds={blockedIds} showActions={false} />
-            </div>
-          )}
-
-          <HStack gap={2} className="px-2 pb-2">
+        <HStack gap={2} className="px-2 pb-2">
             <button
               type="button"
               onClick={() => setActiveTab('chats')}
@@ -201,7 +153,6 @@ function ConversationsPage() {
               )}
             </button>
           </HStack>
-        </div>
 
         {activeTab === 'chats' && (
           <>

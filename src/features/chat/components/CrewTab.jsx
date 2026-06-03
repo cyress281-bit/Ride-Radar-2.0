@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useFriendships, useRemoveFriendship } from '@/features/connections/hooks/use-friendships.js';
+import { useConnectionRequests, useSentRequests } from '@/features/connections/hooks/use-connection-requests.js';
 import { useProfileBatch } from '@/hooks/use-profile-batch.js';
 import { getOrCreateConversation } from '@/lib/conversationUtils.js';
 import { useBlockedIds } from '@/hooks/use-blocked-ids.js';
+import RiderSearch from '@/features/chat/components/RiderSearch.jsx';
 import { toast } from 'sonner';
 import { AvatarWithStatus } from '@/components/shared/AvatarWithStatus';
 import { Text } from '@/components/ui/primitives/Text';
@@ -135,6 +137,8 @@ function CrewTab() {
   const { user } = useAuthState();
   const { data: friendships = [] } = useFriendships();
   const { blockedIds } = useBlockedIds();
+  const { data: pendingRequests = [] } = useConnectionRequests();
+  const { data: sentRequests = [] } = useSentRequests();
 
   const visibleFriendships = useMemo(() => friendships.filter((f) => {
     const friendId = f.user_a_id === user?.id ? f.user_b_id : f.user_a_id;
@@ -149,7 +153,15 @@ function CrewTab() {
   const { profiles } = useProfileBatch(friendIds);
 
   return (
-    <VStack gap={2} className="pb-8">
+    <VStack gap={4} className="pb-8">
+      <RiderSearch
+        currentUserId={user?.id}
+        friendships={visibleFriendships}
+        sentRequests={sentRequests}
+        pendingRequests={pendingRequests}
+        blockedIds={blockedIds}
+        showActions={true}
+      />
       {visibleFriendships.length === 0 ? (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl mb-4 shadow-[0_12px_30px_hsl(0_0%_0%/0.18)]">
