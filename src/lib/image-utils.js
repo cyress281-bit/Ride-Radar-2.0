@@ -18,12 +18,12 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 /** @type {Record<string, number>} */
 const MAX_FILE_SIZES = {
-  avatar:   5 * 1024 * 1024,
-  bike:     5 * 1024 * 1024,
-  event:   10 * 1024 * 1024,
-  alert:   10 * 1024 * 1024,
-  post:    10 * 1024 * 1024,
-  message:  5 * 1024 * 1024,
+  avatar:  25 * 1024 * 1024,
+  bike:    25 * 1024 * 1024,
+  event:   25 * 1024 * 1024,
+  alert:   25 * 1024 * 1024,
+  post:    25 * 1024 * 1024,
+  message: 25 * 1024 * 1024,
 };
 
 export const PRIVATE_MESSAGE_IMAGE_BUCKET = 'message-images';
