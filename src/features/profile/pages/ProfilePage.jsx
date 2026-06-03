@@ -11,7 +11,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { Edit2, Settings, Radio, Users, ShieldCheck, Bike, Camera, Images } from 'lucide-react';
 import { Badge } from '@/components/shared/Badge';
-import ProfileEditForm from '@/features/profile/components/ProfileEditForm';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { isExpired, timeAgo } from '@/lib/broadcastUtils';
 import { LoadingState } from '@/components/shared/LoadingState';
@@ -55,7 +54,6 @@ function ProfilePage() {
   const { user, profile } = useAuthState();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [editing, setEditing] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
   useEffect(() => {
@@ -173,18 +171,6 @@ function ProfilePage() {
     );
   }
 
-  if (editing) {
-    return (
-      <div className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up bg-background min-h-dvh">
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
-        <div className="relative z-10">
-          <ProfileEditForm profile={displayProfile} onDone={() => setEditing(false)} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <VStack gap={4} className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up bg-background min-h-dvh">
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
@@ -294,7 +280,7 @@ function ProfilePage() {
             {/* Action Button */}
             <div className="mt-1 flex w-full justify-center">
               <button
-                onClick={() => setEditing(true)}
+                onClick={() => navigate('/profile/edit')}
                 className={cn(
                   'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-5 py-2.5',
                   'border border-white/[0.10] bg-black/20 text-sm font-bold text-foreground backdrop-blur-xl',

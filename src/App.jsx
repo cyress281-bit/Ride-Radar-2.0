@@ -53,6 +53,7 @@ const SettingsPage = lazy(() => import('./features/settings/pages/SettingsPage')
 const AccountPage = lazy(() => import('./features/settings/pages/AccountPage'));
 const BlockedUsersPage = lazy(() => import('./features/settings/pages/BlockedUsersPage'));
 const ProfilePage = lazy(() => import('./features/profile/pages/ProfilePage'));
+const ProfileEditPage = lazy(() => import('./features/profile/pages/ProfileEditPage'));
 const RiderProfilePage = lazy(() => import('./features/profile/pages/RiderProfilePage'));
 const OnboardingPage = lazy(() => import('./features/auth/pages/OnboardingPage'));
 const ReviewReadinessPage = lazy(() => import('./features/safety/pages/ReviewReadinessPage'));
@@ -425,6 +426,7 @@ const AppContent = memo(function AppContent() {
           <Route path="/settings/account" element={<AccountPage />} />
           <Route path="/settings/blocked-users" element={<BlockedUsersPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/edit" element={<ProfileEditPage />} />
           <Route path="/profile/:userId" element={<ValidateUUIDParam param="userId"><RiderProfilePage /></ValidateUUIDParam>} />
           <Route path="/review-readiness" element={<ReviewReadinessPage />} />
           <Route path="/community-guidelines" element={<CommunityGuidelinesPage />} />
