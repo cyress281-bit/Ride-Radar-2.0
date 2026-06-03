@@ -28,6 +28,9 @@ import {
   UserMinus,
   Users,
   RefreshCw,
+  MoreHorizontal,
+  Flag,
+  ShieldOff,
 } from 'lucide-react';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/shared/OptimizedImage';
@@ -35,6 +38,13 @@ import { RideCard } from '@/components/shared/RideCard';
 import { isExpired } from '@/lib/broadcastUtils';
 import { useBroadcastsByAuthor } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { useIsBlocked } from '@/features/safety/hooks/use-blocks.js';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useIsFriend, useRemoveFriendship, friendshipKeys } from '@/features/connections/hooks/use-friendships.js';
 import { getFriendshipsCount } from '@/features/connections/api/connections-api.js';
 import {
@@ -111,6 +121,7 @@ function RiderProfilePage() {
   const isFriend = isFriendActive;
 
   const [confirmingRemove, setConfirmingRemove] = useState(false);
+  const [safetyMode, setSafetyMode] = useState(null);
   const { mutate: removeFriend, isPending: isRemovingFriend } = useRemoveFriendship();
 
   useEffect(() => {
@@ -472,29 +483,16 @@ function RiderProfilePage() {
             {!isMeRoute && !isBlocked && (
               <>
                 {isConnected ? (
-                  <HStack gap={2} className="w-full mt-1">
-                    <button
-                      onClick={() => openFriendChat.mutate()}
-                      disabled={openFriendChat.isPending || isRemovingFriend}
-                      className={cn(
-                        'flex-1 flex items-center justify-center gap-2 rounded-full',
-                        'bg-brand-radar text-primary-foreground px-5 py-2.5 text-sm font-bold',
-                        'transition-all hover:bg-brand-radar/90 pressable',
-                        'shadow-[0_4px_20px_hsl(var(--brand-radar)/0.35)]',
-                        'disabled:opacity-50'
-                      )}
-                    >
-                      <MessageCircle className="h-4 w-4" /> Message
-                    </button>
+                  <VStack gap={2} className="w-full mt-1">
                     {confirmingRemove ? (
-                      <>
+                      <HStack gap={2} className="w-full">
                         <button
                           type="button"
                           onClick={() => setConfirmingRemove(false)}
                           disabled={isRemovingFriend}
                           className={cn(
-                            'flex items-center justify-center rounded-full border border-white/[0.08]',
-                            'bg-surface/60 px-3 py-2.5 text-xs font-semibold text-muted-foreground',
+                            'flex-1 flex items-center justify-center rounded-full border border-white/[0.08]',
+                            'bg-surface/60 px-5 py-2.5 text-sm font-semibold text-muted-foreground',
                             'transition-all hover:text-foreground hover:bg-surface-elevated pressable',
                             'disabled:opacity-50'
                           )}
@@ -506,32 +504,78 @@ function RiderProfilePage() {
                           onClick={() => friendship?.id && removeFriend(friendship.id)}
                           disabled={isRemovingFriend || !friendship?.id}
                           className={cn(
-                            'flex items-center justify-center gap-1.5 rounded-full',
+                            'flex-1 flex items-center justify-center gap-1.5 rounded-full',
                             'bg-brand-emergency/10 border border-brand-emergency/30 text-brand-emergency',
-                            'px-3 py-2.5 text-xs font-bold',
+                            'px-5 py-2.5 text-sm font-bold',
                             'transition-all hover:bg-brand-emergency/20 pressable',
                             'disabled:opacity-50'
                           )}
                         >
-                          {isRemovingFriend && <Loader2 className="h-3 w-3 animate-spin" />}
-                          Remove
+                          {isRemovingFriend && <Loader2 className="h-4 w-4 animate-spin" />}
+                          Remove friend
                         </button>
-                      </>
+                      </HStack>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => setConfirmingRemove(true)}
-                        className={cn(
-                          'flex items-center justify-center gap-1.5 rounded-full',
-                          'border border-brand-emergency/20 text-brand-emergency/70',
-                          'px-3 py-2.5 text-xs font-semibold',
-                          'transition-all hover:border-brand-emergency/40 hover:text-brand-emergency hover:bg-brand-emergency/10 pressable',
-                        )}
-                      >
-                        <UserMinus className="h-3.5 w-3.5" /> Unfriend
-                      </button>
+                      <HStack gap={2} className="w-full">
+                        <button
+                          onClick={() => openFriendChat.mutate()}
+                          disabled={openFriendChat.isPending}
+                          className={cn(
+                            'flex-1 flex items-center justify-center gap-2 rounded-full',
+                            'bg-brand-radar text-primary-foreground px-5 py-2.5 text-sm font-bold',
+                            'transition-all hover:bg-brand-radar/90 pressable',
+                            'shadow-[0_4px_20px_hsl(var(--brand-radar)/0.35)]',
+                            'disabled:opacity-50'
+                          )}
+                        >
+                          <MessageCircle className="h-4 w-4" /> Message
+                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              className={cn(
+                                'flex h-11 w-11 items-center justify-center rounded-full',
+                                'border border-white/[0.08] bg-surface/60 text-muted-foreground',
+                                'transition-all hover:text-foreground hover:bg-surface-elevated pressable'
+                              )}
+                              aria-label="More options"
+                            >
+                              <MoreHorizontal className="h-5 w-5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="min-w-[160px]">
+                            <DropdownMenuItem onClick={() => setSafetyMode('report')}>
+                              <Flag className="h-3.5 w-3.5 mr-2" />
+                              Report User
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSafetyMode('block')}>
+                              <ShieldOff className="h-3.5 w-3.5 mr-2" />
+                              Block User
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => setConfirmingRemove(true)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <UserMinus className="h-3.5 w-3.5 mr-2" />
+                              Unfriend
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </HStack>
                     )}
-                  </HStack>
+
+                    {safetyMode && (
+                      <SafetyActions
+                        initialMode={safetyMode}
+                        onClose={() => setSafetyMode(null)}
+                        targetType="user"
+                        targetId={profile.user_id}
+                        targetProfileId={profile.user_id}
+                      />
+                    )}
+                  </VStack>
                 ) : isIncomingPending ? (
                   <VStack gap={2} className="w-full mt-1">
                     <Text variant="micro" color="muted" align="center">
