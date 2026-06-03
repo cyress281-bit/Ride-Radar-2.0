@@ -474,7 +474,7 @@
   }
   /* Combined safe-area + fixed spacing utilities for nav-aware layouts */
   .pb-nav-safe {
-    padding-bottom: calc(4.5rem + var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)));
+    padding-bottom: calc(var(--rr-nav-h, 4.5rem) + var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)));
   }
 
   /* ---------- Standardized Shadows ---------- */

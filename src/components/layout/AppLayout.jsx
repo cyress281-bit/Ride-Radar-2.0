@@ -70,6 +70,7 @@ export const RouteTransitionFallback = memo(function RouteTransitionFallback() {
 const AppLayout = memo(function AppLayout() {
   const { pathname } = useLocation();
   const isRadar = pathname === '/home';
+  const isMainRoute = pathname === '/home' || pathname === '/messages' || pathname === '/profile';
   const [hasUpdateAvailable, setHasUpdateAvailable] = useState(getPendingServiceWorkerUpdateState());
   const [isRefreshingUpdate, setIsRefreshingUpdate] = useState(false);
 
@@ -83,7 +84,8 @@ const AppLayout = memo(function AppLayout() {
     const html = document.documentElement;
     html.style.setProperty('--rr-viewport-height', `${viewportHeight}px`);
     html.style.setProperty('--rr-keyboard-height', `${keyboardHeight}px`);
-  }, [viewportHeight, keyboardHeight]);
+    html.style.setProperty('--rr-nav-h', isMainRoute ? '56px' : '0px');
+  }, [viewportHeight, keyboardHeight, isMainRoute]);
 
   // PWA cold-start settle nudge:
   // Installed iOS PWA pages can start with a shorter viewport until the
@@ -311,7 +313,7 @@ const AppLayout = memo(function AppLayout() {
       </main>
 
       {/* Bottom navigation */}
-      <BottomNav isOverlay={isRadar} />
+      {isMainRoute && <BottomNav isOverlay={isRadar} />}
     </div>
   );
 });
