@@ -9,7 +9,7 @@ import { useState, useMemo, memo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
-import { Edit2, Settings, Radio, Users, ShieldCheck, Bike, Camera, Images } from 'lucide-react';
+import { Edit2, Settings, Radio, Users, ShieldCheck, Bike, Images } from 'lucide-react';
 import { Badge } from '@/components/shared/Badge';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { isExpired, timeAgo } from '@/lib/broadcastUtils';
@@ -351,47 +351,13 @@ function ProfilePage() {
               message={postsError?.message || 'Could not load shots.'}
               onRetry={refetchPosts}
             />
-          ) : posts.length === 0 ? (
-            <VStack gap={4}>
-              <button
-                onClick={() => setCreateSheetOpen(true)}
-                className={cn(
-                  'w-full flex items-center justify-center gap-2 rounded-full',
-                  'border border-primary/20 bg-primary/95 px-5 py-2.5 text-sm font-bold text-primary-foreground',
-                  'transition-all hover:bg-primary active:scale-95',
-                  'shadow-[0_10px_28px_hsl(var(--primary)/0.28)]'
-                )}
-              >
-                <Camera className="h-4 w-4" />
-                Add Shot
-              </button>
-              <EmptyState
-                icon={Images}
-                title="No shots yet"
-                description="Share bike photos, ride moments, or group shots here."
-                className="border-white/[0.08] bg-transparent"
-              />
-            </VStack>
           ) : (
-            <VStack gap={4}>
-              <button
-                onClick={() => setCreateSheetOpen(true)}
-                className={cn(
-                  'w-full flex items-center justify-center gap-2 rounded-full',
-                  'border border-primary/20 bg-primary/95 px-5 py-2.5 text-sm font-bold text-primary-foreground',
-                  'transition-all hover:bg-primary active:scale-95',
-                  'shadow-[0_10px_28px_hsl(var(--primary)/0.28)]'
-                )}
-              >
-                <Camera className="h-4 w-4" />
-                Add Shot
-              </button>
-              <PostGrid
-                posts={posts}
-                onPostClick={setSelectedPost}
-                currentUserId={user?.id}
-              />
-            </VStack>
+            <PostGrid
+              posts={posts}
+              onPostClick={setSelectedPost}
+              currentUserId={user?.id}
+              onAddPost={() => setCreateSheetOpen(true)}
+            />
           )}
 
           {createSheetOpen && (
