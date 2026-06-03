@@ -76,7 +76,7 @@ const ResultCard = memo(function ResultCard({
       <button
         type="button"
         onClick={() => navigate(`/profile/${uid}`)}
-        className="flex items-center gap-3 p-3.5 w-full rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl text-left hover:bg-white/[0.06] active:scale-[0.99] transition-colors shadow-[0_12px_32px_hsl(0_0%_0%/0.18)]"
+        className="flex items-center gap-3 p-3.5 w-full rounded-2xl border border-white/[0.06] text-left hover:bg-white/[0.02] active:scale-[0.99] transition-colors"
       >
         <AvatarWithStatus
           url={result.avatar_url}
@@ -95,7 +95,7 @@ const ResultCard = memo(function ResultCard({
   }
 
   return (
-    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl shadow-[0_12px_32px_hsl(0_0%_0%/0.18)]">
+    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.06]">
       <button
         type="button"
         onClick={() => navigate(`/profile/${uid}`)}
