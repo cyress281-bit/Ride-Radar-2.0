@@ -129,8 +129,8 @@ const ResultCard = memo(function ResultCard({
             disabled={openChat.isPending}
             className={cn(
               'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors',
-              'bg-brand-radar/10 border border-brand-radar/20 text-brand-radar',
-              'hover:bg-brand-radar/20 disabled:opacity-50',
+              'bg-transparent border border-brand-radar text-brand-radar',
+              'hover:bg-brand-radar/10 disabled:opacity-50',
             )}
           >
             {openChat.isPending

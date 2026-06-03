@@ -508,9 +508,8 @@ function RiderProfilePage() {
                           disabled={openFriendChat.isPending}
                           className={cn(
                             'flex-1 flex items-center justify-center gap-2 rounded-full',
-                            'bg-brand-radar text-primary-foreground px-5 py-2.5 text-sm font-bold',
-                            'transition-all hover:bg-brand-radar/90 pressable',
-                            'shadow-[0_4px_20px_hsl(var(--brand-radar)/0.35)]',
+                            'bg-transparent border border-brand-radar text-brand-radar px-5 py-2.5 text-sm font-bold',
+                            'transition-all hover:bg-brand-radar/10 pressable',
                             'disabled:opacity-50'
                           )}
                         >
