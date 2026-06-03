@@ -34,13 +34,12 @@ const PostGrid = memo(function PostGrid({
       )}
 
       {posts.length === 0 ? (
-        <div className="rounded-2xl border border-white/[0.08] p-5">
-          <EmptyState
-            icon={Camera}
-            title="No shots yet"
-            description={emptyDescription}
-          />
-        </div>
+        <EmptyState
+          icon={Camera}
+          title="No shots yet"
+          description={emptyDescription}
+          className="border-white/[0.08] bg-transparent"
+        />
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {posts.map((post) => {

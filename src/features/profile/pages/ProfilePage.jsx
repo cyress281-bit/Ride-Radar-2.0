@@ -319,13 +319,12 @@ function ProfilePage() {
               onRetry={refetchBroadcasts}
             />
           ) : active.length === 0 ? (
-            <div className="rounded-2xl border border-white/[0.08] p-5">
-              <EmptyState
-                icon={Radio}
-                title="No active signals"
-                description="Your active ride signals will appear here."
-              />
-            </div>
+            <EmptyState
+              icon={Radio}
+              title="No active signals"
+              description="Your active ride signals will appear here."
+              className="border-white/[0.08] bg-transparent"
+            />
           ) : (
             <>
               <div className="divide-y divide-white/[0.06]">
@@ -366,13 +365,12 @@ function ProfilePage() {
                 <Camera className="h-4 w-4" />
                 Add Shot
               </button>
-              <div className="rounded-2xl border border-white/[0.08] p-5">
-                <EmptyState
-                  icon={Images}
-                  title="No shots yet"
-                  description="Share bike photos, ride moments, or group shots here."
-                />
-              </div>
+              <EmptyState
+                icon={Images}
+                title="No shots yet"
+                description="Share bike photos, ride moments, or group shots here."
+                className="border-white/[0.08] bg-transparent"
+              />
             </VStack>
           ) : (
             <VStack gap={4}>
