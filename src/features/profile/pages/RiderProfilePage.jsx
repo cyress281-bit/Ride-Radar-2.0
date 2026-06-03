@@ -465,20 +465,6 @@ function RiderProfilePage() {
               </HStack>
             )}
 
-            {!isMeRoute && canSeeDetails && profile?.avatar_url && (
-              <div className="mt-1 flex w-full items-center justify-between gap-3">
-                <Text variant="micro" color="muted">Report avatar</Text>
-                <SafetyActions
-                  targetType="image"
-                  targetId={profile.user_id}
-                  targetProfileId={profile.user_id}
-                  targetContext={{ image_kind: 'avatar', image_url: profile.avatar_url }}
-                  compact
-                  className="justify-end"
-                />
-              </div>
-            )}
-
             {/* Action Buttons */}
             {!isMeRoute && !isBlocked && (
               <>
@@ -666,19 +652,7 @@ function RiderProfilePage() {
             title="Bike"
             bikeLabel={bikeLabel}
           />
-          {!isMeRoute && profile?.bike_photo_url && (
-            <div className="mt-2 flex w-full items-center justify-between gap-3">
-              <Text variant="micro" color="muted">Report bike photo</Text>
-              <SafetyActions
-                targetType="image"
-                targetId={profile.user_id}
-                targetProfileId={profile.user_id}
-                targetContext={{ image_kind: 'bike_photo', image_url: profile.bike_photo_url }}
-                compact
-                className="justify-end"
-              />
-            </div>
-          )}
+
         </>
       )}
 
