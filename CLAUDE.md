@@ -11,6 +11,9 @@ Before doing anything else each session:
 
 > There is no standing "current task." Recent work lives in `git log`. This file holds only evergreen guidance + still-open obligations (see **Deferred Follow-Ups**).
 
+### ⏭️ Next Scheduled Task — Full E2E App Integrity Audit (starts 2026-06-04)
+The next planned effort is the deepest end-to-end inspection we've run: an evidence-enforced, fabrication-resistant audit of every backend-dependent frontend capability. **Full spec + phase/stage map:** [`E2E_INTEGRITY_AUDIT.md`](./E2E_INTEGRITY_AUDIT.md). **Inspection only — no edits / fixes / commits during the audit.** Structure: Phase 0 (schema catalog) → Phase 1 Tier-1 areas (6) → Phase 2 Tier-2 (6) → Phase 3 Tier-3 (2) → Phase 4 global lenses (7) → Phase 5 consolidation + device script (2) = **24 stages**. One Stage per Kimi run; Claude reconciles (self-verification sample + independent re-check of every Blocker/High claim) before the next Stage starts. Hand Kimi one Stage at a time from the spec file. Day-one goal (2026-06-04): get at least halfway.
+
 ---
 
 ## AI Team Charter
