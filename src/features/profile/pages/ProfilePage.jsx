@@ -45,10 +45,10 @@ const profileAmbientBottomStyle = {
 };
 
 const profileTabsListClass =
-  'w-full grid grid-cols-2 h-auto rounded-full border border-white/[0.08] bg-surface/82 p-1.5 shadow-[0_16px_48px_hsl(0_0%_0%/0.30)] backdrop-blur-2xl';
+  'w-full flex justify-center gap-6 h-auto bg-transparent border-0 rounded-none p-0';
 
 const profileTabsTriggerClass =
-  'inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-all data-[state=active]:bg-primary/14 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_1px_0_hsl(0_0%_100%/0.08),0_0_18px_hsl(var(--primary)/0.16)]';
+  'inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-all data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none';
 
 function ProfilePage() {
   const { user, profile } = useAuthState();
@@ -172,17 +172,12 @@ function ProfilePage() {
   }
 
   return (
-    <VStack gap={4} className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up bg-background min-h-dvh">
+    <VStack gap={6} className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up bg-background min-h-dvh">
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
 
-      {/* Identity Card */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-surface/88 shadow-[0_24px_80px_hsl(0_0%_0%/0.40),0_0_0_1px_hsl(var(--primary)/0.04),inset_0_1px_0_hsl(0_0%_100%/0.05)] backdrop-blur-2xl">
-        {/* Subtle radial glow */}
-        <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-brand-radar/[0.06] blur-3xl pointer-events-none" />
-
-        <div className="relative p-6">
+      {/* Identity */}
+      <div className="relative pt-2 pb-6 border-b border-white/[0.06]">
           <Link
             to="/settings"
             aria-label="Settings"
@@ -242,7 +237,7 @@ function ProfilePage() {
             )}
 
             {bikeLabel && (
-              <HStack align="center" gap={2} className="max-w-full min-w-0 rounded-full border border-primary/20 bg-primary/[0.10] px-3 py-1.5 text-primary shadow-[0_0_20px_hsl(var(--primary)/0.10)]">
+              <HStack align="center" gap={2} className="max-w-full min-w-0 text-primary">
                 <Bike className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                 <Text variant="micro" className="min-w-0 truncate font-semibold text-primary">
                   {bikeLabel}
@@ -294,7 +289,6 @@ function ProfilePage() {
               </button>
             </div>
           </VStack>
-        </div>
       </div>
 
       <ProfileBikePhotoCard
@@ -325,7 +319,7 @@ function ProfilePage() {
               onRetry={refetchBroadcasts}
             />
           ) : active.length === 0 ? (
-            <div className="surface-card rounded-2xl border border-white/[0.08] bg-surface/84 p-5 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
+            <div className="rounded-2xl border border-white/[0.08] p-5">
               <EmptyState
                 icon={Radio}
                 title="No active signals"
@@ -334,7 +328,7 @@ function ProfilePage() {
             </div>
           ) : (
             <>
-              <div className="overflow-hidden divide-y divide-white/[0.06] rounded-2xl border border-white/[0.08] bg-surface/85 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
+              <div className="divide-y divide-white/[0.06]">
                 {active.slice(0, 5).map((b) => (
                   <SignalRow key={b.id} broadcast={b} />
                 ))}
@@ -372,7 +366,7 @@ function ProfilePage() {
                 <Camera className="h-4 w-4" />
                 Add Shot
               </button>
-              <div className="surface-card rounded-2xl border border-white/[0.08] bg-surface/84 p-5 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
+              <div className="rounded-2xl border border-white/[0.08] p-5">
                 <EmptyState
                   icon={Images}
                   title="No shots yet"

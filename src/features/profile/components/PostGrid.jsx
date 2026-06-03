@@ -34,7 +34,7 @@ const PostGrid = memo(function PostGrid({
       )}
 
       {posts.length === 0 ? (
-        <div className="surface-card overflow-hidden rounded-2xl border border-white/[0.08] bg-surface/84 p-5 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
+        <div className="rounded-2xl border border-white/[0.08] p-5">
           <EmptyState
             icon={Camera}
             title="No shots yet"
