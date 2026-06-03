@@ -156,19 +156,15 @@ function ConversationsPage() {
 
         {activeTab === 'chats' && (
           <>
-            <div
-              className="relative animate-fade-up rounded-[1.25rem] border border-white/[0.05] bg-white/[0.03] px-3 py-2 shadow-[0_12px_32px_hsl(0_0%_0%/0.18)] backdrop-blur-xl"
-              style={{ animationDelay: '50ms' }}
-            >
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <div className="relative">
               <input
                 id="conversation-search"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search conversations..."
+                placeholder="Search chats"
                 className={cn(
-                  'w-full rounded-full border border-white/[0.06] bg-white/[0.05] backdrop-blur-xl pl-10 pr-10 py-3 text-base text-foreground',
+                  'w-full rounded-full border border-white/[0.06] bg-white/[0.05] backdrop-blur-xl pl-4 pr-10 py-3 text-base text-foreground',
                   'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/30',
                   'transition-all duration-200 shadow-[0_12px_28px_hsl(0_0%_0%/0.18)] hover:bg-white/[0.07] hover:border-white/[0.08]',
                 )}
@@ -177,7 +173,7 @@ function ConversationsPage() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
                 >
                   <span className="sr-only">Clear search</span>
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
