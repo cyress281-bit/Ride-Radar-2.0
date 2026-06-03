@@ -3,8 +3,14 @@ import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Flag, ShieldOff, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Flag, ShieldOff, X, CheckCircle, AlertCircle, Loader2, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useIsBlocked, useCreateBlock } from '@/features/safety/hooks/use-blocks.js';
 import { useCreateReport } from '@/features/safety/hooks/use-reports.js';
 
@@ -32,9 +38,11 @@ export default function SafetyActions({
   targetContext,
   compact = false,
   className,
+  initialMode = null,
+  onClose: onCloseProp,
 }) {
   const { user } = useAuthState();
-  const [mode, setMode] = useState(null);
+  const [mode, setMode] = useState(initialMode);
   const [reason, setReason] = useState('safety');
   const [details, setDetails] = useState('');
   const panelRef = useRef(null);
@@ -114,7 +122,8 @@ export default function SafetyActions({
     setDetails('');
     createReport.reset?.();
     createBlock.reset?.();
-  }, [createReport, createBlock]);
+    onCloseProp?.();
+  }, [createReport, createBlock, onCloseProp]);
 
   // Don't render if not authenticated or targeting self
   if (!user || targetProfileId === user.id) return null;
@@ -269,44 +278,39 @@ export default function SafetyActions({
     );
   }
 
-  // Default state - action buttons
+  // Default state — 3-dot menu
   return (
-    <div className={cn('flex gap-2', compact && 'justify-end', className)} role="group" aria-label="Safety actions">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setMode('report')}
-        className={cn(
-          'rounded-lg text-muted-foreground min-h-[44px] px-3',
-          'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-        )}
-        aria-label="Report this content"
-      >
-        <Flag className="h-3.5 w-3.5" aria-hidden="true" />
-        <span className={compact ? 'sr-only sm:not-sr-only sm:ml-1.5' : 'ml-1.5'}>Report</span>
-      </Button>
-      {canBlock && !isBlocked && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setMode('block')}
-          disabled={blocksLoading}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
           className={cn(
-            'rounded-lg text-muted-foreground min-h-[44px] px-3',
-            'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background'
+            'flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors',
+            'hover:text-foreground hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45',
+            className
           )}
-          aria-label="Block this user"
+          aria-label="More options"
         >
-          <ShieldOff className="h-3.5 w-3.5" aria-hidden="true" />
-          <span className={compact ? 'sr-only sm:not-sr-only sm:ml-1.5' : 'ml-1.5'}>Block</span>
-        </Button>
-      )}
-      {canBlock && isBlocked && (
-        <span className="flex items-center gap-1.5 text-xs text-muted-foreground italic px-2">
-          <ShieldOff className="h-3 w-3" aria-hidden="true" />
-          Blocked
-        </span>
-      )}
-    </div>
+          <MoreHorizontal className="h-5 w-5" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[160px]">
+        <DropdownMenuItem onClick={() => setMode('report')}>
+          <Flag className="h-3.5 w-3.5 mr-2" />
+          Report
+        </DropdownMenuItem>
+        {canBlock && !isBlocked && (
+          <DropdownMenuItem onClick={() => setMode('block')}>
+            <ShieldOff className="h-3.5 w-3.5 mr-2" />
+            Block
+          </DropdownMenuItem>
+        )}
+        {canBlock && isBlocked && (
+          <DropdownMenuItem disabled>
+            <ShieldOff className="h-3.5 w-3.5 mr-2" />
+            Already blocked
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

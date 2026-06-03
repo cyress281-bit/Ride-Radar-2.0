@@ -389,6 +389,7 @@ function ProfilePage() {
               <PostGrid
                 posts={posts}
                 onPostClick={setSelectedPost}
+                currentUserId={user?.id}
               />
             </VStack>
           )}

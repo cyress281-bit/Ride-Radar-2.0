@@ -1,6 +1,6 @@
 import { memo, useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Trash2, Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Trash2, Loader2, AlertCircle, ChevronLeft, ChevronRight, MoreHorizontal, Flag, ShieldOff } from 'lucide-react';
 import { useDeletePost } from '@/features/profile/hooks/use-user-posts';
 import { timeAgo } from '@/lib/broadcastUtils';
 import { cn } from '@/lib/utils';
@@ -9,6 +9,12 @@ import { VStack } from '@/components/ui/primitives/Stack';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import PostComments from '@/features/profile/components/PostComments';
 import SafetyActions from '@/components/safety/SafetyActions';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 /**
 
  * PostDetailSheet — full-screen overlay for viewing a post and optionally deleting it.
@@ -24,6 +30,7 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId })
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState('');
+  const [safetyConfig, setSafetyConfig] = useState(null);
   const deletePost = useDeletePost();
 
   const photos = post?.user_post_photos ?? [];
@@ -69,7 +76,7 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId })
         <div className="absolute left-1/2 -translate-x-1/2 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-1.5 shadow-[0_8px_24px_hsl(var(--background)/0.25)]">
           <Text variant="bodySm" className="font-extrabold tracking-wide text-foreground">Shot</Text>
         </div>
-        {isOwner && (
+        {isOwner ? (
           <button
             onClick={() => setConfirmDelete(true)}
             disabled={deletePost.isPending}
@@ -78,6 +85,38 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId })
           >
             <Trash2 className="h-4 w-4" />
           </button>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/45"
+                aria-label="More options"
+              >
+                <MoreHorizontal className="h-5 w-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[160px]">
+              <DropdownMenuItem onClick={() => setSafetyConfig({
+                targetType: 'post',
+                targetId: post.id,
+                targetProfileId: post.user_id,
+                targetContext: { post_id: post.id },
+                initialMode: 'report',
+              })}>
+                <Flag className="h-3.5 w-3.5 mr-2" />
+                Report
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSafetyConfig({
+                targetType: 'user',
+                targetId: post.user_id,
+                targetProfileId: post.user_id,
+                initialMode: 'block',
+              })} className="text-brand-emergency focus:text-brand-emergency focus:bg-brand-emergency/10">
+                <ShieldOff className="h-3.5 w-3.5 mr-2" />
+                Block User
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 
@@ -143,38 +182,10 @@ const PostDetailSheet = memo(function PostDetailSheet({ post, onClose, userId })
           <Text variant="micro" color="muted">{timeAgo(post.created_at)}</Text>
         </VStack>
 
-        {userId !== post.user_id && (
-          <VStack gap={2} className="px-4 pb-4">
-            <div className="flex items-center justify-between gap-3">
-              <Text variant="micro" color="muted">Report post</Text>
-              <SafetyActions
-                targetType="post"
-                targetId={post.id}
-                targetProfileId={post.user_id}
-                targetContext={{ post_id: post.id }}
-                compact
-                className="justify-end"
-              />
-            </div>
-            {photos.length > 0 && (
-              <div className="flex items-center justify-between gap-3">
-                <Text variant="micro" color="muted">Report image</Text>
-                <SafetyActions
-                  targetType="image"
-                  targetId={post.id}
-                  targetProfileId={post.user_id}
-                  targetParentId={post.id}
-                  targetContext={{
-                    image_kind: 'post_image',
-                    image_url: currentPhoto?.image_url,
-                    photo_index: photoIdx,
-                  }}
-                  compact
-                  className="justify-end"
-                />
-              </div>
-            )}
-          </VStack>
+        {safetyConfig && (
+          <div className="px-4 pb-4">
+            <SafetyActions {...safetyConfig} onClose={() => setSafetyConfig(null)} />
+          </div>
         )}
 
         {/* Error */}

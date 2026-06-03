@@ -698,6 +698,7 @@ function RiderProfilePage() {
               <PostGrid
                 posts={riderPosts}
                 onPostClick={setSelectedPost}
+                currentUserId={user?.id}
               />
             )}
           </TabsContent>

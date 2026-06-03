@@ -11,7 +11,8 @@ import { Avatar } from '@/components/shared/Avatar';
 import { Badge } from './Badge';
 import { withRoutePreload, preloadBroadcastDetail } from '@/lib/routePreload';
 import { prefetchBroadcastDetail } from '@/lib/query-client';
-import ReportButton from '@/features/safety/components/ReportButton';
+import SafetyActions from '@/components/safety/SafetyActions';
+import { useAuthState } from '@/features/auth/hooks/use-auth';
 
 /**
  * Media-rich broadcast card for Ride Radar 2.0 — Electric Neon edition.
@@ -28,6 +29,7 @@ import ReportButton from '@/features/safety/components/ReportButton';
 export const RideCard = memo(
   function RideCard({ broadcast, author, userLat, userLng, onPress, to, compactNoMedia = false }) {
     const qc = useQueryClient();
+    const { user } = useAuthState();
     const distance = useMemo(() => {
       if (
         !broadcast ||
@@ -233,14 +235,6 @@ export const RideCard = memo(
               </HStack>
             </VStack>
           </HStack>
-          {broadcast?.id && broadcast?.author_id && (
-            <ReportButton
-              targetType="broadcast"
-              targetId={broadcast.id}
-              targetUserId={broadcast.author_id}
-              size="sm"
-            />
-          )}
         </HStack>
       </>
     );
@@ -252,28 +246,44 @@ export const RideCard = memo(
       'bg-transparent border-0 p-0 text-left block'
     );
 
+    const safetyActions = user?.id && broadcast?.author_id && broadcast.author_id !== user.id ? (
+      <div className="absolute top-3 right-3 z-10">
+        <SafetyActions
+          targetType="broadcast"
+          targetId={broadcast.id}
+          targetProfileId={broadcast.author_id}
+        />
+      </div>
+    ) : null;
+
     if (to) {
       return (
-        <Link
-          to={to}
-          className={className}
-          aria-label={`${broadcast.type}: ${broadcast.title}`}
-          {...withRoutePreload(preloadBroadcastDetail, () => prefetchBroadcastDetail(qc, broadcast.id))}
-        >
-          {cardContent}
-        </Link>
+        <div className="relative">
+          <Link
+            to={to}
+            className={className}
+            aria-label={`${broadcast.type}: ${broadcast.title}`}
+            {...withRoutePreload(preloadBroadcastDetail, () => prefetchBroadcastDetail(qc, broadcast.id))}
+          >
+            {cardContent}
+          </Link>
+          {safetyActions}
+        </div>
       );
     }
 
     return (
-      <button
-        type="button"
-        onClick={onPress}
-        className={className}
-        aria-label={`${broadcast.type}: ${broadcast.title}`}
-      >
-        {cardContent}
-      </button>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={onPress}
+          className={className}
+          aria-label={`${broadcast.type}: ${broadcast.title}`}
+        >
+          {cardContent}
+        </button>
+        {safetyActions}
+      </div>
     );
   },
   function rideCardAreEqual(prev, next) {

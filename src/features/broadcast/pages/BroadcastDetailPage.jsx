@@ -866,7 +866,14 @@ function BroadcastDetailPage() {
   return (
     <div className="px-5 pt-5 pb-8 bg-background min-h-dvh">
       {/* Top nav */}
-      <HStack justify="end" align="center" className="mb-5">
+      <HStack justify="between" align="center" className="mb-5">
+        {!isAuthor && user && (
+          <SafetyActions
+            targetType="broadcast"
+            targetId={broadcast.id}
+            targetProfileId={broadcast.author_id}
+          />
+        )}
         <button
           onClick={handleShare}
           className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"
@@ -1180,12 +1187,7 @@ function BroadcastDetailPage() {
         </div>
       )}
 
-      {/* SafetyActions — glassmorphism panel */}
-      {!isAuthor && user && (
-        <div className="mt-4 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-4">
-          <SafetyActions targetType="broadcast" targetId={broadcast.id} targetProfileId={broadcast.author_id} />
-        </div>
-      )}
+
 
       {/* Action bar */}
       {!isAuthor && !isAlert && user && (
