@@ -27,8 +27,11 @@ const ROUTE_TITLES = {
   '/admin': 'Admin',
   '/settings': 'Settings',
   '/settings/account': 'Account',
+  '/settings/blocked-users': 'Blocked Users',
   '/messages': 'Messages',
   '/broadcast': 'Send a Signal',
+  '/review-readiness': 'Review Readiness',
+  '/community-guidelines': 'Community Guidelines',
 };
 
 function getPageTitle(pathname) {
@@ -57,6 +60,8 @@ function getFallbackRoute(pathname) {
   if (/^\/messages\/.+/.test(pathname)) return '/messages';
   if (/^\/profile\/.+/.test(pathname)) return '/home';
   if (pathname.startsWith('/admin/')) return '/admin';
+  if (/^\/settings\/.+/.test(pathname)) return '/settings';
+  if (pathname === '/review-readiness' || pathname === '/community-guidelines') return '/settings';
   return '/home';
 }
 

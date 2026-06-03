@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, memo, useCallback, useEffect, useRef } from 'react';
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Check, Share2, Trash2, Loader2, AlertCircle, Pencil, ShieldCheck } from 'lucide-react';
+import { MapPin, Calendar, Clock, Users, Heart, Check, Share2, Trash2, Loader2, AlertCircle, Pencil, ShieldCheck } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 import AlertPhotoGrid from '@/components/shared/AlertPhotoGrid';
 import { Text } from '@/components/ui/primitives/Text';
@@ -32,15 +32,9 @@ import { logger } from '@/lib/logger.js';
 import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects.js';
 import BroadcastComments from '@/features/broadcast/components/BroadcastComments.jsx';
 
-function RemovedSignalScreen({ onBack, onHome }) {
+function RemovedSignalScreen({ onHome }) {
   return (
     <div className="px-5 pt-5">
-      <button
-        onClick={onBack}
-        className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back
-      </button>
       <div className="surface-card p-10 text-center">
         <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
         <p className="text-[13px] font-semibold text-muted-foreground mb-2">Signal removed</p>
@@ -56,15 +50,9 @@ function RemovedSignalScreen({ onBack, onHome }) {
   );
 }
 
-function ResolvedSignalScreen({ onBack, onHome, resolvedNote }) {
+function ResolvedSignalScreen({ onHome, resolvedNote }) {
   return (
     <div className="px-5 pt-5">
-      <button
-        onClick={onBack}
-        className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back
-      </button>
       <div className="surface-card p-10 text-center">
         <ShieldCheck className="mx-auto mb-4 h-10 w-10 text-green-500 opacity-80" />
         <p className="text-[13px] font-semibold text-foreground/90 mb-2">Rider found safe</p>
@@ -83,15 +71,9 @@ function ResolvedSignalScreen({ onBack, onHome, resolvedNote }) {
   );
 }
 
-function UnavailableSignalScreen({ onBack, onHome }) {
+function UnavailableSignalScreen({ onHome }) {
   return (
     <div className="px-5 pt-5">
-      <button
-        onClick={onBack}
-        className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back
-      </button>
       <div className="surface-card p-10 text-center">
         <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
         <p className="text-[13px] font-semibold text-muted-foreground mb-2">Signal unavailable</p>
@@ -725,7 +707,7 @@ function BroadcastDetailPage() {
   const canEditTitle = broadcast?.type === 'solo_ride' || broadcast?.type === 'iso' || broadcast?.type === 'event';
   const saveDisabled = updateSignal.isPending || (canEditTitle && editTitle.trim().length < 3);
 
-  const handleGoBack = useCallback(() => navigate(-1), [navigate]);
+
 
   const handleShare = useCallback(async () => {
     try {
@@ -782,9 +764,6 @@ function BroadcastDetailPage() {
   if (!hasValidBroadcastId) {
     return (
       <div className="px-5 pt-5 bg-background min-h-dvh">
-        <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
         <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
           <Text variant="bodySm" color="muted">Invalid signal link.</Text>
@@ -805,9 +784,6 @@ function BroadcastDetailPage() {
   if (isBroadcastError) {
     return (
       <div className="px-5 pt-5 bg-background min-h-dvh">
-        <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
         <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
           <Text variant="bodySm" color="muted">Unable to load this signal.</Text>
@@ -820,13 +796,10 @@ function BroadcastDetailPage() {
 
   if (!broadcast) {
     if (wasLoaded.current) {
-      return <RemovedSignalScreen onBack={handleGoBack} onHome={() => navigate('/home')} />;
+      return <RemovedSignalScreen onHome={() => navigate('/home')} />;
     }
     return (
       <div className="px-5 pt-5 bg-background min-h-dvh">
-        <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
         <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
           <Text variant="bodySm" color="muted">Signal not found.</Text>
@@ -847,9 +820,6 @@ function BroadcastDetailPage() {
   if (requiresBikeDownVisibilityCheck && isBikeDownVisibilityError) {
     return (
       <div className="px-5 pt-5 bg-background min-h-dvh">
-        <button onClick={handleGoBack} className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4 min-h-[44px] px-1">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
         <div className="surface-card p-10 text-center">
           <RRLogo size="md" className="mx-auto mb-4 opacity-60" />
           <Text variant="bodySm" color="muted">Unable to load this signal.</Text>
@@ -859,14 +829,14 @@ function BroadcastDetailPage() {
   }
 
   if (requiresBikeDownVisibilityCheck && !bikeDownVisibility.isVisible) {
-    return <UnavailableSignalScreen onBack={handleGoBack} onHome={() => navigate('/home')} />;
+    return <UnavailableSignalScreen onHome={() => navigate('/home')} />;
   }
 
   if ((broadcast.status !== 'active' || isExpiredByTime) && !isAuthor && !isViewerAdmin) {
     if (broadcast.resolved_at) {
-      return <ResolvedSignalScreen onBack={handleGoBack} onHome={() => navigate('/home')} resolvedNote={broadcast.resolved_note} />;
+      return <ResolvedSignalScreen onHome={() => navigate('/home')} resolvedNote={broadcast.resolved_note} />;
     }
-    return <RemovedSignalScreen onBack={handleGoBack} onHome={() => navigate('/home')} />;
+    return <RemovedSignalScreen onHome={() => navigate('/home')} />;
   }
 
   const meta = BROADCAST_META[broadcast.type];
@@ -896,10 +866,7 @@ function BroadcastDetailPage() {
   return (
     <div className="px-5 pt-5 pb-8 bg-background min-h-dvh">
       {/* Top nav */}
-      <HStack justify="between" align="center" className="mb-5">
-        <button onClick={handleGoBack} aria-label="Go back" className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
+      <HStack justify="end" align="center" className="mb-5">
         <button
           onClick={handleShare}
           className="pressable flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground min-h-[44px] px-1"

@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils.js';
-import AdminBackLink from './AdminBackLink.jsx';
 import RRLogo from '@/components/RRLogo';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Radio, ShieldAlert, Users, Bell } from 'lucide-react';
@@ -14,7 +13,6 @@ import { ChevronRight, Radio, ShieldAlert, Users, Bell } from 'lucide-react';
 export default function AdminLayout({ children, className }) {
   return (
     <div className={cn('min-h-dvh bg-background mx-auto max-w-5xl px-4 py-5 sm:px-5 sm:py-6', className)}>
-      <AdminBackLink />
       <div className="relative mb-6 overflow-hidden rounded-[28px] border border-white/[0.08] bg-black/60 p-4 shadow-[0_16px_36px_rgba(0,0,0,0.24)] sm:p-5">
         <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />

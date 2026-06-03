@@ -4,8 +4,7 @@
  * Lists users the current rider has blocked and allows unblocking.
  */
 
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Shield, UserX, AlertCircle } from 'lucide-react';
+import { Shield, UserX, AlertCircle } from 'lucide-react';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useBlocks, useRemoveBlock } from '@/features/safety/hooks/use-blocks.js';
 import { listProfilesByIds } from '@/features/profile/api/profile-api.js';
@@ -117,13 +116,6 @@ export default function BlockedUsersPage() {
   return (
     <div className="min-h-dvh bg-background px-4 py-6 pb-safe text-foreground">
       <VStack gap={5} className="mx-auto max-w-2xl animate-fade-up">
-        <Link
-          to="/settings"
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground pressable self-start"
-        >
-          <ArrowLeft className="h-4 w-4" /> Settings
-        </Link>
-
         {/* Header */}
         <div className="relative overflow-hidden surface-card">
           <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-primary/15" />

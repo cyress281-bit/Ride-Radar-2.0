@@ -85,6 +85,7 @@ const AppLayout = memo(function AppLayout() {
     html.style.setProperty('--rr-viewport-height', `${viewportHeight}px`);
     html.style.setProperty('--rr-keyboard-height', `${keyboardHeight}px`);
     html.style.setProperty('--rr-nav-h', isMainRoute ? '56px' : '0px');
+    html.style.setProperty('--rr-nav-pad', isMainRoute ? '4.5rem' : '0px');
   }, [viewportHeight, keyboardHeight, isMainRoute]);
 
   // PWA cold-start settle nudge:

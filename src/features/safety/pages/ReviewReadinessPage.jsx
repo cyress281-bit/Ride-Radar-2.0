@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Shield, Lock, Eye, Trash2, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { CheckCircle, Shield, Lock, Eye, Trash2 } from 'lucide-react';
 import RRLogo from '@/components/RRLogo';
 
 /**
@@ -33,12 +32,6 @@ export default function ReviewReadinessPage() {
   return (
     <div className="min-h-dvh bg-background px-5 pt-5 pb-nav-safe">
       <div className="mx-auto max-w-2xl space-y-6">
-        <Link
-          to="/settings"
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground pressable self-start"
-        >
-          <ArrowLeft className="h-4 w-4" /> Settings
-        </Link>
         <div className="text-center">
           <RRLogo size="lg" className="mx-auto mb-4" />
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Data Safety Summary</h1>

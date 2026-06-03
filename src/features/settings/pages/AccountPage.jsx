@@ -5,10 +5,8 @@
  */
 
 import { memo, useEffect, useMemo, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import * as z from 'zod';
 import {
-  ArrowLeft,
   AtSign,
   AlertCircle,
   CheckCircle2,
@@ -375,13 +373,6 @@ function AccountPage() {
   return (
     <div className="min-h-dvh bg-background px-4 py-6 pb-nav-safe text-foreground">
       <VStack gap={5} className="mx-auto max-w-2xl animate-fade-up">
-        <Link
-          to="/settings"
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground pressable self-start"
-        >
-          <ArrowLeft className="h-4 w-4" /> Settings
-        </Link>
-
         <div className="relative overflow-hidden surface-card">
           <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-primary/15" />
           <div className="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-primary/[0.04] blur-2xl pointer-events-none" />
