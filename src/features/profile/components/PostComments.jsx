@@ -22,6 +22,7 @@ const PostComments = memo(function PostComments({ postId, postOwnerId, currentUs
         onAdd={addComment}
         onDelete={deleteComment}
         stickyComposer
+        dockComposer
         showSafetyActions
       />
     </div>

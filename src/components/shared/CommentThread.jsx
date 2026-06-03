@@ -108,6 +108,7 @@ const CommentThread = memo(function CommentThread({
   onDelete,
   isActive = true,
   stickyComposer = false,
+  dockComposer = false,
   showSafetyActions = false,
   autoScroll = false,
   countIcon = null,
@@ -185,9 +186,16 @@ const CommentThread = memo(function CommentThread({
   const composer = (
     <div
       className={
-        stickyComposer
-          ? 'sticky bottom-0 flex items-center gap-2 px-4 py-3 border-t border-white/[0.06] bg-surface/95 backdrop-blur-xl'
-          : 'flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.06]'
+        dockComposer
+          ? 'fixed bottom-0 left-0 right-0 z-20 flex items-center gap-2 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] border-t border-white/[0.06] bg-surface/95 backdrop-blur-xl'
+          : stickyComposer
+            ? 'sticky bottom-0 flex items-center gap-2 px-4 py-3 border-t border-white/[0.06] bg-surface/95 backdrop-blur-xl'
+            : 'flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.06]'
+      }
+      style={
+        dockComposer
+          ? { transform: 'translateY(calc(-1 * var(--rr-keyboard-height, 0px)))', transition: 'transform 0.2s ease-out' }
+          : undefined
       }
     >
       <input

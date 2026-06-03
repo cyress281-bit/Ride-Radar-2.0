@@ -73,7 +73,7 @@ const AppLayout = memo(function AppLayout() {
   const [hasUpdateAvailable, setHasUpdateAvailable] = useState(getPendingServiceWorkerUpdateState());
   const [isRefreshingUpdate, setIsRefreshingUpdate] = useState(false);
 
-  const { viewportHeight } = useViewportContext();
+  const { viewportHeight, keyboardHeight } = useViewportContext();
 
   useAppResumeRefresh();
 
@@ -82,7 +82,8 @@ const AppLayout = memo(function AppLayout() {
   useEffect(() => {
     const html = document.documentElement;
     html.style.setProperty('--rr-viewport-height', `${viewportHeight}px`);
-  }, [viewportHeight]);
+    html.style.setProperty('--rr-keyboard-height', `${keyboardHeight}px`);
+  }, [viewportHeight, keyboardHeight]);
 
   // PWA cold-start settle nudge:
   // Installed iOS PWA pages can start with a shorter viewport until the
