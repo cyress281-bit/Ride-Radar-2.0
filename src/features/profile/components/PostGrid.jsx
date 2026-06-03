@@ -96,6 +96,7 @@ const PostGrid = memo(function PostGrid({
                       targetId={post.id}
                       targetProfileId={post.user_id}
                       targetContext={{ post_id: post.id }}
+                      className="bg-black/55 backdrop-blur-sm text-white hover:bg-black/75"
                     />
                   </div>
                 )}

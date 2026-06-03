@@ -252,6 +252,7 @@ export const RideCard = memo(
           targetType="broadcast"
           targetId={broadcast.id}
           targetProfileId={broadcast.author_id}
+          className="bg-black/55 backdrop-blur-sm text-white hover:bg-black/75"
         />
       </div>
     ) : null;

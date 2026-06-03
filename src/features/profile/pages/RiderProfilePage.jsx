@@ -713,10 +713,7 @@ function RiderProfilePage() {
         />
       )}
 
-      {/* Safety Actions */}
-      {!isMeRoute && (
-        <SafetyActions targetType="user" targetId={profile.user_id} targetProfileId={profile.user_id} />
-      )}
+
     </VStack>
   );
 }
