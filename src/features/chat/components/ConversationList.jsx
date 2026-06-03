@@ -57,7 +57,7 @@ function ConversationList({
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="h-20 rounded-2xl bg-surface/60 backdrop-blur-md animate-pulse border border-white/[0.04]"
+            className="h-20 rounded-xl bg-white/[0.02] animate-pulse"
           />
         ))}
       </div>

@@ -41,7 +41,7 @@ const IncomingRequestRow = memo(function IncomingRequestRow({ request, senderPro
   }, [decline, request.id]);
 
   return (
-    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl shadow-[0_12px_32px_hsl(0_0%_0%/0.18)]">
+    <div className="flex items-center gap-3 p-3.5">
       <button
         type="button"
         onClick={() => navigate(`/profile/${request.from_user_id}`)}
@@ -95,7 +95,7 @@ const OutgoingRequestRow = memo(function OutgoingRequestRow({ request, recipient
   const { mutate: cancelRequest, isPending: isCancelling } = useCancelConnectionRequest();
 
   return (
-    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.04] bg-surface/60 backdrop-blur-md">
+    <div className="flex items-center gap-3 p-3.5">
       <button
         type="button"
         onClick={() => navigate(`/profile/${request.to_user_id}`)}

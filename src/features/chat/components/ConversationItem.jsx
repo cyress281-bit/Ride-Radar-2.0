@@ -77,12 +77,10 @@ const ConversationItem = memo(function ConversationItem({
   return (
     <div
       className={cn(
-        'w-full rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl',
-        'transition-all duration-200 hover:bg-white/[0.06] hover:border-white/[0.1] hover:shadow-[0_14px_40px_hsl(0_0%_0%/0.24)]',
-        hasUnread && 'border-primary/12 bg-primary/[0.05] shadow-[0_0_0_1px_hsl(var(--primary)/0.04)]'
+        'w-full flex items-center gap-2 px-3.5 py-3.5 transition-all duration-200',
+        hasUnread && 'bg-primary/[0.03]'
       )}
     >
-      <div className="flex items-center gap-2 px-3.5 py-3.5">
         {/* Main navigation button — covers avatar + content */}
         <button
           type="button"
@@ -217,7 +215,6 @@ const ConversationItem = memo(function ConversationItem({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-      </div>
     </div>
   );
 });

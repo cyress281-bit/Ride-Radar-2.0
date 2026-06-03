@@ -47,7 +47,7 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
   const { mutate: removeF, isPending: isRemoving } = useRemoveFriendship();
 
   return (
-    <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.04] backdrop-blur-xl shadow-[0_12px_32px_hsl(0_0%_0%/0.18)]">
+    <div className="flex items-center gap-3 p-3.5">
       <button
         type="button"
         onClick={() => navigate(`/profile/${friendId}`)}
