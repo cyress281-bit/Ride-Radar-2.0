@@ -406,6 +406,12 @@ Cancelling an outgoing connection request only works from the **Requests tab** (
 ### 5. Admin Reports: disambiguate "Remove content" vs "Mark resolved" (small UX, not started)
 On `AdminReportsPage`, two actions sit close together: **`removeContent`** (actually deletes/archives the reported content, then resolves — stamps details `content removed/archived`) and a separate **"Mark resolved" / dismiss** action (just closes the report — stamps `Admin marked report resolved`). During the 2026-06-02 verification the owner tapped *Mark resolved* thinking it removed a reported message; the report closed but the message stayed (resolved ≠ removed — DB-confirmed). Not a bug, but easy to confuse. Improve clarity: clearer labels, separation/ordering, or a confirm on the destructive "Remove content". (Always DB-verify admin removals — a resolved report does not imply the content was deleted.)
 
+### 6. Native-build-only polish (Capacitor iOS/Android — not possible in the PWA)
+Items that **cannot** be done from the web/PWA and are deferred to the native Capacitor shell:
+- **Remove the iOS keyboard accessory bar** (the up/down-arrow + "Done" form-assistant toolbar above the keyboard). It's OS chrome (WKWebView/UIKit), not in the DOM — no web API hides it. Native fix: override the web view's `inputAccessoryView` to `nil` (or a Capacitor keyboard plugin/config). Requested 2026-06-02 for the comment composer; PWA can't do it.
+- **"Open Settings" button** for the location gate's denied state (and any future "go enable a permission" flow). iOS PWA can't deep-link to Settings; native can via `UIApplication.openSettingsURLString`. (See Radar location-gate work.)
+- General permission-state APIs (proper geolocation permission query) are more reliable in native than the PWA's visualViewport/error-based inference.
+
 ## Dead Ends — Approaches Already Tried That Did NOT Work
 
 **Purpose:** Read this before proposing fixes. Do not re-suggest anything listed here unless you have a specific, concrete reason it would now behave differently — and if so, state that reason explicitly. Append to it whenever something is ruled out.
