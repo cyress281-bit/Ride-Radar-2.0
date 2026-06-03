@@ -51,7 +51,7 @@ const PostGrid = memo(function PostGrid({
                 key={post.id}
               onClick={() => onPostClick(post)}
               className={cn(
-                'group relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/[0.10] bg-surface/86',
+                'group relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/[0.10]',
                 'shadow-[0_16px_40px_hsl(0_0%_0%/0.32)] backdrop-blur-xl transition-all duration-200',
                 'hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[0_18px_46px_hsl(0_0%_0%/0.38)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
               )}

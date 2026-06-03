@@ -76,10 +76,10 @@ const profileAmbientBottomStyle = {
 };
 
 const profileTabsListClass =
-  'w-full grid grid-cols-2 h-auto rounded-full border border-white/[0.08] bg-surface/82 p-1.5 shadow-[0_16px_48px_hsl(0_0%_0%/0.30)] backdrop-blur-2xl';
+  'w-full flex justify-center gap-6 h-auto bg-transparent border-0 rounded-none p-0';
 
 const profileTabsTriggerClass =
-  'inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-all data-[state=active]:bg-primary/14 data-[state=active]:text-primary data-[state=active]:shadow-[inset_0_1px_0_hsl(0_0%_100%/0.08),0_0_18px_hsl(var(--primary)/0.16)]';
+  'inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-all data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none';
 
 function RiderProfilePage() {
   const { userId } = useParams();
@@ -368,7 +368,7 @@ function RiderProfilePage() {
   }
 
   return (
-    <VStack ref={containerRef} {...touchHandlers} gap={4} className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up bg-background min-h-dvh overflow-y-auto">
+    <VStack ref={containerRef} {...touchHandlers} gap={6} className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 animate-fade-up bg-background min-h-dvh overflow-y-auto">
       {pullOffset > 10 && (
         <div className="flex justify-center py-2">
           <RefreshCw className="h-5 w-5 text-primary animate-spin" />
@@ -377,12 +377,11 @@ function RiderProfilePage() {
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[22rem] opacity-100" style={profileAmbientTopStyle} />
       <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[12rem]" style={profileAmbientBottomStyle} />
 
-      {/* Profile Header Card */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-surface/88 shadow-[0_24px_80px_hsl(0_0%_0%/0.40),0_0_0_1px_hsl(var(--primary)/0.04),inset_0_1px_0_hsl(0_0%_100%/0.05)] backdrop-blur-2xl">
+      {/* Profile Header */}
         <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/[0.06] blur-3xl pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-brand-radar/[0.06] blur-3xl pointer-events-none" />
 
-        <div className="relative p-6">
+        <div className="relative pt-2 pb-6 border-b border-white/[0.06]">
           <VStack align="center" gap={3}>
             {/* Avatar with gradient ring */}
             <div className="relative">
@@ -415,7 +414,7 @@ function RiderProfilePage() {
                   {canSeeDetails ? profile.display_name : 'Private Rider'}
                 </Text>
                 {isFriend && (
-                  <Badge variant="secondary" className="text-[10px] bg-primary/15 text-primary border-primary/20">
+                  <Badge variant="secondary" className="text-[10px] bg-transparent text-primary border-primary/20">
                     Friend
                   </Badge>
                 )}
@@ -440,7 +439,7 @@ function RiderProfilePage() {
 
             {/* Connection Status */}
             {isBlocked && (
-              <HStack align="center" gap={1.5} className="rounded-full border border-brand-emergency/20 bg-brand-emergency/10 px-3 py-1.5">
+              <HStack align="center" gap={1.5}>
                 <Ban className="w-3.5 h-3.5 text-brand-emergency" />
                 <Text variant="micro" className="text-brand-emergency font-semibold">Blocked</Text>
               </HStack>
@@ -602,12 +601,11 @@ function RiderProfilePage() {
             )}
           </VStack>
         </div>
-      </div>
 
       {/* Private notice */}
       {!canSeeDetails && (
-        <div className="surface-card rounded-2xl border border-brand-amber/20 bg-surface/84 p-6 text-center shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-brand-amber/10 border border-brand-amber/20 shadow-[0_0_16px_hsl(var(--brand-amber)/0.12)]">
+        <div className="rounded-2xl border border-brand-amber/20 p-6 text-center">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-brand-amber/10 border border-brand-amber/20">
             <Lock className="h-7 w-7 text-brand-amber" />
           </div>
           <Text variant="bodySm" className="font-semibold text-brand-amber mb-1">Private Profile</Text>
@@ -656,7 +654,7 @@ function RiderProfilePage() {
             {isBroadcastsLoading ? (
               <div className="space-y-3 mt-4">
                 {[0,1,2].map((i) => (
-                  <div key={i} className="rounded-2xl border border-white/[0.06] bg-surface p-4 space-y-3 animate-pulse">
+                  <div key={i} className="rounded-xl bg-white/[0.02] p-4 space-y-3 animate-pulse">
                     <Skeleton className="h-5 w-16 rounded-full" />
                     <Skeleton className="h-4 w-2/3" />
                     <Skeleton className="h-3 w-full" />
@@ -670,15 +668,13 @@ function RiderProfilePage() {
             ) : broadcastsError ? (
               <ErrorState title="Signals unavailable" onRetry={refetchBroadcasts} />
             ) : activeBroadcasts.length > 0 ? (
-              <div className="grid grid-cols-1 gap-3 rounded-2xl border border-white/[0.08] bg-surface/84 p-3 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {activeBroadcasts.map((b) => (
                   <RideCard key={b.id} broadcast={b} author={profile} to={`/broadcast/${b.id}`} />
                 ))}
               </div>
             ) : (
-              <div className="surface-card rounded-2xl border border-white/[0.08] bg-surface/84 p-5 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
-                <EmptyState icon={Radio} title="No active signals" description="This rider has no active signals." />
-              </div>
+              <EmptyState icon={Radio} title="No active signals" description="This rider has no active signals." className="border-white/[0.08] bg-transparent" />
             )}
           </TabsContent>
 
@@ -692,13 +688,12 @@ function RiderProfilePage() {
             ) : postsFailed ? (
               <ErrorState title="Shots unavailable" onRetry={refetchPosts} />
             ) : riderPosts.length === 0 ? (
-              <div className="surface-card rounded-2xl border border-white/[0.08] bg-surface/84 p-5 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
-                <EmptyState
-                  icon={Images}
-                  title="No shots yet"
-                  description="This rider hasn't shared any shots yet."
-                />
-              </div>
+              <EmptyState
+                icon={Images}
+                title="No shots yet"
+                description="This rider hasn't shared any shots yet."
+                className="border-white/[0.08] bg-transparent"
+              />
             ) : (
               <PostGrid
                 posts={riderPosts}
@@ -719,9 +714,7 @@ function RiderProfilePage() {
 
       {/* Safety Actions */}
       {!isMeRoute && (
-        <div className="surface-card rounded-2xl border border-white/[0.08] bg-surface/84 p-4 shadow-[0_16px_44px_hsl(0_0%_0%/0.28)] backdrop-blur-xl">
-          <SafetyActions targetType="user" targetId={profile.user_id} targetProfileId={profile.user_id} />
-        </div>
+        <SafetyActions targetType="user" targetId={profile.user_id} targetProfileId={profile.user_id} />
       )}
     </VStack>
   );
