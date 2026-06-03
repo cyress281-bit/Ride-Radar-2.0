@@ -20,22 +20,7 @@ const PostGrid = memo(function PostGrid({
 }) {
   return (
     <div>
-      {onAddPost && (
-        <button
-          onClick={onAddPost}
-          className={cn(
-            'w-full mb-4 flex items-center justify-center gap-2 rounded-full',
-            'bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground',
-            'transition-all hover:bg-primary/90 active:scale-95',
-            'shadow-[0_4px_20px_hsl(var(--primary)/0.35)]'
-          )}
-        >
-          <Plus className="h-4 w-4" />
-          Add Shot
-        </button>
-      )}
-
-      {posts.length === 0 ? (
+      {posts.length === 0 && !onAddPost ? (
         <EmptyState
           icon={Camera}
           title="No shots yet"
@@ -44,6 +29,22 @@ const PostGrid = memo(function PostGrid({
         />
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {onAddPost && (
+            <div className="relative aspect-[4/3]">
+              <button
+                onClick={onAddPost}
+                className={cn(
+                  'group relative w-full h-full overflow-hidden rounded-2xl',
+                  'border-2 border-dashed border-white/[0.10] text-white/40',
+                  'flex flex-col items-center justify-center gap-2',
+                  'transition-all hover:border-primary/40 hover:text-primary/70 hover:bg-primary/[0.05] active:scale-[0.97]'
+                )}
+              >
+                <Plus className="h-6 w-6 transition-transform group-hover:scale-110" />
+                <span className="text-xs font-semibold">Add Shot</span>
+              </button>
+            </div>
+          )}
           {posts.map((post) => {
             const firstPhoto = post.user_post_photos?.[0];
             const isMulti = (post.user_post_photos?.length ?? 0) > 1;
