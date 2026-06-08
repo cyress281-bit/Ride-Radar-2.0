@@ -852,6 +852,14 @@ function BroadcastDetailPage() {
     bike_down: 'border-l-[3px] border-l-brand-emergency shadow-[-3px_0_14px_hsl(var(--brand-emergency)/0.3)]',
   }[signalTone] || 'border-l-[3px] border-l-border/60';
 
+  const typeBorderClass = {
+    solo_ride: 'border-primary/30',
+    iso: 'border-iso/30',
+    event: 'border-event/30',
+    alert: 'border-alert/30',
+    bike_down: 'border-destructive/30',
+  }[signalTone] || 'border-white/[0.06]';
+
   const badgeClass = {
     solo_ride: 'bg-primary/10 text-primary border-primary/30',
     iso: 'bg-iso/10 text-iso border-iso/30',
@@ -914,7 +922,7 @@ function BroadcastDetailPage() {
         </div>
       )}
 
-      <div className={cn('rounded-[24px] border p-5 relative overflow-hidden backdrop-blur-xl bg-surface/80 border-white/[0.06]', !hasHeroImage && typeAccentClass)}>
+      <div className={cn('rounded-[24px] border p-5 relative overflow-hidden backdrop-blur-xl', typeBorderClass)}>
         {/* Subtle ambient glow */}
         <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/[0.04] blur-3xl pointer-events-none" />
 
@@ -1041,7 +1049,7 @@ function BroadcastDetailPage() {
 
       {/* Owner controls */}
       {isAuthor && (
-        <div className="mt-4 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-4">
+        <div className={cn('mt-4 rounded-[20px] backdrop-blur-xl border p-4', typeBorderClass)}>
           {!editOpen && !confirmRemove && !confirmResolve ? (
             <VStack gap={3}>
               <div className="grid grid-cols-2 gap-3">
@@ -1205,7 +1213,7 @@ function BroadcastDetailPage() {
 
       {/* Author event stats */}
       {isAuthor && broadcast.type === 'event' && (
-        <div className="mt-5 p-5 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06]">
+        <div className={cn('mt-5 p-5 rounded-[20px] backdrop-blur-xl border', typeBorderClass)}>
           <Text variant="micro" color="muted" className="mb-2 uppercase tracking-widest text-[10px] font-bold">Your event</Text>
           <Text variant="h3" className="text-lg font-bold text-white/90">
             <span className="text-primary">{rsvpCounts.going}</span> going · <span className="text-brand-radar">{rsvpCounts.interested}</span> interested
@@ -1215,7 +1223,7 @@ function BroadcastDetailPage() {
 
       {/* RSVP Attendee List */}
       {broadcast.type === 'event' && (goingUserIds.length > 0 || interestedUserIds.length > 0) && (
-        <div className="mt-4 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] p-4 space-y-3">
+        <div className={cn('mt-4 rounded-[20px] backdrop-blur-xl border p-4 space-y-3', typeBorderClass)}>
           <RsvpAvatarRow
             userIds={goingUserIds}
             profiles={rsvpProfiles}
@@ -1382,6 +1390,14 @@ const EventRSVP = memo(function EventRSVP({ broadcast, user, myRSVP, counts, onC
 const ConnectionAction = memo(function ConnectionAction({ broadcast, user, existing, onChange }) {
   const [open, setOpen] = useState(false);
   const [msg, setMsg] = useState('');
+  const _signalTone = broadcast.alert_type === 'bike_down' ? 'bike_down' : broadcast.type;
+  const typeBorderClass = {
+    solo_ride: 'border-primary/30',
+    iso: 'border-iso/30',
+    event: 'border-event/30',
+    alert: 'border-alert/30',
+    bike_down: 'border-destructive/30',
+  }[_signalTone] || 'border-white/[0.06]';
   const sendRequest = useSendConnectionRequest();
 
   const handleSend = useCallback(() => {
@@ -1407,7 +1423,7 @@ const ConnectionAction = memo(function ConnectionAction({ broadcast, user, exist
           <Users className="w-4 h-4 mr-1.5" /> Initiate connection
         </Button>
       ) : (
-        <div className="p-4 rounded-[20px] backdrop-blur-xl bg-surface/80 border border-white/[0.06] space-y-3">
+        <div className={cn('p-4 rounded-[20px] backdrop-blur-xl border space-y-3', typeBorderClass)}>
           <Text variant="micro" color="muted" className="mb-1 uppercase tracking-widest text-[10px] font-bold">Connection request</Text>
           <Textarea
             value={msg}

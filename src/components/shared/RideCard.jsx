@@ -75,17 +75,16 @@ export const RideCard = memo(
     const isBikeDown = broadcast.type === 'alert' && broadcast.alert_type === 'bike_down';
     const useCompactNoMedia = compactNoMedia && !mediaUrl;
 
-    // Type-specific neon glow for cards
-    const typeGlowClass =
+    const typeBorderClass =
       broadcast.type === 'alert'
         ? broadcast.alert_type === 'bike_down'
-          ? 'hover:shadow-[0_0_20px_hsl(var(--destructive)/0.15)] hover:border-destructive/20'
-          : 'hover:shadow-[0_0_20px_hsl(var(--alert)/0.15)] hover:border-alert/20'
+          ? 'border-destructive/30 hover:border-destructive/55 hover:shadow-[0_0_20px_hsl(var(--destructive)/0.15)]'
+          : 'border-alert/30 hover:border-alert/55 hover:shadow-[0_0_20px_hsl(var(--alert)/0.15)]'
         : {
-            solo_ride: 'hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)] hover:border-primary/20',
-            iso: 'hover:shadow-[0_0_20px_hsl(var(--iso)/0.12)] hover:border-iso/20',
-            event: 'hover:shadow-[0_0_20px_hsl(var(--event)/0.12)] hover:border-event/20',
-          }[broadcast.type] || '';
+            solo_ride: 'border-primary/30 hover:border-primary/55 hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)]',
+            iso: 'border-iso/30 hover:border-iso/55 hover:shadow-[0_0_20px_hsl(var(--iso)/0.12)]',
+            event: 'border-event/30 hover:border-event/55 hover:shadow-[0_0_20px_hsl(var(--event)/0.12)]',
+          }[broadcast.type] || 'border-white/[0.08]';
 
     const compactLabel = isBikeDown ? 'Bike Down' : broadcast.title || 'Signal';
 
@@ -241,9 +240,9 @@ export const RideCard = memo(
 
     const className = cn(
       'group relative w-full overflow-hidden surface-card pressable animate-fade-up transition-all duration-300',
-      typeGlowClass,
+      typeBorderClass,
       'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-      'bg-transparent border-0 p-0 text-left block'
+      'bg-transparent p-0 text-left block'
     );
 
     const safetyActions = user?.id && broadcast?.author_id && broadcast.author_id !== user.id ? (
