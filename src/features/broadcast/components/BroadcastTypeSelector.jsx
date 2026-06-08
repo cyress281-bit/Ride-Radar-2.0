@@ -55,7 +55,7 @@ function bumpHelperSeenCount(signalType) {
 
 const GROUP_STYLES = {
   solo: {
-    border: 'border-primary/20',
+    border: 'border-primary/30',
     borderLeft: 'border-l-primary/50',
     text: 'text-primary',
     iconBorder: 'border-primary/25',
@@ -63,7 +63,7 @@ const GROUP_STYLES = {
     hoverBorder: 'hover:border-primary/50',
   },
   event: {
-    border: 'border-event/20',
+    border: 'border-event/30',
     borderLeft: 'border-l-event/50',
     text: 'text-event',
     iconBorder: 'border-event/25',
@@ -71,7 +71,7 @@ const GROUP_STYLES = {
     hoverBorder: 'hover:border-event/50',
   },
   iso: {
-    border: 'border-iso/20',
+    border: 'border-iso/30',
     borderLeft: 'border-l-iso/50',
     text: 'text-iso',
     iconBorder: 'border-iso/25',
@@ -79,7 +79,7 @@ const GROUP_STYLES = {
     hoverBorder: 'hover:border-iso/50',
   },
   alert: {
-    border: 'border-alert/20',
+    border: 'border-alert/30',
     borderLeft: 'border-l-alert/50',
     text: 'text-alert',
     iconBorder: 'border-alert/25',
@@ -87,7 +87,7 @@ const GROUP_STYLES = {
     hoverBorder: 'hover:border-alert/50',
   },
   bike_down: {
-    border: 'border-destructive/20',
+    border: 'border-destructive/30',
     borderLeft: 'border-l-destructive/50',
     text: 'text-destructive',
     iconBorder: 'border-destructive/25',
@@ -154,7 +154,7 @@ const BroadcastTypeSelector = memo(function BroadcastTypeSelector({ onSelect }) 
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05, duration: 0.3, ease: 'easeOut' }}
                 className={cn(
-                  'w-full text-left rounded-3xl border border-l-[3px] bg-surface/86 backdrop-blur-2xl transition-all duration-200 pressable active:scale-[0.98] min-h-[92px]',
+                  'w-full text-left rounded-3xl border border-l-[3px] backdrop-blur-2xl transition-all duration-200 pressable active:scale-[0.98] min-h-[92px]',
                   styles.border,
                   styles.borderLeft,
                   styles.hoverBorder,
@@ -180,7 +180,7 @@ const BroadcastTypeSelector = memo(function BroadcastTypeSelector({ onSelect }) 
                 {helperOpen ? (
                   <div
                     id={helperId}
-                    className="rounded-2xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 backdrop-blur-xl"
+                    className={cn('rounded-2xl border px-4 py-3 backdrop-blur-xl', styles.border)}
                   >
                     <Text variant="caption" color="muted" className="block text-pretty leading-snug">
                       {HELPER_COPY[group.id]}
