@@ -46,7 +46,7 @@ const TYPE_STYLE_MAP = {
     chip: 'border-primary/20 bg-primary/10 text-primary',
     chipInactive: 'border-border/40 bg-white/[0.03] text-muted-foreground hover:border-primary/25 hover:bg-primary/[0.06] hover:text-foreground',
     panelSoft: 'border-primary/18 bg-primary/[0.05]',
-    section: 'border-primary/16 bg-surface/82',
+    section: 'border-primary/30',
     sectionGlow: 'shadow-[0_0_24px_hsl(var(--primary)/0.10)]',
     neonClass: 'rr-neon-green',
     glowClass: 'glow-kawasaki-sm',
@@ -62,7 +62,7 @@ const TYPE_STYLE_MAP = {
     chip: 'border-event/20 bg-event/10 text-event',
     chipInactive: 'border-border/40 bg-white/[0.03] text-muted-foreground hover:border-event/25 hover:bg-event/[0.06] hover:text-foreground',
     panelSoft: 'border-event/18 bg-event/[0.05]',
-    section: 'border-event/16 bg-surface/82',
+    section: 'border-event/30',
     sectionGlow: 'shadow-[0_0_24px_hsl(var(--event)/0.10)]',
     neonClass: '',
     glowClass: '',
@@ -78,7 +78,7 @@ const TYPE_STYLE_MAP = {
     chip: 'border-iso/20 bg-iso/10 text-iso',
     chipInactive: 'border-border/40 bg-white/[0.03] text-muted-foreground hover:border-iso/25 hover:bg-iso/[0.06] hover:text-foreground',
     panelSoft: 'border-iso/18 bg-iso/[0.05]',
-    section: 'border-iso/16 bg-surface/82',
+    section: 'border-iso/30',
     sectionGlow: 'shadow-[0_0_24px_hsl(var(--iso)/0.10)]',
     neonClass: '',
     glowClass: '',
@@ -94,7 +94,7 @@ const TYPE_STYLE_MAP = {
     chip: 'border-alert/20 bg-alert/10 text-alert',
     chipInactive: 'border-border/40 bg-white/[0.03] text-muted-foreground hover:border-alert/25 hover:bg-alert/[0.06] hover:text-foreground',
     panelSoft: 'border-alert/18 bg-alert/[0.05]',
-    section: 'border-alert/16 bg-surface/82',
+    section: 'border-alert/30',
     sectionGlow: 'shadow-[0_0_24px_hsl(var(--alert)/0.10)]',
     neonClass: '',
     glowClass: '',
@@ -110,7 +110,7 @@ const TYPE_STYLE_MAP = {
     chip: 'border-destructive/20 bg-destructive/10 text-destructive',
     chipInactive: 'border-border/40 bg-white/[0.03] text-muted-foreground hover:border-destructive/25 hover:bg-destructive/[0.06] hover:text-foreground',
     panelSoft: 'border-destructive/18 bg-destructive/[0.05]',
-    section: 'border-destructive/16 bg-surface/82',
+    section: 'border-destructive/30',
     sectionGlow: 'shadow-[0_0_24px_hsl(var(--destructive)/0.10)]',
     neonClass: 'rr-neon-red',
     glowClass: '',
@@ -200,7 +200,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const typeMeta = TYPES.find((t) => t.id === type);
   const typeStyles = TYPE_STYLE_MAP[typeMeta.color];
   const formSectionClass = 'space-y-5 relative';
-  const fieldCardClass = cn('rounded-[20px] border bg-surface/78 p-3 backdrop-blur-xl shadow-[0_18px_54px_hsl(0_0%_0%/0.28)]', typeStyles.section);
+  const fieldCardClass = cn('rounded-[20px] border p-3 backdrop-blur-xl shadow-[0_18px_54px_hsl(0_0%_0%/0.28)]', typeStyles.section);
   const controlClass = cn('rr-premium-input rounded-[18px] mt-1.5', typeStyles.input);
   const { effectiveLoc: radarDefaultLoc, userLoc, hasUserLocation } = useRadarLocation();
 
@@ -472,8 +472,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
       </HStack>
 
       {draftBanner && (
-        <div role="status" aria-live="polite" className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-primary/25 bg-primary/10 px-4 py-3">
-          <Text variant="caption" className="text-primary font-medium">
+        <div role="status" aria-live="polite" className={cn('mb-4 flex items-center justify-between gap-3 rounded-2xl border px-4 py-3', typeStyles.panelSoft)}>
+          <Text variant="caption" className={cn('font-medium', typeStyles.text)}>
             You have an unsaved draft
           </Text>
           <HStack gap={2}>
