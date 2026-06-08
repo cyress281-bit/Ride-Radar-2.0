@@ -514,8 +514,8 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                   className={cn(
                     'flex min-h-[52px] items-center gap-2 rounded-2xl border px-3.5 py-3 text-sm font-bold transition-all active:scale-[0.96] backdrop-blur-xl',
                     isoSubtype === opt.value
-                      ? 'border-cyan/40 bg-cyan/10 text-cyan shadow-[0_0_22px_hsl(var(--cyan)/0.14)] glow-yamaha'
-                      : 'border-white/[0.08] bg-white/[0.03] text-muted-foreground hover:text-foreground hover:bg-white/[0.05]'
+                      ? typeStyles.chip
+                      : typeStyles.chipInactive
                   )}
                 >
                   <opt.icon className="w-4 h-4" />
@@ -677,7 +677,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                           if (eventImage) revokeLocalImage(eventImage);
                           setEventImage(null);
                         }}
-                        className="pressable h-11 min-h-[44px] rounded-full border border-white/[0.08] bg-white/[0.03] text-xs font-bold text-muted-foreground transition hover:border-destructive/50 hover:text-destructive"
+                        className={cn('pressable h-11 min-h-[44px] rounded-full border text-xs font-bold transition hover:border-destructive/50 hover:text-destructive', typeStyles.chipInactive)}
                       >
                         Remove
                       </button>
@@ -803,7 +803,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                   'flex-1 rounded-2xl border px-3 py-2 text-xs font-bold transition-colors min-h-[44px] backdrop-blur-xl',
                   locationPrecision === 'approximate'
                     ? 'bg-primary/10 border-primary/40 text-primary shadow-[0_0_18px_hsl(var(--primary)/0.10)]'
-                    : 'bg-white/[0.03] border-white/[0.08] text-muted-foreground hover:border-primary/25 hover:text-foreground'
+                    : typeStyles.chipInactive
                 )}
               >
                 Approximate
@@ -815,7 +815,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
                   'flex-1 rounded-2xl border px-3 py-2 text-xs font-bold transition-colors min-h-[44px] backdrop-blur-xl',
                   locationPrecision === 'precise'
                     ? 'bg-alert/10 border-alert/40 text-alert shadow-[0_0_18px_hsl(var(--alert)/0.10)]'
-                    : 'bg-white/[0.03] border-white/[0.08] text-muted-foreground hover:border-alert/25 hover:text-foreground'
+                    : typeStyles.chipInactive
                 )}
               >
                 Precise
