@@ -174,15 +174,6 @@ export default function NotificationsPage() {
   }, [markAllRead, user?.id]);
   const handleDelete = useCallback((notification) => deleteNotif(notification.id), [deleteNotif]);
 
-  // Auto-mark all as read on page open — fires once per mount after data loads
-  const hasAutoMarkedRef = useRef(false);
-  useEffect(() => {
-    if (hasAutoMarkedRef.current) return;
-    if (!user?.id || notificationsLoading || unreadCount === 0) return;
-    hasAutoMarkedRef.current = true;
-    markAllRead(user.id);
-  }, [user?.id, notificationsLoading, unreadCount, markAllRead]);
-
   // Connection requests (use shared hook)
   const { data: pendingRequests = [] } = useConnectionRequests();
   const { mutate: acceptConn, isPending: isAccepting } = useAcceptConnectionRequest();
@@ -213,6 +204,17 @@ export default function NotificationsPage() {
   }, [notifications]);
 
   const unreadCount = visibleNotifications.filter((n) => !(n.is_read || n.isRead)).length;
+
+  // Auto-mark all as read on page open — fires once per mount after data loads.
+  // Must be placed after unreadCount is declared to avoid TDZ in the dep array.
+  const hasAutoMarkedRef = useRef(false);
+  useEffect(() => {
+    if (hasAutoMarkedRef.current) return;
+    if (!user?.id || notificationsLoading || unreadCount === 0) return;
+    hasAutoMarkedRef.current = true;
+    markAllRead(user.id);
+  }, [user?.id, notificationsLoading, unreadCount, markAllRead]);
+
   const hasAnything = pendingRequests.length + visibleNotifications.length > 0;
 
   const { today, yesterday, earlier } = groupNotificationsByDate(visibleNotifications);
