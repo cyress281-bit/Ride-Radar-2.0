@@ -5,6 +5,13 @@ import { getProfileByUserId } from '@/features/profile/api/profile-api';
 import { getMessages } from '@/features/chat/api/chat-api.js';
 import { getNotifications } from '@/features/notifications/api/notifications-api.js';
 import { notificationKeys } from '@/features/notifications/hooks/use-notifications.js';
+import {
+  getUserCount,
+  getActiveBroadcastCount,
+  getPendingReportCount,
+  getActiveConversationCount,
+  getTodaysStats,
+} from '@/features/admin/api/admin-api.js';
 
 /**
  * Shared TanStack Query client for Ride Radar 2.0.
@@ -116,6 +123,20 @@ export function prefetchNotifications(qc, userId) {
     },
     staleTime: 30000,
   });
+}
+
+/**
+ * Prefetch admin dashboard stats (all 5 stat cards).
+ * Only call this for admin users — each API fn calls assertAdmin() internally.
+ * @param {QueryClient} qc
+ */
+export function prefetchAdminDashboard(qc) {
+  const opts = { staleTime: 30000 };
+  qc.prefetchQuery({ queryKey: ['admin', 'user-count'], queryFn: getUserCount, ...opts });
+  qc.prefetchQuery({ queryKey: ['admin', 'active-broadcast-count'], queryFn: getActiveBroadcastCount, ...opts });
+  qc.prefetchQuery({ queryKey: ['admin', 'pending-report-count'], queryFn: getPendingReportCount, ...opts });
+  qc.prefetchQuery({ queryKey: ['admin', 'active-conversation-count'], queryFn: getActiveConversationCount, ...opts });
+  qc.prefetchQuery({ queryKey: ['admin', 'todays-stats'], queryFn: getTodaysStats, ...opts });
 }
 
 /**

@@ -19,7 +19,7 @@ import {
   preloadNotifications,
   preloadAdminDashboard,
 } from '@/lib/routePreload';
-import { prefetchNotifications } from '@/lib/query-client.js';
+import { prefetchNotifications, prefetchAdminDashboard } from '@/lib/query-client.js';
 
 const ROUTE_TITLES = {
   '/home': '',
@@ -267,7 +267,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
                 'pressable'
               )}
               aria-label="Admin panel"
-              {...withRoutePreload(preloadAdminDashboard)}
+              {...withRoutePreload(preloadAdminDashboard, () => prefetchAdminDashboard(qc))}
             >
               <span
                 className="h-1.5 w-1.5 rounded-full bg-primary animate-glow-pulse"
