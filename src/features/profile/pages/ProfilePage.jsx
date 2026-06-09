@@ -61,7 +61,7 @@ function ProfilePage() {
     setAvatarError(false);
   }, [profile?.avatar_url, user?.id]);
 
-  const [activeTab, setActiveTab] = useState('broadcasts');
+  const [activeTab, setActiveTab] = useState('media');
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
 

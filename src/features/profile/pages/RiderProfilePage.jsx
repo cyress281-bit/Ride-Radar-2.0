@@ -104,7 +104,7 @@ function RiderProfilePage() {
     setAvatarError(false);
   }, [userId]);
 
-  const [activeTab, setActiveTab] = useState('broadcasts');
+  const [activeTab, setActiveTab] = useState('media');
   const [selectedPost, setSelectedPost] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const openPostId = searchParams.get('openPost');
