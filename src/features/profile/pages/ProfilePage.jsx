@@ -9,10 +9,9 @@ import { useState, useMemo, memo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
-import { Edit2, Settings, Radio, Users, ShieldCheck, Bike, Images, Heart } from 'lucide-react';
+import { Edit2, Settings, Radio, ShieldCheck, Images } from 'lucide-react';
 import { useProfileLike } from '@/features/profile/hooks/use-profile-like.js';
 import { Badge } from '@/components/shared/Badge';
-import OptimizedImage from '@/components/shared/OptimizedImage';
 import { isExpired, timeAgo } from '@/lib/broadcastUtils';
 import { LoadingState } from '@/components/shared/LoadingState';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -21,7 +20,7 @@ import { useBroadcastsByAuthor } from '@/features/broadcast/hooks/use-broadcasts
 import { getFriendshipsCount } from '@/features/connections/api/connections-api.js';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/primitives/Text';
-import { HStack, VStack } from '@/components/ui/primitives/Stack';
+import { VStack } from '@/components/ui/primitives/Stack';
 import { cn } from '@/lib/utils.js';
 import { useUserPosts } from '@/features/profile/hooks/use-user-posts';
 import { logger } from '@/lib/logger';
@@ -29,28 +28,18 @@ import { isExpectedRealtimeDisconnect } from '@/lib/realtime-disconnects';
 import PostGrid from '@/features/profile/components/PostGrid';
 import PostCreateSheet from '@/features/profile/components/PostCreateSheet';
 import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
-import StatPill from '@/features/profile/components/StatPill.jsx';
 import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
 import { supabase } from '@/lib/supabase.js';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { withRoutePreload, preloadSettings, preloadBroadcastDetail } from '@/lib/routePreload.js';
 import { prefetchSettings } from '@/lib/query-client.js';
-
-const profileAmbientTopStyle = {
-  background:
-    'radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.14), transparent 42%), radial-gradient(circle at 18% 14%, hsl(var(--cyan) / 0.08), transparent 30%), radial-gradient(circle at 82% 10%, hsl(var(--brand-amber) / 0.06), transparent 28%)',
-};
-
-const profileAmbientBottomStyle = {
-  background:
-    'linear-gradient(180deg, transparent 0%, hsl(240 20% 2% / 0.10) 36%, hsl(240 20% 2% / 0.34) 100%)',
-};
-
-const profileTabsListClass =
-  'w-full flex justify-center gap-6 h-auto bg-transparent border-0 rounded-none p-0';
-
-const profileTabsTriggerClass =
-  'inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-all data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none';
+import ProfileIdentitySection from '@/features/profile/components/ProfileIdentitySection.jsx';
+import {
+  profileAmbientTopStyle,
+  profileAmbientBottomStyle,
+  profileTabsListClass,
+  profileTabsTriggerClass,
+} from '@/features/profile/constants/profileStyles.js';
 
 function ProfilePage() {
   const { user, profile } = useAuthState();
@@ -200,91 +189,34 @@ function ProfilePage() {
             <Settings className="h-4 w-4" />
           </Link>
 
-          <VStack align="center" gap={3}>
-            {/* Avatar with neon green ring */}
-            <div className="relative">
-              <div className="rr-avatar-ring shadow-[0_0_28px_hsl(var(--primary)/0.18)]">
-                {displayProfile?.avatar_url && !avatarError ? (
-                  <OptimizedImage
-                    src={displayProfile.avatar_url}
-                    alt=""
-                    containerClassName="h-28 w-28 shrink-0 rounded-full"
-                    className="rounded-full"
-                    objectFit="cover"
-                    loading="eager"
-                    fetchPriority="high"
-                    fadeInDuration={200}
-                    showSkeleton
-                    onError={() => setAvatarError(true)}
-                  />
-                ) : (
-                  <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-brand-radar/20 to-brand-amber/20 font-display text-4xl font-bold text-primary">
-                    {displayProfile?.display_name?.[0]?.toUpperCase() || '?'}
-                  </div>
-                )}
-              </div>
-            </div>
+          <ProfileIdentitySection
+            profile={displayProfile}
+            displayName={displayProfile?.display_name || user?.email}
+            avatarError={avatarError}
+            onAvatarError={() => setAvatarError(true)}
+            likeCount={likeCount}
+            connectionsCount={connectionsCount}
+            connectionsLoading={connectionsLoading}
+            onCrewPress={() => navigate('/messages', { state: { tab: 'crew' } })}
+            bikePillLabel={bikePillLabel}
+          />
 
-            {/* Name & Username */}
-            <VStack align="center" gap={0.5}>
-              <Text as="h1" variant="h2" color="default" align="center" className="font-bold tracking-[-0.03em]">
-                {displayProfile?.display_name || user?.email}
-              </Text>
-              {displayProfile?.username && (
-                <Text variant="bodySm" color="muted" className="font-mono-data">
-                  @{displayProfile.username}
-                </Text>
+          {/* Edit Profile — own profile only */}
+          <div className="mt-1 flex w-full justify-center">
+            <button
+              onClick={() => navigate('/profile/edit')}
+              className={cn(
+                'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-5 py-2.5',
+                'border border-white/[0.10] bg-black/20 text-sm font-bold text-foreground backdrop-blur-xl',
+                'transition-all hover:border-primary/35 hover:bg-primary/[0.08] hover:text-primary active:scale-95',
+                'shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04),0_0_18px_hsl(var(--primary)/0.10)]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
               )}
-            </VStack>
-
-            {/* Bio */}
-            {displayProfile?.bio && (
-              <Text variant="body" color="default" align="center" className="max-w-sm text-pretty leading-relaxed text-white/88">
-                {displayProfile.bio}
-              </Text>
-            )}
-
-            {/* Stats Row — neon brand colors */}
-            <HStack gap={2} className="w-full mt-1">
-              <StatPill
-                icon={Heart}
-                label="Likes"
-                value={likeCount}
-                brand="red"
-              />
-              <StatPill
-                icon={Users}
-                label="Crew"
-                value={connectionsCount}
-                isLoading={connectionsLoading}
-                brand="green"
-                onClick={() => navigate('/messages', { state: { tab: 'crew' } })}
-              />
-              <StatPill
-                icon={Bike}
-                label="Bike"
-                value={bikePillLabel || 'Not set'}
-                brand="blue"
-              />
-            </HStack>
-
-            {/* Action Button */}
-            <div className="mt-1 flex w-full justify-center">
-              <button
-                onClick={() => navigate('/profile/edit')}
-                className={cn(
-                  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-5 py-2.5',
-                  'border border-white/[0.10] bg-black/20 text-sm font-bold text-foreground backdrop-blur-xl',
-                  'transition-all hover:border-primary/35 hover:bg-primary/[0.08] hover:text-primary active:scale-95',
-                  'shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04),0_0_18px_hsl(var(--primary)/0.10)]',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-                )}
-              >
-                <Edit2 className="h-4 w-4 text-primary" />
-                Edit Profile
-              </button>
-            </div>
-          </VStack>
+            >
+              <Edit2 className="h-4 w-4 text-primary" />
+              Edit Profile
+            </button>
+          </div>
       </div>
 
       <ProfileBikePhotoCard

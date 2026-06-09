@@ -15,7 +15,6 @@ import { getProfileByUserId } from '@/features/profile/api/profile-api';
 import { getOrCreateConversation } from '@/lib/conversationUtils';
 import { isValidUuid } from '@/lib/utils';
 import {
-  Bike,
   UserPlus,
   MessageCircle,
   Clock,
@@ -26,16 +25,13 @@ import {
   Ban,
   Loader2,
   UserMinus,
-  Users,
   RefreshCw,
   MoreHorizontal,
   Flag,
   ShieldOff,
-  Heart,
 } from 'lucide-react';
 import { useProfileLike } from '@/features/profile/hooks/use-profile-like.js';
 import SafetyActions from '@/components/safety/SafetyActions';
-import OptimizedImage from '@/components/shared/OptimizedImage';
 import { RideCard } from '@/components/shared/RideCard';
 import { isExpired } from '@/lib/broadcastUtils';
 import { useBroadcastsByAuthor } from '@/features/broadcast/hooks/use-broadcasts.js';
@@ -73,26 +69,16 @@ import { LoadingState } from '@/components/shared/LoadingState';
 import { useUserPosts } from '@/features/profile/hooks/use-user-posts';
 import PostGrid from '@/features/profile/components/PostGrid';
 import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
-import StatPill from '@/features/profile/components/StatPill.jsx';
 import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh.js';
-
-const profileAmbientTopStyle = {
-  background:
-    'radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.14), transparent 42%), radial-gradient(circle at 18% 14%, hsl(var(--cyan) / 0.08), transparent 30%), radial-gradient(circle at 82% 10%, hsl(var(--brand-amber) / 0.06), transparent 28%)',
-};
-
-const profileAmbientBottomStyle = {
-  background:
-    'linear-gradient(180deg, transparent 0%, hsl(240 20% 2% / 0.10) 36%, hsl(240 20% 2% / 0.34) 100%)',
-};
-
-const profileTabsListClass =
-  'w-full flex justify-center gap-6 h-auto bg-transparent border-0 rounded-none p-0';
-
-const profileTabsTriggerClass =
-  'inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-all data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none';
+import ProfileIdentitySection from '@/features/profile/components/ProfileIdentitySection.jsx';
+import {
+  profileAmbientTopStyle,
+  profileAmbientBottomStyle,
+  profileTabsListClass,
+  profileTabsTriggerClass,
+} from '@/features/profile/constants/profileStyles.js';
 
 function RiderProfilePage() {
   const { userId } = useParams();
@@ -403,78 +389,39 @@ function RiderProfilePage() {
         <div className="absolute -bottom-16 -left-16 h-32 w-32 rounded-full bg-brand-radar/[0.06] blur-3xl pointer-events-none" />
 
         <div className="relative pt-2 pb-6 border-b border-white/[0.06]">
-          <VStack align="center" gap={3}>
-            {/* Avatar with gradient ring */}
-            <div className="relative">
-              <div className="rr-avatar-ring shadow-[0_0_28px_hsl(var(--primary)/0.18)]">
-                {canSeeDetails && profile.avatar_url && !avatarError ? (
-                  <OptimizedImage
-                    src={profile.avatar_url}
-                    alt=""
-                    containerClassName="h-28 w-28 shrink-0 rounded-full"
-                    className="rounded-full"
-                    objectFit="cover"
-                    loading="eager"
-                    fetchPriority="high"
-                    fadeInDuration={200}
-                    showSkeleton
-                    onError={() => setAvatarError(true)}
-                  />
-                ) : (
-                  <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-primary/30 via-brand-radar/20 to-brand-amber/20 font-display text-4xl font-bold text-primary">
-                    {canSeeDetails ? profile.display_name?.[0]?.toUpperCase() || '?' : '?'}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Name & Username */}
-            <VStack align="center" gap={0.5}>
-              <HStack align="center" gap={2}>
-                <Text as="h1" variant="h2" color="default" align="center" className={cn(canSeeDetails && 'font-bold tracking-[-0.03em]')}>
-                  {canSeeDetails ? profile.display_name : 'Private Rider'}
-                </Text>
-                {isFriend && (
-                  <Badge variant="secondary" className="text-[10px] bg-transparent text-primary border-primary/20">
-                    Friend
-                  </Badge>
-                )}
-                {isPending && (
-                  <Badge variant="outline" className="text-[10px] border-brand-amber/30 text-brand-amber">
-                    Pending
-                  </Badge>
-                )}
-              </HStack>
-              {canSeeDetails && profile.username && (
-                <Text variant="bodySm" color="muted" className="font-mono-data">
-                  @{profile.username}
-                </Text>
+          <ProfileIdentitySection
+            profile={profile}
+            avatarError={avatarError}
+            onAvatarError={() => setAvatarError(true)}
+            canSeeDetails={canSeeDetails}
+            likeCount={likeCount}
+            isLiked={isLiked}
+            onToggleLike={toggleLike}
+            likePending={likePending}
+            connectionsCount={crewCount}
+            connectionsLoading={crewCountLoading}
+            bikePillLabel={bikePillLabel}
+            nameBadges={<>
+              {isFriend && (
+                <Badge variant="secondary" className="text-[10px] bg-transparent text-primary border-primary/20">
+                  Friend
+                </Badge>
               )}
-            </VStack>
-
-            {canSeeDetails && profile.bio && (
-              <Text variant="body" color="default" align="center" className="max-w-sm text-pretty leading-relaxed text-white/88">
-                {profile.bio}
-              </Text>
-            )}
-
-            {/* Connection Status */}
-            {isBlocked && (
+              {isPending && (
+                <Badge variant="outline" className="text-[10px] border-brand-amber/30 text-brand-amber">
+                  Pending
+                </Badge>
+              )}
+            </>}
+            statusBanner={isBlocked ? (
               <HStack align="center" gap={1.5}>
                 <Ban className="w-3.5 h-3.5 text-brand-emergency" />
                 <Text variant="micro" className="text-brand-emergency font-semibold">Blocked</Text>
               </HStack>
-            )}
+            ) : null}
+          />
 
-            {/* Stats Row */}
-            {canSeeDetails && (
-              <HStack gap={2} className="w-full mt-1">
-                <StatPill icon={Heart} label="Likes" value={likeCount} brand="red" filled={isLiked} onClick={canLike && !likePending ? toggleLike : undefined} />
-                <StatPill icon={Users} label="Crew" value={crewCount} isLoading={crewCountLoading} brand="green" />
-                <StatPill icon={Bike} label="Bike" value={bikePillLabel || 'Not set'} brand="blue" />
-              </HStack>
-            )}
-
+          <VStack align="center" gap={3}>
             {/* Action Buttons */}
             {!isMeRoute && !isBlocked && (
               <>
