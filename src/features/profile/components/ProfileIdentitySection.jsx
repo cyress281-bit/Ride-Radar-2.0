@@ -25,6 +25,7 @@ const ProfileIdentitySection = memo(function ProfileIdentitySection({
   likeCount = 0,
   isLiked = false,
   onToggleLike,
+  onLikesPress,
   likePending = false,
   // Stats
   connectionsCount = 0,
@@ -95,7 +96,7 @@ const ProfileIdentitySection = memo(function ProfileIdentitySection({
             value={likeCount}
             brand="red"
             filled={isLiked}
-            onClick={onToggleLike && !likePending ? onToggleLike : undefined}
+            onClick={onToggleLike && !likePending ? onToggleLike : onLikesPress}
           />
           <StatPill
             icon={Users}

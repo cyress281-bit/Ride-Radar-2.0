@@ -6,6 +6,7 @@ import { useAuthState } from '@/features/auth/hooks/use-auth';
 const likeKeys = {
   count: (userId) => ['profile-likes', 'count', userId],
   isLiked: (userId, currentUserId) => ['profile-likes', 'is-liked', userId, currentUserId],
+  likers: (userId) => ['profile-likes', 'likers', userId],
 };
 
 export function useProfileLike(targetUserId) {
@@ -102,4 +103,40 @@ export function useProfileLike(targetUserId) {
     isPending,
     canLike: !!currentUserId && currentUserId !== targetUserId,
   };
+}
+
+/**
+ * Fetches the list of user profiles who liked a given profile.
+ * @param {string} targetUserId
+ * @param {boolean} enabled — only fetch when the sheet is open
+ */
+export function useProfileLikers(targetUserId, { enabled = false } = {}) {
+  return useQuery({
+    queryKey: likeKeys.likers(targetUserId),
+    enabled: !!targetUserId && enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profile_likes')
+        .select(`
+          liker_id,
+          created_at,
+          user_profiles!profile_likes_liker_id_fkey (
+            user_id,
+            display_name,
+            username,
+            avatar_url,
+            bike_make,
+            bike_model
+          )
+        `)
+        .eq('liked_user_id', targetUserId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map((row) => ({
+        ...row.user_profiles,
+        likedAt: row.created_at,
+      }));
+    },
+    staleTime: 30000,
+  });
 }

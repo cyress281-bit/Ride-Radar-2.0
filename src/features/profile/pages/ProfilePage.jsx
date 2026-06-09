@@ -34,6 +34,7 @@ import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { withRoutePreload, preloadSettings, preloadBroadcastDetail } from '@/lib/routePreload.js';
 import { prefetchSettings } from '@/lib/query-client.js';
 import ProfileIdentitySection from '@/features/profile/components/ProfileIdentitySection.jsx';
+import ProfileLikersSheet from '@/features/profile/components/ProfileLikersSheet.jsx';
 import {
   profileAmbientTopStyle,
   profileAmbientBottomStyle,
@@ -54,6 +55,7 @@ function ProfilePage() {
   const [activeTab, setActiveTab] = useState('media');
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [likersSheetOpen, setLikersSheetOpen] = useState(false);
 
   // DEV: mark that ProfilePage has mounted so layout debug can distinguish bad vs good state
   useEffect(() => {
@@ -195,6 +197,7 @@ function ProfilePage() {
             avatarError={avatarError}
             onAvatarError={() => setAvatarError(true)}
             likeCount={likeCount}
+            onLikesPress={likeCount > 0 ? () => setLikersSheetOpen(true) : undefined}
             connectionsCount={connectionsCount}
             connectionsLoading={connectionsLoading}
             onCrewPress={() => navigate('/messages', { state: { tab: 'crew' } })}
@@ -305,6 +308,13 @@ function ProfilePage() {
           )}
         </TabsContent>
       </Tabs>
+
+      <ProfileLikersSheet
+        userId={user?.id}
+        likeCount={likeCount}
+        open={likersSheetOpen}
+        onClose={() => setLikersSheetOpen(false)}
+      />
     </VStack>
   );
 }
