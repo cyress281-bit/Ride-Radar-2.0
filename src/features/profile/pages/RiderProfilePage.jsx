@@ -54,6 +54,7 @@ import {
   useSendConnectionRequest,
   useAcceptConnectionRequest,
   useDeclineConnectionRequest,
+  useCancelConnectionRequest,
   connectionRequestKeys,
 } from '@/features/connections/hooks/use-connection-requests.js';
 import { supabase } from '@/lib/supabase.js';
@@ -233,6 +234,7 @@ function RiderProfilePage() {
   const sendFriendReq = useSendConnectionRequest();
   const { mutate: acceptConn, isPending: isAccepting } = useAcceptConnectionRequest();
   const { mutate: declineConn, isPending: isDeclining } = useDeclineConnectionRequest();
+  const { mutate: cancelRequest, isPending: isCancelling } = useCancelConnectionRequest();
 
   const handleAccept = useCallback(() => {
     if (!connectionRequest?.id) return;
@@ -606,15 +608,28 @@ function RiderProfilePage() {
                   </VStack>
                 ) : isOutgoingPending ? (
                   <HStack gap={3} className="w-full mt-1">
-                    <button
-                      disabled
+                    <div
                       className={cn(
                         'flex-1 flex items-center justify-center gap-2 rounded-full border border-brand-amber/30',
-                        'bg-brand-amber/10 px-5 py-2.5 text-sm font-semibold text-brand-amber',
-                        'disabled:opacity-60'
+                        'bg-brand-amber/10 px-5 py-2.5 text-sm font-semibold text-brand-amber opacity-70'
                       )}
                     >
                       <Clock className="h-4 w-4" /> Request sent
+                    </div>
+                    <button
+                      onClick={() => cancelRequest(connectionRequest.id)}
+                      disabled={isCancelling}
+                      className={cn(
+                        'flex-1 flex items-center justify-center gap-2 rounded-full border border-destructive/30',
+                        'bg-destructive/10 px-5 py-2.5 text-sm font-semibold text-destructive',
+                        'transition-all hover:bg-destructive/20 pressable',
+                        'disabled:opacity-50'
+                      )}
+                    >
+                      {isCancelling
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : <UserMinus className="h-4 w-4" />}
+                      Cancel
                     </button>
                   </HStack>
                 ) : (
