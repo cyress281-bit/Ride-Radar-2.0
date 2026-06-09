@@ -464,36 +464,55 @@ function RsvpAttendeeSheet({ userIds, profiles, label, onClose }) {
         onClick={onClose}
       />
       <div
-        className="fixed left-0 right-0 z-[60] rounded-t-[28px] bg-surface border-t border-white/[0.06] px-5 pt-5 pb-6 overflow-y-auto"
+        className="fixed left-0 right-0 z-[60] rounded-t-[28px] bg-surface border-t border-white/[0.06] px-3 pt-5 pb-6 overflow-y-auto"
         style={{
           bottom: 'calc(var(--rr-nav-h, 56px) + 14px + var(--rr-safe-area-bottom, 0px))',
           maxHeight: 'calc(70vh - var(--rr-nav-h, 56px) - 14px - var(--rr-safe-area-bottom, 0px))',
         }}
       >
-        <div className="flex items-center justify-between mb-4">
-          <Text variant="h3" className="font-bold">{label}</Text>
+        <div className="flex items-center justify-between mb-3 px-2">
+          <Text variant="h3" className="font-bold">
+            {label} · {userIds.length}
+          </Text>
           <button onClick={onClose}
             className="pressable text-sm font-semibold text-muted-foreground hover:text-foreground min-h-[44px] px-2">
             Done
           </button>
         </div>
-        <VStack gap={3}>
+        <VStack gap={0}>
           {userIds.map((uid) => {
             const p = profiles.get(uid);
             return (
-              <HStack key={uid} gap={3} align="center">
+              <Link
+                key={uid}
+                to={`/profile/${uid}`}
+                onClick={onClose}
+                className="flex items-center gap-3 rounded-2xl px-2 py-2.5 transition-colors hover:bg-white/[0.04] active:bg-white/[0.06]"
+              >
                 {p?.avatar_url ? (
-                  <img src={p.avatar_url} alt={p.display_name || 'Rider'}
-                    className="w-10 h-10 rounded-full object-cover border border-white/[0.08] shrink-0" />
+                  <img src={p.avatar_url} alt={p?.display_name || 'Rider'}
+                    className="w-11 h-11 rounded-full object-cover border border-primary/20 shrink-0" />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-surface-elevated border border-white/[0.08] flex items-center justify-center text-sm font-bold text-foreground/60 shrink-0">
-                    {p?.display_name?.[0] || '?'}
+                  <div className="w-11 h-11 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                    {p?.display_name?.[0]?.toUpperCase() || '?'}
                   </div>
                 )}
-                <Text variant="bodySm" className="font-semibold truncate">
-                  {p?.display_name || 'Rider'}
-                </Text>
-              </HStack>
+                <div className="min-w-0 flex-1">
+                  <Text variant="bodySm" className="font-semibold truncate block">
+                    {p?.display_name || 'Rider'}
+                  </Text>
+                  {p?.username && (
+                    <Text variant="micro" color="muted" className="font-mono-data truncate block">
+                      @{p.username}
+                    </Text>
+                  )}
+                  {(p?.bike_make || p?.bike_model) && (
+                    <Text variant="micro" color="muted" className="truncate block">
+                      {[p.bike_make, p.bike_model].filter(Boolean).join(' ')}
+                    </Text>
+                  )}
+                </div>
+              </Link>
             );
           })}
         </VStack>
