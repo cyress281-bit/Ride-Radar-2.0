@@ -579,18 +579,6 @@
   100% { background-position: 200% 0; }
 }
 
-@keyframes ekg-dash {
-  0% { stroke-dashoffset: 120; opacity: 0.4; }
-  50% { stroke-dashoffset: 0; opacity: 1; }
-  100% { stroke-dashoffset: -120; opacity: 0.4; }
-}
-
-.ekg-pulse {
-  stroke-dasharray: 120;
-  stroke-dashoffset: 120;
-  animation: ekg-dash 2s ease-in-out infinite;
-}
-
 @keyframes rr-neon-focus-pulse {
   0%, 100% {
     box-shadow:
