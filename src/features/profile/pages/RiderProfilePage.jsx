@@ -72,6 +72,8 @@ import PostGrid from '@/features/profile/components/PostGrid';
 import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
 import StatPill from '@/features/profile/components/StatPill.jsx';
 import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
+import ProfileLikeHeart from '@/features/profile/components/ProfileLikeHeart.jsx';
+import { useProfileLike } from '@/features/profile/hooks/use-profile-like.js';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh.js';
 
@@ -296,6 +298,8 @@ function RiderProfilePage() {
     return [profile?.bike_make, profile?.bike_model].filter(Boolean).join(' ') || null;
   }, [profile]);
 
+  const { likeCount, isLiked, toggleLike, isPending: likePending, canLike } = useProfileLike(userId);
+
   const {
     data: riderPosts = [],
     isLoading: postsLoading,
@@ -460,12 +464,18 @@ function RiderProfilePage() {
               </HStack>
             )}
 
-            {/* Stats Row — neon brand colors */}
+            {/* Stats Row */}
             {canSeeDetails && (
-              <HStack gap={2} className="w-full mt-1">
-                <StatPill icon={Radio} label="Signals" value={activeBroadcasts.length} isLoading={isBroadcastsLoading} brand="green" onClick={() => setActiveTab('broadcasts')} />
-                <StatPill icon={Bike} label="Bike" value={bikePillLabel || 'Not set'} brand="blue" />
+              <HStack gap={2} className="w-full mt-1 items-start">
+                <ProfileLikeHeart
+                  likeCount={likeCount}
+                  isLiked={isLiked}
+                  onToggle={toggleLike}
+                  canLike={canLike}
+                  isPending={likePending}
+                />
                 <StatPill icon={Users} label="Crew" value={crewCount} isLoading={crewCountLoading} brand="green" />
+                <StatPill icon={Bike} label="Bike" value={bikePillLabel || 'Not set'} brand="blue" />
               </HStack>
             )}
 

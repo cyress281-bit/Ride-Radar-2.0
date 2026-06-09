@@ -10,6 +10,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { Edit2, Settings, Radio, Users, ShieldCheck, Bike, Images } from 'lucide-react';
+import ProfileLikeHeart from '@/features/profile/components/ProfileLikeHeart.jsx';
+import { useProfileLike } from '@/features/profile/hooks/use-profile-like.js';
 import { Badge } from '@/components/shared/Badge';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { isExpired, timeAgo } from '@/lib/broadcastUtils';
@@ -129,6 +131,8 @@ function ProfilePage() {
     },
   });
 
+  const { likeCount } = useProfileLike(user?.id);
+
   const active = useMemo(
     () => (broadcastsFailed ? [] : myBroadcasts.filter((b) => b.status === 'active' && !isExpired(b))),
     [broadcastsFailed, myBroadcasts]
@@ -240,16 +244,9 @@ function ProfilePage() {
               </Text>
             )}
 
-            {/* Stats Row — neon brand colors */}
-            <HStack gap={2} className="w-full mt-1">
-              <StatPill
-                icon={Radio}
-                label="Signals"
-                value={active.length}
-                isLoading={broadcastsLoading}
-                brand="green"
-                onClick={() => setActiveTab('broadcasts')}
-              />
+            {/* Stats Row */}
+            <HStack gap={2} className="w-full mt-1 items-start">
+              <ProfileLikeHeart likeCount={likeCount} isLiked={false} canLike={false} />
               <StatPill
                 icon={Users}
                 label="Crew"
