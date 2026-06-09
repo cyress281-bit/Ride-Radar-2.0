@@ -213,6 +213,29 @@ function BroadcastFeedPage() {
     };
   }, [hasUserLocation, isLoadingBroadcasts, isOnline, visibleBroadcasts, visibleRiderMarkers]);
 
+  // Auto-retry location on app resume if permission was already granted.
+  // Only fires when geolocation permission is "granted" (no user gesture needed).
+  // Covers the case where the user enabled location in iOS Settings and returns to the app.
+  useEffect(() => {
+    if (hasUserLocation) return;
+
+    const tryOnResume = async () => {
+      if (document.visibilityState !== 'visible' || locating) return;
+      if (!navigator.permissions) return;
+      try {
+        const perm = await navigator.permissions.query({ name: 'geolocation' });
+        if (perm.state === 'granted') requestLocation();
+      } catch { /* permissions API unsupported — chip stays as manual fallback */ }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') tryOnResume();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [hasUserLocation, locating, requestLocation]);
+
   const activeCount = filteredBroadcasts.length;
 
   // Phase 4: honest collapsed peek — uses unfiltered data so it never lies about what's nearby
