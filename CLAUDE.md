@@ -11,8 +11,8 @@ Before doing anything else each session:
 
 > There is no standing "current task." Recent work lives in `git log`. This file holds only evergreen guidance + still-open obligations (see **Deferred Follow-Ups**).
 
-### ⏭️ Next Scheduled Task — Full E2E App Integrity Audit (starts 2026-06-04)
-The next planned effort is the deepest end-to-end inspection we've run: an evidence-enforced, fabrication-resistant audit of every backend-dependent frontend capability. **Full spec + phase/stage map:** [`E2E_INTEGRITY_AUDIT.md`](./E2E_INTEGRITY_AUDIT.md). **Inspection only — no edits / fixes / commits during the audit.** Structure: Phase 0 (schema catalog) → Phase 1 Tier-1 areas (6) → Phase 2 Tier-2 (6) → Phase 3 Tier-3 (2) → Phase 4 global lenses (7) → Phase 5 consolidation + device script (2) = **24 stages**. One Stage per Kimi run; Claude reconciles (self-verification sample + independent re-check of every Blocker/High claim) before the next Stage starts. Hand Kimi one Stage at a time from the spec file. Day-one goal (2026-06-04): get at least halfway.
+### ⏭️ Next Session — Device test first, then pick from remaining items
+Large visual + performance polish pass completed 2026-06-08. **Test on iPhone PWA before adding more** — several big changes shipped: profile like system, who liked you/crew sheets, map marker perf fix (GPS listener churn), notification badge auto-clear, location gate auto-dismiss, ProfileIdentitySection refactor, RSVP attendee sheet links, nav prefetch coverage. Remaining open items: profile image resize (waiting for Supabase Pro), rider search, signal history tab, message reactions.
 
 ---
 
@@ -215,6 +215,7 @@ Key tables (all have RLS policies):
 - `notifications` - Activity feed
 - `user_settings` - Privacy preferences (including `analytics_enabled` for opt-out)
 - `event_rsvps` - RSVP records for event broadcasts (`interested`, `going`, `maybe`, `not_going`)
+- `profile_likes` - Profile likes (`liker_id`, `liked_user_id`) — unique constraint, no self-likes, RLS: anyone can read, only liker can insert/delete
 
 **Important:** All geospatial queries use the `get_nearby_broadcasts` RPC function (server-side PostGIS) instead of client-side distance calculations.
 
@@ -385,7 +386,7 @@ useEffect(() => {
 |---|---|---|
 | Supabase migration history diverged | 🚨 Active | ~40 remote-only migrations not in local repo. `db push` fails. Manual SQL application required. Local migration files can describe a *stale* version of a live object (e.g. `get_live_map_presence` is 4-arg + hardened on live but 0-arg in local migrations). ALWAYS verify the live object via Supabase MCP before applying any DB change. |
 | Sentry fetch failures | 🚨 Active | POST to ingest endpoint failing — likely rate-limited or CORS. Not user-facing. |
-| requestAnimationFrame jank | 🚨 Active | 199ms frame time on lower-end devices. Needs React profiling. |
+| requestAnimationFrame jank | ⚠️ Partial fix | Map marker listener churn fixed (commit `039c39b` — unstable callback deps removed from `MapLibreBroadcastMarkerLayer` and `MapLibrePresenceMarkerLayer`). Remaining 199ms frame time needs device profiling to confirm improvement and find other sources. |
 | PWA iOS SW update delay | Investigated, no fix | iOS Safari 24hr SW update throttle + static `?v=velocity` string. |
 
 ---
@@ -394,26 +395,31 @@ useEffect(() => {
 
 None blocking.
 
-### 1. Slow loading of EXISTING profile images — DO VIA SUPABASE PRO after upgrade (owner upgrading ~week of 2026-06-09)
-Bike photo + shots images are served as **full-resolution public URLs** (stored ≤1600px, rendered in ~150px tiles) with **no resize**. Org is on the **FREE plan**, so render transforms (`?width=`) are unavailable. **Decision made:** owner is upgrading to **Supabase Pro** (~$25/mo, next payday), then the fix is a one-helper change to use `getPublicUrl(path, { transform: { width } })` sized per render context (avatar/tile ~150–300px, detail ~1080px) — works on **all** existing + new images, no backfill, no third-party. Rejected the free-proxy and thumbnail+backfill options as throwaway work Pro supersedes. **Trigger: do this once Pro is active.** (Note: the *upload* "file too large" issue was separate and already fixed — `25f679a` raised caps so phone photos aren't rejected pre-downscale.)
+### 1. Slow loading of EXISTING profile images — DO VIA SUPABASE PRO after upgrade
+Bike photo + shots images are served as **full-resolution public URLs** (stored ≤1600px, rendered in ~150px tiles) with **no resize**. Org is on the **FREE plan**, so render transforms (`?width=`) are unavailable. **Decision made:** owner is upgrading to **Supabase Pro** (~$25/mo), then the fix is a one-helper change to use `getPublicUrl(path, { transform: { width } })` sized per render context (avatar/tile ~150–300px, detail ~1080px) — works on **all** existing + new images, no backfill, no third-party. **Trigger: do this once Pro is active.** (Note: the *upload* "file too large" issue was separate and already fixed — `25f679a` raised caps so phone photos aren't rejected pre-downscale.)
 
-### 2. Refactor: share the common bits of `ProfilePage` and `RiderProfilePage` (not started)
-`ProfilePage` (own profile, `/profile`) and `RiderProfilePage` (another rider, `/profile/:userId`) are two separate components that are meant to look/behave the same but keep **drifting** — a fix lands on one and not the other. Already bitten us 3×: **canDelete** (delete button missing on the `RiderProfilePage` self-view), **force-scroll/portal** (sheets), and **Signals/Shots tab pill alignment**. Extract the shared presentation (tab classes, ambient styles, shots grid, sheet wiring) into one shared piece; keep ownership-specific behavior gated on "is this my profile?" (computed from ownership, like `isOwner`) — **not** by which file. **Safety note:** merging the *look* does not weaken access control — cross-user edits are blocked server-side by RLS (`user_profiles` UPDATE = `user_id = auth.uid()`), regardless of UI. **Do it later as a dedicated effort** (medium-risk, touches two core screens) with a before/after on-device pass on both profile views — NOT mid bug-hunt. Lightweight first step if wanted: just pull the duplicated *constants* (tab class strings, ambient bg styles) into one shared module.
+### 2. ✅ Refactor: share the common bits of `ProfilePage` and `RiderProfilePage` — DONE 2026-06-08
+Extracted `ProfileIdentitySection` (avatar + name + bio + stats row) and `src/features/profile/constants/profileStyles.js` (tab classes + ambient styles). Both pages now import from one source. Commit: `fff8095`.
 
-### 3. Radar location gate — Step 3 polish (optional, not started)
-The location gate shipped in two steps: `5ed3c91` (additive `LocationGateOverlay` + chip) and `760f798` (removed the old `geoError` banner). Remaining optional polish: **best-effort auto-dismiss on resume** — when the user enables location in iOS Settings and returns, re-attempt location (hook into `useAppResumeRefresh` / `visibilitychange`) so the gate/chip clear themselves instead of needing a manual tap; and optionally layer in `navigator.permissions.query({name:'geolocation'})` (where supported) to pre-detect "denied" on load. iOS PWA caveat: geolocation needs a user gesture, so full auto-dismiss isn't guaranteed — the chip remains the manual fallback. Pure enhancement; the feature works without it.
+### 3. ✅ Radar location gate — Step 3 auto-dismiss — DONE 2026-06-08
+`visibilitychange` + `navigator.permissions.query` on `BroadcastFeedPage` — auto-retries location on app resume if permission is already granted. Chip remains for manual fallback. Commit: `b7dc06c`.
 
-### 4. Add "Cancel request" to the profile's "Request sent" state (small UX, not started)
-Cancelling an outgoing connection request only works from the **Requests tab** (`RequestsTab.jsx` `OutgoingRequestRow` → `useCancelConnectionRequest`). On `RiderProfilePage`, the outgoing-pending state (`isOutgoingPending`, ~line 571–583) shows a **disabled "Request sent"** button with no cancel — so a user who sent a request and revisits that rider's profile can't retract it from there. Add a cancel action to that state (reuse `useCancelConnectionRequest`; the backend `senders_can_cancel_connection_requests` DELETE policy already allows it). Minor discoverability friction, not a bug. (Surfaced during the 2026-06-02 moderation/safety device verification; confirmed by both Claude + Kimi.)
+### 4. ✅ Add "Cancel request" to the profile's "Request sent" state — DONE 2026-06-08
+`useCancelConnectionRequest` wired into `RiderProfilePage` outgoing-pending state. Cancel button next to the disabled "Request sent" pill. Commit: `e62a911`.
 
-### 5. Admin Reports: disambiguate "Remove content" vs "Mark resolved" (small UX, not started)
-On `AdminReportsPage`, two actions sit close together: **`removeContent`** (actually deletes/archives the reported content, then resolves — stamps details `content removed/archived`) and a separate **"Mark resolved" / dismiss** action (just closes the report — stamps `Admin marked report resolved`). During the 2026-06-02 verification the owner tapped *Mark resolved* thinking it removed a reported message; the report closed but the message stayed (resolved ≠ removed — DB-confirmed). Not a bug, but easy to confuse. Improve clarity: clearer labels, separation/ordering, or a confirm on the destructive "Remove content". (Always DB-verify admin removals — a resolved report does not imply the content was deleted.)
+### 5. ✅ Admin Reports: disambiguate "Remove content" vs "Mark resolved" — DONE 2026-06-08
+Renamed "Take Action" → "Remove content", renamed "Resolved" → "Mark resolved", added faint divider between status-only and destructive actions, strengthened confirm dialogs. Commit: `21b4939`.
 
 ### 6. Native-build-only polish (Capacitor iOS/Android — not possible in the PWA)
 Items that **cannot** be done from the web/PWA and are deferred to the native Capacitor shell:
 - **Remove the iOS keyboard accessory bar** (the up/down-arrow + "Done" form-assistant toolbar above the keyboard). It's OS chrome (WKWebView/UIKit), not in the DOM — no web API hides it. Native fix: override the web view's `inputAccessoryView` to `nil` (or a Capacitor keyboard plugin/config). Requested 2026-06-02 for the comment composer; PWA can't do it.
 - **"Open Settings" button** for the location gate's denied state (and any future "go enable a permission" flow). iOS PWA can't deep-link to Settings; native can via `UIApplication.openSettingsURLString`. (See Radar location-gate work.)
 - General permission-state APIs (proper geolocation permission query) are more reliable in native than the PWA's visualViewport/error-based inference.
+
+### 7. New features queued (net-new scope, not yet started)
+- **Rider search** — find riders by name or username
+- **Signal history tab** — past/expired broadcasts on profile ("Rides" tab)
+- **Message reactions** — react to messages with emoji
 
 ## Dead Ends — Approaches Already Tried That Did NOT Work
 
