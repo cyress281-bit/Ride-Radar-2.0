@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, ChevronLeft, User } from 'lucide-react';
+import { Bell, ChevronLeft, User, Search } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
@@ -20,6 +20,7 @@ import {
   preloadAdminDashboard,
 } from '@/lib/routePreload';
 import { prefetchNotifications, prefetchAdminDashboard } from '@/lib/query-client.js';
+import RiderSearchOverlay from '@/features/connections/components/RiderSearchOverlay.jsx';
 
 const ROUTE_TITLES = {
   '/home': '',
@@ -144,6 +145,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
         : 'degraded';
 
   const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     if (isTransparent) return;
@@ -158,6 +160,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const showBackButton = !isHome && !isConversation && !isOnboarding;
 
   return (
+    <>
     <header
       className={cn(
         'fixed top-0 left-0 right-0 z-40 pt-safe select-none transition-all duration-300',
@@ -276,6 +279,21 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             </NavLink>
           )}
 
+          {/* Rider search */}
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            className={cn(
+              'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
+              'transition-all duration-150 text-muted-foreground hover:text-foreground',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'pressable'
+            )}
+            aria-label="Search riders"
+          >
+            <Search className="w-[18px] h-[18px]" aria-hidden="true" />
+          </button>
+
           <NavLink
             to="/notifications"
             className={({ isActive }) =>
@@ -327,6 +345,9 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
         </HStack>
       </HStack>
     </header>
+
+    <RiderSearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+    </>
   );
 });
 
