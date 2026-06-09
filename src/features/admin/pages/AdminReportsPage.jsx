@@ -456,7 +456,8 @@ function AdminReportsContent() {
                 </p>
               )}
 
-              <div className="relative mt-4 flex flex-wrap gap-2">
+              <div className="relative mt-4 flex flex-wrap items-center gap-2">
+                {/* Status-only actions — do NOT remove content */}
                 <Button
                   size="sm"
                   variant="outline"
@@ -479,7 +480,7 @@ function AdminReportsContent() {
                   variant="outline"
                   className="min-h-[44px] rounded-full"
                   onClick={() => {
-                    if (window.confirm('Dismiss this report? It will be marked as dismissed with no action taken.')) {
+                    if (window.confirm('Dismiss this report? It will be marked as dismissed — no content will be removed.')) {
                       setStatus.mutate({
                         id: report.id,
                         status: 'dismissed',
@@ -494,8 +495,9 @@ function AdminReportsContent() {
                 <Button
                   size="sm"
                   className="min-h-[44px] rounded-full"
+                  title="Closes the report — reported content is NOT removed"
                   onClick={() => {
-                    if (window.confirm('Resolve this report?')) {
+                    if (window.confirm('Mark resolved? The report will close but the reported content will NOT be removed. To delete content, use "Remove content" instead.')) {
                       setStatus.mutate({
                         id: report.id,
                         status: 'resolved',
@@ -505,9 +507,13 @@ function AdminReportsContent() {
                   }}
                   disabled={setStatus.isPending}
                 >
-                  <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Resolved
+                  <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Mark resolved
                 </Button>
 
+                {/* Divider */}
+                <span className="h-6 w-px bg-white/10 mx-1" aria-hidden="true" />
+
+                {/* Destructive actions — actually removes content */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -517,11 +523,11 @@ function AdminReportsContent() {
                       disabled={removeContent.isPending || makeProfilePrivate.isPending}
                     >
                       <Trash2 className="mr-1 h-3.5 w-3.5" />
-                      Take Action
+                      Remove content
                       <ChevronDown className="ml-1 h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuContent align="start" className="w-56">
                     {(report.target_type === 'broadcast' ||
                       report.target_type === 'message' ||
                       report.target_type === 'conversation' ||
@@ -530,14 +536,14 @@ function AdminReportsContent() {
                       report.target_type === 'image') && (
                       <DropdownMenuItem
                         onClick={() => {
-                          if (window.confirm(`Delete this ${report.target_type}? This cannot be undone.`)) {
+                          if (window.confirm(`Permanently delete this ${report.target_type}? This REMOVES the content and cannot be undone.`)) {
                             removeContent.mutate(report);
                           }
                         }}
-                        className="gap-2"
+                        className="gap-2 text-destructive focus:text-destructive"
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
-                        Delete content
+                        Delete {report.target_type}
                       </DropdownMenuItem>
                     )}
                     {targetUserId && (
