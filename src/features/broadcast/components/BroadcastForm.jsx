@@ -200,6 +200,13 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
   const typeMeta = TYPES.find((t) => t.id === type);
   const typeStyles = TYPE_STYLE_MAP[typeMeta.color];
   const formSectionClass = 'space-y-5 relative';
+  const typeColorVar = {
+    solo_ride: 'var(--primary)',
+    event: 'var(--event)',
+    iso: 'var(--iso)',
+    alert: 'var(--alert)',
+    bike_down: 'var(--destructive)',
+  }[type] || 'var(--primary)';
   const fieldCardClass = cn('rounded-[20px] border p-3 backdrop-blur-xl shadow-[0_18px_54px_hsl(0_0%_0%/0.28)]', typeStyles.section);
   const controlClass = cn('rr-premium-input rounded-[18px] mt-1.5', typeStyles.input);
   const { effectiveLoc: radarDefaultLoc, userLoc, hasUserLocation } = useRadarLocation();
@@ -453,7 +460,7 @@ export default function BroadcastForm({ type, onBack, onPosted }) {
     ((type !== 'solo_ride' && type !== 'iso') || (coords.lat != null && coords.lng != null));
 
   return (
-    <div className="px-5 pt-5 pb-2 bg-background scroll-smooth">{/* AppLayout <main> applies pb-nav-safe globally */}
+    <div className="px-5 pt-5 pb-2 bg-background scroll-smooth" style={{ '--rr-type-color': typeColorVar }}>{/* AppLayout <main> applies pb-nav-safe globally */}
       <button type="button" onClick={() => { clearDraft(type); onBack(); }} aria-label="Back to signal type" className="pressable mb-3 flex min-h-[44px] items-center gap-1.5 px-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
         <ArrowLeft className="w-4 h-4" />
       </button>

@@ -320,8 +320,8 @@
   /* ---------- Inputs ---------- */
   .rr-premium-input {
     @apply rounded-lg px-4 py-2.5 outline-none;
-    background: hsl(var(--primary) / 0.05);
-    border: 1px solid hsl(var(--primary) / 0.2);
+    background: hsl(var(--rr-type-color, var(--primary)) / 0.05);
+    border: 1px solid hsl(var(--rr-type-color, var(--primary)) / 0.2);
     color: hsl(var(--foreground));
     transition:
       border-color 180ms ease,
@@ -332,11 +332,11 @@
 
   .rr-premium-input:focus,
   .rr-premium-input:focus-visible {
-    border-color: hsl(var(--primary));
-    background: hsl(var(--primary) / 0.075);
+    border-color: hsl(var(--rr-type-color, var(--primary)));
+    background: hsl(var(--rr-type-color, var(--primary)) / 0.075);
     box-shadow:
-      0 0 0 2px hsl(var(--primary)),
-      0 0 20px hsl(var(--primary) / 0.3);
+      0 0 0 2px hsl(var(--rr-type-color, var(--primary))),
+      0 0 20px hsl(var(--rr-type-color, var(--primary)) / 0.3);
     animation: rr-neon-focus-pulse 1.8s ease-in-out infinite;
     will-change: box-shadow;
   }
@@ -364,7 +364,8 @@
   }
 
   .rr-kicker {
-    @apply text-[11px] font-bold uppercase tracking-[0.18em] text-primary;
+    @apply text-[11px] font-bold uppercase tracking-[0.18em];
+    color: hsl(var(--rr-type-color, var(--primary)));
   }
 
   .rr-premium-label {
@@ -581,13 +582,13 @@
 @keyframes rr-neon-focus-pulse {
   0%, 100% {
     box-shadow:
-      0 0 0 2px hsl(var(--primary)),
-      0 0 20px hsl(var(--primary) / 0.3);
+      0 0 0 2px hsl(var(--rr-type-color, var(--primary))),
+      0 0 20px hsl(var(--rr-type-color, var(--primary)) / 0.3);
   }
   50% {
     box-shadow:
-      0 0 0 2px hsl(var(--primary)),
-      0 0 28px hsl(var(--primary) / 0.42);
+      0 0 0 2px hsl(var(--rr-type-color, var(--primary))),
+      0 0 28px hsl(var(--rr-type-color, var(--primary)) / 0.42);
   }
 }
 
