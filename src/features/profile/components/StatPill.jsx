@@ -6,6 +6,7 @@ const BRAND_STYLES = {
   green: { border: 'border-primary/20', bg: 'bg-primary/10', text: 'text-primary' },
   radar: { border: 'border-brand-radar/20', bg: 'bg-brand-radar/10', text: 'text-brand-radar' },
   amber: { border: 'border-brand-amber/20', bg: 'bg-brand-amber/10', text: 'text-brand-amber' },
+  blue: { border: 'border-event/20', bg: 'bg-event/10', text: 'text-event' },
 };
 
 const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading, brand = 'green', onClick }) {

@@ -464,8 +464,8 @@ function RiderProfilePage() {
             {canSeeDetails && (
               <HStack gap={2} className="w-full mt-1">
                 <StatPill icon={Radio} label="Signals" value={activeBroadcasts.length} isLoading={isBroadcastsLoading} brand="green" onClick={() => setActiveTab('broadcasts')} />
-                <StatPill icon={Bike} label="Bike" value={bikePillLabel || 'Not set'} brand="radar" />
-                <StatPill icon={Users} label="Crew" value={crewCount} isLoading={crewCountLoading} brand="amber" />
+                <StatPill icon={Bike} label="Bike" value={bikePillLabel || 'Not set'} brand="blue" />
+                <StatPill icon={Users} label="Crew" value={crewCount} isLoading={crewCountLoading} brand="green" />
               </HStack>
             )}
 

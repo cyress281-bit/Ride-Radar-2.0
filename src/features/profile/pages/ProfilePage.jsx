@@ -255,14 +255,14 @@ function ProfilePage() {
                 label="Crew"
                 value={connectionsCount}
                 isLoading={connectionsLoading}
-                brand="radar"
+                brand="green"
                 onClick={() => navigate('/messages', { state: { tab: 'crew' } })}
               />
               <StatPill
                 icon={Bike}
                 label="Bike"
                 value={bikePillLabel || 'Not set'}
-                brand="amber"
+                brand="blue"
               />
             </HStack>
 
