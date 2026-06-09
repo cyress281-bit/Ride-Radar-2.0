@@ -115,7 +115,7 @@ function ConversationsPage() {
                 'min-h-[44px] rounded-full border px-4 py-1.5 text-sm font-semibold transition-all shadow-[0_10px_24px_hsl(0_0%_0%/0.16)]',
                 activeTab === 'chats'
                   ? 'border-primary/30 bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.22)]'
-                  : 'border-white/[0.06] bg-white/[0.04] text-muted-foreground hover:border-white/[0.1] hover:bg-white/[0.07] hover:text-foreground',
+                  : 'border-primary/20 bg-transparent text-muted-foreground hover:border-primary/35 hover:bg-primary/[0.04] hover:text-foreground',
               )}
             >
               <MessageSquare className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" aria-hidden="true" />
@@ -128,7 +128,7 @@ function ConversationsPage() {
                 'min-h-[44px] rounded-full border px-4 py-1.5 text-sm font-semibold transition-all shadow-[0_10px_24px_hsl(0_0%_0%/0.16)]',
                 activeTab === 'crew'
                   ? 'border-primary/30 bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.22)]'
-                  : 'border-white/[0.06] bg-white/[0.04] text-muted-foreground hover:border-white/[0.1] hover:bg-white/[0.07] hover:text-foreground',
+                  : 'border-primary/20 bg-transparent text-muted-foreground hover:border-primary/35 hover:bg-primary/[0.04] hover:text-foreground',
               )}
             >
               <Users className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" aria-hidden="true" />
@@ -141,7 +141,7 @@ function ConversationsPage() {
                 'relative min-h-[44px] rounded-full border px-4 py-1.5 text-sm font-semibold transition-all shadow-[0_10px_24px_hsl(0_0%_0%/0.16)]',
                 activeTab === 'requests'
                   ? 'border-primary/30 bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.22)]'
-                  : 'border-white/[0.06] bg-white/[0.04] text-muted-foreground hover:border-white/[0.1] hover:bg-white/[0.07] hover:text-foreground',
+                  : 'border-primary/20 bg-transparent text-muted-foreground hover:border-primary/35 hover:bg-primary/[0.04] hover:text-foreground',
               )}
             >
               <UserPlus className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" aria-hidden="true" />
@@ -164,16 +164,16 @@ function ConversationsPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search chats"
                 className={cn(
-                  'w-full rounded-full border border-white/[0.06] bg-white/[0.05] backdrop-blur-xl pl-4 pr-10 py-3 text-base text-foreground',
+                  'w-full rounded-full border border-primary/20 bg-transparent backdrop-blur-xl pl-4 pr-10 py-3 text-base text-foreground',
                   'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/30',
-                  'transition-all duration-200 shadow-[0_12px_28px_hsl(0_0%_0%/0.18)] hover:bg-white/[0.07] hover:border-white/[0.08]',
+                  'transition-all duration-200 shadow-[0_12px_28px_hsl(0_0%_0%/0.18)] hover:border-primary/35',
                 )}
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/[0.06] transition-colors"
                 >
                   <span className="sr-only">Clear search</span>
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

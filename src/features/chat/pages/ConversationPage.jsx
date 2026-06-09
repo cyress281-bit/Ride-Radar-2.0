@@ -308,14 +308,14 @@ function ConversationPage() {
       <HStack
         align="center"
         gap={3}
-        className="px-4 py-3 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl shrink-0 z-20"
+        className="px-4 py-3 border-b border-primary/20 bg-background/80 backdrop-blur-xl shrink-0 z-20"
       >
         <button
           type="button"
           onClick={() => navigate('/messages')}
           className={cn(
             'p-2.5 min-h-[44px] min-w-[44px] hover:bg-surface-elevated rounded-full',
-            'border border-white/[0.06] transition-colors flex items-center justify-center pressable',
+            'border border-primary/20 transition-colors flex items-center justify-center pressable',
             'shadow-depth-1'
           )}
           aria-label="Back"
@@ -365,7 +365,7 @@ function ConversationPage() {
               type="button"
               className={cn(
                 'p-2.5 min-h-[44px] min-w-[44px] hover:bg-surface-elevated rounded-full',
-                'border border-white/[0.06] transition-colors flex items-center justify-center pressable',
+                'border border-primary/20 transition-colors flex items-center justify-center pressable',
                 'shadow-depth-1'
               )}
               aria-label="More options"
@@ -428,7 +428,7 @@ function ConversationPage() {
                 <React.Fragment key={message.id}>
                   {showTimestamp && (
                     <div className="flex justify-center my-2">
-                      <span className="px-3 py-1 rounded-full bg-surface-elevated/80 border border-white/[0.04] text-[10px] text-muted-foreground font-mono-data tracking-wide">
+                      <span className="px-3 py-1 rounded-full bg-surface-elevated/80 border border-primary/15 text-[10px] text-muted-foreground font-mono-data tracking-wide">
                         {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -455,7 +455,7 @@ function ConversationPage() {
           className={cn(
             'absolute bottom-24 left-1/2 -translate-x-1/2 z-30',
             'h-11 w-11 rounded-full flex items-center justify-center',
-            'bg-surface-elevated/90 backdrop-blur-xl border border-white/[0.08] text-primary',
+            'bg-surface-elevated/90 backdrop-blur-xl border border-primary/25 text-primary',
             'shadow-depth-3 hover:bg-surface-elevated transition-all pressable animate-fade-up'
           )}
           aria-label="Scroll to bottom"

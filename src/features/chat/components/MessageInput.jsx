@@ -95,7 +95,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
   );
 
   return (
-    <div className="p-3 bg-background/80 backdrop-blur-xl border-t border-white/[0.06]">
+    <div className="p-3 bg-background/80 backdrop-blur-xl border-t border-primary/20">
       {/* Image preview thumbnail */}
       {previewUrl && (
         <div className="mb-2 max-w-xl mx-auto">
@@ -103,12 +103,12 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
             <img
               src={previewUrl}
               alt="Selected"
-              className="h-20 w-20 object-cover rounded-xl border border-white/[0.08]"
+              className="h-20 w-20 object-cover rounded-xl border border-primary/25"
             />
             <button
               type="button"
               onClick={handleRemoveImage}
-              className="absolute -top-1.5 -right-1.5 h-7 w-7 rounded-full bg-surface-elevated border border-white/[0.12] flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute -top-1.5 -right-1.5 h-7 w-7 rounded-full bg-surface-elevated border border-primary/25 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Remove image"
             >
               <X className="w-3.5 h-3.5" />
@@ -141,7 +141,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
             'disabled:opacity-40 disabled:cursor-not-allowed',
             selectedImage
               ? 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20'
-              : 'bg-surface/80 border-white/[0.06] text-muted-foreground hover:bg-surface-elevated hover:text-foreground hover:border-primary/15',
+              : 'bg-transparent border-primary/20 text-muted-foreground hover:bg-primary/[0.04] hover:text-foreground hover:border-primary/35',
           )}
           aria-label="Attach photo"
         >
@@ -161,10 +161,10 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
             rows={1}
             disabled={disabled || isSending}
             className={cn(
-              'w-full resize-none rounded-full border bg-surface/80 backdrop-blur-md px-5 py-3 text-foreground',
+              'w-full resize-none rounded-full border bg-transparent backdrop-blur-md px-5 py-3 text-foreground',
               'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/30',
               'disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',
-              'border-white/[0.06] hover:border-white/[0.08] shadow-depth-1',
+              'border-primary/20 hover:border-primary/35 shadow-depth-1',
               isOverLimit && 'border-brand-emergency focus-visible:ring-brand-emergency focus-visible:border-brand-emergency'
             )}
             style={{ minHeight: '44px', maxHeight: '160px', fontSize: '16px' }}

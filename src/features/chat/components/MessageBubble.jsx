@@ -48,7 +48,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine, onRetry }) 
             'transition-all duration-200',
             isMine
               ? 'bg-surface-elevated text-foreground border border-primary/25 rounded-2xl rounded-br-sm shadow-[0_2px_12px_rgba(57,255,20,0.08)]'
-              : 'bg-surface text-foreground border border-white/[0.06] rounded-2xl rounded-bl-sm shadow-depth-1',
+              : 'bg-transparent text-foreground border border-primary/20 rounded-2xl rounded-bl-sm shadow-depth-1',
             isFailed && isMine && 'bg-destructive/[0.04] border-destructive/50'
           )}
         >
@@ -61,7 +61,7 @@ const MessageBubble = memo(function MessageBubble({ message, isMine, onRetry }) 
           {displayImageUrl && (
             <div className={cn('rounded-xl overflow-hidden', message.body && 'mb-2')}>
               {imageError ? (
-                <div className="flex items-center justify-center gap-2 w-full max-w-[260px] h-16 rounded-xl bg-white/[0.05] border border-white/[0.08]">
+                <div className="flex items-center justify-center gap-2 w-full max-w-[260px] h-16 rounded-xl border border-primary/20">
                   <ImageOff className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                   <span className="text-xs text-muted-foreground">Photo unavailable</span>
                 </div>
