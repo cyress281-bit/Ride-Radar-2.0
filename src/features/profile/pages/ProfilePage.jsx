@@ -35,6 +35,7 @@ import { withRoutePreload, preloadSettings, preloadBroadcastDetail } from '@/lib
 import { prefetchSettings } from '@/lib/query-client.js';
 import ProfileIdentitySection from '@/features/profile/components/ProfileIdentitySection.jsx';
 import ProfileLikersSheet from '@/features/profile/components/ProfileLikersSheet.jsx';
+import ProfileCrewSheet from '@/features/profile/components/ProfileCrewSheet.jsx';
 import {
   profileAmbientTopStyle,
   profileAmbientBottomStyle,
@@ -56,6 +57,7 @@ function ProfilePage() {
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [likersSheetOpen, setLikersSheetOpen] = useState(false);
+  const [crewSheetOpen, setCrewSheetOpen] = useState(false);
 
   // DEV: mark that ProfilePage has mounted so layout debug can distinguish bad vs good state
   useEffect(() => {
@@ -200,7 +202,7 @@ function ProfilePage() {
             onLikesPress={likeCount > 0 ? () => setLikersSheetOpen(true) : undefined}
             connectionsCount={connectionsCount}
             connectionsLoading={connectionsLoading}
-            onCrewPress={() => navigate('/messages', { state: { tab: 'crew' } })}
+            onCrewPress={() => setCrewSheetOpen(true)}
             bikePillLabel={bikePillLabel}
           />
 
@@ -314,6 +316,12 @@ function ProfilePage() {
         likeCount={likeCount}
         open={likersSheetOpen}
         onClose={() => setLikersSheetOpen(false)}
+      />
+
+      <ProfileCrewSheet
+        connectionsCount={connectionsCount}
+        open={crewSheetOpen}
+        onClose={() => setCrewSheetOpen(false)}
       />
     </VStack>
   );
