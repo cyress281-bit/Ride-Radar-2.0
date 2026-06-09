@@ -5,7 +5,6 @@ import { getProfileByUserId } from '@/features/profile/api/profile-api';
 import { getMessages } from '@/features/chat/api/chat-api.js';
 import { getConversations } from '@/features/chat/api/chat-api.js';
 import { getNotifications } from '@/features/notifications/api/notifications-api.js';
-import { notificationKeys } from '@/features/notifications/hooks/use-notifications.js';
 import {
   getUserCount,
   getActiveBroadcastCount,
@@ -14,7 +13,13 @@ import {
   getTodaysStats,
 } from '@/features/admin/api/admin-api.js';
 import { getOrCreateSettings } from '@/features/settings/api/settings-api.js';
-import { settingsKeys } from '@/features/settings/hooks/use-settings.js';
+
+// Inline key shapes to avoid importing hook modules into the eager main chunk.
+// Importing hook files (use-notifications, use-settings) here pulls them into
+// the eagerly-loaded bundle, which creates a TDZ when the lazy page chunks try
+// to evaluate the same modules. Keep these in sync with the hook key factories.
+const _notifListKey = (userId) => ['notifications', 'list', userId];
+const _settingsDetailKey = (userId) => ['settings', userId];
 
 /**
  * Shared TanStack Query client for Ride Radar 2.0.
@@ -135,11 +140,11 @@ export function prefetchConversations(qc, userId) {
  */
 export function prefetchNotifications(qc, userId) {
   if (!userId) return;
-  const existing = qc.getQueryData(notificationKeys.list(userId));
+  const existing = qc.getQueryData(_notifListKey(userId));
   if (existing) return;
 
   qc.prefetchQuery({
-    queryKey: notificationKeys.list(userId),
+    queryKey: _notifListKey(userId),
     queryFn: async () => {
       const { data, error } = await getNotifications(userId);
       if (error) throw error;
@@ -156,11 +161,11 @@ export function prefetchNotifications(qc, userId) {
  */
 export function prefetchSettings(qc, userId) {
   if (!userId) return;
-  const existing = qc.getQueryData(settingsKeys.detail(userId));
+  const existing = qc.getQueryData(_settingsDetailKey(userId));
   if (existing) return;
 
   qc.prefetchQuery({
-    queryKey: settingsKeys.detail(userId),
+    queryKey: _settingsDetailKey(userId),
     queryFn: async () => {
       const { data, error } = await getOrCreateSettings(userId);
       if (error) throw error;
