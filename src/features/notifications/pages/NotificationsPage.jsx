@@ -6,7 +6,7 @@
  * Uses virtualization for large lists (>25 items).
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Check, Activity, Bell, WifiOff, RefreshCw } from 'lucide-react';
@@ -173,6 +173,15 @@ export default function NotificationsPage() {
     if (user?.id) markAllRead(user.id);
   }, [markAllRead, user?.id]);
   const handleDelete = useCallback((notification) => deleteNotif(notification.id), [deleteNotif]);
+
+  // Auto-mark all as read on page open — fires once per mount after data loads
+  const hasAutoMarkedRef = useRef(false);
+  useEffect(() => {
+    if (hasAutoMarkedRef.current) return;
+    if (!user?.id || notificationsLoading || unreadCount === 0) return;
+    hasAutoMarkedRef.current = true;
+    markAllRead(user.id);
+  }, [user?.id, notificationsLoading, unreadCount, markAllRead]);
 
   // Connection requests (use shared hook)
   const { data: pendingRequests = [] } = useConnectionRequests();
