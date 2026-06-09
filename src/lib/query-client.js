@@ -3,6 +3,8 @@ import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { getBroadcastById } from '@/features/broadcast/api/broadcast-api.js';
 import { getProfileByUserId } from '@/features/profile/api/profile-api';
 import { getMessages } from '@/features/chat/api/chat-api.js';
+import { getNotifications } from '@/features/notifications/api/notifications-api.js';
+import { notificationKeys } from '@/features/notifications/hooks/use-notifications.js';
 
 /**
  * Shared TanStack Query client for Ride Radar 2.0.
@@ -92,6 +94,27 @@ export function prefetchConversationMessages(qc, conversationId, userId) {
       return data || [];
     },
     staleTime: 60000,
+  });
+}
+
+/**
+ * Prefetch notifications for a user.
+ * @param {QueryClient} qc
+ * @param {string} userId
+ */
+export function prefetchNotifications(qc, userId) {
+  if (!userId) return;
+  const existing = qc.getQueryData(notificationKeys.list(userId));
+  if (existing) return;
+
+  qc.prefetchQuery({
+    queryKey: notificationKeys.list(userId),
+    queryFn: async () => {
+      const { data, error } = await getNotifications(userId);
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 30000,
   });
 }
 

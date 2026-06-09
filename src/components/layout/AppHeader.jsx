@@ -1,7 +1,7 @@
 import { memo, useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, ChevronLeft, User } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
@@ -19,6 +19,7 @@ import {
   preloadNotifications,
   preloadAdminDashboard,
 } from '@/lib/routePreload';
+import { prefetchNotifications } from '@/lib/query-client.js';
 
 const ROUTE_TITLES = {
   '/home': '',
@@ -94,6 +95,7 @@ function goBack(navigate, pathname) {
 const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const { isAdmin } = useAdminRole();
   const { user, profile, isLoading: isAuthLoading } = useAuthState();
   const { data: unreadCount = 0 } = useUnreadCount(user?.id, {
@@ -288,7 +290,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               )
             }
             aria-label="Notifications"
-            {...withRoutePreload(preloadNotifications)}
+            {...withRoutePreload(preloadNotifications, () => prefetchNotifications(qc, user?.id))}
           >
             <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
             {unreadCount > 0 && (
