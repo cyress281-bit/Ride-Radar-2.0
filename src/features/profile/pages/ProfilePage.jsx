@@ -159,6 +159,10 @@ function ProfilePage() {
     return parts.join(' ') || null;
   }, [displayProfile]);
 
+  const bikePillLabel = useMemo(() => {
+    return [displayProfile?.bike_make, displayProfile?.bike_model].filter(Boolean).join(' ') || null;
+  }, [displayProfile]);
+
   if (!user) {
     return (
       <div className="relative isolate mx-auto max-w-2xl px-4 pt-4 pb-8 bg-background min-h-dvh">
@@ -236,15 +240,6 @@ function ProfilePage() {
               </Text>
             )}
 
-            {bikeLabel && (
-              <HStack align="center" gap={2} className="max-w-full min-w-0 text-primary">
-                <Bike className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-                <Text variant="micro" className="min-w-0 truncate font-semibold text-primary">
-                  {bikeLabel}
-                </Text>
-              </HStack>
-            )}
-
             {/* Stats Row — neon brand colors */}
             <HStack gap={2} className="w-full mt-1">
               <StatPill
@@ -264,11 +259,10 @@ function ProfilePage() {
                 onClick={() => navigate('/messages', { state: { tab: 'crew' } })}
               />
               <StatPill
-                icon={ShieldCheck}
-                label="Status"
-                value={displayProfile?.is_public === false ? 'Private' : 'Public'}
+                icon={Bike}
+                label="Bike"
+                value={bikePillLabel || 'Not set'}
                 brand="amber"
-                onClick={() => navigate('/settings')}
               />
             </HStack>
 
