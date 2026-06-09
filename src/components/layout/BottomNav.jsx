@@ -1,10 +1,13 @@
 import { memo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Map, MessageCircle, User } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
 import { withRoutePreload, preloadHome, preloadMessages, preloadProfile } from '@/lib/routePreload';
+import { useAuthState } from '@/features/auth/hooks/use-auth';
+import { prefetchConversations } from '@/lib/query-client.js';
 
 const TABS = [
   { to: '/home', icon: Map, label: 'Radar', preload: preloadHome },
@@ -14,6 +17,8 @@ const TABS = [
 
 const BottomNav = memo(function BottomNav({ isOverlay = false }) {
   const { pathname } = useLocation();
+  const qc = useQueryClient();
+  const { user } = useAuthState();
 
   return (
     <nav
@@ -49,7 +54,7 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
                 role="tab"
                 aria-selected={isActive}
                 aria-label={tab.label}
-                {...withRoutePreload(tab.preload)}
+                {...withRoutePreload(tab.preload, tab.to === '/messages' ? () => prefetchConversations(qc, user?.id) : undefined)}
                 className={cn(
                   'group relative flex min-h-[58px] flex-col items-center justify-center overflow-hidden rounded-[22px]',
                   'px-2 py-2',

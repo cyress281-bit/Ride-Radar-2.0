@@ -3,6 +3,7 @@ import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { getBroadcastById } from '@/features/broadcast/api/broadcast-api.js';
 import { getProfileByUserId } from '@/features/profile/api/profile-api';
 import { getMessages } from '@/features/chat/api/chat-api.js';
+import { getConversations } from '@/features/chat/api/chat-api.js';
 import { getNotifications } from '@/features/notifications/api/notifications-api.js';
 import { notificationKeys } from '@/features/notifications/hooks/use-notifications.js';
 import {
@@ -99,6 +100,27 @@ export function prefetchConversationMessages(qc, conversationId, userId) {
     queryKey: ['messages', conversationId, userId],
     queryFn: async () => {
       const { data, error } = await getMessages(conversationId);
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60000,
+  });
+}
+
+/**
+ * Prefetch conversations list for a user.
+ * @param {QueryClient} qc
+ * @param {string} userId
+ */
+export function prefetchConversations(qc, userId) {
+  if (!userId) return;
+  const existing = qc.getQueryData(['conversations', userId]);
+  if (existing) return;
+
+  qc.prefetchQuery({
+    queryKey: ['conversations', userId],
+    queryFn: async () => {
+      const { data, error } = await getConversations(userId);
       if (error) throw error;
       return data || [];
     },
