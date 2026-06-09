@@ -7,9 +7,10 @@ const BRAND_STYLES = {
   radar: { border: 'border-brand-radar/20', bg: 'bg-brand-radar/10', text: 'text-brand-radar' },
   amber: { border: 'border-brand-amber/20', bg: 'bg-brand-amber/10', text: 'text-brand-amber' },
   blue: { border: 'border-event/20', bg: 'bg-event/10', text: 'text-event' },
+  red: { border: 'border-destructive/20', bg: 'bg-destructive/10', text: 'text-destructive' },
 };
 
-const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading, brand = 'green', onClick }) {
+const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading, brand = 'green', onClick, filled = false }) {
   const style = BRAND_STYLES[brand];
   const interactive = typeof onClick === 'function';
   const Component = interactive ? 'button' : 'div';
@@ -26,7 +27,11 @@ const StatPill = memo(function StatPill({ icon: Icon, label, value, isLoading, b
       )}
     >
       <div className="mb-2 flex items-center justify-center">
-        <Icon className={cn('h-4 w-4', style.text)} strokeWidth={2} />
+        <Icon
+          className={cn('h-4 w-4', style.text)}
+          strokeWidth={2}
+          fill={filled ? 'currentColor' : 'none'}
+        />
       </div>
       <Text variant="bodySm" className={cn('block truncate font-bold tracking-tight', style.text)}>
         {displayValue}

@@ -31,7 +31,9 @@ import {
   MoreHorizontal,
   Flag,
   ShieldOff,
+  Heart,
 } from 'lucide-react';
+import { useProfileLike } from '@/features/profile/hooks/use-profile-like.js';
 import SafetyActions from '@/components/safety/SafetyActions';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { RideCard } from '@/components/shared/RideCard';
@@ -296,6 +298,8 @@ function RiderProfilePage() {
     return [profile?.bike_make, profile?.bike_model].filter(Boolean).join(' ') || null;
   }, [profile]);
 
+  const { likeCount, isLiked, toggleLike, isPending: likePending, canLike } = useProfileLike(userId);
+
   const {
     data: riderPosts = [],
     isLoading: postsLoading,
@@ -460,12 +464,12 @@ function RiderProfilePage() {
               </HStack>
             )}
 
-            {/* Stats Row — neon brand colors */}
+            {/* Stats Row */}
             {canSeeDetails && (
               <HStack gap={2} className="w-full mt-1">
-                <StatPill icon={Radio} label="Signals" value={activeBroadcasts.length} isLoading={isBroadcastsLoading} brand="green" onClick={() => setActiveTab('broadcasts')} />
-                <StatPill icon={Bike} label="Bike" value={bikePillLabel || 'Not set'} brand="blue" />
+                <StatPill icon={Heart} label="Likes" value={likeCount} brand="red" filled={isLiked} onClick={canLike && !likePending ? toggleLike : undefined} />
                 <StatPill icon={Users} label="Crew" value={crewCount} isLoading={crewCountLoading} brand="green" />
+                <StatPill icon={Bike} label="Bike" value={bikePillLabel || 'Not set'} brand="blue" />
               </HStack>
             )}
 
