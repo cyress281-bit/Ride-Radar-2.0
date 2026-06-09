@@ -12,6 +12,8 @@ import {
   getActiveConversationCount,
   getTodaysStats,
 } from '@/features/admin/api/admin-api.js';
+import { getOrCreateSettings } from '@/features/settings/api/settings-api.js';
+import { settingsKeys } from '@/features/settings/hooks/use-settings.js';
 
 /**
  * Shared TanStack Query client for Ride Radar 2.0.
@@ -120,6 +122,27 @@ export function prefetchNotifications(qc, userId) {
       const { data, error } = await getNotifications(userId);
       if (error) throw error;
       return data || [];
+    },
+    staleTime: 30000,
+  });
+}
+
+/**
+ * Prefetch user settings.
+ * @param {QueryClient} qc
+ * @param {string} userId
+ */
+export function prefetchSettings(qc, userId) {
+  if (!userId) return;
+  const existing = qc.getQueryData(settingsKeys.detail(userId));
+  if (existing) return;
+
+  qc.prefetchQuery({
+    queryKey: settingsKeys.detail(userId),
+    queryFn: async () => {
+      const { data, error } = await getOrCreateSettings(userId);
+      if (error) throw error;
+      return data;
     },
     staleTime: 30000,
   });

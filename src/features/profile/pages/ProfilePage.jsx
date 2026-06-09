@@ -34,6 +34,7 @@ import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhoto
 import { supabase } from '@/lib/supabase.js';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
 import { withRoutePreload, preloadSettings, preloadBroadcastDetail } from '@/lib/routePreload.js';
+import { prefetchSettings } from '@/lib/query-client.js';
 
 const profileAmbientTopStyle = {
   background:
@@ -194,7 +195,7 @@ function ProfilePage() {
               'transition-all hover:border-primary/30 hover:bg-primary/[0.08] hover:text-primary active:scale-95',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
             )}
-            {...withRoutePreload(preloadSettings)}
+            {...withRoutePreload(preloadSettings, () => prefetchSettings(qc, user?.id))}
           >
             <Settings className="h-4 w-4" />
           </Link>
