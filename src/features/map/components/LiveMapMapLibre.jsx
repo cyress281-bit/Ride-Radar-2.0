@@ -616,7 +616,7 @@ const MapLibreBroadcastMarkerLayer = memo(function MapLibreBroadcastMarkerLayer(
       map.off('idle', throttledRender);
       map.off('sourcedata', throttledRender);
     };
-  }, [items, map, onMarkerClick, styleReady]);
+  }, [items, map, styleReady]); // onMarkerClick intentionally omitted — onMarkerClickRef keeps it current
 
   // Cleanup all markers and layers on unmount
   useEffect(() => {
@@ -656,6 +656,8 @@ const MapLibrePresenceMarkerLayer = memo(function MapLibrePresenceMarkerLayer({
 }) {
   const map = useMapLibre().current;
   const markersRef = useRef(new Map());
+  const onPresenceClickRef = useRef(onPresenceClick);
+  useEffect(() => { onPresenceClickRef.current = onPresenceClick; }, [onPresenceClick]);
 
   useEffect(() => {
     if (!map) return;
@@ -686,7 +688,7 @@ const MapLibrePresenceMarkerLayer = memo(function MapLibrePresenceMarkerLayer({
         el.style.cursor = 'pointer';
         el.addEventListener('click', (e) => {
           e.stopPropagation();
-          onPresenceClick?.(item);
+          onPresenceClickRef.current?.(item);
         });
         const marker = new MaplibreMarker({ element: el, anchor: 'center' })
           .setLngLat([item.lng, item.lat])
@@ -704,7 +706,7 @@ const MapLibrePresenceMarkerLayer = memo(function MapLibrePresenceMarkerLayer({
         markersRef.current.delete(id);
       }
     });
-  }, [map, presenceItems, showSelfLocation, hasUserLocation, isLiveMapVisible, userLat, userLng, onPresenceClick]);
+  }, [map, presenceItems, showSelfLocation, hasUserLocation, isLiveMapVisible, userLat, userLng]); // onPresenceClick intentionally omitted — onPresenceClickRef keeps it current
 
   useEffect(() => {
     return () => {
