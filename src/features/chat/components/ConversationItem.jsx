@@ -73,6 +73,9 @@ const ConversationItem = memo(function ConversationItem({
   const lastPreview = conversation.last_message?.body || conversation.last_message_preview;
   const hasPhotoPreview = !lastPreview && !!conversation.last_message_at;
   const lastMessage = lastPreview || (hasPhotoPreview ? 'Photo' : '');
+  // True when the current user sent the latest message — show a "You:" prefix so
+  // they can tell at a glance they were the last to respond (awaiting a reply).
+  const isOwnLastMessage = !!conversation.last_message?.from_user_id && conversation.last_message.from_user_id === user?.id;
 
   return (
     <div
@@ -156,7 +159,9 @@ const ConversationItem = memo(function ConversationItem({
                   truncate
                   className={cn(hasUnread ? 'text-foreground font-medium' : 'text-muted-foreground/85')}
                 >
-                  {lastMessage || 'Start a conversation'}
+                  {lastMessage
+                    ? (isOwnLastMessage ? `You: ${lastMessage}` : lastMessage)
+                    : 'Start a conversation'}
                 </Text>
               </HStack>
               {hasUnread && (
