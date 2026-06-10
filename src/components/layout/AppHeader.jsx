@@ -157,7 +157,8 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const avatarUrl = profile?.avatar_url;
   const displayName = profile?.display_name || profile?.username || 'Rider';
   const isOnboarding = pathname === '/onboarding';
-  const showBackButton = !isHome && !isConversation && !isOnboarding;
+  const isMainPage = pathname === '/messages' || pathname === '/profile' || pathname === '/notifications';
+  const showBackButton = !isHome && !isConversation && !isOnboarding && !isMainPage;
 
   return (
     <>

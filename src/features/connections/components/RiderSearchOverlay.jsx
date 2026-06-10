@@ -1,4 +1,4 @@
-import { memo, useState, useRef, useEffect } from 'react';
+import { memo, useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Search, Loader2, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -7,9 +7,11 @@ import { Text } from '@/components/ui/primitives/Text';
 import { VStack } from '@/components/ui/primitives/Stack';
 import OptimizedImage from '@/components/shared/OptimizedImage';
 import { useRiderSearch } from '@/features/connections/hooks/use-rider-search.js';
+import { useFriendships } from '@/features/connections/hooks/use-friendships.js';
+import { useSentRequests } from '@/features/connections/hooks/use-connection-requests.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 
-function RiderRow({ profile, onClose }) {
+function RiderRow({ profile, onClose, isFriend, isPending }) {
   const initials = profile.display_name?.[0]?.toUpperCase() || '?';
   const bike = [profile.bike_make, profile.bike_model].filter(Boolean).join(' ');
 
@@ -35,9 +37,21 @@ function RiderRow({ profile, onClose }) {
         )}
       </div>
       <VStack gap={0} className="min-w-0 flex-1">
-        <Text variant="bodySm" className="font-semibold truncate">
-          {profile.display_name || 'Rider'}
-        </Text>
+        <div className="flex items-center gap-2 min-w-0">
+          <Text variant="bodySm" className="font-semibold truncate">
+            {profile.display_name || 'Rider'}
+          </Text>
+          {isFriend && (
+            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-primary/25 bg-primary/10 text-primary">
+              Friend
+            </span>
+          )}
+          {!isFriend && isPending && (
+            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-brand-amber/25 bg-brand-amber/10 text-brand-amber">
+              Pending
+            </span>
+          )}
+        </div>
         {profile.username && (
           <Text variant="micro" color="muted" className="font-mono-data truncate">
             @{profile.username}
@@ -59,6 +73,18 @@ const RiderSearchOverlay = memo(function RiderSearchOverlay({ open, onClose }) {
   const inputRef = useRef(null);
 
   const { data: results = [], isFetching } = useRiderSearch(query);
+  const { data: friendships = [] } = useFriendships();
+  const { data: sentRequests = [] } = useSentRequests();
+
+  // Build sets for O(1) status lookup
+  const friendIds = useMemo(
+    () => new Set(friendships.map((f) => f.user_a_id === user?.id ? f.user_b_id : f.user_a_id)),
+    [friendships, user?.id]
+  );
+  const pendingIds = useMemo(
+    () => new Set(sentRequests.filter((r) => r.status === 'pending').map((r) => r.to_user_id)),
+    [sentRequests]
+  );
 
   // Filter out current user from results
   const filtered = results.filter((p) => p.user_id !== user?.id);
@@ -146,7 +172,13 @@ const RiderSearchOverlay = memo(function RiderSearchOverlay({ open, onClose }) {
         ) : (
           <VStack gap={0}>
             {filtered.map((profile) => (
-              <RiderRow key={profile.user_id} profile={profile} onClose={onClose} />
+              <RiderRow
+                key={profile.user_id}
+                profile={profile}
+                onClose={onClose}
+                isFriend={friendIds.has(profile.user_id)}
+                isPending={pendingIds.has(profile.user_id)}
+              />
             ))}
           </VStack>
         )}
