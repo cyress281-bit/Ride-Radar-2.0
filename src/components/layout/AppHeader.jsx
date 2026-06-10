@@ -157,7 +157,9 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const avatarUrl = profile?.avatar_url;
   const displayName = profile?.display_name || profile?.username || 'Rider';
   const isOnboarding = pathname === '/onboarding';
-  const isMainPage = pathname === '/messages' || pathname === '/profile' || pathname === '/notifications';
+  // Bottom-nav destinations only — these have tab-bar access so the back arrow is redundant.
+  // Notifications is NOT here: it's reached via the bell and needs a back button to exit.
+  const isMainPage = pathname === '/messages' || pathname === '/profile';
   const showBackButton = !isHome && !isConversation && !isOnboarding && !isMainPage;
 
   return (
