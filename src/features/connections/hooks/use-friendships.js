@@ -2,7 +2,7 @@
  * @fileoverview TanStack Query hooks for friendships.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { supabase } from '@/lib/supabase.js';
@@ -25,6 +25,7 @@ export const friendshipKeys = {
 export function useFriendships() {
   const { user } = useAuthState();
   const queryClient = useQueryClient();
+  const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
 
   const query = useQuery({
     queryKey: friendshipKeys.list(user?.id),
@@ -43,7 +44,7 @@ export function useFriendships() {
     if (!user?.id) return;
 
     const channel = supabase
-      .channel(`friendships-${user.id}`)
+      .channel(`friendships-${user.id}-${instanceId}`)
       .on(
         'postgres_changes',
         {
@@ -86,7 +87,7 @@ export function useFriendships() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id, queryClient, instanceId]);
 
   return query;
 }
