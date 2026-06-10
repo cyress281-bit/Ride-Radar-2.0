@@ -54,6 +54,9 @@ function ConversationsPage() {
     const map = new Map();
     const readMap = new Map(readNotifications.map((n) => [n.conversation_id, n.read_at]));
     for (const conv of conversations) {
+      // A message the current user sent is never "unread" to them — without this,
+      // sending bumps last_message_at past your own read_at and falsely glows.
+      if (conv.last_message?.from_user_id && conv.last_message.from_user_id === user?.id) continue;
       const readAt = readMap.get(conv.id);
       const lastMessageAt = conv.last_message_at;
       if (lastMessageAt && (!readAt || new Date(readAt) < new Date(lastMessageAt))) {
@@ -61,7 +64,7 @@ function ConversationsPage() {
       }
     }
     return map;
-  }, [conversations, readNotifications]);
+  }, [conversations, readNotifications, user?.id]);
 
   const otherIds = useMemo(
     () =>

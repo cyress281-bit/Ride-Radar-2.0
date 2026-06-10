@@ -45,8 +45,10 @@ export function useUnreadMessageCount() {
   return useMemo(() => {
     const readMap = new Map(readNotifications.map((n) => [n.conversation_id, n.read_at]));
     return conversations.filter((c) => {
+      // Skip conversations whose latest message the current user sent themselves.
+      if (c.last_message?.from_user_id && c.last_message.from_user_id === userId) return false;
       const readAt = readMap.get(c.id);
       return c.last_message_at && (!readAt || new Date(readAt) < new Date(c.last_message_at));
     }).length;
-  }, [conversations, readNotifications]);
+  }, [conversations, readNotifications, userId]);
 }
