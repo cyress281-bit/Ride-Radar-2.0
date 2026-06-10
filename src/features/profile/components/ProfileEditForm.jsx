@@ -85,6 +85,11 @@ export default function ProfileEditForm({ profile, onDone }) {
     defaultValues,
   });
 
+  const [isUploading, setIsUploading] = useState(false);
+  const [avatarLocal, setAvatarLocal] = useState(null);
+  const [bikePhotoLocal, setBikePhotoLocal] = useState(null);
+  const [submitError, setSubmitError] = useState('');
+
   // Reset form and local photo state when profile prop changes
   useEffect(() => {
     form.reset(defaultValues);
@@ -126,11 +131,6 @@ export default function ProfileEditForm({ profile, onDone }) {
     if (Number.isInteger(year) && year >= 1900 && year <= currentYear + 1) return year;
     return null;
   };
-
-  const [isUploading, setIsUploading] = useState(false);
-  const [avatarLocal, setAvatarLocal] = useState(null);
-  const [bikePhotoLocal, setBikePhotoLocal] = useState(null);
-  const [submitError, setSubmitError] = useState('');
 
   const onSubmit = useCallback(
     async (values) => {

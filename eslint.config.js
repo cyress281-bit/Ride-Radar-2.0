@@ -44,6 +44,15 @@ export default [
     },
     rules: {
       "no-unused-vars": "off",
+      "no-use-before-define": [
+        "error",
+        {
+          functions: false,
+          classes: false,
+          variables: true,
+          allowNamedExports: false,
+        },
+      ],
       "react/jsx-uses-vars": "error",
       "react/jsx-no-undef": "error",
       "no-undef": "error",
