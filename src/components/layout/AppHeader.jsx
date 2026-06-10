@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, ChevronLeft, User, Search, ShieldAlert } from 'lucide-react';
+import { Bell, ChevronLeft, Search, ShieldAlert } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
@@ -10,12 +10,10 @@ import { getOrCreateSettings } from '@/features/settings/api/settings-api.js';
 import { settingsKeys } from '@/features/settings/hooks/use-settings.js';
 import { useSupabaseConnection } from '@/hooks/use-supabase-connection.js';
 import RRLogo from '@/components/RRLogo';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Text } from '@/components/ui/primitives/Text';
 import { HStack } from '@/components/ui/primitives/Stack';
 import {
   withRoutePreload,
-  preloadProfile,
   preloadNotifications,
   preloadAdminDashboard,
 } from '@/lib/routePreload';
@@ -90,7 +88,7 @@ function goBack(navigate, pathname) {
  * - Transparent at top, gains glassmorphism on scroll
  * - Left: Back button (when not on home) OR Logo (on home)
  * - Center: Page title in neon green when on non-radar pages
- * - Right: Notifications bell + Avatar
+ * - Right: Admin (admins only) + Search + Notifications bell
  * - Neon glow effects on active elements
  */
 const AppHeader = memo(function AppHeader({ isOverlay = false }) {
@@ -98,7 +96,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { isAdmin } = useAdminRole();
-  const { user, profile, isLoading: isAuthLoading } = useAuthState();
+  const { user, isLoading: isAuthLoading } = useAuthState();
   const { data: unreadCount = 0 } = useUnreadCount(user?.id, {
     enabled: !!user?.id && !isAuthLoading,
   });
@@ -154,8 +152,6 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, [isTransparent]);
 
-  const avatarUrl = profile?.avatar_url;
-  const displayName = profile?.display_name || profile?.username || 'Rider';
   const isOnboarding = pathname === '/onboarding';
   // Bottom-nav destinations only — these have tab-bar access so the back arrow is redundant.
   // Notifications is NOT here: it's reached via the bell and needs a back button to exit.
@@ -297,30 +293,6 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
               </NavLink>
             </>
           )}
-
-          <NavLink
-            to="/profile"
-            className={({ isActive }) =>
-              cn(
-                'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
-                'transition-all duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                'pressable',
-                isActive && 'ring-1 ring-primary/40'
-              )
-            }
-            aria-label="My profile"
-            {...withRoutePreload(preloadProfile)}
-          >
-            <Avatar className="h-7 w-7 border border-white/10">
-              {avatarUrl ? (
-                <AvatarImage src={avatarUrl} alt={displayName} />
-              ) : null}
-              <AvatarFallback className="bg-surface text-muted-foreground text-xs font-bold">
-                <User className="h-3.5 w-3.5" />
-              </AvatarFallback>
-            </Avatar>
-          </NavLink>
         </HStack>
       </HStack>
     </header>
