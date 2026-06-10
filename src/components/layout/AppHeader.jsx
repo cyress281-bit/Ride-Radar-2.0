@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, ChevronLeft, Search, ShieldAlert } from 'lucide-react';
+import { Bell, ChevronLeft, Search, ShieldAlert, Settings } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
@@ -16,8 +16,9 @@ import {
   withRoutePreload,
   preloadNotifications,
   preloadAdminDashboard,
+  preloadSettings,
 } from '@/lib/routePreload';
-import { prefetchNotifications, prefetchAdminDashboard } from '@/lib/query-client.js';
+import { prefetchNotifications, prefetchAdminDashboard, prefetchSettings } from '@/lib/query-client.js';
 import RiderSearchOverlay from '@/features/connections/components/RiderSearchOverlay.jsx';
 
 const ROUTE_TITLES = {
@@ -195,9 +196,25 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
           >
             <ChevronLeft className="h-6 w-6" aria-hidden="true" />
           </button>
+        ) : pathname === '/profile' ? (
+          // Profile: settings gear sits in the top-left (where the logo used to be).
+          <NavLink
+            to="/settings"
+            className={({ isActive }) => cn(
+              'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
+              'transition-all duration-150',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+              'pressable',
+              isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+            )}
+            aria-label="Settings"
+            {...withRoutePreload(preloadSettings, () => prefetchSettings(qc, user?.id))}
+          >
+            <Settings className="w-[18px] h-[18px]" aria-hidden="true" />
+          </NavLink>
         ) : isMainPage ? (
-          // Messages / Profile: no logo — reachable via bottom nav. Empty spacer
-          // preserves the justify-between layout so the right action icons stay right.
+          // Messages: no logo — reachable via bottom nav. Empty spacer preserves the
+          // justify-between layout so the right action icons stay right.
           <div className="min-w-[44px] min-h-[44px]" aria-hidden="true" />
         ) : (
           <NavLink

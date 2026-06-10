@@ -9,7 +9,7 @@ import { useState, useMemo, memo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
-import { Edit2, Settings, Radio, ShieldCheck, Images } from 'lucide-react';
+import { Edit2, Radio, ShieldCheck, Images } from 'lucide-react';
 import { useProfileLike } from '@/features/profile/hooks/use-profile-like.js';
 import { Badge } from '@/components/shared/Badge';
 import { isExpired, timeAgo } from '@/lib/broadcastUtils';
@@ -31,8 +31,7 @@ import PostDetailSheet from '@/features/profile/components/PostDetailSheet';
 import ProfileBikePhotoCard from '@/features/profile/components/ProfileBikePhotoCard.jsx';
 import { supabase } from '@/lib/supabase.js';
 import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
-import { withRoutePreload, preloadSettings, preloadBroadcastDetail } from '@/lib/routePreload.js';
-import { prefetchSettings } from '@/lib/query-client.js';
+import { withRoutePreload, preloadBroadcastDetail } from '@/lib/routePreload.js';
 import ProfileIdentitySection from '@/features/profile/components/ProfileIdentitySection.jsx';
 import ProfileLikersSheet from '@/features/profile/components/ProfileLikersSheet.jsx';
 import ProfileCrewSheet from '@/features/profile/components/ProfileCrewSheet.jsx';
@@ -179,20 +178,6 @@ function ProfilePage() {
 
       {/* Identity */}
       <div className="relative pt-2 pb-6 border-b border-white/[0.06]">
-          <Link
-            to="/settings"
-            aria-label="Settings"
-            className={cn(
-              'absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full',
-              'border border-white/[0.10] bg-black/20 text-muted-foreground backdrop-blur-xl shadow-[0_10px_24px_hsl(0_0%_0%/0.18)]',
-              'transition-all hover:border-primary/30 hover:bg-primary/[0.08] hover:text-primary active:scale-95',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
-            )}
-            {...withRoutePreload(preloadSettings, () => prefetchSettings(qc, user?.id))}
-          >
-            <Settings className="h-4 w-4" />
-          </Link>
-
           <ProfileIdentitySection
             profile={displayProfile}
             displayName={displayProfile?.display_name || user?.email}
