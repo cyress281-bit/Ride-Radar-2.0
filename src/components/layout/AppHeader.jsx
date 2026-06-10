@@ -1,6 +1,6 @@
 import { memo, useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Bell, ChevronLeft, User, Search } from 'lucide-react';
+import { Bell, ChevronLeft, User, Search, ShieldAlert } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useAdminRole } from '@/features/auth/hooks/use-admin-role';
@@ -263,19 +263,17 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
           {isAdmin && (
             <NavLink
               to="/admin"
-              className={cn(
+              className={({ isActive }) => cn(
                 'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
                 'transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                'pressable'
+                'pressable',
+                isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               )}
               aria-label="Admin panel"
               {...withRoutePreload(preloadAdminDashboard, () => prefetchAdminDashboard(qc))}
             >
-              <span
-                className="h-1.5 w-1.5 rounded-full bg-primary animate-glow-pulse"
-                aria-hidden="true"
-              />
+              <ShieldAlert className="w-[18px] h-[18px]" aria-hidden="true" />
             </NavLink>
           )}
 
