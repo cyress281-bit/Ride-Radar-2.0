@@ -4,9 +4,10 @@ export const profileTabsListClass =
 export const profileTabsTriggerClass =
   'inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-all data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none';
 
+// Top ambient is intentionally transparent so the profile header sits on the
+// plain black app background (--background) — matches the simplified app look.
 export const profileAmbientTopStyle = {
-  background:
-    'radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.14), transparent 42%), radial-gradient(circle at 18% 14%, hsl(var(--cyan) / 0.08), transparent 30%), radial-gradient(circle at 82% 10%, hsl(var(--brand-amber) / 0.06), transparent 28%)',
+  background: 'transparent',
 };
 
 export const profileAmbientBottomStyle = {
