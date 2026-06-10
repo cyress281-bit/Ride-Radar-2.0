@@ -8,6 +8,7 @@ import { VStack } from '@/components/ui/primitives/Stack';
 import { withRoutePreload, preloadHome, preloadMessages, preloadProfile } from '@/lib/routePreload';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 import { prefetchConversations } from '@/lib/query-client.js';
+import { useUnreadMessageCount } from '@/features/chat/hooks/use-unread-message-count.js';
 
 const TABS = [
   { to: '/home', icon: Map, label: 'Radar', preload: preloadHome },
@@ -19,6 +20,7 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
   const { pathname } = useLocation();
   const qc = useQueryClient();
   const { user } = useAuthState();
+  const unreadMessages = useUnreadMessageCount();
 
   return (
     <nav
@@ -79,16 +81,24 @@ const BottomNav = memo(function BottomNav({ isOverlay = false }) {
                 )}
 
                 <VStack align="center" gap={0.5} className="relative">
-                  <Icon
-                    className={cn(
-                      'h-[22px] w-[22px] transition-all duration-200',
-                      isActive
-                        ? 'text-primary drop-shadow-[0_0_10px_hsl(var(--primary)/0.65)]'
-                        : 'text-current/90 group-hover:text-foreground'
+                  <div className="relative">
+                    <Icon
+                      className={cn(
+                        'h-[22px] w-[22px] transition-all duration-200',
+                        isActive
+                          ? 'text-primary drop-shadow-[0_0_10px_hsl(var(--primary)/0.65)]'
+                          : 'text-current/90 group-hover:text-foreground'
+                      )}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                    {tab.to === '/messages' && unreadMessages > 0 && (
+                      <span
+                        className="absolute top-0 right-0 h-2 w-2 rounded-full bg-brand-emergency ring-2 ring-background animate-pulse"
+                        aria-hidden="true"
+                      />
                     )}
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
+                  </div>
 
                   <Text
                     variant="micro"
