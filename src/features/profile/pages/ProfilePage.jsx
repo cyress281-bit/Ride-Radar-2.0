@@ -192,7 +192,7 @@ function ProfilePage() {
           />
 
           {/* Edit Profile — own profile only */}
-          <div className="mt-1 flex w-full justify-center">
+          <div className="mt-4 flex w-full justify-center">
             <button
               onClick={() => navigate('/profile/edit')}
               className={cn(
