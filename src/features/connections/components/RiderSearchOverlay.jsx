@@ -72,8 +72,6 @@ const RiderSearchOverlay = memo(function RiderSearchOverlay({ open, onClose }) {
   const [query, setQuery] = useState('');
   const inputRef = useRef(null);
 
-  const friendIdsArray = useMemo(() => Array.from(friendIds), [friendIds]);
-  const { data: results = [], isFetching } = useRiderSearch(query, friendIdsArray);
   const { data: friendships = [] } = useFriendships();
   const { data: sentRequests = [] } = useSentRequests();
 
@@ -86,6 +84,9 @@ const RiderSearchOverlay = memo(function RiderSearchOverlay({ open, onClose }) {
     () => new Set(sentRequests.filter((r) => r.status === 'pending').map((r) => r.to_user_id)),
     [sentRequests]
   );
+
+  const friendIdsArray = useMemo(() => Array.from(friendIds), [friendIds]);
+  const { data: results = [], isFetching } = useRiderSearch(query, friendIdsArray);
 
   // Filter out current user from results
   const filtered = results.filter((p) => p.user_id !== user?.id);
