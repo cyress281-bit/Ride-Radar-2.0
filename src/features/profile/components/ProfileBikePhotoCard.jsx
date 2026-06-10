@@ -10,7 +10,7 @@ export default function ProfileBikePhotoCard({ src, title = 'Bike', bikeLabel })
   if (!src || imageError) return null;
 
   return (
-    <section className="relative py-4 border-b border-white/[0.06]">
+    <section className="relative py-4">
       <VStack gap={3} className="relative">
         <HStack align="center" justify="between" gap={3} className="px-1">
           <HStack align="center" gap={2} className="min-w-0">
