@@ -10,7 +10,7 @@ export const profileAmbientTopStyle = {
   background: 'transparent',
 };
 
+// Bottom ambient also transparent — plain black app background throughout.
 export const profileAmbientBottomStyle = {
-  background:
-    'linear-gradient(180deg, transparent 0%, hsl(240 20% 2% / 0.10) 36%, hsl(240 20% 2% / 0.34) 100%)',
+  background: 'transparent',
 };
