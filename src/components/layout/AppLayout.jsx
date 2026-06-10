@@ -71,6 +71,9 @@ const AppLayout = memo(function AppLayout() {
   const { pathname } = useLocation();
   const isRadar = pathname === '/home';
   const isMainRoute = pathname === '/home' || pathname === '/messages' || pathname === '/profile';
+  // Direct-message page has its own in-page header (back + partner) — hide the app
+  // header and reclaim its space so the chat sits at the top.
+  const isConversation = /^\/messages\/.+/.test(pathname);
   const [hasUpdateAvailable, setHasUpdateAvailable] = useState(getPendingServiceWorkerUpdateState());
   const [isRefreshingUpdate, setIsRefreshingUpdate] = useState(false);
 
@@ -294,8 +297,8 @@ const AppLayout = memo(function AppLayout() {
         </>
       )}
 
-      {/* Header — overlay on radar, sticky elsewhere */}
-      <AppHeader isOverlay={isRadar} />
+      {/* Header — overlay on radar, sticky elsewhere; hidden on the DM page */}
+      {!isConversation && <AppHeader isOverlay={isRadar} />}
 
       {/* Main content */}
       <main
@@ -305,7 +308,13 @@ const AppLayout = memo(function AppLayout() {
             ? 'absolute inset-0 z-0 bg-background'
             : 'relative z-10 mx-auto max-w-xl overflow-x-hidden pb-nav-safe'
         )}
-        style={!isRadar ? { paddingTop: 'calc(3.5rem + env(safe-area-inset-top, 0px))' } : undefined}
+        style={
+          isRadar
+            ? undefined
+            : isConversation
+              ? { paddingTop: 'env(safe-area-inset-top, 0px)' }
+              : { paddingTop: 'calc(3.5rem + env(safe-area-inset-top, 0px))' }
+        }
         role="main"
       >
         <Suspense fallback={<RouteTransitionFallback />}>

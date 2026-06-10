@@ -46,7 +46,7 @@ function ConversationSkeleton() {
     <div
       className="flex flex-col w-full min-h-0 bg-background relative overflow-hidden"
       style={{
-        height: 'calc(var(--rr-viewport-height, 100dvh) - 3.5rem - env(safe-area-inset-top, 0px) - max(0px, calc(var(--rr-nav-h, 3.5rem) + var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)) - var(--rr-keyboard-height, 0px))))',
+        height: 'calc(var(--rr-viewport-height, 100dvh) - env(safe-area-inset-top, 0px) - max(0px, calc(var(--rr-nav-h, 3.5rem) + var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)) - var(--rr-keyboard-height, 0px))))',
       }}
     >
       <HStack align="center" gap={3} className="px-4 py-3 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl shrink-0">
@@ -301,7 +301,7 @@ function ConversationPage() {
     <div
       className="flex flex-col w-full min-h-0 bg-background relative overflow-hidden"
       style={{
-        height: 'calc(var(--rr-viewport-height, 100dvh) - 3.5rem - env(safe-area-inset-top, 0px) - max(0px, calc(var(--rr-nav-h, 3.5rem) + var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)) - var(--rr-keyboard-height, 0px))))',
+        height: 'calc(var(--rr-viewport-height, 100dvh) - env(safe-area-inset-top, 0px) - max(0px, calc(var(--rr-nav-h, 3.5rem) + var(--rr-safe-area-bottom, env(safe-area-inset-bottom, 0px)) - var(--rr-keyboard-height, 0px))))',
       }}
     >
       {/* Header */}
