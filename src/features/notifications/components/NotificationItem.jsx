@@ -255,8 +255,8 @@ const NotificationItem = memo(function NotificationItem({
         className={cn(
           'relative flex items-start gap-3 rounded-[20px] border p-4 transition-all duration-200 active:scale-95',
           isUnread
-            ? `cursor-pointer border-l-4 ${typeColors.border} border-y border-r border-primary/10 bg-surface/80 hover:border-primary/30 backdrop-blur-sm`
-            : 'border-border/40 bg-surface/40 opacity-70',
+            ? `cursor-pointer border-l-4 ${typeColors.border} border-y border-r border-primary/10 hover:border-primary/30`
+            : 'border-border/40 opacity-70',
           isEmergency && 'bg-brand-emergency/15'
         )}
         style={{

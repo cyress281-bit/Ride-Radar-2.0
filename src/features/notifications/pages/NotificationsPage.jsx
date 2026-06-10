@@ -66,7 +66,7 @@ function VirtualNotificationList({ notifications, onMarkRead, onDelete }) {
 
 function NotificationHeader({ unreadCount }) {
   return (
-    <div className="relative mb-3 overflow-hidden rounded-[20px] border border-primary/10 bg-surface/80 backdrop-blur-xl p-4">
+    <div className="relative mb-3 overflow-hidden rounded-[20px] border border-primary/10 p-4">
       <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full border border-primary/10" />
       <div className="absolute bottom-3 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       <div className="relative z-10">
@@ -93,7 +93,7 @@ function NotificationSkeleton() {
   return (
     <div className="space-y-3">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="rounded-[20px] border border-primary/10 bg-surface/60 p-5 space-y-3 backdrop-blur-sm">
+        <div key={i} className="rounded-[20px] border border-primary/10 p-5 space-y-3">
           <div className="flex items-center gap-3">
             <Skeleton className="h-10 w-10 rounded-full bg-muted" />
             <div className="space-y-2">
@@ -114,7 +114,7 @@ function NotificationSkeleton() {
 
 function NotificationEmptyState() {
   return (
-    <div className="relative mt-4 overflow-hidden rounded-[20px] border border-dashed border-primary/20 bg-surface/60 py-20 text-center backdrop-blur-sm">
+    <div className="relative mt-4 overflow-hidden rounded-[20px] border border-dashed border-primary/20 py-20 text-center">
       <div className="pointer-events-none absolute top-1/2 left-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/5 blur-3xl" />
       <div className="absolute top-16 right-10 left-10 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       <div className="relative z-10 mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10">
@@ -136,7 +136,7 @@ function ErrorState() {
   const queryClient = useQueryClient();
   return (
     <div className="px-5 pt-5 pb-8 bg-background min-h-dvh">
-      <div className="rounded-[20px] border border-primary/10 bg-surface/80 p-6 text-center backdrop-blur-xl">
+      <div className="rounded-[20px] border border-primary/10 p-6 text-center">
         <WifiOff className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
         <h2 className="mb-2 text-xl font-bold text-brand-emergency">Signal lost</h2>
         <p className="mb-4 text-sm text-muted-foreground">Unable to load notifications. Please try again.</p>

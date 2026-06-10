@@ -14,7 +14,7 @@ import { timeAgo } from '@/lib/utils.js';
  */
 export default function ConnectionRequestCard({ request, fromProfile, onAccept, onDecline, isAccepting, isDeclining }) {
   return (
-    <div className="rounded-[20px] border border-primary/10 bg-surface/80 p-5 transition-colors hover:border-primary/25 backdrop-blur-sm">
+    <div className="rounded-[20px] border border-primary/10 p-5 transition-colors hover:border-primary/25">
       <div className="mb-3 flex items-center gap-3">
         {fromProfile?.avatar_url ? (
           <div className="shrink-0 rounded-full" style={{ padding: '3px', background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--brand-radar)) 100%)' }}>
