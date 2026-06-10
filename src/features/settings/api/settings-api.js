@@ -17,6 +17,7 @@ const DEFAULT_SETTINGS = {
   live_map_visible: false,
   live_map_location_precision: 'approximate',
   analytics_enabled: true,
+  read_receipts_enabled: true,
 };
 
 /**

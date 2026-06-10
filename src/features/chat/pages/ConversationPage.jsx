@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useMessages, useMarkRead } from '@/features/chat/hooks/use-messages.js';
 import { useSendMessage } from '@/features/chat/hooks/use-send-message.js';
+import { useConversationReadState } from '@/features/chat/hooks/use-conversation-read-state.js';
 import MessageBubble from '@/features/chat/components/MessageBubble.jsx';
 import MessageInput from '@/features/chat/components/MessageInput.jsx';
 import VirtualList from '@/components/shared/VirtualList.jsx';
@@ -149,6 +150,8 @@ function ConversationPage() {
 
   const otherId = conversation?.participant_ids?.find((p) => p !== user?.id);
 
+  const otherReadAt = useConversationReadState(id, otherId);
+
   const { blockedIds } = useBlockedIds();
   const isBlocked = !!otherId && blockedIds.has(otherId);
 
@@ -216,10 +219,11 @@ function ConversationPage() {
       <MessageBubble
         message={message}
         isMine={message.from_user_id === user?.id}
+        otherReadAt={otherReadAt}
         onRetry={message._failed ? () => send.mutate({ body: message.body, _tempId: message.id }) : undefined}
       />
     ),
-    [user?.id, send]
+    [user?.id, send, otherReadAt]
   );
 
   // Simple scroll-to-bottom helper

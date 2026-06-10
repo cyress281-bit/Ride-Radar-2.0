@@ -36,6 +36,7 @@ import {
   BadgeInfo,
   HeartHandshake,
   Bug,
+  CheckCheck,
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -506,6 +507,16 @@ function SettingsPage() {
           <Text variant="caption" color="muted" className="leading-relaxed">
             <span className="font-semibold text-foreground/90">About your location</span> — Ride Radar uses your location only while the app is open, and only shares it with other riders when you go live or post a signal. Turning off &quot;Show me on the live map&quot; hides you from others. To turn off location access completely, go to iPhone Settings &rarr; Privacy &amp; Security &rarr; Location Services.
           </Text>
+        </div>
+        <div className="border-t border-border/40">
+          <SettingsRow
+            icon={CheckCheck}
+            label="Read receipts"
+            desc="Let riders see when you've read their messages. When off, you won't see theirs either."
+            toggle={settings?.read_receipts_enabled !== false}
+            onToggle={(v) => handleToggle('read_receipts_enabled', v)}
+            disabled={isSaving}
+          />
         </div>
         <div className="border-t border-border/40">
           <SettingsRow

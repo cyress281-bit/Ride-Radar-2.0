@@ -3,7 +3,7 @@ import { cn, timeAgo } from '@/lib/utils.js';
 import { isRemoteImageUrl } from '@/lib/image-utils.js';
 import { Text } from '@/components/ui/primitives/Text';
 import { VStack, HStack } from '@/components/ui/primitives/Stack';
-import { Check, Clock, ImageOff, XCircle } from 'lucide-react';
+import { Check, CheckCheck, Clock, ImageOff, XCircle } from 'lucide-react';
 import ReportButton from '@/features/safety/components/ReportButton';
 
 /**
@@ -21,13 +21,15 @@ import ReportButton from '@/features/safety/components/ReportButton';
  * @param {Object} props
  * @param {object} props.message
  * @param {boolean} props.isMine
+ * @param {string|null} [props.otherReadAt] — other rider's last read_at (for receipts)
  * @param {Function} [props.onRetry] — called when a failed message is tapped
  */
-const MessageBubble = memo(function MessageBubble({ message, isMine, onRetry }) {
+const MessageBubble = memo(function MessageBubble({ message, isMine, otherReadAt, onRetry }) {
   const [imageError, setImageError] = useState(false);
 
   const isPending = !!message._pending;
   const isFailed = !!message._failed;
+  const isReadByOther = !!otherReadAt && !!message.created_at && new Date(otherReadAt) >= new Date(message.created_at);
 
   const displayImageUrl = message.resolved_image_url || (isRemoteImageUrl(message.image_url) ? message.image_url : '');
 
@@ -96,8 +98,12 @@ const MessageBubble = memo(function MessageBubble({ message, isMine, onRetry }) 
                 <Clock className="w-3 h-3 text-muted-foreground/50" aria-hidden="true" />
                 <Text variant="micro" color="muted">Sending...</Text>
               </HStack>
+            ) : isReadByOther ? (
+              <span className="text-primary" title="Read">
+                <CheckCheck className="w-3.5 h-3.5" aria-hidden="true" />
+              </span>
             ) : (
-              <span className="text-muted-foreground/50">
+              <span className="text-muted-foreground/50" title="Sent">
                 <Check className="w-3 h-3" aria-hidden="true" />
               </span>
             )
