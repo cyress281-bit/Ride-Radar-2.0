@@ -16,10 +16,11 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
  *
  * @param {Object} props
  * @param {Function} props.onSend
+ * @param {Function} [props.onTyping] — called on each keystroke (drives typing indicator)
  * @param {boolean} props.isSending
  * @param {boolean} [props.disabled]
  */
-export default function MessageInput({ onSend, isSending, disabled = false }) {
+export default function MessageInput({ onSend, onTyping, isSending, disabled = false }) {
   const [text, setText] = useState('');
   const [selectedImage, setSelectedImage] = useState(null); // File
   const [previewUrl, setPreviewUrl] = useState(null);       // Object URL
@@ -155,7 +156,7 @@ export default function MessageInput({ onSend, isSending, disabled = false }) {
             id="message-input"
             aria-label="Message"
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => { setText(e.target.value); if (e.target.value) onTyping?.(); }}
             onKeyDown={handleKeyDown}
             placeholder={disabled ? 'Conversation archived' : 'Type a message...'}
             rows={1}

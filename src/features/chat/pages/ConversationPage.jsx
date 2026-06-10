@@ -5,6 +5,7 @@ import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 import { useMessages, useMarkRead } from '@/features/chat/hooks/use-messages.js';
 import { useSendMessage } from '@/features/chat/hooks/use-send-message.js';
 import { useConversationReadState } from '@/features/chat/hooks/use-conversation-read-state.js';
+import { useTypingIndicator } from '@/features/chat/hooks/use-typing-indicator.js';
 import MessageBubble from '@/features/chat/components/MessageBubble.jsx';
 import MessageInput from '@/features/chat/components/MessageInput.jsx';
 import VirtualList from '@/components/shared/VirtualList.jsx';
@@ -151,6 +152,7 @@ function ConversationPage() {
   const otherId = conversation?.participant_ids?.find((p) => p !== user?.id);
 
   const otherReadAt = useConversationReadState(id, otherId);
+  const { isOtherTyping, notifyTyping } = useTypingIndicator(id, user?.id);
 
   const { blockedIds } = useBlockedIds();
   const isBlocked = !!otherId && blockedIds.has(otherId);
@@ -350,10 +352,21 @@ function ConversationPage() {
               <Text variant="bodySm" className="font-semibold truncate">
                 {otherProfile.display_name}
               </Text>
-              <HStack align="center" gap={1}>
-                <Shield className="w-3 h-3 text-brand-radar" />
-                <Text variant="micro" color="muted">Secure channel</Text>
-              </HStack>
+              {isOtherTyping ? (
+                <HStack align="center" gap={1.5}>
+                  <span className="flex items-center gap-0.5" aria-hidden="true">
+                    <span className="h-1 w-1 rounded-full bg-primary animate-typing-dot" />
+                    <span className="h-1 w-1 rounded-full bg-primary animate-typing-dot [animation-delay:150ms]" />
+                    <span className="h-1 w-1 rounded-full bg-primary animate-typing-dot [animation-delay:300ms]" />
+                  </span>
+                  <Text variant="micro" className="text-primary font-medium">typing…</Text>
+                </HStack>
+              ) : (
+                <HStack align="center" gap={1}>
+                  <Shield className="w-3 h-3 text-brand-radar" />
+                  <Text variant="micro" color="muted">Secure channel</Text>
+                </HStack>
+              )}
             </VStack>
           </HStack>
         ) : (
@@ -478,6 +491,7 @@ function ConversationPage() {
       {/* Input */}
       <MessageInput
         onSend={handleSend}
+        onTyping={notifyTyping}
         isSending={send.isPending}
         disabled={conversation?.status === 'archived' || isBlocked}
       />
