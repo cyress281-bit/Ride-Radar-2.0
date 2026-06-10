@@ -195,6 +195,10 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
           >
             <ChevronLeft className="h-6 w-6" aria-hidden="true" />
           </button>
+        ) : isMainPage ? (
+          // Messages / Profile: no logo — reachable via bottom nav. Empty spacer
+          // preserves the justify-between layout so the right action icons stay right.
+          <div className="min-w-[44px] min-h-[44px]" aria-hidden="true" />
         ) : (
           <NavLink
             to="/home"
