@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Info,
   X,
+  Heart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils.js';
 import { timeAgo } from '@/lib/utils.js';
@@ -35,6 +36,8 @@ const TYPE_COLORS = {
   // social/connections — keep primary green
   connection_request:  { border: 'border-l-primary',         icon: 'bg-primary/10 border border-primary/20',                 text: 'text-primary' },
   connection_accepted: { border: 'border-l-primary',         icon: 'bg-primary/10 border border-primary/20',                 text: 'text-primary' },
+  // profile like — red
+  profile_like:        { border: 'border-l-destructive',     icon: 'bg-destructive/10 border border-destructive/20',         text: 'text-destructive' },
   // event/rsvp — amber
   rsvp:                { border: 'border-l-amber-500',       icon: 'bg-amber-500/15 border border-amber-500/30',             text: 'text-amber-500' },
   event_reminder:      { border: 'border-l-amber-500',       icon: 'bg-amber-500/15 border border-amber-500/30',             text: 'text-amber-500' },
@@ -71,6 +74,8 @@ function getIconForType(type) {
     case 'rsvp':
     case 'event_reminder':
       return CalendarClock;
+    case 'profile_like':
+      return Heart;
     case 'official_event_review_request':
       return ShieldCheck;
     case 'bike_down':
@@ -106,6 +111,12 @@ function getNotificationHref(notification) {
   if (type === 'broadcast_comment') {
     const broadcastId = data?.broadcast_id ?? notification.related_entity_id;
     if (broadcastId) return `/broadcast/${broadcastId}#comments`;
+    return null;
+  }
+
+  if (type === 'profile_like') {
+    const actorId = data?.actor_id ?? notification.actor_id;
+    if (actorId) return `/profile/${actorId}`;
     return null;
   }
 

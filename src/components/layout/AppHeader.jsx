@@ -24,13 +24,13 @@ import RiderSearchOverlay from '@/features/connections/components/RiderSearchOve
 
 const ROUTE_TITLES = {
   '/home': '',
-  '/profile': 'Profile',
+  '/profile': '',
   '/notifications': 'Notifications',
   '/admin': 'Admin',
   '/settings': 'Settings',
   '/settings/account': 'Account',
   '/settings/blocked-users': 'Blocked Users',
-  '/messages': 'Messages',
+  '/messages': '',
   '/broadcast': 'Send a Signal',
   '/review-readiness': 'Review Readiness',
   '/community-guidelines': 'Community Guidelines',
@@ -211,50 +211,19 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
           </NavLink>
         )}
 
-        {/* Center: Page context */}
+        {/* Center: Page title only — blank for Radar, Messages, Profile */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none">
-          {isRadar ? (
-            <span
-              className={cn(
-                'flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em]',
-                chipVariant === 'connected'
-                  ? 'text-primary'
-                  : chipVariant === 'degraded'
-                    ? 'text-amber-400'
-                    : 'text-muted-foreground'
+          {pageTitle && (
+            <HStack align="center" gap={2}>
+              <Text variant="h3" color="default" className="text-base font-bold text-primary">
+                {pageTitle}
+              </Text>
+              {isBeta && (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/30">
+                  Beta
+                </span>
               )}
-            >
-              <span className="relative flex h-1.5 w-1.5">
-                {chipVariant === 'connected' ? (
-                  <>
-                    <span className="animate-pulse-green absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary" />
-                  </>
-                ) : chipVariant === 'degraded' ? (
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-400" />
-                ) : (
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-muted-foreground/60" />
-                )}
-              </span>
-              {isLiveOnMap ? 'LIVE' : 'OFFLINE'}
-            </span>
-          ) : (
-            pageTitle && (
-              <HStack align="center" gap={2}>
-                <Text
-                  variant="h3"
-                  color="default"
-                  className="text-base font-bold text-primary"
-                >
-                  {pageTitle}
-                </Text>
-                {isBeta && (
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/30">
-                    Beta
-                  </span>
-                )}
-              </HStack>
-            )
+            </HStack>
           )}
         </div>
 

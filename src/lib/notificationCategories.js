@@ -15,6 +15,7 @@ export const NOTIFICATION_TYPE_TO_SETTING = {
   connection_accepted: 'notify_connections',
   broadcast_comment: 'notify_connections',
   post_comment: 'notify_connections',
+  profile_like: 'notify_connections',
 };
 
 /** Types that always show regardless of user preferences (admin/global duty). */
