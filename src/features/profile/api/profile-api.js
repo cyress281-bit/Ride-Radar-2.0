@@ -131,14 +131,21 @@ export async function checkUsernameAvailability(username) {
  * @param {string} query
  * @returns {Promise<{data: object[], error: Error|null}>}
  */
-export async function searchProfiles(query) {
+export async function searchProfiles(query, friendIds = []) {
   const trimmed = String(query || '').trim();
   if (!trimmed) return { data: [], error: null };
 
   const pattern = `%${trimmed}%`;
+  const cols = 'id, user_id, display_name, username, avatar_url, bio, is_public, bike_make, bike_model, bike_year, bike_photo_url';
+
+  // Include public profiles + any private profiles the user is already friends with
+  const visibilityFilter = friendIds.length > 0
+    ? `is_public.eq.true,user_id.in.(${friendIds.join(',')})`
+    : 'is_public.eq.true';
+
   const [displayNameResult, usernameResult] = await Promise.all([
-    supabase.from('user_profiles').select('id, user_id, display_name, username, avatar_url, bio, is_public, bike_make, bike_model, bike_year, bike_photo_url').ilike('display_name', pattern).eq('is_public', true).limit(20),
-    supabase.from('user_profiles').select('id, user_id, display_name, username, avatar_url, bio, is_public, bike_make, bike_model, bike_year, bike_photo_url').ilike('username', pattern).eq('is_public', true).limit(20),
+    supabase.from('user_profiles').select(cols).ilike('display_name', pattern).or(visibilityFilter).limit(20),
+    supabase.from('user_profiles').select(cols).ilike('username', pattern).or(visibilityFilter).limit(20),
   ]);
 
   const error = displayNameResult.error || usernameResult.error;

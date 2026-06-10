@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { searchProfiles } from '@/features/profile/api/profile-api';
 
-export function useRiderSearch(query) {
+export function useRiderSearch(query, friendIds = []) {
   const [debouncedQuery, setDebouncedQuery] = useState(query);
 
   useEffect(() => {
@@ -11,9 +11,9 @@ export function useRiderSearch(query) {
   }, [query]);
 
   return useQuery({
-    queryKey: ['rider-search', debouncedQuery],
+    queryKey: ['rider-search', debouncedQuery, friendIds],
     queryFn: async () => {
-      const { data, error } = await searchProfiles(debouncedQuery);
+      const { data, error } = await searchProfiles(debouncedQuery, friendIds);
       if (error) throw error;
       return data;
     },

@@ -72,7 +72,8 @@ const RiderSearchOverlay = memo(function RiderSearchOverlay({ open, onClose }) {
   const [query, setQuery] = useState('');
   const inputRef = useRef(null);
 
-  const { data: results = [], isFetching } = useRiderSearch(query);
+  const friendIdsArray = useMemo(() => Array.from(friendIds), [friendIds]);
+  const { data: results = [], isFetching } = useRiderSearch(query, friendIdsArray);
   const { data: friendships = [] } = useFriendships();
   const { data: sentRequests = [] } = useSentRequests();
 
