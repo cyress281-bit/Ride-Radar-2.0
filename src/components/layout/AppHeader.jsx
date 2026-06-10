@@ -160,6 +160,11 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
   // Bottom-nav destinations only — these have tab-bar access so the back arrow is redundant.
   // Notifications is NOT here: it's reached via the bell and needs a back button to exit.
   const isMainPage = pathname === '/messages' || pathname === '/profile';
+
+  // Hide the header action icons (admin / search / bell) when already AT one of their
+  // destinations — those entry points are redundant there, and the back button covers exit.
+  // (Search is a full-screen overlay, so it's self-contained and needs no flag here.)
+  const hideHeaderActions = pathname === '/notifications' || pathname.startsWith('/admin');
   const showBackButton = !isHome && !isConversation && !isOnboarding && !isMainPage;
 
   return (
@@ -232,62 +237,66 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
 
         {/* Right: Actions */}
         <HStack align="center" gap={1} role="group" aria-label="Header actions">
-          {isAdmin && (
-            <NavLink
-              to="/admin"
-              className={({ isActive }) => cn(
-                'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
-                'transition-all duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                'pressable',
-                isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+          {!hideHeaderActions && (
+            <>
+              {isAdmin && (
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) => cn(
+                    'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
+                    'transition-all duration-150',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                    'pressable',
+                    isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  aria-label="Admin panel"
+                  {...withRoutePreload(preloadAdminDashboard, () => prefetchAdminDashboard(qc))}
+                >
+                  <ShieldAlert className="w-[18px] h-[18px]" aria-hidden="true" />
+                </NavLink>
               )}
-              aria-label="Admin panel"
-              {...withRoutePreload(preloadAdminDashboard, () => prefetchAdminDashboard(qc))}
-            >
-              <ShieldAlert className="w-[18px] h-[18px]" aria-hidden="true" />
-            </NavLink>
+
+              {/* Rider search */}
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className={cn(
+                  'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
+                  'transition-all duration-150 text-muted-foreground hover:text-foreground',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                  'pressable'
+                )}
+                aria-label="Search riders"
+              >
+                <Search className="w-[18px] h-[18px]" aria-hidden="true" />
+              </button>
+
+              <NavLink
+                to="/notifications"
+                className={({ isActive }) =>
+                  cn(
+                    'relative flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
+                    'transition-all duration-150',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                    'pressable',
+                    isActive
+                      ? 'text-brand-emergency bg-brand-emergency/10'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )
+                }
+                aria-label="Notifications"
+                {...withRoutePreload(preloadNotifications, () => prefetchNotifications(qc, user?.id))}
+              >
+                <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
+                {unreadCount > 0 && (
+                  <span
+                    className="absolute top-2 right-2 h-2 w-2 rounded-full bg-brand-emergency ring-2 ring-background animate-pulse"
+                    aria-hidden="true"
+                  />
+                )}
+              </NavLink>
+            </>
           )}
-
-          {/* Rider search */}
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            className={cn(
-              'flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
-              'transition-all duration-150 text-muted-foreground hover:text-foreground',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-              'pressable'
-            )}
-            aria-label="Search riders"
-          >
-            <Search className="w-[18px] h-[18px]" aria-hidden="true" />
-          </button>
-
-          <NavLink
-            to="/notifications"
-            className={({ isActive }) =>
-              cn(
-                'relative flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full',
-                'transition-all duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                'pressable',
-                isActive
-                  ? 'text-brand-emergency bg-brand-emergency/10'
-                  : 'text-muted-foreground hover:text-foreground'
-              )
-            }
-            aria-label="Notifications"
-            {...withRoutePreload(preloadNotifications, () => prefetchNotifications(qc, user?.id))}
-          >
-            <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
-            {unreadCount > 0 && (
-              <span
-                className="absolute top-2 right-2 h-2 w-2 rounded-full bg-brand-emergency ring-2 ring-background animate-pulse"
-                aria-hidden="true"
-              />
-            )}
-          </NavLink>
 
           <NavLink
             to="/profile"
