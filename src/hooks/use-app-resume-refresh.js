@@ -1,28 +1,29 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { broadcastKeys } from '@/features/broadcast/hooks/use-broadcasts.js';
-import { notificationKeys } from '@/features/notifications/hooks/use-notifications.js';
-import { connectionRequestKeys } from '@/features/connections/hooks/use-connection-requests.js';
-import { friendshipKeys } from '@/features/connections/hooks/use-friendships.js';
 
 const RESUME_REFRESH_DEBOUNCE_MS = 180;
 const RESUME_REFRESH_COOLDOWN_MS = 10_000;
 
+// Query-key roots are inlined (not imported from hook modules) so this eagerly
+// loaded module never pulls hook files into the boot chunk. Importing hook modules
+// here risks a TDZ when lazy page chunks re-evaluate the same modules — see the
+// query-client.js fix (commit 57818ea) for the same pattern. Keep in sync with:
+// broadcastKeys.all, notificationKeys.all, connectionRequestKeys.all, friendshipKeys.all.
 const RESUME_QUERY_KEYS = [
-  broadcastKeys.all,
+  ['broadcasts'],
   ['broadcast-comments'],
   ['post-comments'],
   ['myRSVP'],
   ['rsvpCounts'],
   ['live-map-presence'],
   ['settings'],
-  notificationKeys.all,
+  ['notifications'],
   ['messages'],
   ['conversation'],
   ['conversations'],
   ['conversation-notifications'],
-  connectionRequestKeys.all,
-  friendshipKeys.all,
+  ['connection-requests'],
+  ['friendships'],
   ['profile'],
   ['user-posts'],
   ['connections-count'],

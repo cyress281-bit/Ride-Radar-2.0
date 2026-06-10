@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getBroadcastComments,
@@ -20,12 +20,13 @@ const COMMENTS_KEY = 'broadcast-comments';
  */
 export function useBroadcastComments(broadcastId) {
   const qc = useQueryClient();
+  const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
 
   useEffect(() => {
     if (!broadcastId) return;
 
     const channel = supabase
-      .channel(`broadcast-comments-${broadcastId}`)
+      .channel(`broadcast-comments-${broadcastId}-${instanceId}`)
       .on(
         'postgres_changes',
         {
@@ -51,7 +52,7 @@ export function useBroadcastComments(broadcastId) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [broadcastId, qc]);
+  }, [broadcastId, qc, instanceId]);
 
   return useQuery({
     queryKey: [COMMENTS_KEY, broadcastId],

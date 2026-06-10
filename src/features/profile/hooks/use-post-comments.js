@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getPostComments,
@@ -18,12 +18,13 @@ const COMMENTS_KEY = 'post-comments';
  */
 export function usePostComments(postId) {
   const qc = useQueryClient();
+  const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
 
   useEffect(() => {
     if (!postId) return;
 
     const channel = supabase
-      .channel(`post-comments-${postId}`)
+      .channel(`post-comments-${postId}-${instanceId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'post_comments', filter: `post_id=eq.${postId}` },
@@ -50,7 +51,7 @@ export function usePostComments(postId) {
       });
 
     return () => { supabase.removeChannel(channel); };
-  }, [postId, qc]);
+  }, [postId, qc, instanceId]);
 
   return useQuery({
     queryKey: [COMMENTS_KEY, postId],

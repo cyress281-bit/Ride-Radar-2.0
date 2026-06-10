@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { supabase } from '@/lib/supabase.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth';
 
@@ -13,6 +13,7 @@ export function useProfileLike(targetUserId) {
   const { user } = useAuthState();
   const queryClient = useQueryClient();
   const currentUserId = user?.id;
+  const instanceId = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const enabled = !!targetUserId;
 
   const { data: likeCount = 0, isLoading: countLoading } = useQuery({
@@ -84,7 +85,7 @@ export function useProfileLike(targetUserId) {
   useEffect(() => {
     if (!targetUserId) return;
     const channel = supabase
-      .channel(`profile-likes-${targetUserId}`)
+      .channel(`profile-likes-${targetUserId}-${instanceId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profile_likes', filter: `liked_user_id=eq.${targetUserId}` },
@@ -94,7 +95,7 @@ export function useProfileLike(targetUserId) {
       )
       .subscribe();
     return () => supabase.removeChannel(channel);
-  }, [targetUserId, queryClient]);
+  }, [targetUserId, queryClient, instanceId]);
 
   return {
     likeCount,
