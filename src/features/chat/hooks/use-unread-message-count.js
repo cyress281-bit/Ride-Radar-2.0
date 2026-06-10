@@ -1,11 +1,17 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase.js';
+import { getConversations } from '@/features/chat/api/chat-api.js';
 import { useAuthState } from '@/features/auth/hooks/use-auth.js';
 
 /**
  * Returns the number of conversations with unread messages.
- * Shares query keys with ConversationsPage so no duplicate requests when that page is mounted.
+ *
+ * Shares the `['conversations', userId]` and `['conversation-notifications', userId]`
+ * query keys with ConversationsPage. IMPORTANT: the conversations query MUST use the
+ * same `getConversations` fetcher (full row shape) so it never clobbers the cache the
+ * conversations page reads from — a reduced column set would strip `participant_ids`
+ * and break avatar/profile resolution on the chats list.
  */
 export function useUnreadMessageCount() {
   const { user } = useAuthState();
@@ -15,11 +21,7 @@ export function useUnreadMessageCount() {
     queryKey: ['conversations', userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('id, last_message_at')
-        .contains('participant_ids', [userId])
-        .not('last_message_at', 'is', null);
+      const { data, error } = await getConversations(userId);
       if (error) throw error;
       return data || [];
     },
