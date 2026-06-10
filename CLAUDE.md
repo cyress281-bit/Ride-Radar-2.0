@@ -11,42 +11,21 @@ Before doing anything else each session:
 
 > There is no standing "current task." Recent work lives in `git log`. This file holds only evergreen guidance + still-open obligations (see **Deferred Follow-Ups**).
 
-### ⏭️ Next Session — Device test first, then pick from remaining items
-Large visual + performance polish pass completed 2026-06-08. **Test on iPhone PWA before adding more** — several big changes shipped: profile like system, who liked you/crew sheets, map marker perf fix (GPS listener churn), notification badge auto-clear, location gate auto-dismiss, ProfileIdentitySection refactor, RSVP attendee sheet links, nav prefetch coverage. Remaining open items: profile image resize (waiting for Supabase Pro), rider search, signal history tab, message reactions.
+### Current state (updated 2026-06-10)
+Recent sessions delivered a **UI-simplification pass** (plain-black profile background, notification/comms box fills stripped but borders kept, headers decluttered — app logo + profile avatar removed, settings gear moved into the profile header, DM page app-header removed) and a **chat feature push**: profile likes + "who liked you"/crew sheets, rider search (header icon), unread-glow fix, "You:" preview prefix, **read receipts** (reciprocal toggle), and **typing indicator** (realtime broadcast). Detailed history is in `git log`.
+
+**Open items (verify on device + owner decisions):**
+- Verify read-receipt toggle works both directions, and DM-page keyboard behavior, on the iPhone PWA.
+- **Profile image resize** — waiting on Supabase Pro (Deferred Follow-Ups #1).
+- **Message reactions** — net-new, not started.
+- Two owner decisions pending: Comms page still has a faint bottom glow + grid (only the top fade was removed); emergency-notification red tint was kept for safety urgency.
+- **Signal history tab** was considered and rejected by owner — do not re-propose.
 
 ---
 
-## AI Team Charter
+## Working Model
 
-**This section governs how all AI tools collaborate on Ride Radar 2.0. Every AI must read this before contributing anything.**
-
-### The Team (two AIs, as of 2026-06-02 — ChatGPT/Codex retired)
-| Role | AI | Strengths | Primary Responsibility |
-|---|---|---|---|
-| **Reviewer & Comparer** | Claude | Security, architecture, code quality, reasoning, debugging, RLS/Supabase | Independent investigation, root-cause analysis, **reconciling Claude's vs Kimi's findings**, writing the approved executor task, Charter-reviewing Kimi's diff |
-| **Investigator & Executor** | Kimi | Heavy code workload, long sessions, implementation | Independent investigation, then **the actual edits, changes, commits, and pushes** based on the approved task |
-
-### Rules of Engagement
-1. **No AI has more leverage than another.** Every recommendation must be justified.
-2. **Challenge each other.** Push back with reasoning. Blind agreement wastes the owner's time.
-3. **Document disagreements.** If the two AIs disagree on the same problem, log both perspectives and let the owner decide.
-4. **Kimi executes, never decides.** If Kimi hits an ambiguous situation it stops and flags it rather than guessing.
-5. **No AI touches something outside its current task.** Minimum viable changes only. No scope creep.
-6. **The owner is always the final decision maker.** All AI input is a recommendation.
-
-### Who Owns What
-- **Security / RLS / DB schema** → Claude leads (RLS, PostGIS, Supabase behavior); Kimi implements.
-- **Architecture & code patterns** → Claude leads; Kimi implements.
-- **UI/UX decisions** → owner decides; Claude advises on implementation complexity.
-- **Code execution (edits, commits, pushes)** → **Kimi**, based on the task approved after reconciliation.
-
-### Default Workflow (two-AI loop)
-1. Owner brings a problem. **Both Claude and Kimi run their own independent investigations** (Kimi does not read Claude's findings until done, and vice versa) — **unless it's a small fix and the owner says otherwise**.
-2. **Claude reconciles**: reads both reports, confirms / challenges / flags disagreements; owner resolves any disagreement.
-3. Only after agreement does Claude write the **Approved Task for Kimi**.
-4. **Kimi executes exactly what's written** — edits, then commits and pushes (no interpretation, no decisions).
-5. **Claude Charter-reviews Kimi's diff + verification** (lint/build, logic) before it's considered done.
-6. Claude does **not** commit/push by default — that's Kimi's job now — unless the owner explicitly asks Claude to.
+Claude works directly with the owner. The owner is the final decision maker; all AI input is a recommendation. Challenge wrong or risky ideas with reasoning rather than agreeing to be agreeable. Minimum viable changes only — no scope creep. Claude commits and pushes only when the owner explicitly approves (see Development Rules).
 
 ---
 
@@ -64,7 +43,7 @@ Large visual + performance polish pass completed 2026-06-08. **Test on iPhone PW
 8. **Supabase migrations** must be additive unless a destructive change is explicitly approved by the owner.
 9. **iOS `datetime-local` flex-wrap fix** must be preserved (see iOS Safari Quirks).
 
-_Approved by owner 2026-05-31. Applies to Claude Code, Codex, and Kimi equally._
+_Approved by owner 2026-05-31._
 
 ---
 
@@ -213,9 +192,10 @@ Key tables (all have RLS policies):
 - `user_blocks` - Blocked users
 - `reports` - Safety reports
 - `notifications` - Activity feed
-- `user_settings` - Privacy preferences (including `analytics_enabled` for opt-out)
+- `user_settings` - Privacy preferences (`analytics_enabled`, `read_receipts_enabled`, notification category toggles)
 - `event_rsvps` - RSVP records for event broadcasts (`interested`, `going`, `maybe`, `not_going`)
-- `profile_likes` - Profile likes (`liker_id`, `liked_user_id`) — unique constraint, no self-likes, RLS: anyone can read, only liker can insert/delete
+- `profile_likes` - Profile likes (`liker_id`, `liked_user_id`) — unique constraint, no self-likes, RLS: anyone can read, only liker can insert/delete. INSERT trigger creates a `profile_like` notification.
+- `conversation_notifications` - Per-user `read_at` per conversation (drives unread + read receipts)
 
 **Important:** All geospatial queries use the `get_nearby_broadcasts` RPC function (server-side PostGIS) instead of client-side distance calculations.
 
@@ -236,6 +216,13 @@ Use `src/lib/localImageUpload.js` for upload logic with validation from `src/lib
 - **Upsert read-back:** After `upsert(...)`, adding `.select().single()` may fail (PGRST116) if the RLS SELECT policy doesn't allow reading the row back. Only read back data when the SELECT policy permits it.
 - **Active Supabase project ID:** `iygtbcserdmvhhjicyyp`
 - **Migration history is diverged from live** (see Known Issues). ALWAYS verify a live DB object via Supabase MCP (`pg_get_functiondef` / `get_advisors`) before applying any DB change — local migration files can describe a *stale* version of a live object. A `CREATE OR REPLACE` against a stale signature creates a divergent overload, not a replacement.
+
+### Realtime, Chat & Cache — Key Behaviors (hard-won)
+- **`postgres_changes` channel names MUST be per-instance.** A static channel name (`friendships-${userId}`) collides when the same hook mounts twice (e.g. `useFriendships` is in the always-mounted header *and* CrewTab) → `cannot add postgres_changes callbacks ... after subscribe()`. Add a `useId()` suffix: `` `friendships-${userId}-${instanceId}` ``. Hooks already fixed: `useFriendships`, `useProfileLike`, `usePostComments`, `useBroadcastComments` (others already had it). **Exception — broadcast channels are the opposite:** typing indicator uses a *shared* name `` `typing:${conversationId}` `` (no instance suffix) so both riders are on the same channel. Broadcast = ephemeral pub/sub, no DB writes, no RLS (payload carries no message content; conversation id is an unguessable UUID).
+- **Read receipts are reciprocal & RLS-gated.** `conversation_notifications` SELECT: own row always; another participant's `read_at` only when BOTH riders have `read_receipts_enabled = true`. The client hook (`useConversationReadState`) gets `null` when receipts are off either side → no "Read" shown. Realtime respects the same RLS, so disabled receipts simply never deliver the event.
+- **Shared query keys MUST share the same fetcher/shape.** `useUnreadMessageCount` (bottom-nav badge) and `useConversations` (chats page) both use `['conversations', userId]`. A reduced-column query in one *clobbered* the cache the other read → `participant_ids` dropped → chat avatars vanished. Always reuse the same API fn (`getConversations`) when sharing a cache key.
+- **Unread = `last_message_at > read_at` is wrong for your own sends.** Sending bumps `last_message_at` past your own `read_at` → false unread glow. Gate on the latest message's sender: skip unread when `last_message.from_user_id === currentUserId` (in both `ConversationsPage.unreadMap` and `useUnreadMessageCount`).
+- **Eager-loaded modules must NOT import hook modules.** `query-client.js` and `use-app-resume-refresh.js` are loaded at boot; importing a lazy hook module's key-factory pulls it into the boot chunk and causes a TDZ when the lazy page chunk re-evaluates it. Inline the key shapes (e.g. `['notifications']`) instead of importing `notificationKeys`.
 
 ---
 
@@ -311,7 +298,7 @@ const { showPopup } = useMapLibrePopup(mapRef);
 ---
 
 ## Linting Configuration
-ESLint runs on `src/components/**`, `src/features/**`, `src/hooks/**`, `src/providers/**`, `src/utils/**`, `src/App.jsx`, and `src/main.jsx` (excludes `src/lib/` and `src/components/ui/`). Rules: no unused imports (auto-removed via `eslint-plugin-unused-imports`), React hooks rules, no prop-types required (uses JSDoc for types). **`react/jsx-no-undef` and `no-undef` are enabled** (added 2026-06-01) so a missing import — undefined JSX element *or* undefined function call like `cn(...)` — fails `npm run lint` instead of crashing on device. A test-file override (`**/*.test.*`, `**/*.spec.*`) declares Vitest globals (`vi`, `describe`, `it`, `expect`, …) so `no-undef` doesn't false-positive on them. ⚠️ Neither the Vite build nor the prior lint config caught undefined references in plain JS — `no-undef` is the only guard, so keep it on.
+ESLint runs on `src/components/**`, `src/features/**`, `src/hooks/**`, `src/providers/**`, `src/utils/**`, `src/App.jsx`, and `src/main.jsx` (excludes `src/lib/` and `src/components/ui/`). Rules: no unused imports (auto-removed via `eslint-plugin-unused-imports`), React hooks rules, no prop-types required (uses JSDoc for types). **`react/jsx-no-undef` and `no-undef` are enabled** (added 2026-06-01) so a missing import — undefined JSX element *or* undefined function call like `cn(...)` — fails `npm run lint` instead of crashing on device. A test-file override (`**/*.test.*`, `**/*.spec.*`) declares Vitest globals (`vi`, `describe`, `it`, `expect`, …) so `no-undef` doesn't false-positive on them. ⚠️ Neither the Vite build nor the prior lint config caught undefined references in plain JS — `no-undef` is the only guard, so keep it on. **`no-use-before-define` (`variables: true`, `functions: false`) is also enabled** (2026-06-09) — catches the TDZ class where a `const`/`useMemo`/`useEffect` references a `const` declared later in the same scope (this crashed the notifications + rider-search pages on device but passed build/lint before the rule). Function hoisting and module-level components used by earlier components are intentionally allowed.
 
 ## Path Aliases
 `@/` maps to `src/` (configured in `vite.config.js` and `jsconfig.json`):
@@ -398,28 +385,15 @@ None blocking.
 ### 1. Slow loading of EXISTING profile images — DO VIA SUPABASE PRO after upgrade
 Bike photo + shots images are served as **full-resolution public URLs** (stored ≤1600px, rendered in ~150px tiles) with **no resize**. Org is on the **FREE plan**, so render transforms (`?width=`) are unavailable. **Decision made:** owner is upgrading to **Supabase Pro** (~$25/mo), then the fix is a one-helper change to use `getPublicUrl(path, { transform: { width } })` sized per render context (avatar/tile ~150–300px, detail ~1080px) — works on **all** existing + new images, no backfill, no third-party. **Trigger: do this once Pro is active.** (Note: the *upload* "file too large" issue was separate and already fixed — `25f679a` raised caps so phone photos aren't rejected pre-downscale.)
 
-### 2. ✅ Refactor: share the common bits of `ProfilePage` and `RiderProfilePage` — DONE 2026-06-08
-Extracted `ProfileIdentitySection` (avatar + name + bio + stats row) and `src/features/profile/constants/profileStyles.js` (tab classes + ambient styles). Both pages now import from one source. Commit: `fff8095`.
-
-### 3. ✅ Radar location gate — Step 3 auto-dismiss — DONE 2026-06-08
-`visibilitychange` + `navigator.permissions.query` on `BroadcastFeedPage` — auto-retries location on app resume if permission is already granted. Chip remains for manual fallback. Commit: `b7dc06c`.
-
-### 4. ✅ Add "Cancel request" to the profile's "Request sent" state — DONE 2026-06-08
-`useCancelConnectionRequest` wired into `RiderProfilePage` outgoing-pending state. Cancel button next to the disabled "Request sent" pill. Commit: `e62a911`.
-
-### 5. ✅ Admin Reports: disambiguate "Remove content" vs "Mark resolved" — DONE 2026-06-08
-Renamed "Take Action" → "Remove content", renamed "Resolved" → "Mark resolved", added faint divider between status-only and destructive actions, strengthened confirm dialogs. Commit: `21b4939`.
-
-### 6. Native-build-only polish (Capacitor iOS/Android — not possible in the PWA)
+### 2. Native-build-only polish (Capacitor iOS/Android — not possible in the PWA)
 Items that **cannot** be done from the web/PWA and are deferred to the native Capacitor shell:
 - **Remove the iOS keyboard accessory bar** (the up/down-arrow + "Done" form-assistant toolbar above the keyboard). It's OS chrome (WKWebView/UIKit), not in the DOM — no web API hides it. Native fix: override the web view's `inputAccessoryView` to `nil` (or a Capacitor keyboard plugin/config). Requested 2026-06-02 for the comment composer; PWA can't do it.
 - **"Open Settings" button** for the location gate's denied state (and any future "go enable a permission" flow). iOS PWA can't deep-link to Settings; native can via `UIApplication.openSettingsURLString`. (See Radar location-gate work.)
 - General permission-state APIs (proper geolocation permission query) are more reliable in native than the PWA's visualViewport/error-based inference.
 
-### 7. New features queued (net-new scope, not yet started)
-- **Rider search** — find riders by name or username
-- **Signal history tab** — past/expired broadcasts on profile ("Rides" tab)
+### 3. New features queued (net-new scope, not yet started)
 - **Message reactions** — react to messages with emoji
+(Rider search shipped via the header search overlay; signal history tab was rejected by owner.)
 
 ## Dead Ends — Approaches Already Tried That Did NOT Work
 
