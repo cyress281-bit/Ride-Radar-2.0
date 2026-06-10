@@ -196,10 +196,9 @@ function ProfilePage() {
             <button
               onClick={() => navigate('/profile/edit')}
               className={cn(
-                'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-5 py-2.5',
-                'border border-white/[0.10] bg-black/20 text-sm font-bold text-foreground backdrop-blur-xl',
-                'transition-all hover:border-primary/35 hover:bg-primary/[0.08] hover:text-primary active:scale-95',
-                'shadow-[inset_0_1px_0_hsl(0_0%_100%/0.04),0_0_18px_hsl(var(--primary)/0.10)]',
+                'inline-flex min-h-[44px] items-center justify-center gap-2 px-5 py-2.5',
+                'text-sm font-bold text-foreground',
+                'transition-all hover:text-primary active:scale-95',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background'
               )}
             >
