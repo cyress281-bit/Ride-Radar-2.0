@@ -89,10 +89,6 @@ function ConversationsPage() {
     <div className="relative bg-background min-h-dvh">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-brand-radar/[0.08] via-brand-radar/[0.03] to-transparent"
-      />
-      <div
-        aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-primary/[0.06] via-transparent to-transparent"
       />
       <div
@@ -112,9 +108,9 @@ function ConversationsPage() {
               type="button"
               onClick={() => setActiveTab('chats')}
               className={cn(
-                'min-h-[44px] rounded-full border px-4 py-1.5 text-sm font-semibold transition-all shadow-[0_10px_24px_hsl(0_0%_0%/0.16)]',
+                'flex-1 min-h-[44px] rounded-full border px-3 py-1.5 text-sm font-semibold transition-all',
                 activeTab === 'chats'
-                  ? 'border-primary/30 bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.22)]'
+                  ? 'border-primary/30 bg-primary text-primary-foreground'
                   : 'border-primary/20 bg-transparent text-muted-foreground hover:border-primary/35 hover:bg-primary/[0.04] hover:text-foreground',
               )}
             >
@@ -125,9 +121,9 @@ function ConversationsPage() {
               type="button"
               onClick={() => setActiveTab('crew')}
               className={cn(
-                'min-h-[44px] rounded-full border px-4 py-1.5 text-sm font-semibold transition-all shadow-[0_10px_24px_hsl(0_0%_0%/0.16)]',
+                'flex-1 min-h-[44px] rounded-full border px-3 py-1.5 text-sm font-semibold transition-all',
                 activeTab === 'crew'
-                  ? 'border-primary/30 bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.22)]'
+                  ? 'border-primary/30 bg-primary text-primary-foreground'
                   : 'border-primary/20 bg-transparent text-muted-foreground hover:border-primary/35 hover:bg-primary/[0.04] hover:text-foreground',
               )}
             >
@@ -138,9 +134,9 @@ function ConversationsPage() {
               type="button"
               onClick={() => setActiveTab('requests')}
               className={cn(
-                'relative min-h-[44px] rounded-full border px-4 py-1.5 text-sm font-semibold transition-all shadow-[0_10px_24px_hsl(0_0%_0%/0.16)]',
+                'relative flex-1 min-h-[44px] rounded-full border px-3 py-1.5 text-sm font-semibold transition-all',
                 activeTab === 'requests'
-                  ? 'border-primary/30 bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.22)]'
+                  ? 'border-primary/30 bg-primary text-primary-foreground'
                   : 'border-primary/20 bg-transparent text-muted-foreground hover:border-primary/35 hover:bg-primary/[0.04] hover:text-foreground',
               )}
             >
