@@ -227,7 +227,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             aria-label="Ride Radar home"
           >
             {isRadar ? (
-              <span className="text-sm font-extrabold uppercase tracking-[0.18em] text-primary rr-neon-green drop-shadow-[0_0_10px_hsl(var(--primary)/0.65)]">
+              <span className="text-lg font-bold uppercase tracking-[0.22em] text-primary [text-shadow:0_0_14px_hsl(var(--primary)/0.3)]">
                 Ride Radar
               </span>
             ) : (
