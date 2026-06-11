@@ -105,7 +105,6 @@ const ConversationItem = memo(function ConversationItem({
               <AvatarWithStatus
                 url={profile?.avatar_url}
                 name={profile?.display_name}
-                status={profile?.is_online ? 'online' : 'offline'}
                 size="lg"
                 className={cn(
                   hasUnread && 'ring-2 ring-primary/30 ring-offset-2 ring-offset-background rounded-full'

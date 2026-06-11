@@ -383,7 +383,6 @@ function SettingsPage() {
             <AvatarWithStatus
               url={profile?.avatar_url}
               name={profile?.display_name}
-              status="online"
               size="md"
             />
             <VStack flex className="min-w-0">

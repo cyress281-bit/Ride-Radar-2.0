@@ -50,7 +50,6 @@ const IncomingRequestRow = memo(function IncomingRequestRow({ request, senderPro
         <AvatarWithStatus
           url={senderProfile?.avatar_url}
           name={senderProfile?.display_name}
-          status="offline"
           size="md"
         />
         <VStack className="min-w-0">
@@ -104,7 +103,6 @@ const OutgoingRequestRow = memo(function OutgoingRequestRow({ request, recipient
         <AvatarWithStatus
           url={recipientProfile?.avatar_url}
           name={recipientProfile?.display_name}
-          status="offline"
           size="md"
         />
         <VStack className="min-w-0">

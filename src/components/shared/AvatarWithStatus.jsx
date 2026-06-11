@@ -27,21 +27,22 @@ const DOT_SIZE_MAP = {
  * @param {object} props
  * @param {string} [props.url] - Avatar image URL
  * @param {string} props.name - Display name for fallback initials
- * @param {'online'|'away'|'busy'|'offline'} [props.status='offline'] - Status indicator color
+ * @param {'online'|'away'|'busy'|'offline'} [props.status] - Status dot color. Omit
+ *   to render no dot (the app has no real presence system, so callers leave it off).
  * @param {'sm'|'md'|'lg'} [props.size='md'] - Avatar size
  * @param {string} [props.className] - Additional classes for the wrapper
  */
 export const AvatarWithStatus = memo(function AvatarWithStatus({
   url,
   name,
-  status = 'offline',
+  status,
   size = 'md',
   className,
 }) {
   const initial = name?.[0]?.toUpperCase() || '?';
   const sizeClass = SIZE_MAP[size] || SIZE_MAP.md;
   const dotSizeClass = DOT_SIZE_MAP[size] || DOT_SIZE_MAP.md;
-  const statusColor = STATUS_COLORS[status] || STATUS_COLORS.offline;
+  const statusColor = STATUS_COLORS[status];
 
   return (
     <div className={cn('relative inline-flex', className)}>
@@ -52,15 +53,17 @@ export const AvatarWithStatus = memo(function AvatarWithStatus({
         </AvatarFallback>
       </Avatar>
 
-      {/* Status dot */}
-      <span
-        className={cn(
-          'absolute bottom-0 right-0',
-          'rounded-full border-2 border-background',
-          dotSizeClass,
-          statusColor
-        )}
-      />
+      {/* Status dot — only when a real status is provided (no presence system yet) */}
+      {statusColor && (
+        <span
+          className={cn(
+            'absolute bottom-0 right-0',
+            'rounded-full border-2 border-background',
+            dotSizeClass,
+            statusColor
+          )}
+        />
+      )}
     </div>
   );
 });

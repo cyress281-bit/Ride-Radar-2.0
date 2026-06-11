@@ -213,7 +213,6 @@ export const RideCard = memo(
               src={author?.avatar_url}
               name={author?.display_name || 'Rider'}
               size="sm"
-              status={author?.is_online ? 'online' : 'offline'}
               ring="none"
             />
             <VStack gap={0.5}>

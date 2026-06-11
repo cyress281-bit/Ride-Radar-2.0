@@ -81,7 +81,6 @@ const ResultCard = memo(function ResultCard({
         <AvatarWithStatus
           url={result.avatar_url}
           name={displayName}
-          status="offline"
           size="md"
         />
         <VStack className="min-w-0 flex-1">
@@ -105,7 +104,6 @@ const ResultCard = memo(function ResultCard({
         <AvatarWithStatus
           url={result.avatar_url}
           name={displayName}
-          status="offline"
           size="md"
         />
       </button>

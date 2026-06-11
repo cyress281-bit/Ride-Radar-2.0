@@ -345,7 +345,6 @@ function ConversationPage() {
             <AvatarWithStatus
               url={otherProfile.avatar_url}
               name={otherProfile.display_name}
-              status={otherProfile.is_online ? 'online' : 'offline'}
               size="md"
             />
             <VStack flex className="min-w-0">

@@ -56,7 +56,6 @@ const FriendRow = memo(function FriendRow({ friendship, friendProfile, currentUs
         <AvatarWithStatus
           url={friendProfile?.avatar_url}
           name={friendProfile?.display_name}
-          status="offline"
           size="md"
         />
         <VStack className="min-w-0">
