@@ -317,6 +317,7 @@ function BroadcastFeedPage() {
         usingOfflineSnapshot={usingOfflineSnapshot}
         isLiveMapVisible={isLiveMapVisible}
         sheetOpen={sheetOpen}
+        gateVisible={!hasUserLocation && !gateDismissed && !usingOfflineSnapshot}
         needsResumePrompt={needsResumePrompt}
         markLiveSessionActive={markLiveSessionActive}
         clearLiveSession={clearLiveSession}

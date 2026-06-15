@@ -85,6 +85,7 @@ const RadarOverlay = memo(function RadarOverlay({
   usingOfflineSnapshot,
   isLiveMapVisible,
   sheetOpen = false,
+  gateVisible = false,
   // Fix C — resume awareness callbacks from useLiveMapPresence
   needsResumePrompt = false,
   markLiveSessionActive,
@@ -412,7 +413,7 @@ const RadarOverlay = memo(function RadarOverlay({
         ref={padElRef}
         className={cn(
           'absolute z-[25]',
-          sheetOpen
+          sheetOpen || gateVisible
             ? 'opacity-0 scale-95 pointer-events-none transition-all duration-300'
             : 'opacity-100 scale-100 pointer-events-auto'
         )}
