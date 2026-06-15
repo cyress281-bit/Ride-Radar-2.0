@@ -53,7 +53,7 @@ function AdminUsersContent() {
   );
 
   const setRole = useMutation({
-    mutationFn: updateUserRole,
+    mutationFn: ({ id, role }) => updateUserRole(id, role),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
     onError: (err) => toast.error(err?.message || 'Failed to update user role'),
   });
