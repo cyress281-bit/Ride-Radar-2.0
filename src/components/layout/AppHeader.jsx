@@ -210,7 +210,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
             aria-label="Settings"
             {...withRoutePreload(preloadSettings, () => prefetchSettings(qc, user?.id))}
           >
-            <Settings className="w-[18px] h-[18px]" aria-hidden="true" />
+            <Settings className="w-5 h-5" aria-hidden="true" />
           </NavLink>
         ) : isMainPage ? (
           // Messages: no logo — reachable via bottom nav. Empty spacer preserves the
@@ -253,7 +253,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
         </div>
 
         {/* Right: Actions */}
-        <HStack align="center" gap={1} role="group" aria-label="Header actions">
+        <HStack align="center" gap={2} role="group" aria-label="Header actions">
           {!hideHeaderActions && (
             <>
               {isAdmin && (
@@ -269,7 +269,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
                   aria-label="Admin panel"
                   {...withRoutePreload(preloadAdminDashboard, () => prefetchAdminDashboard(qc))}
                 >
-                  <ShieldAlert className="w-[18px] h-[18px]" aria-hidden="true" />
+                  <ShieldAlert className="w-5 h-5" aria-hidden="true" />
                 </NavLink>
               )}
 
@@ -285,7 +285,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
                 )}
                 aria-label="Search riders"
               >
-                <Search className="w-[18px] h-[18px]" aria-hidden="true" />
+                <Search className="w-5 h-5" aria-hidden="true" />
               </button>
 
               <NavLink
@@ -304,7 +304,7 @@ const AppHeader = memo(function AppHeader({ isOverlay = false }) {
                 aria-label="Notifications"
                 {...withRoutePreload(preloadNotifications, () => prefetchNotifications(qc, user?.id))}
               >
-                <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
+                <Bell className="w-5 h-5" aria-hidden="true" />
                 {unreadCount > 0 && (
                   <span
                     className="absolute top-2 right-2 h-2 w-2 rounded-full bg-brand-emergency ring-2 ring-background animate-pulse"
