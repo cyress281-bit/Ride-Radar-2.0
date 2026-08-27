@@ -1,0 +1,82 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "conversationId": {
+      "type": "string"
+    },
+    "fromUserId": {
+      "type": "string",
+      "description": "Sender profile id"
+    },
+    "fromAuthUserId": {
+      "type": "string",
+      "description": "Sender auth user id"
+    },
+    "participantAUserId": {
+      "type": "string"
+    },
+    "participantBUserId": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "isRead": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "conversationId",
+    "fromUserId",
+    "fromAuthUserId",
+    "participantAUserId",
+    "participantBUserId",
+    "body"
+  ],
+  "rls": {
+    "create": {
+      "data.fromAuthUserId": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.participantAUserId": "{{user.id}}"
+        },
+        {
+          "data.participantBUserId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.fromAuthUserId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.fromAuthUserId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string",
+      "description": "Unique handle (auto-generated, optional)"
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "avatar": {
+      "type": "string",
+      "description": "Avatar image URL"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string",
+      "description": "City/region text"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "non_binary",
+        "prefer_not_to_say",
+        "custom"
+      ],
+      "description": "Optional gender selection"
+    },
+    "customGender": {
+      "type": "string",
+      "description": "Optional custom gender value when gender is custom"
+    },
+    "showGenderPublicly": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether gender is visible on public profile views"
+    },
+    "rideStyle": {
+      "type": "string",
+      "enum": [
+        "street",
+        "sport",
+        "cruiser",
+        "adventure",
+        "touring",
+        "offroad",
+        "track",
+        "other"
+      ]
+    },
+    "bike": {
+      "type": "string",
+      "description": "Free text bike description"
+    },
+    "bikePhoto": {
+      "type": "string",
+      "description": "Optional single bike photo URL"
+    },
+    "isPublic": {
+      "type": "boolean",
+      "default": true
+    },
+    "isDeleted": {
+      "type": "boolean",
+      "default": false
+    },
+    "deletedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "avatar",
+    "bike"
+  ],
+  "rls": {
+    "create": {
+      "data.userId": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.isPublic": true
+        },
+        {
+          "data.userId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.userId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

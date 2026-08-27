@@ -1,0 +1,130 @@
+{
+  "name": "Broadcast",
+  "type": "object",
+  "properties": {
+    "authorId": {
+      "type": "string"
+    },
+    "authorUserId": {
+      "type": "string",
+      "description": "Auth user id of the broadcast author"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "solo_ride",
+        "event",
+        "iso",
+        "alert"
+      ]
+    },
+    "isoSubtype": {
+      "type": "string",
+      "enum": [
+        "mechanic",
+        "bike_crew"
+      ],
+      "description": "Only for ISO broadcasts"
+    },
+    "title": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "frozenLat": {
+      "type": "number",
+      "description": "Fuzzed lat for Solo/ISO"
+    },
+    "frozenLng": {
+      "type": "number",
+      "description": "Fuzzed lng for Solo/ISO"
+    },
+    "exactLocationText": {
+      "type": "string",
+      "description": "Exact for Events; approximate area text for Alerts"
+    },
+    "eventDate": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "eventEndTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "eventImage": {
+      "type": "string",
+      "description": "Optional event image URL"
+    },
+    "alertImages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Optional alert photo URLs, maximum 2"
+    },
+    "mediaUrls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tracked uploaded media URLs referenced by this broadcast"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "removed"
+      ],
+      "default": "active"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "authorId",
+    "authorUserId",
+    "type",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "data.authorUserId": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.status": "active"
+        },
+        {
+          "data.authorUserId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.authorUserId": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
