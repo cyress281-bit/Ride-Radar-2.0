@@ -43,3 +43,4 @@ NUL
 .env*.local
 
 .env*
+base44/.app.jsonc
