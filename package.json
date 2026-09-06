@@ -16,6 +16,8 @@
     "analyze": "npx vite-bundle-visualizer"
   },
   "dependencies": {
+    "@base44/sdk": "^0.8.46",
+    "@base44/vite-plugin": "^1.0.35",
     "@capacitor/android": "^8.3.4",
     "@capacitor/core": "^8.3.4",
     "@capacitor/ios": "^8.3.4",
